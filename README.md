@@ -1,5 +1,7 @@
 # Beyond Borders
 
+![CI](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/ci.yml/badge.svg)
+
 Add a circular, flag-colored border to your profile picture to show support for marginalized groups and selected causes.
 
 ## Overview
