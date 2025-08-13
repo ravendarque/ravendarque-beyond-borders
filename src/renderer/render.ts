@@ -5,6 +5,7 @@ export interface RenderOptions {
   thicknessPct: number // 5..20
   paddingPct?: number
   outerStroke?: { color: string; widthPx: number }
+  imageInsetPx?: number // inset between image edge and inner ring
 }
 
 export async function renderAvatar(
@@ -20,24 +21,29 @@ export async function renderAvatar(
   const canvas = new OffscreenCanvas(size, size)
   const ctx = canvas.getContext('2d')!
 
-  // Draw circular masked image
+  // Geometry
   const r = size / 2
+  const ringOuter = r - Math.max(1, padding)
+  const ringInner = Math.max(0, ringOuter - thickness)
+  const imageInset = Math.max(0, options.imageInsetPx ?? 2)
+  const imageRadius = Math.max(0, ringInner - imageInset)
+
+  // Draw circular masked image (kept inside border)
   ctx.save()
   ctx.beginPath()
-  ctx.arc(r, r, r - 0.5, 0, Math.PI * 2)
+  ctx.arc(r, r, imageRadius, 0, Math.PI * 2)
   ctx.closePath()
   ctx.clip()
 
-  // Fit image into the circle (cover)
+  // Fit image into the inner circle (cover)
   const iw = image.width, ih = image.height
-  const scale = Math.max(size / iw, size / ih)
+  const target = imageRadius * 2
+  const scale = Math.max(target / iw, target / ih)
   const dw = iw * scale, dh = ih * scale
-  ctx.drawImage(image, (size - dw) / 2, (size - dh) / 2, dw, dh)
+  ctx.drawImage(image, r - dw / 2, r - dh / 2, dw, dh)
   ctx.restore()
 
   // Draw ring segments for the flag
-  const ringOuter = r - Math.max(1, padding)
-  const ringInner = Math.max(0, ringOuter - thickness)
 
   // Build segments from stripes: map stripes -> polar arcs around the circle
   const stripes = flag.pattern.stripes

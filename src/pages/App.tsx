@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { flags } from '@/flags/flags'
 import type { FlagSpec } from '@/flags/schema'
 import { renderAvatar } from '@/renderer/render'
@@ -6,7 +6,7 @@ import { renderAvatar } from '@/renderer/render'
 export function App() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [flagId, setFlagId] = useState(flags[0]?.id ?? '')
-  const [thickness, setThickness] = useState(12)
+  const [thickness, setThickness] = useState(7)
   const [size, setSize] = useState<512 | 1024>(512)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
@@ -22,9 +22,10 @@ export function App() {
   async function draw() {
     if (!imageUrl || !selectedFlag || !canvasRef.current) return
     const img = await createImageBitmap(await (await fetch(imageUrl)).blob())
-  const blob = await renderAvatar(img, selectedFlag, {
+    const blob = await renderAvatar(img, selectedFlag, {
       size,
       thicknessPct: thickness,
+      imageInsetPx: 1,
     })
     const c = canvasRef.current
     const ctx = c.getContext('2d')!
@@ -37,6 +38,12 @@ export function App() {
   await new Promise(resolve => { tmp.onload = () => resolve(null) })
   ctx.drawImage(tmp, 0, 0)
   }
+
+  useEffect(() => {
+    // Auto-apply whenever inputs change
+    draw()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageUrl, flagId, thickness, size])
 
   return (
     <div style={{padding:16, maxWidth: 900, margin: '0 auto'}}>
@@ -79,13 +86,12 @@ export function App() {
           </div>
 
           <div style={{marginTop:12, display:'flex', gap:8}}>
-            <button disabled={!imageUrl} onClick={draw}>Preview</button>
             {imageUrl && selectedFlag && (
               <a
                 onClick={async (e) => {
                   e.preventDefault()
                   const img = await createImageBitmap(await (await fetch(imageUrl)).blob())
-                  const blob = await renderAvatar(img, selectedFlag, { size, thicknessPct: thickness })
+                  const blob = await renderAvatar(img, selectedFlag, { size, thicknessPct: thickness, imageInsetPx: 1 })
                   const a = document.createElement('a')
                   a.href = URL.createObjectURL(blob)
                   a.download = `beyond-borders_${selectedFlag.id}_${size}.png`
