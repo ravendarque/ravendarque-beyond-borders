@@ -8,7 +8,7 @@ export function App() {
   const [flagId, setFlagId] = useState(flags[0]?.id ?? '')
   const [thickness, setThickness] = useState(7)
   const [size, setSize] = useState<512 | 1024>(512)
-  const [insetPx, setInsetPx] = useState(0) // +inset, -outset
+  const [insetPct, setInsetPct] = useState(0) // +inset, -outset as percent of size
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const selectedFlag = useMemo<FlagSpec | undefined>(() => flags.find(f => f.id === flagId), [flagId])
@@ -23,10 +23,11 @@ export function App() {
   async function draw() {
     if (!imageUrl || !selectedFlag || !canvasRef.current) return
     const img = await createImageBitmap(await (await fetch(imageUrl)).blob())
+    const imageInsetPx = Math.round((insetPct / 100) * size)
     const blob = await renderAvatar(img, selectedFlag, {
       size,
       thicknessPct: thickness,
-      imageInsetPx: insetPx,
+      imageInsetPx,
     })
     const c = canvasRef.current
     const ctx = c.getContext('2d')!
@@ -44,7 +45,7 @@ export function App() {
     // Auto-apply whenever inputs change
     draw()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageUrl, flagId, thickness, size])
+  }, [imageUrl, flagId, thickness, size, insetPct])
 
   return (
     <div style={{padding:16, maxWidth: 900, margin: '0 auto'}}>
@@ -88,14 +89,14 @@ export function App() {
 
           <div style={{marginTop:12}}>
             <label>
-              Inset (+) / Outset (-): {insetPx}px
+              Inset (+) / Outset (-): {insetPct}%
               <input
                 type="range"
-                min={-12}
-                max={12}
+                min={-5}
+                max={5}
                 step={1}
-                value={insetPx}
-                onChange={e => setInsetPx(parseInt(e.target.value))}
+                value={insetPct}
+                onChange={e => setInsetPct(parseInt(e.target.value))}
               />
             </label>
           </div>
@@ -106,7 +107,11 @@ export function App() {
                 onClick={async (e) => {
                   e.preventDefault()
                   const img = await createImageBitmap(await (await fetch(imageUrl)).blob())
-                  const blob = await renderAvatar(img, selectedFlag, { size, thicknessPct: thickness, imageInsetPx: insetPx })
+                  const blob = await renderAvatar(
+                    img,
+                    selectedFlag,
+                    { size, thicknessPct: thickness, imageInsetPx: Math.round((insetPct/100) * size) }
+                  )
                   const a = document.createElement('a')
                   a.href = URL.createObjectURL(blob)
                   a.download = `beyond-borders_${selectedFlag.id}_${size}.png`
