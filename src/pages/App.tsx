@@ -156,7 +156,34 @@ export function App() {
         </div>
 
         <div>
-          <canvas ref={canvasRef} width={size} height={size} style={{width: size/2, height: size/2, border:'1px solid #ddd', borderRadius: 8}} />
+          <div
+            style={{
+              width: size / 2,
+              height: size / 2,
+              border: '1px solid #ddd',
+              borderRadius: 8,
+              overflow: 'hidden',
+              ...(bg === 'transparent'
+                ? {
+                    backgroundColor: '#fff',
+                    backgroundImage:
+                      'linear-gradient(45deg, #eee 25%, transparent 25%),\
+linear-gradient(-45deg, #eee 25%, transparent 25%),\
+linear-gradient(45deg, transparent 75%, #eee 75%),\
+linear-gradient(-45deg, transparent 75%, #eee 75%)',
+                    backgroundSize: '16px 16px',
+                    backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0',
+                  }
+                : {}),
+            }}
+          >
+            <canvas
+              ref={canvasRef}
+              width={size}
+              height={size}
+              style={{ width: '100%', height: '100%', display: 'block' }}
+            />
+          </div>
         </div>
       </div>
     </div>
