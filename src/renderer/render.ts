@@ -8,6 +8,7 @@ export interface RenderOptions {
   imageInsetPx?: number // inset between image edge and inner ring
   backgroundColor?: string | null // null => transparent
   borderShape?: 'circle' | 'rect'
+  outputMode?: 'avatar-circle' | 'original-rect'
 }
 
 export async function renderAvatar(
@@ -16,26 +17,40 @@ export async function renderAvatar(
   options: RenderOptions
 ): Promise<Blob> {
   const size = options.size
-  const thickness = Math.round((options.thicknessPct / 100) * size)
-  const padding = Math.round(((options.paddingPct ?? 0) / 100) * size)
+  const mode = options.outputMode ?? 'avatar-circle'
+  let canvasW: number = size
+  let canvasH: number = size
 
-  // Create canvas
-  const canvas = new OffscreenCanvas(size, size)
+  if (mode === 'original-rect') {
+    // Preserve original aspect ratio; scale longest edge to 'size'
+    const iw = image.width, ih = image.height
+    const scale = size / Math.max(iw, ih)
+    canvasW = Math.max(1, Math.round(iw * scale))
+    canvasH = Math.max(1, Math.round(ih * scale))
+  }
+
+  // Compute px metrics against the smaller dimension to keep thickness consistent
+  const base = Math.min(canvasW, canvasH)
+  const thickness = Math.round((options.thicknessPct / 100) * base)
+  const padding = Math.round(((options.paddingPct ?? 0) / 100) * base)
+
+  // Create canvas now that dimensions are known
+  const canvas = new OffscreenCanvas(canvasW, canvasH)
   const ctx = canvas.getContext('2d')!
 
   // Background fill (optional, else transparent)
   if (options.backgroundColor) {
     ctx.save()
     ctx.fillStyle = options.backgroundColor
-    ctx.fillRect(0, 0, size, size)
+    ctx.fillRect(0, 0, canvasW, canvasH)
     ctx.restore()
   }
 
-  const shape = options.borderShape ?? 'circle'
+  const shape = mode === 'avatar-circle' ? 'circle' : 'rect'
 
   if (shape === 'circle') {
     // Geometry
-    const r = size / 2
+  const r = Math.min(canvasW, canvasH) / 2
     const ringOuter = r - Math.max(1, padding)
     const ringInner = Math.max(0, ringOuter - thickness)
     const imageInset = options.imageInsetPx ?? 0 // can be negative (outset)
@@ -49,11 +64,13 @@ export async function renderAvatar(
     ctx.clip()
 
     // Fit image into the inner circle (cover)
-    const iw = image.width, ih = image.height
+  const iw = image.width, ih = image.height
     const target = imageRadius * 2
     const scale = Math.max(target / iw, target / ih)
     const dw = iw * scale, dh = ih * scale
-    ctx.drawImage(image, r - dw / 2, r - dh / 2, dw, dh)
+  // Center in canvas regardless of rectangular canvas
+  const cx = canvasW / 2, cy = canvasH / 2
+  ctx.drawImage(image, cx - dw / 2, cy - dh / 2, dw, dh)
     ctx.restore()
 
     // Draw ring segments for the flag
@@ -71,7 +88,7 @@ export async function renderAvatar(
     // Optional outer stroke
     if (options.outerStroke) {
       ctx.beginPath()
-      ctx.arc(r, r, ringOuter, 0, Math.PI * 2)
+      ctx.arc(canvasW / 2, canvasH / 2, ringOuter, 0, Math.PI * 2)
       ctx.strokeStyle = options.outerStroke.color
       ctx.lineWidth = options.outerStroke.widthPx
       ctx.stroke()
@@ -79,10 +96,11 @@ export async function renderAvatar(
   } else {
     // Rectilinear border: concentric rectangular bands
     const outer = padding
-    const ringOuterRect = { x: outer, y: outer, w: size - 2 * outer, h: size - 2 * outer }
+    const ringOuterRect = { x: outer, y: outer, w: canvasW - 2 * outer, h: canvasH - 2 * outer }
     const ringInnerRect = insetRect(ringOuterRect, thickness)
     const imageInset = options.imageInsetPx ?? 0
-    const imageRect = clampRect(insetRect(ringInnerRect, imageInset * -1), 0, size) // positive insetPct increased gap earlier
+  // Positive imageInset shrinks image (increases gap); negative expands toward the ring
+  const imageRect = clampRect(insetRect(ringInnerRect, imageInset), 0, Math.max(canvasW, canvasH))
 
     // Draw rectangular masked image
     ctx.save()
@@ -90,7 +108,8 @@ export async function renderAvatar(
     ctx.clip()
 
     const iw = image.width, ih = image.height
-    const scale = Math.max(imageRect.w / iw, imageRect.h / ih)
+  // Contain the entire image within the inner rectangle (no cropping)
+  const scale = Math.min(imageRect.w / iw, imageRect.h / ih)
     const dw = iw * scale, dh = ih * scale
     ctx.drawImage(image, imageRect.x + (imageRect.w - dw) / 2, imageRect.y + (imageRect.h - dh) / 2, dw, dh)
     ctx.restore()

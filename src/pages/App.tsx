@@ -11,6 +11,7 @@ export function App() {
   const [insetPct, setInsetPct] = useState(0) // +inset, -outset as percent of size
   const [bg, setBg] = useState<string | 'transparent'>('transparent')
   const [shape, setShape] = useState<'circle' | 'rect'>('circle')
+  const [mode, setMode] = useState<'avatar-circle' | 'original-rect'>('avatar-circle')
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const selectedFlag = useMemo<FlagSpec | undefined>(() => flags.find(f => f.id === flagId), [flagId])
@@ -34,6 +35,7 @@ export function App() {
       imageInsetPx,
       backgroundColor: bg === 'transparent' ? null : bg,
       borderShape: shape,
+      outputMode: mode,
     })
     const c = canvasRef.current
     const ctx = c.getContext('2d')!
@@ -51,7 +53,7 @@ export function App() {
     // Auto-apply whenever inputs change
     draw()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageUrl, flagId, thickness, size, insetPct, bg, shape])
+  }, [imageUrl, flagId, thickness, size, insetPct, bg, shape, mode])
 
   return (
     <div style={{padding:16, maxWidth: 900, margin: '0 auto'}}>
@@ -99,6 +101,16 @@ export function App() {
               <select value={shape} onChange={e => setShape(e.target.value as 'circle' | 'rect')}>
                 <option value="circle">Circle</option>
                 <option value="rect">Rectangle</option>
+              </select>
+            </label>
+          </div>
+
+          <div style={{marginTop:12}}>
+            <label>
+              Output mode
+              <select value={mode} onChange={e => setMode(e.target.value as any)}>
+                <option value="avatar-circle">Crop to circle (avatar)</option>
+                <option value="original-rect">Keep original aspect (border outside)</option>
               </select>
             </label>
           </div>
@@ -153,6 +165,7 @@ export function App() {
                       imageInsetPx: Math.round((insetPct * -1 / 100) * size),
             backgroundColor: bg === 'transparent' ? null : bg,
             borderShape: shape,
+            outputMode: mode,
                     }
                   )
                   const a = document.createElement('a')
