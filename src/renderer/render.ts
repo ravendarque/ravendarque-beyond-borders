@@ -25,8 +25,8 @@ export async function renderAvatar(
   const r = size / 2
   const ringOuter = r - Math.max(1, padding)
   const ringInner = Math.max(0, ringOuter - thickness)
-  const imageInset = Math.max(0, options.imageInsetPx ?? 2)
-  const imageRadius = Math.max(0, ringInner - imageInset)
+  const imageInset = options.imageInsetPx ?? 0 // can be negative (outset)
+  const imageRadius = clamp(ringInner - imageInset, 0, r - 0.5)
 
   // Draw circular masked image (kept inside border)
   ctx.save()
@@ -88,4 +88,8 @@ function drawRingArc(
   ctx.closePath()
   ctx.fillStyle = fill
   ctx.fill()
+}
+
+function clamp(n: number, min: number, max: number) {
+  return Math.min(Math.max(n, min), max)
 }

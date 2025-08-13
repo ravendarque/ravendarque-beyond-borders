@@ -8,6 +8,7 @@ export function App() {
   const [flagId, setFlagId] = useState(flags[0]?.id ?? '')
   const [thickness, setThickness] = useState(7)
   const [size, setSize] = useState<512 | 1024>(512)
+  const [insetPx, setInsetPx] = useState(0) // +inset, -outset
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const selectedFlag = useMemo<FlagSpec | undefined>(() => flags.find(f => f.id === flagId), [flagId])
@@ -25,7 +26,7 @@ export function App() {
     const blob = await renderAvatar(img, selectedFlag, {
       size,
       thicknessPct: thickness,
-      imageInsetPx: 1,
+      imageInsetPx: insetPx,
     })
     const c = canvasRef.current
     const ctx = c.getContext('2d')!
@@ -85,13 +86,27 @@ export function App() {
             </label>
           </div>
 
+          <div style={{marginTop:12}}>
+            <label>
+              Inset (+) / Outset (-): {insetPx}px
+              <input
+                type="range"
+                min={-12}
+                max={12}
+                step={1}
+                value={insetPx}
+                onChange={e => setInsetPx(parseInt(e.target.value))}
+              />
+            </label>
+          </div>
+
           <div style={{marginTop:12, display:'flex', gap:8}}>
             {imageUrl && selectedFlag && (
               <a
                 onClick={async (e) => {
                   e.preventDefault()
                   const img = await createImageBitmap(await (await fetch(imageUrl)).blob())
-                  const blob = await renderAvatar(img, selectedFlag, { size, thicknessPct: thickness, imageInsetPx: 1 })
+                  const blob = await renderAvatar(img, selectedFlag, { size, thicknessPct: thickness, imageInsetPx: insetPx })
                   const a = document.createElement('a')
                   a.href = URL.createObjectURL(blob)
                   a.download = `beyond-borders_${selectedFlag.id}_${size}.png`
