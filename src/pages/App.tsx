@@ -10,6 +10,7 @@ export function App() {
   const [size, setSize] = useState<512 | 1024>(512)
   const [insetPct, setInsetPct] = useState(0) // +inset, -outset as percent of size
   const [bg, setBg] = useState<string | 'transparent'>('transparent')
+  const [shape, setShape] = useState<'circle' | 'rect'>('circle')
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const selectedFlag = useMemo<FlagSpec | undefined>(() => flags.find(f => f.id === flagId), [flagId])
@@ -32,6 +33,7 @@ export function App() {
       thicknessPct: thickness,
       imageInsetPx,
       backgroundColor: bg === 'transparent' ? null : bg,
+      borderShape: shape,
     })
     const c = canvasRef.current
     const ctx = c.getContext('2d')!
@@ -49,7 +51,7 @@ export function App() {
     // Auto-apply whenever inputs change
     draw()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageUrl, flagId, thickness, size, insetPct, bg])
+  }, [imageUrl, flagId, thickness, size, insetPct, bg, shape])
 
   return (
     <div style={{padding:16, maxWidth: 900, margin: '0 auto'}}>
@@ -87,6 +89,16 @@ export function App() {
               <select value={size} onChange={e => setSize(parseInt(e.target.value) as 512 | 1024)}>
                 <option value={512}>512x512</option>
                 <option value={1024}>1024x1024</option>
+              </select>
+            </label>
+          </div>
+
+          <div style={{marginTop:12}}>
+            <label>
+              Border shape
+              <select value={shape} onChange={e => setShape(e.target.value as 'circle' | 'rect')}>
+                <option value="circle">Circle</option>
+                <option value="rect">Rectangle</option>
               </select>
             </label>
           </div>
@@ -132,14 +144,15 @@ export function App() {
                 onClick={async (e) => {
                   e.preventDefault()
                   const img = await createImageBitmap(await (await fetch(imageUrl)).blob())
-                  const blob = await renderAvatar(
+          const blob = await renderAvatar(
                     img,
                     selectedFlag,
                     {
                       size,
                       thicknessPct: thickness,
                       imageInsetPx: Math.round((insetPct * -1 / 100) * size),
-                      backgroundColor: bg === 'transparent' ? null : bg,
+            backgroundColor: bg === 'transparent' ? null : bg,
+            borderShape: shape,
                     }
                   )
                   const a = document.createElement('a')
