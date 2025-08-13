@@ -9,6 +9,7 @@ export function App() {
   const [thickness, setThickness] = useState(7)
   const [size, setSize] = useState<512 | 1024>(512)
   const [insetPct, setInsetPct] = useState(0) // +inset, -outset as percent of size
+  const [bg, setBg] = useState<string | 'transparent'>('transparent')
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const selectedFlag = useMemo<FlagSpec | undefined>(() => flags.find(f => f.id === flagId), [flagId])
@@ -23,11 +24,14 @@ export function App() {
   async function draw() {
     if (!imageUrl || !selectedFlag || !canvasRef.current) return
     const img = await createImageBitmap(await (await fetch(imageUrl)).blob())
-    const imageInsetPx = Math.round((insetPct / 100) * size)
+  // Inset (+) should increase the gap (smaller image radius), Outset (-) reduces it.
+  // Renderer interprets positive imageInsetPx as increasing gap, so negate here if current behavior is reversed.
+  const imageInsetPx = Math.round((insetPct * -1 / 100) * size)
     const blob = await renderAvatar(img, selectedFlag, {
       size,
       thicknessPct: thickness,
       imageInsetPx,
+      backgroundColor: bg === 'transparent' ? null : bg,
     })
     const c = canvasRef.current
     const ctx = c.getContext('2d')!
@@ -45,7 +49,7 @@ export function App() {
     // Auto-apply whenever inputs change
     draw()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageUrl, flagId, thickness, size, insetPct])
+  }, [imageUrl, flagId, thickness, size, insetPct, bg])
 
   return (
     <div style={{padding:16, maxWidth: 900, margin: '0 auto'}}>
@@ -89,6 +93,27 @@ export function App() {
 
           <div style={{marginTop:12}}>
             <label>
+              Background
+              <select value={bg} onChange={e => setBg(e.target.value as any)}>
+                <option value="transparent">Transparent</option>
+                <option value="#ffffff">White</option>
+                <option value="#000000">Black</option>
+                <option value="#f5f5f5">Light Gray</option>
+                <option value="#111827">Slate</option>
+              </select>
+            </label>
+            <input
+              type="color"
+              value={bg === 'transparent' ? '#ffffff' : bg}
+              onChange={e => setBg(e.target.value)}
+              disabled={bg === 'transparent'}
+              style={{marginLeft:8}}
+              aria-label="Custom background color"
+            />
+          </div>
+
+          <div style={{marginTop:12}}>
+            <label>
               Inset (+) / Outset (-): {insetPct}%
               <input
                 type="range"
@@ -110,7 +135,12 @@ export function App() {
                   const blob = await renderAvatar(
                     img,
                     selectedFlag,
-                    { size, thicknessPct: thickness, imageInsetPx: Math.round((insetPct/100) * size) }
+                    {
+                      size,
+                      thicknessPct: thickness,
+                      imageInsetPx: Math.round((insetPct * -1 / 100) * size),
+                      backgroundColor: bg === 'transparent' ? null : bg,
+                    }
                   )
                   const a = document.createElement('a')
                   a.href = URL.createObjectURL(blob)

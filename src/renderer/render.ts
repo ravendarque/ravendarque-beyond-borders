@@ -6,6 +6,7 @@ export interface RenderOptions {
   paddingPct?: number
   outerStroke?: { color: string; widthPx: number }
   imageInsetPx?: number // inset between image edge and inner ring
+  backgroundColor?: string | null // null => transparent
 }
 
 export async function renderAvatar(
@@ -20,6 +21,14 @@ export async function renderAvatar(
   // Create canvas
   const canvas = new OffscreenCanvas(size, size)
   const ctx = canvas.getContext('2d')!
+
+  // Background fill (optional, else transparent)
+  if (options.backgroundColor) {
+    ctx.save()
+    ctx.fillStyle = options.backgroundColor
+    ctx.fillRect(0, 0, size, size)
+    ctx.restore()
+  }
 
   // Geometry
   const r = size / 2
