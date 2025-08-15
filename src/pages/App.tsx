@@ -293,13 +293,21 @@ export function App() {
               })}
             >
               <Box
-                sx={{
+                sx={(theme) => ({
                   width: '100%',
                   aspectRatio: '1 / 1',
                   maxWidth: 360,
                   overflow: 'hidden',
                   display: 'block',
-                }}
+                  // If the user selected transparent, show a checkerboard behind the canvas
+                  backgroundColor: bg === 'transparent' ? theme.palette.background.paper : 'transparent',
+                  backgroundImage:
+                    bg === 'transparent'
+                      ? "linear-gradient(45deg,var(--muted-check) 25%, transparent 25%), linear-gradient(-45deg,var(--muted-check) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--muted-check) 75%), linear-gradient(-45deg, transparent 75%, var(--muted-check) 75%)"
+                      : 'none',
+                  backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
+                  backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0' : undefined,
+                })}
               >
                 <Box
                   component="canvas"
