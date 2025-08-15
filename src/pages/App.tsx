@@ -303,10 +303,10 @@ export function App() {
                   backgroundColor: bg === 'transparent' ? theme.palette.background.paper : 'transparent',
                   backgroundImage:
                     bg === 'transparent'
-                      ? "linear-gradient(45deg,var(--muted-check) 25%, transparent 25%), linear-gradient(-45deg,var(--muted-check) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--muted-check) 75%), linear-gradient(-45deg, transparent 75%, var(--muted-check) 75%)"
+                      ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%)"
                       : 'none',
                   backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
-                  backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0' : undefined,
+                  backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
                 })}
               >
                 <Box
