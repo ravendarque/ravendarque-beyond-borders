@@ -173,10 +173,10 @@ export function App() {
                           sx={{
                             width: 18,
                             height: 12,
-                            border: '1px solid #e6edf3',
+                            border: '1px solid var(--muted-border)',
                             bgcolor: '#fff',
                             backgroundImage:
-                              'linear-gradient(45deg,#e9eef3 25%, transparent 25%), linear-gradient(-45deg,#e9eef3 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e9eef3 75%), linear-gradient(-45deg, transparent 75%, #e9eef3 75%)',
+                              'linear-gradient(45deg,var(--muted-check) 25%, transparent 25%), linear-gradient(-45deg,var(--muted-check) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--muted-check) 75%), linear-gradient(-45deg, transparent 75%, var(--muted-check) 75%)',
                             backgroundSize: '18px 18px',
                             backgroundPosition: '0 0, 0 9px, 9px -9px, -9px 0',
                           }}
@@ -190,7 +190,7 @@ export function App() {
                           sx={{
                             width: 18,
                             height: 12,
-                            border: '1px solid #e6edf3',
+                            border: '1px solid var(--muted-border)',
                             bgcolor: '#ffffff',
                           }}
                         />
@@ -203,7 +203,7 @@ export function App() {
                           sx={{
                             width: 18,
                             height: 12,
-                            border: '1px solid #e6edf3',
+                            border: '1px solid var(--muted-border)',
                             bgcolor: '#000000',
                           }}
                         />
@@ -216,7 +216,7 @@ export function App() {
                           sx={{
                             width: 18,
                             height: 12,
-                            border: '1px solid #e6edf3',
+                            border: '1px solid var(--muted-border)',
                             bgcolor: '#f5f5f5',
                           }}
                         />
@@ -229,7 +229,7 @@ export function App() {
                           sx={{
                             width: 18,
                             height: 12,
-                            border: '1px solid #e6edf3',
+                            border: '1px solid var(--muted-border)',
                             bgcolor: '#111827',
                           }}
                         />
@@ -282,7 +282,7 @@ export function App() {
                 maxWidth: 420,
                 borderRadius: theme.shape.borderRadius,
                 overflow: 'hidden',
-                border: '1px solid #e6edf3',
+                border: '1px solid var(--muted-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
