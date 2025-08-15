@@ -369,15 +369,16 @@ export function App() {
                   <Box
                     component="img"
                     ref={imgRef}
-                    sx={{
+                    sx={(theme) => ({
                       position: 'absolute',
                       inset: 0,
                       width: '100%',
                       height: '100%',
                       objectFit: 'contain',
-                    pointerEvents: 'none',
-                    zIndex: 10,
-                    }}
+                      pointerEvents: 'none',
+                      zIndex: 10,
+                      display: imageUrl ? 'block' : 'none',
+                    })}
                   />
               </Box>
             </Box>
