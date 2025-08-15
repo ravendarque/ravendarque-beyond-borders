@@ -2,9 +2,21 @@
   --bg: #ffffff;
   --muted: #6b7280;
   --accent: #f97316;
+  --muted-border: #e6edf3;
+  --muted-check: #e9eef3;
   --surface: #f8fafc;
   --card: #ffffff;
   --radius: 12px;
+}
+
+/* dark theme overrides (set by data-theme="dark" on documentElement) */
+:root[data-theme='dark'] {
+  --bg: #0b1220;
+  --muted: #9aa4b2;
+  --surface: #071022;
+  --card: #071022;
+  --muted-border: #1f2937; /* neutral slate */
+  --muted-check: #111827; /* darker neutral for checker pattern */
 }
 
 * {
