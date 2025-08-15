@@ -361,6 +361,7 @@ export function App() {
                     backgroundPosition:
                       bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
                     objectFit: 'cover',
+                    zIndex: 1,
                     transition: 'transform 220ms ease, opacity 180ms ease',
                   })}
                 />
@@ -374,7 +375,8 @@ export function App() {
                       width: '100%',
                       height: '100%',
                       objectFit: 'contain',
-                      pointerEvents: 'none',
+                    pointerEvents: 'none',
+                    zIndex: 10,
                     }}
                   />
               </Box>
