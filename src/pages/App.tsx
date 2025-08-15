@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useTheme } from '@mui/material/styles';
 import { ThemeModeContext } from '../main';
 import { flags } from '@/flags/flags';
 import type { FlagSpec } from '@/flags/schema';
@@ -32,6 +33,8 @@ export function App() {
   const [bg, setBg] = useState<string | 'transparent'>('transparent');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const checkerRef = useRef<HTMLCanvasElement | null>(null);
+  const theme = useTheme();
 
   const selectedFlag = useMemo<FlagSpec | undefined>(
     () => flags.find((f) => f.id === flagId),
@@ -89,6 +92,42 @@ export function App() {
     draw();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageUrl, flagId, thickness, size, insetPct, bg]);
+
+  useEffect(() => {
+    // Draw checkerboard into the checker canvas when transparent background is selected
+    const c = checkerRef.current;
+    if (!c) return;
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const rect = c.getBoundingClientRect();
+    const w = Math.max(1, Math.round(rect.width));
+    const h = Math.max(1, Math.round(rect.height));
+    c.width = Math.round(w * dpr);
+    c.height = Math.round(h * dpr);
+    c.style.width = `${w}px`;
+    c.style.height = `${h}px`;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (bg !== 'transparent') {
+      ctx.clearRect(0, 0, w, h);
+      return;
+    }
+
+    // Checker colours more contrasting for visibility
+    const checker1 = theme.palette.mode === 'dark' ? '#0b1220' : '#ffffff';
+    const checker2 = theme.palette.mode === 'dark' ? '#14202b' : '#e6e6e6';
+    const tile = 18; // CSS tile size used elsewhere
+
+    ctx.clearRect(0, 0, w, h);
+    for (let y = 0; y < h; y += tile) {
+      for (let x = 0; x < w; x += tile) {
+        const isEven = ((x / tile) + (y / tile)) % 2 === 0;
+        ctx.fillStyle = isEven ? checker1 : checker2;
+        ctx.fillRect(x, y, tile, tile);
+      }
+    }
+  }, [bg, theme.palette.mode]);
 
   return (
     <Container sx={{ py: 4 }} maxWidth="lg">
@@ -289,10 +328,10 @@ export function App() {
             sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             elevation={1}
           >
-            <Box
-              sx={(theme) => ({
-                width: '100%',
-                maxWidth: 420,
+              <Box
+                sx={(theme) => ({
+                  width: '100%',
+                  maxWidth: 360,
                 borderRadius: 0, // keep square corners
                 display: 'flex',
                 alignItems: 'center',
@@ -310,20 +349,23 @@ export function App() {
                 sx={(theme) => ({
                   width: '100%',
                   aspectRatio: '1 / 1',
-                  maxWidth: 360,
+                  maxWidth: '100%',
                   overflow: 'hidden',
                   display: 'block',
                   position: 'relative',
-                  // If transparent, show checkerboard that exactly matches avatar area
-                  backgroundColor: bg === 'transparent' ? theme.palette.background.paper : 'transparent',
+                  // Apply the selected background color (or transparent for checkerboard)
+                  backgroundColor: bg === 'transparent' ? 'transparent' : bg,
                   backgroundImage:
                     bg === 'transparent'
-                      ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25()), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75>)"
+                      ? (() => {
+                          const checker1 = theme.palette.mode === 'dark' ? '#0b1220' : '#ffffff';
+                          const checker2 = theme.palette.mode === 'dark' ? '#1f2937' : '#e6e6e6';
+                          return `linear-gradient(45deg,${checker2} 25%, transparent 25%), linear-gradient(-45deg,${checker2} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${checker2} 75%), linear-gradient(-45deg, transparent 75%, ${checker2} 75%), linear-gradient(45deg,${checker1} 25%, transparent 25%), linear-gradient(-45deg,${checker1} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${checker1} 75%), linear-gradient(-45deg, transparent 75%, ${checker1} 75)`;
+                        })()
                       : 'none',
                   backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
                   backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
-                  // DEBUG: visible dashed outline when transparent selected
-                  border: bg === 'transparent' ? '2px dashed #ff00aa' : undefined,
+                  border: undefined,
                 })}
               >
                 <Box
@@ -337,10 +379,16 @@ export function App() {
                     height: '100%',
                     borderRadius: 0,
                     // ensure transparent pixels show the checkerboard beneath
-                    backgroundColor: 'transparent',
+                    // Keep the canvas transparent so PNG transparency shows the checkerboard
+                    // or the selected background color underneath (set on the container).
+                    backgroundColor: bg === 'transparent' ? 'transparent' : bg,
                     backgroundImage:
                       bg === 'transparent'
-                        ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%)"
+                        ? (() => {
+                            const checker1 = theme.palette.mode === 'dark' ? '#0b1220' : '#ffffff';
+                            const checker2 = theme.palette.mode === 'dark' ? '#1f2937' : '#e6e6e6';
+                            return `linear-gradient(45deg,${checker2} 25%, transparent 25%), linear-gradient(-45deg,${checker2} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${checker2} 75%), linear-gradient(-45deg, transparent 75%, ${checker2} 75%), linear-gradient(45deg,${checker1} 25%, transparent 25%), linear-gradient(-45deg,${checker1} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${checker1} 75%), linear-gradient(-45deg, transparent 75%, ${checker1} 75)`;
+                          })()
                         : 'none',
                     backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
                     backgroundPosition:
@@ -349,6 +397,19 @@ export function App() {
                     zIndex: 1,
                     transition: 'transform 220ms ease, opacity 180ms ease',
                   })}
+                />
+                {/* Checkerboard canvas sits under the avatar canvas so transparent pixels reveal it */}
+                <Box
+                  component="canvas"
+                  ref={checkerRef}
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    zIndex: 0,
+                    pointerEvents: 'none',
+                  }}
                 />
                   {/* Overlay img to display generated PNG so transparency reveals checkerboard */}
                   <Box
