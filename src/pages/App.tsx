@@ -62,6 +62,25 @@ export function App() {
     c.width = size;
     c.height = size;
     ctx.clearRect(0, 0, size, size);
+    // If user wants transparent background, paint a checkerboard into the canvas
+    if (bg === 'transparent') {
+      try {
+        const css = getComputedStyle(document.documentElement);
+        const col1 = (css.getPropertyValue('--checker-1') || '#ffffff').trim();
+        const col2 = (css.getPropertyValue('--checker-2') || '#e6e6e6').trim();
+        const tile = 18;
+        for (let y = 0; y < size; y += tile) {
+          for (let x = 0; x < size; x += tile) {
+            const even = ((x / tile) | 0) + ((y / tile) | 0);
+            ctx.fillStyle = even % 2 === 0 ? col1 : col2;
+            ctx.fillRect(x, y, tile, tile);
+          }
+        }
+      } catch {
+        // ignore in non-browser environments
+      }
+    }
+
     // Draw result blob back to canvas for preview
     const tmp = new Image();
     tmp.src = URL.createObjectURL(blob);
