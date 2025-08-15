@@ -15,8 +15,9 @@
   --muted: #9aa4b2;
   --surface: #071022;
   --card: #071022;
-  --muted-border: #1f2937; /* neutral slate */
-  --muted-check: #111827; /* darker neutral for checker pattern */
+  --muted-border: #374151; /* MUI grey[700]-ish for dividers */
+  --muted-check: #1f2937; /* MUI grey[800] for checker background */
+  --muted: #9ca3af; /* MUI grey[400] for muted text */
 }
 
 * {
