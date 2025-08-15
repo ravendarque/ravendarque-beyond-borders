@@ -2,17 +2,33 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { flags } from '@/flags/flags'
 import type { FlagSpec } from '@/flags/schema'
 import { renderAvatar } from '@/renderer/render'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Unstable_Grid2'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import Slider from '@mui/material/Slider'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Box from '@mui/material/Box'
+import Stack from '@mui/material/Stack'
+import IconButton from '@mui/material/IconButton'
+import FileUploadIcon from '@mui/icons-material/UploadFile'
+import DownloadIcon from '@mui/icons-material/Download'
 
 export function App() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [flagId, setFlagId] = useState(flags[0]?.id ?? '')
   const [thickness, setThickness] = useState(7)
-  const [size, setSize] = useState<512 | 1024>(512)
+  const [size, setSize] = useState<512 | 1024>(512) // Size of the canvas
   const [insetPct, setInsetPct] = useState(0) // +inset, -outset as percent of size
   const [bg, setBg] = useState<string | 'transparent'>('transparent')
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const selectedFlag = useMemo<FlagSpec | undefined>(() => flags.find(f => f.id === flagId), [flagId])
+  const [isRendering, setIsRendering] = useState(false)
 
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
@@ -23,10 +39,11 @@ export function App() {
 
   async function draw() {
     if (!imageUrl || !selectedFlag || !canvasRef.current) return
+    setIsRendering(true)
     const img = await createImageBitmap(await (await fetch(imageUrl)).blob())
-  // Inset (+) should increase the gap (smaller image radius), Outset (-) reduces it.
-  // Renderer interprets positive imageInsetPx as increasing gap, so negate here if current behavior is reversed.
-  const imageInsetPx = Math.round((insetPct * -1 / 100) * size)
+    // Inset (+) should increase the gap (smaller image radius), Outset (-) reduces it.
+    // Renderer interprets positive imageInsetPx as increasing gap, so negate here if current behavior is reversed.
+    const imageInsetPx = Math.round((insetPct * -1 / 100) * size)
     const blob = await renderAvatar(img, selectedFlag, {
       size,
       thicknessPct: thickness,
@@ -37,12 +54,12 @@ export function App() {
     const ctx = c.getContext('2d')!
     c.width = size
     c.height = size
-    ctx.clearRect(0,0,size,size)
+    ctx.clearRect(0, 0, size, size)
     // Draw result blob back to canvas for preview
-  const tmp = new Image()
-  tmp.src = URL.createObjectURL(blob)
-  await new Promise(resolve => { tmp.onload = () => resolve(null) })
-  ctx.drawImage(tmp, 0, 0)
+    const tmp = new Image()
+    tmp.src = URL.createObjectURL(blob)
+    await new Promise(resolve => { tmp.onload = () => resolve(null) })
+    ctx.drawImage(tmp, 0, 0)
   }
 
   useEffect(() => {
@@ -52,142 +69,143 @@ export function App() {
   }, [imageUrl, flagId, thickness, size, insetPct, bg])
 
   return (
-    <div style={{padding:16, maxWidth: 900, margin: '0 auto'}}>
-      <h1>Beyond Borders</h1>
-      <p>Add a circular, flag-colored border to your profile picture.</p>
+    <Container sx={{ py: 4 }} maxWidth="lg">
+      <Box mb={2}>
+        <Typography variant="h5">Beyond Borders</Typography>
+        <Typography variant="body2" color="text.secondary">Add a circular, flag-colored border to your profile picture.</Typography>
+      </Box>
 
-      <div style={{display:'flex', gap:16, alignItems:'flex-start', flexWrap:'wrap'}}>
-        <div>
-          <label>
-            Upload image
-            <input type="file" accept="image/png,image/jpeg" onChange={onFileChange} />
-          </label>
+      <Grid container spacing={2}>
+        <Grid xs={12} md={6}>
+          <Paper sx={{ p: 2 }} elevation={1}>
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="subtitle2">Upload image</Typography>
+                <Button component="label" startIcon={<FileUploadIcon/>} sx={{ mt: 1 }} variant="outlined">
+                  Choose file
+                  <input hidden accept="image/png, image/jpeg" type="file" onChange={onFileChange} />
+                </Button>
+              </Box>
 
-          <div style={{marginTop:12}}>
-            <label>
-              Flag
-              <select value={flagId} onChange={e => setFlagId(e.target.value)}>
-                {flags.map(f => (
-                  <option key={f.id} value={f.id}>{f.displayName}</option>
-                ))}
-              </select>
-            </label>
-          </div>
+              <FormControl fullWidth>
+                <InputLabel id="flag-select-label">Flag</InputLabel>
+                <Select
+                  labelId="flag-select-label"
+                  value={flagId}
+                  label="Flag"
+                  onChange={e => setFlagId(e.target.value as string)}
+                >
+                  {flags.map(f => (
+                    <MenuItem key={f.id} value={f.id}>{f.displayName}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
-          <div style={{marginTop:12}}>
-            <label>
-              Border thickness: {thickness}%
-              <input type="range" min={5} max={20} value={thickness} onChange={e => setThickness(parseInt(e.target.value))} />
-            </label>
-          </div>
+              <Box>
+                <Typography gutterBottom>Border thickness: {thickness}%</Typography>
+                <Slider min={5} max={20} value={thickness} onChange={(_, v) => setThickness(v as number)} aria-label="Border thickness"/>
+              </Box>
 
-          <div style={{marginTop:12}}>
-            <label>
-              Size
-              <select value={size} onChange={e => setSize(parseInt(e.target.value) as 512 | 1024)}>
-                <option value={512}>512x512</option>
-                <option value={1024}>1024x1024</option>
-              </select>
-            </label>
-          </div>
+              <Grid container spacing={1}>
+                <Grid xs={6}>
+                  <FormControl fullWidth>
+                    <InputLabel id="size-label">Size</InputLabel>
+                    <Select labelId="size-label" value={size} label="Size" onChange={e => setSize(parseInt(e.target.value as string) as 512 | 1024)}>
+                      <MenuItem value={512}>512x512</MenuItem>
+                      <MenuItem value={1024}>1024x1024</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid xs={6}>
+                  <Typography variant="body2">Inset/Outset: {insetPct}%</Typography>
+                  <Slider min={-5} max={5} value={insetPct} onChange={(_, v) => setInsetPct(v as number)} aria-label="Inset outset"/>
+                </Grid>
+              </Grid>
 
-          {/* Rectangle features removed: border shape and output mode are now always circular avatar */}
+              <Box>
+                <FormControl fullWidth>
+                  <InputLabel id="bg-label">Background</InputLabel>
+                  <Select labelId="bg-label" value={bg} label="Background" onChange={e => setBg(e.target.value as any)}>
+                    {/* Color preview swatches inside menu items */}
+                    <MenuItem value="transparent">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Box sx={{ width: 18, height: 12, border: '1px solid #e6edf3', bgcolor: '#fff', backgroundImage: 'linear-gradient(45deg,#e9eef3 25%, transparent 25%), linear-gradient(-45deg,#e9eef3 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e9eef3 75%), linear-gradient(-45deg, transparent 75%, #e9eef3 75%)', backgroundSize: '18px 18px', backgroundPosition: '0 0, 0 9px, 9px -9px, -9px 0' }} />
+                        <Typography>Transparent</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="#ffffff">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Box sx={{ width: 18, height: 12, border: '1px solid #e6edf3', bgcolor: '#ffffff' }} />
+                        <Typography>White</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="#000000">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Box sx={{ width: 18, height: 12, border: '1px solid #e6edf3', bgcolor: '#000000' }} />
+                        <Typography>Black</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="#f5f5f5">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Box sx={{ width: 18, height: 12, border: '1px solid #e6edf3', bgcolor: '#f5f5f5' }} />
+                        <Typography>Light Gray</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="#111827">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Box sx={{ width: 18, height: 12, border: '1px solid #e6edf3', bgcolor: '#111827' }} />
+                        <Typography>Slate</Typography>
+                      </Stack>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
 
-          <div style={{marginTop:12}}>
-            <label>
-              Background
-              <select value={bg} onChange={e => setBg(e.target.value as any)}>
-                <option value="transparent">Transparent</option>
-                <option value="#ffffff">White</option>
-                <option value="#000000">Black</option>
-                <option value="#f5f5f5">Light Gray</option>
-                <option value="#111827">Slate</option>
-              </select>
-            </label>
-            <input
-              type="color"
-              value={bg === 'transparent' ? '#ffffff' : bg}
-              onChange={e => setBg(e.target.value)}
-              disabled={bg === 'transparent'}
-              style={{marginLeft:8}}
-              aria-label="Custom background color"
-            />
-          </div>
+              <Stack direction="row" spacing={2} alignItems="center">
+                {imageUrl && selectedFlag && (
+                  <Button variant="contained" startIcon={<DownloadIcon/>} onClick={async () => {
+                    const img = await createImageBitmap(await (await fetch(imageUrl)).blob())
+                    const blob = await renderAvatar(img, selectedFlag, { size, thicknessPct: thickness, imageInsetPx: Math.round((insetPct * -1 / 100) * size), backgroundColor: bg === 'transparent' ? null : bg })
+                    const a = document.createElement('a')
+                    a.href = URL.createObjectURL(blob)
+                    a.download = `beyond-borders_${selectedFlag.id}_${size}.png`
+                    a.click()
+                  }} aria-label="Download generated PNG">Download PNG</Button>
+                )}
+                <Typography variant="body2" color="text.secondary">Tip: use a square headshot for best results.</Typography>
+              </Stack>
+            </Stack>
+          </Paper>
+        </Grid>
 
-          <div style={{marginTop:12}}>
-            <label>
-              Inset (+) / Outset (-): {insetPct}%
-              <input
-                type="range"
-                min={-5}
-                max={5}
-                step={1}
-                value={insetPct}
-                onChange={e => setInsetPct(parseInt(e.target.value))}
+        <Grid xs={12} md={6}>
+          <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }} elevation={1}>
+            <Box
+              sx={(theme) => ({
+                width: '100%',
+                maxWidth: 420,
+                borderRadius: theme.shape.borderRadius,
+                overflow: 'hidden',
+                border: '1px solid #e6edf3',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: bg === 'transparent' ? '#fff' : 'transparent',
+                position: 'relative',
+                // removed legacy outer swatch/checkerboard background
+              })}
+            >
+              <Box
+                component="canvas"
+                ref={canvasRef}
+                width={size}
+                height={size}
+                sx={{ display: 'block', maxWidth: 360, width: '100%', height: 'auto', transition: 'transform 220ms ease, opacity 180ms ease' }}
               />
-            </label>
-          </div>
-
-          <div style={{marginTop:12, display:'flex', gap:8}}>
-            {imageUrl && selectedFlag && (
-              <a
-                onClick={async (e) => {
-                  e.preventDefault()
-                  const img = await createImageBitmap(await (await fetch(imageUrl)).blob())
-          const blob = await renderAvatar(
-                    img,
-                    selectedFlag,
-                    {
-                      size,
-                      thicknessPct: thickness,
-                      imageInsetPx: Math.round((insetPct * -1 / 100) * size),
-            backgroundColor: bg === 'transparent' ? null : bg,
-                    }
-                  )
-                  const a = document.createElement('a')
-                  a.href = URL.createObjectURL(blob)
-                  a.download = `beyond-borders_${selectedFlag.id}_${size}.png`
-                  a.click()
-                }}
-                href="#"
-              >
-                Download PNG
-              </a>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <div
-            style={{
-              width: size / 2,
-              height: size / 2,
-              border: '1px solid #ddd',
-              borderRadius: 8,
-              overflow: 'hidden',
-              ...(bg === 'transparent'
-                ? {
-                    backgroundColor: '#fff',
-                    backgroundImage:
-                      'linear-gradient(45deg, #eee 25%, transparent 25%),\
-linear-gradient(-45deg, #eee 25%, transparent 25%),\
-linear-gradient(45deg, transparent 75%, #eee 75%),\
-linear-gradient(-45deg, transparent 75%, #eee 75%)',
-                    backgroundSize: '16px 16px',
-                    backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0',
-                  }
-                : {}),
-            }}
-          >
-            <canvas
-              ref={canvasRef}
-              width={size}
-              height={size}
-              style={{ width: '100%', height: '100%', display: 'block' }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
   )
 }
