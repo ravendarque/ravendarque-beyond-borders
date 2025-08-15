@@ -6,6 +6,7 @@ export interface RenderOptions {
   paddingPct?: number;
   outerStroke?: { color: string; widthPx: number };
   imageInsetPx?: number; // inset between image edge and inner ring
+  imageOffsetPx?: { x: number; y: number }; // offset to apply to image center (pixels)
   backgroundColor?: string | null; // null => transparent
 }
 
@@ -45,7 +46,10 @@ export async function renderAvatar(
   // Draw circular masked image (kept inside border)
   ctx.save();
   ctx.beginPath();
-  ctx.arc(r, r, imageRadius, 0, Math.PI * 2);
+  // Apply optional image offset to center when drawing the image
+  const offsetX = options.imageOffsetPx?.x ?? 0;
+  const offsetY = options.imageOffsetPx?.y ?? 0;
+  ctx.arc(r + 0, r + 0, imageRadius, 0, Math.PI * 2);
   ctx.closePath();
   ctx.clip();
 
@@ -56,9 +60,9 @@ export async function renderAvatar(
   const scale = Math.max(target / iw, target / ih);
   const dw = iw * scale,
     dh = ih * scale;
-  // Center in canvas
-  const cx = canvasW / 2,
-    cy = canvasH / 2;
+  // Center in canvas (apply offset)
+  const cx = canvasW / 2 + offsetX,
+    cy = canvasH / 2 + offsetY;
   ctx.drawImage(image, cx - dw / 2, cy - dh / 2, dw, dh);
   ctx.restore();
 
