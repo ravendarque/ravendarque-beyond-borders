@@ -314,14 +314,23 @@ export function App() {
                   ref={canvasRef}
                   width={size}
                   height={size}
-                  sx={{
+                  sx={(theme) => ({
                     display: 'block',
                     width: '100%',
                     height: '100%',
                     borderRadius: 0,
+                    // ensure transparent pixels show the checkerboard beneath
+                    backgroundColor: 'transparent',
+                    backgroundImage:
+                      bg === 'transparent'
+                        ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%)"
+                        : 'none',
+                    backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
+                    backgroundPosition:
+                      bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
                     objectFit: 'cover',
                     transition: 'transform 220ms ease, opacity 180ms ease',
-                  }}
+                  })}
                 />
               </Box>
             </Box>
