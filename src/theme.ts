@@ -1,16 +1,17 @@
 import { createTheme, ThemeOptions } from '@mui/material/styles';
+import { grey } from '@mui/material/colors';
 
 export function createAppTheme(mode: 'light' | 'dark') {
   const lightBg = '#f8fafc';
-  const darkBg = '#0b1220';
+  const darkBg = '#121212'; // closer to MUI dark background
   const primary = '#f97316'; // soft orange
 
   const options: ThemeOptions = {
     palette: {
       mode,
       primary: { main: primary },
-      background: { default: mode === 'light' ? lightBg : darkBg, paper: mode === 'light' ? '#ffffff' : '#071022' },
-      text: { primary: mode === 'light' ? '#0f172a' : '#e6eef3', secondary: mode === 'light' ? '#6b7280' : '#9aa4b2' },
+      background: { default: mode === 'light' ? lightBg : darkBg, paper: mode === 'light' ? '#ffffff' : grey[900] },
+      text: { primary: mode === 'light' ? '#0f172a' : grey[100], secondary: mode === 'light' ? '#6b7280' : grey[400] },
     },
     shape: { borderRadius: 12 },
     typography: {
