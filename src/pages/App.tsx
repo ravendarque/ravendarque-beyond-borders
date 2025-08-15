@@ -31,6 +31,7 @@ export function App() {
   const [insetPct, setInsetPct] = useState(0); // +inset, -outset as percent of size
   const [bg, setBg] = useState<string | 'transparent'>('transparent');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   const selectedFlag = useMemo<FlagSpec | undefined>(
     () => flags.find((f) => f.id === flagId),
@@ -81,42 +82,22 @@ export function App() {
       }
     }
 
-    // Show the generated PNG as the canvas element's CSS background image.
-    // This preserves transparency so any checkerboard behind the canvas remains visible.
+    // Create blob URL and set it on the overlay <img> so transparency reveals the checkerboard.
     const blobUrl = URL.createObjectURL(blob);
     try {
-      // Revoke previous blob URL if present
-      const prev = (c as any).dataset?.previewUrl;
+      // Revoke previous blob URL if present on img
+      const prev = (imgRef.current as any)?.dataset?.previewUrl;
       if (prev) URL.revokeObjectURL(prev);
     } catch {
-      /* ignore */
-    }
-    // Clear any drawn pixels
-    ctx.clearRect(0, 0, size, size);
-
-    // Build checker gradient string (same as used in sx) when transparent
-    const checker =
-      bg === 'transparent'
-        ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%)"
-        : null;
-
-    // Apply multiple background layers: top = generated PNG, bottom = checkerboard (if any)
-    if (checker) {
-      (c as any).style.backgroundImage = `url(${blobUrl}), ${checker}`;
-      (c as any).style.backgroundSize = 'contain, 18px 18px';
-      (c as any).style.backgroundPosition = 'center, 0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0';
-      (c as any).style.backgroundRepeat = 'no-repeat, repeat';
-    } else {
-      (c as any).style.backgroundImage = `url(${blobUrl})`;
-      (c as any).style.backgroundSize = 'contain';
-      (c as any).style.backgroundPosition = 'center';
-      (c as any).style.backgroundRepeat = 'no-repeat';
-    }
-
-    try {
-      (c as any).dataset.previewUrl = blobUrl;
-    } catch {
       // ignore
+    }
+    if (imgRef.current) {
+      imgRef.current.src = blobUrl;
+      try {
+        (imgRef.current as any).dataset.previewUrl = blobUrl;
+      } catch {
+        // ignore
+      }
     }
   }
 
@@ -383,6 +364,19 @@ export function App() {
                     transition: 'transform 220ms ease, opacity 180ms ease',
                   })}
                 />
+                  {/* Overlay img to display generated PNG so transparency reveals checkerboard */}
+                  <Box
+                    component="img"
+                    ref={imgRef}
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      pointerEvents: 'none',
+                    }}
+                  />
               </Box>
             </Box>
           </Paper>
