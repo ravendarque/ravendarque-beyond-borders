@@ -300,15 +300,9 @@ export function App() {
                 // subtle theme-aware border and shadow to feel modern
                 border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
                 boxShadow: theme.shadows[3],
-                // For transparent backgrounds, show the checkerboard on the full frame so it lines up with the avatar ring
-                backgroundColor: bg === 'transparent' ? 'transparent' : bg,
-                backgroundImage:
-                  bg === 'transparent'
-                    ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25()), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%)"
-                    : 'none',
-                backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
-                backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
-                p: 1,
+                // keep background transparent here; the inner square will render the checkerboard
+                backgroundColor: 'transparent',
+                p: 0,
                 position: 'relative',
               })}
             >
@@ -319,7 +313,15 @@ export function App() {
                   maxWidth: 360,
                   overflow: 'hidden',
                   display: 'block',
-                  backgroundColor: 'transparent',
+                  position: 'relative',
+                  // If transparent, show checkerboard that exactly matches avatar area
+                  backgroundColor: bg === 'transparent' ? theme.palette.background.paper : 'transparent',
+                  backgroundImage:
+                    bg === 'transparent'
+                      ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25()), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75>)"
+                      : 'none',
+                  backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
+                  backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
                   // DEBUG: visible dashed outline when transparent selected
                   border: bg === 'transparent' ? '2px dashed #ff00aa' : undefined,
                 })}
