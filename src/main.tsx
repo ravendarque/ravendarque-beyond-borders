@@ -12,21 +12,41 @@ export const ThemeModeContext = createContext<{
 
 const el = document.getElementById('root')!;
 function Root() {
-  const [mode, setMode] = useState<'light' | 'dark'>('dark'); // default to dark
-  const appTheme = useMemo(() => createAppTheme(mode), [mode]);
+  // Initialize theme mode from localStorage when available, default to 'dark'.
+  const getInitialMode = () => {
+    try {
+      const stored = localStorage.getItem('bb:mode');
+      return stored === 'light' || stored === 'dark' ? (stored as 'light' | 'dark') : 'dark';
+    } catch {
+      return 'dark';
+    }
+  };
+
+  const [modeState, setModeState] = useState<'light' | 'dark'>(getInitialMode);
+  const appTheme = useMemo(() => createAppTheme(modeState), [modeState]);
+
+  // wrapper that persists to localStorage
+  const setMode = (m: 'light' | 'dark') => {
+    try {
+      localStorage.setItem('bb:mode', m);
+    } catch {
+      // ignore storage errors
+    }
+    setModeState(m);
+  };
 
   // Apply data-theme attribute for CSS to pick up dark overrides
   React.useEffect(() => {
     try {
-      document.documentElement.setAttribute('data-theme', mode);
+      document.documentElement.setAttribute('data-theme', modeState);
     } catch {
       // ignore in SSR/non-browser
     }
-  }, [mode]);
+  }, [modeState]);
 
   return (
-    <ThemeModeContext.Provider value={{ mode, setMode }}>
-  <ThemeProvider theme={appTheme}>
+    <ThemeModeContext.Provider value={{ mode: modeState, setMode }}>
+      <ThemeProvider theme={appTheme}>
         <CssBaseline />
         <App />
       </ThemeProvider>
