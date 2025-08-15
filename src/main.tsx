@@ -15,6 +15,15 @@ function Root() {
   const [mode, setMode] = useState<'light' | 'dark'>('dark'); // default to dark
   const appTheme = useMemo(() => createAppTheme(mode), [mode]);
 
+  // Apply data-theme attribute for CSS to pick up dark overrides
+  React.useEffect(() => {
+    try {
+      document.documentElement.setAttribute('data-theme', mode);
+    } catch {
+      // ignore in SSR/non-browser
+    }
+  }, [mode]);
+
   return (
     <ThemeModeContext.Provider value={{ mode, setMode }}>
   <ThemeProvider theme={appTheme}>
