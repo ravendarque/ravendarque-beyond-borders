@@ -280,30 +280,42 @@ export function App() {
               sx={(theme) => ({
                 width: '100%',
                 maxWidth: 420,
-                borderRadius: 0, // remove rounded corners for square preview
-                overflow: 'hidden',
-                border: '1px solid var(--muted-border)',
+                borderRadius: 0, // keep square corners
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: bg === 'transparent' ? '#fff' : 'transparent',
+                // subtle theme-aware border and shadow to feel modern
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+                boxShadow: theme.shadows[3],
+                bgcolor: bg === 'transparent' ? theme.palette.background.paper : bg,
+                p: 1,
                 position: 'relative',
-                // removed legacy outer swatch/checkerboard background
               })}
             >
               <Box
-                component="canvas"
-                ref={canvasRef}
-                width={size}
-                height={size}
                 sx={{
-                  display: 'block',
-                  maxWidth: 360,
                   width: '100%',
-                  height: 'auto',
-                  transition: 'transform 220ms ease, opacity 180ms ease',
+                  aspectRatio: '1 / 1',
+                  maxWidth: 360,
+                  overflow: 'hidden',
+                  display: 'block',
                 }}
-              />
+              >
+                <Box
+                  component="canvas"
+                  ref={canvasRef}
+                  width={size}
+                  height={size}
+                  sx={{
+                    display: 'block',
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: 0,
+                    objectFit: 'cover',
+                    transition: 'transform 220ms ease, opacity 180ms ease',
+                  }}
+                />
+              </Box>
             </Box>
           </Paper>
         </Grid>
