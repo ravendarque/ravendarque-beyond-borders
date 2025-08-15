@@ -280,7 +280,7 @@ export function App() {
               sx={(theme) => ({
                 width: '100%',
                 maxWidth: 420,
-                borderRadius: theme.shape.borderRadius,
+                borderRadius: 0, // remove rounded corners for square preview
                 overflow: 'hidden',
                 border: '1px solid var(--muted-border)',
                 display: 'flex',
