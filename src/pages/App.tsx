@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { ThemeModeContext } from '../main';
 import { flags } from '@/flags/flags';
 import type { FlagSpec } from '@/flags/schema';
 import { renderAvatar } from '@/renderer/render';
 import Container from '@mui/material/Container';
+import IconButton from '@mui/material/IconButton';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Grid from '@mui/material/Unstable_Grid2';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -18,6 +22,8 @@ import FileUploadIcon from '@mui/icons-material/UploadFile';
 import DownloadIcon from '@mui/icons-material/Download';
 
 export function App() {
+  const { mode, setMode } = useContext(ThemeModeContext);
+
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [flagId, setFlagId] = useState(flags[0]?.id ?? '');
   const [thickness, setThickness] = useState(7);
@@ -73,11 +79,20 @@ export function App() {
 
   return (
     <Container sx={{ py: 4 }} maxWidth="lg">
-      <Box mb={2}>
-        <Typography variant="h5">Beyond Borders</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Add a circular, flag-colored border to your profile picture.
-        </Typography>
+      <Box mb={2} display="flex" alignItems="center" justifyContent="space-between">
+        <Box>
+          <Typography variant="h5">Beyond Borders</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Add a circular, flag-colored border to your profile picture.
+          </Typography>
+        </Box>
+        <IconButton
+          onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}
+          color="inherit"
+          aria-label="Toggle dark mode"
+        >
+          {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+        </IconButton>
       </Box>
 
       <Grid container spacing={2}>
