@@ -63,24 +63,7 @@ export function App() {
     c.width = size;
     c.height = size;
     ctx.clearRect(0, 0, size, size);
-    // If user wants transparent background, paint a checkerboard into the canvas
-    if (bg === 'transparent') {
-      try {
-        const css = getComputedStyle(document.documentElement);
-        const col1 = (css.getPropertyValue('--checker-1') || '#ffffff').trim();
-        const col2 = (css.getPropertyValue('--checker-2') || '#e6e6e6').trim();
-        const tile = 18;
-        for (let y = 0; y < size; y += tile) {
-          for (let x = 0; x < size; x += tile) {
-            const even = ((x / tile) | 0) + ((y / tile) | 0);
-            ctx.fillStyle = even % 2 === 0 ? col1 : col2;
-            ctx.fillRect(x, y, tile, tile);
-          }
-        }
-      } catch {
-        // ignore in non-browser environments
-      }
-    }
+  // wrapper provides checkerboard when bg === 'transparent'
 
     // Create blob URL and set it on the overlay <img> so transparency reveals the checkerboard.
     const blobUrl = URL.createObjectURL(blob);
@@ -317,7 +300,14 @@ export function App() {
                 // subtle theme-aware border and shadow to feel modern
                 border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
                 boxShadow: theme.shadows[3],
-                bgcolor: bg === 'transparent' ? theme.palette.background.paper : bg,
+                // For transparent backgrounds, show the checkerboard on the full frame so it lines up with the avatar ring
+                backgroundColor: bg === 'transparent' ? 'transparent' : bg,
+                backgroundImage:
+                  bg === 'transparent'
+                    ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25()), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%)"
+                    : 'none',
+                backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
+                backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
                 p: 1,
                 position: 'relative',
               })}
@@ -329,16 +319,9 @@ export function App() {
                   maxWidth: 360,
                   overflow: 'hidden',
                   display: 'block',
-                  // If the user selected transparent, show a checkerboard behind the canvas
-                    backgroundColor: bg === 'transparent' ? theme.palette.background.paper : 'transparent',
-                    backgroundImage:
-                      bg === 'transparent'
-                        ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%)"
-                        : 'none',
-                    backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
-                    backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
-                    // DEBUG: visible dashed outline when transparent selected
-                    border: bg === 'transparent' ? '2px dashed #ff00aa' : undefined,
+                  backgroundColor: 'transparent',
+                  // DEBUG: visible dashed outline when transparent selected
+                  border: bg === 'transparent' ? '2px dashed #ff00aa' : undefined,
                 })}
               >
                 <Box
