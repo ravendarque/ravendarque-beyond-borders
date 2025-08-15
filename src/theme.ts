@@ -3,7 +3,7 @@ import { createTheme } from '@mui/material/styles';
 export const theme = createTheme({
   palette: {
     mode: 'light',
-    primary: { main: '#2563eb' },
+  primary: { main: '#059669' },
     background: { default: '#f8fafc', paper: '#ffffff' },
     text: { primary: '#0f172a', secondary: '#6b7280' },
   },
@@ -35,8 +35,8 @@ export const theme = createTheme({
         'select:focus, input[type=range]:focus, input[type=color]:focus, input[type=file]:focus, button:focus':
           {
             outline: 'none',
-            boxShadow: '0 0 0 4px rgba(37,99,235,0.12)',
-            borderColor: '#2563eb',
+            boxShadow: '0 0 0 4px rgba(5,150,105,0.12)',
+            borderColor: '#059669',
           },
         '.visually-hidden': {
           position: 'absolute',
