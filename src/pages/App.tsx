@@ -81,13 +81,27 @@ export function App() {
       }
     }
 
-    // Draw result blob back to canvas for preview
-    const tmp = new Image();
-    tmp.src = URL.createObjectURL(blob);
-    await new Promise((resolve) => {
-      tmp.onload = () => resolve(null);
-    });
-    ctx.drawImage(tmp, 0, 0);
+    // Show the generated PNG as the canvas element's CSS background image.
+    // This preserves transparency so any checkerboard behind the canvas remains visible.
+    const blobUrl = URL.createObjectURL(blob);
+    try {
+      // Revoke previous blob URL if present
+      const prev = (c as any).dataset?.previewUrl;
+      if (prev) URL.revokeObjectURL(prev);
+    } catch {
+      /* ignore */
+    }
+    // Clear any drawn pixels and set CSS background
+    ctx.clearRect(0, 0, size, size);
+    (c as any).style.backgroundImage = `url(${blobUrl})`;
+    (c as any).style.backgroundSize = 'contain';
+    (c as any).style.backgroundPosition = 'center';
+    (c as any).style.backgroundRepeat = 'no-repeat';
+    try {
+      (c as any).dataset.previewUrl = blobUrl;
+    } catch {
+      // ignore
+    }
   }
 
   useEffect(() => {
