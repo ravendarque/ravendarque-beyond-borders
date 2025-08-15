@@ -91,12 +91,28 @@ export function App() {
     } catch {
       /* ignore */
     }
-    // Clear any drawn pixels and set CSS background
+    // Clear any drawn pixels
     ctx.clearRect(0, 0, size, size);
-    (c as any).style.backgroundImage = `url(${blobUrl})`;
-    (c as any).style.backgroundSize = 'contain';
-    (c as any).style.backgroundPosition = 'center';
-    (c as any).style.backgroundRepeat = 'no-repeat';
+
+    // Build checker gradient string (same as used in sx) when transparent
+    const checker =
+      bg === 'transparent'
+        ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%)"
+        : null;
+
+    // Apply multiple background layers: top = generated PNG, bottom = checkerboard (if any)
+    if (checker) {
+      (c as any).style.backgroundImage = `url(${blobUrl}), ${checker}`;
+      (c as any).style.backgroundSize = 'contain, 18px 18px';
+      (c as any).style.backgroundPosition = 'center, 0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0';
+      (c as any).style.backgroundRepeat = 'no-repeat, repeat';
+    } else {
+      (c as any).style.backgroundImage = `url(${blobUrl})`;
+      (c as any).style.backgroundSize = 'contain';
+      (c as any).style.backgroundPosition = 'center';
+      (c as any).style.backgroundRepeat = 'no-repeat';
+    }
+
     try {
       (c as any).dataset.previewUrl = blobUrl;
     } catch {
