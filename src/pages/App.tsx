@@ -300,13 +300,15 @@ export function App() {
                   overflow: 'hidden',
                   display: 'block',
                   // If the user selected transparent, show a checkerboard behind the canvas
-                  backgroundColor: bg === 'transparent' ? theme.palette.background.paper : 'transparent',
-                  backgroundImage:
-                    bg === 'transparent'
-                      ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%)"
-                      : 'none',
-                  backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
-                  backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
+                    backgroundColor: bg === 'transparent' ? theme.palette.background.paper : 'transparent',
+                    backgroundImage:
+                      bg === 'transparent'
+                        ? "linear-gradient(45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-2) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-2) 75%), linear-gradient(45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(-45deg,var(--checker-1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--checker-1) 75%), linear-gradient(-45deg, transparent 75%, var(--checker-1) 75%)"
+                        : 'none',
+                    backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
+                    backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
+                    // DEBUG: visible dashed outline when transparent selected
+                    border: bg === 'transparent' ? '2px dashed #ff00aa' : undefined,
                 })}
               >
                 <Box
