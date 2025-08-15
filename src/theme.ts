@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles'
+import { createTheme } from '@mui/material/styles';
 
 export const theme = createTheme({
   palette: {
@@ -32,11 +32,12 @@ export const theme = createTheme({
             'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
         },
         // focus ring for form controls to mimic previous styles
-        'select:focus, input[type=range]:focus, input[type=color]:focus, input[type=file]:focus, button:focus': {
-          outline: 'none',
-          boxShadow: '0 0 0 4px rgba(37,99,235,0.12)',
-          borderColor: '#2563eb',
-        },
+        'select:focus, input[type=range]:focus, input[type=color]:focus, input[type=file]:focus, button:focus':
+          {
+            outline: 'none',
+            boxShadow: '0 0 0 4px rgba(37,99,235,0.12)',
+            borderColor: '#2563eb',
+          },
         '.visually-hidden': {
           position: 'absolute',
           width: '1px',
@@ -51,6 +52,6 @@ export const theme = createTheme({
       },
     },
   },
-})
+});
 
-export default theme
+export default theme;
