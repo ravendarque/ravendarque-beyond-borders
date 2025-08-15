@@ -1,4 +1,4 @@
-import { FlagSpec } from './schema'
+import { FlagSpec } from './schema';
 
 export const flags: FlagSpec[] = [
   {
@@ -15,10 +15,10 @@ export const flags: FlagSpec[] = [
         { color: '#F5A9B8', weight: 1, label: 'light pink' },
         { color: '#FFFFFF', weight: 1, label: 'white' },
         { color: '#F5A9B8', weight: 1, label: 'light pink' },
-        { color: '#5BCEFA', weight: 1, label: 'light blue' }
-      ]
+        { color: '#5BCEFA', weight: 1, label: 'light blue' },
+      ],
     },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 }
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
   },
   {
     id: 'ua',
@@ -31,9 +31,9 @@ export const flags: FlagSpec[] = [
       orientation: 'horizontal',
       stripes: [
         { color: '#0057B7', weight: 1, label: 'blue' },
-        { color: '#FFD700', weight: 1, label: 'yellow' }
-      ]
+        { color: '#FFD700', weight: 1, label: 'yellow' },
+      ],
     },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 }
-  }
-]
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
+  },
+];
