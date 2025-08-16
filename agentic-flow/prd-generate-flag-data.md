@@ -9,6 +9,7 @@ The dataset should include:
 - Occupied / disputed territories  
 - Stateless or oppressed peoples  
 - LGBTQIA+ communities
+- Indigenous peoples and other marginalized groups like GRT
 
 This file will serve as a reusable knowledge base for further applications (visualizations, websites, educational resources).  
 
@@ -107,6 +108,6 @@ flags:
    - Validate with a YAML linter to ensure no syntax errors.  
 
 7. **Save File**  
-   - Path: `/agentic-flow/outputs/flag-data.yaml`
+   - Path: `/data/flag-data.yaml`
 
 ---
