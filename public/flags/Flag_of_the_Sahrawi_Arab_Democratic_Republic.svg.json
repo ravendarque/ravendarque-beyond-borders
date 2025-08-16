@@ -1,0 +1,23 @@
+{
+  "name": "Western Sahara — Sahrawi Arab Democratic Republic",
+  "filename": "Flag_of_the_Sahrawi_Arab_Democratic_Republic.svg",
+  "source_page": "https://commons.wikimedia.org/wiki/File:Flag_of_the_Sahrawi_Arab_Democratic_Republic.svg",
+  "media_url": "https://upload.wikimedia.org/wikipedia/commons/2/26/Flag_of_the_Sahrawi_Arab_Democratic_Republic.svg",
+  "size": 676,
+  "description": "Black, white, and green horizontal stripes with a red triangle and star and crescent.",
+  "type": "Occupied / Disputed Territory",
+  "reason": "Territory with partial recognition; long-running dispute and displacement of Sahrawi people.",
+  "link": "https://en.wikipedia.org/wiki/Western_Sahara",
+  "colors": [
+    "#000",
+    "#007a3d",
+    "#fff",
+    "#c4111b"
+  ],
+  "stripe_order": [
+    "#000",
+    "#007a3d",
+    "#fff",
+    "#c4111b"
+  ]
+}
