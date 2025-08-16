@@ -1,0 +1,37 @@
+name: Fetch flags and generate metadata
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'feat/**'
+    paths:
+      - 'data/flag-data.yaml'
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Run fetch-and-extract
+        run: |
+          node scripts/fetch-and-extract.cjs
+      - name: Create pull request with updated flags
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update flags (automated)"
+          branch: update/flags-${{ github.run_id }}
+          title: "chore: update flags (automated)"
+          body: |
+            This PR was created automatically by the fetch workflow and contains updated flag assets under `public/flags`.
+          labels: automated, flags
+          commit-paths: public/flags

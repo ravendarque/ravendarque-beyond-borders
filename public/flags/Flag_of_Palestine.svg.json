@@ -1,0 +1,21 @@
+{
+  "name": "Palestine — Palestinian flag",
+  "filename": "Flag_of_Palestine.svg",
+  "source_page": "https://commons.wikimedia.org/wiki/File:Flag_of_Palestine.svg",
+  "media_url": "https://upload.wikimedia.org/wikipedia/commons/0/00/Flag_of_Palestine.svg",
+  "size": 281,
+  "description": "Black, white, and green horizontal stripes with a red triangle at the hoist.",
+  "type": "Occupied / Disputed Territory",
+  "reason": "Territorial dispute and prolonged occupation affecting the rights, movement, and livelihoods of Palestinians.",
+  "link": "https://en.wikipedia.org/wiki/Palestine",
+  "colors": [
+    "#009639",
+    "#fff",
+    "#ed2e38"
+  ],
+  "stripe_order": [
+    "#009639",
+    "#fff",
+    "#ed2e38"
+  ]
+}

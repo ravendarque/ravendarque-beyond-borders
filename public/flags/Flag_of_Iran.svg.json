@@ -1,0 +1,21 @@
+{
+  "name": "Iran — Flag of the Islamic Republic of Iran",
+  "filename": "Flag_of_Iran.svg",
+  "source_page": "https://commons.wikimedia.org/wiki/File:Flag_of_Iran.svg",
+  "media_url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Flag_of_Iran.svg",
+  "size": 2218,
+  "description": "Green, white, and red horizontal tricolour with the emblem of Iran at center and takbir script along the borders.",
+  "type": "Authoritarian State",
+  "reason": "Theocratic governance with restricted political freedoms, repression of dissent, and violations of women's and minority rights.",
+  "link": "https://en.wikipedia.org/wiki/Iran",
+  "colors": [
+    "#da0000",
+    "#fff",
+    "#239f40"
+  ],
+  "stripe_order": [
+    "#da0000",
+    "#fff",
+    "#239f40"
+  ]
+}
