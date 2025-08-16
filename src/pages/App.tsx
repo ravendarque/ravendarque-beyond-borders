@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { ThemeModeContext } from '../main';
-import { flags } from '@/flags/flags';
-import type { FlagSpec } from '@/flags/schema';
+import { flags } from '../flags/flags';
+import type { FlagSpec } from '../flags/schema';
 import { renderAvatar } from '@/renderer/render';
 import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
@@ -45,7 +45,7 @@ export function App() {
   const lastMoveRef = useRef<{ clientX: number; clientY: number; t: number } | null>(null);
 
   const selectedFlag = useMemo<FlagSpec | undefined>(
-    () => flags.find((f) => f.id === flagId),
+    () => flags.find((f: FlagSpec) => f.id === flagId),
     [flagId],
   );
 
@@ -189,6 +189,39 @@ export function App() {
   if (!imageUrl || !selectedFlag || !canvasRef.current) return;
     // rendering state intentionally omitted for simplicity
     const img = await createImageBitmap(await (await fetch(imageUrl)).blob());
+    // Optionally load an image to use as the border (e.g., use the flag SVG directly)
+    let borderImageBitmap: ImageBitmap | undefined = undefined;
+    try {
+      // Use recommended.borderStyle === 'use-flag-image' or special-case Palestine
+      const useFlagImage = (selectedFlag as any).recommended?.borderStyle === 'use-flag-image' || selectedFlag.id === 'ps';
+      if (useFlagImage) {
+        // Attempt to fetch a local SVG asset matching the flag id
+  // Filenames use Wikimedia-style names; canonical runtime path is /flags/<filename>.svg (public/flags)
+        const candidateMap: Record<string, string> = {
+          ps: 'Flag_of_Palestine.svg',
+        };
+        const candidate = candidateMap[selectedFlag.id];
+        if (candidate) {
+          try {
+            // Prefer public/flags (served as static files) then try src assets then the original agentic-flow path
+            const publicUrl = `/flags/${candidate}`;
+            let resp = await fetch(publicUrl);
+            if (!resp.ok) {
+              // No other fallback: `public/flags` is the single source of truth now.
+              resp = new Response(null, { status: 404 });
+            }
+            if (resp.ok) {
+              const blob = await resp.blob();
+              borderImageBitmap = await createImageBitmap(blob);
+            }
+          } catch {
+            // ignore fetch/create errors and fall back to generated rings
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
     // Inset (+) should increase the gap (smaller image radius), Outset (-) reduces it.
     // Renderer interprets positive imageInsetPx as increasing gap, so negate here if current behavior is reversed.
     const imageInsetPx = Math.round(((insetPct * -1) / 100) * size);
@@ -198,6 +231,7 @@ export function App() {
       imageInsetPx,
       imageOffsetPx: { x: Math.round(imageOffset.x), y: Math.round(imageOffset.y) },
       backgroundColor: bg === 'transparent' ? null : bg,
+  borderImageBitmap: borderImageBitmap as any,
     });
     const c = canvasRef.current;
     const ctx = c.getContext('2d')!;
@@ -432,7 +466,7 @@ export function App() {
                     onChange={(e) => setFlagId(e.target.value as string)}
                     disabled={!imageUrl}
                   >
-                    {flags.map((f) => (
+                    {flags.map((f: FlagSpec) => (
                       <MenuItem key={f.id} value={f.id}>
                         {f.displayName}
                       </MenuItem>

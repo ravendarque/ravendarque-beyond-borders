@@ -1,4 +1,4 @@
-import type { FlagSpec } from '@/flags/schema';
+import type { FlagSpec } from '../flags/schema';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -7,6 +7,7 @@ export interface RenderOptions {
   outerStroke?: { color: string; widthPx: number };
   imageInsetPx?: number; // inset between image edge and inner ring
   imageOffsetPx?: { x: number; y: number }; // offset to apply to image center (pixels)
+  borderImageBitmap?: ImageBitmap | undefined; // optional image to use for border rendering (SVG bitmap)
   backgroundColor?: string | null; // null => transparent
 }
 
@@ -69,13 +70,25 @@ export async function renderAvatar(
   // Draw ring segments for the flag
   const stripes = flag.pattern.stripes;
   const totalWeight = stripes.reduce((s: number, x: { weight: number }) => s + x.weight, 0);
-  let start = -Math.PI / 2; // start at top center
-  for (const stripe of stripes) {
-    const frac = stripe.weight / totalWeight;
-    const sweep = Math.PI * 2 * frac;
-    const end = start + sweep;
-    drawRingArc(ctx, r, ringInner, ringOuter, start, end, stripe.color);
-    start = end;
+  // Decide border style: use recommended.borderStyle if present, else infer from stripe orientation
+  const borderStyle = (flag as any).recommended?.borderStyle as string | undefined
+    ?? (flag.pattern.orientation === 'horizontal' ? 'concentric' : 'angular');
+  // If a border image bitmap is provided, prefer rendering it wrapped around the annulus.
+  if (options.borderImageBitmap) {
+    drawTexturedAnnulus(ctx, r, ringInner, ringOuter, options.borderImageBitmap);
+  } else if (borderStyle === 'concentric' || flag.pattern.orientation === 'horizontal') {
+    // Map horizontal stripes to concentric annuli from outer->inner to preserve stripe order (top => outer)
+    drawConcentricRings(ctx, r, ringInner, ringOuter, stripes, totalWeight);
+  } else {
+    // default: angular arcs (vertical stripes map naturally around circumference)
+    let start = -Math.PI / 2; // start at top center
+    for (const stripe of stripes) {
+      const frac = stripe.weight / totalWeight;
+      const sweep = Math.PI * 2 * frac;
+      const end = start + sweep;
+      drawRingArc(ctx, r, ringInner, ringOuter, start, end, stripe.color);
+      start = end;
+    }
   }
 
   // Optional outer stroke
@@ -90,6 +103,44 @@ export async function renderAvatar(
   // Export PNG
   const blob = await canvas.convertToBlob({ type: 'image/png' });
   return blob;
+}
+
+function drawConcentricRings(
+  ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D,
+  center: number,
+  innerR: number,
+  outerR: number,
+  stripes: { color: string; weight: number }[],
+  totalWeight: number,
+) {
+  // Compute thickness in px
+  const thickness = outerR - innerR;
+  // Use floating calculation to avoid rounding errors
+  let remainingOuter = outerR;
+  // For each stripe (assume stripes ordered top->bottom), draw annulus from outer inward
+  for (const stripe of stripes) {
+    const frac = stripe.weight / totalWeight;
+    const band = frac * thickness;
+    const bandInner = Math.max(innerR, remainingOuter - band);
+    // draw annulus between bandInner and remainingOuter
+    ctx.beginPath();
+    ctx.arc(center, center, remainingOuter, 0, Math.PI * 2);
+    ctx.arc(center, center, bandInner, Math.PI * 2, 0, true);
+    ctx.closePath();
+    ctx.fillStyle = stripe.color;
+    ctx.fill();
+    remainingOuter = bandInner;
+    if (remainingOuter <= innerR + 0.5) break; // nothing left
+  }
+  // If rounding left a gap, fill inner-most with last stripe color
+  if (remainingOuter > innerR + 0.5) {
+    ctx.beginPath();
+    ctx.arc(center, center, remainingOuter, 0, Math.PI * 2);
+    ctx.arc(center, center, innerR, Math.PI * 2, 0, true);
+    ctx.closePath();
+    ctx.fillStyle = stripes[stripes.length - 1]?.color ?? '#000000';
+    ctx.fill();
+  }
 }
 
 function drawRingArc(
@@ -113,4 +164,76 @@ function drawRingArc(
 
 function clamp(n: number, min: number, max: number) {
   return Math.min(Math.max(n, min), max);
+}
+
+/**
+ * Draw a textured annulus by wrapping a provided bitmap around the ring.
+ * This uses a simple slice-based approximation: the bitmap is drawn to a
+ * temporary rectangular canvas whose width matches the ring circumference
+ * and whose height matches the ring thickness; that texture is then
+ * painted in thin tangential slices into the annulus while an annulus clip
+ * keeps the result clean.
+ */
+function drawTexturedAnnulus(
+  ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D,
+  center: number,
+  innerR: number,
+  outerR: number,
+  bitmap: ImageBitmap,
+) {
+  const thickness = outerR - innerR;
+  if (thickness <= 0) return;
+
+  const midR = (innerR + outerR) / 2;
+  const circumference = 2 * Math.PI * midR;
+
+  // Create texture canvas sized to circumference x thickness
+  const texW = Math.max(1, Math.round(circumference));
+  const texH = Math.max(1, Math.round(thickness));
+  const tex = new OffscreenCanvas(texW, texH);
+  const tctx = tex.getContext('2d')!;
+
+  // Draw the source bitmap into the texture canvas using 'cover' semantics
+  const bw = bitmap.width;
+  const bh = bitmap.height;
+  const scale = Math.max(texW / bw, texH / bh);
+  const dw = Math.round(bw * scale);
+  const dh = Math.round(bh * scale);
+  // center the scaled image horizontally
+  const dx = Math.round((texW - dw) / 2);
+  const dy = Math.round((texH - dh) / 2);
+  tctx.clearRect(0, 0, texW, texH);
+  tctx.drawImage(bitmap, 0, 0, bw, bh, dx, dy, dw, dh);
+
+  // Clip to annulus on the destination
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(center, center, outerR, 0, Math.PI * 2);
+  ctx.arc(center, center, innerR, Math.PI * 2, 0, true);
+  ctx.closePath();
+  ctx.clip();
+
+  // Paint by slicing the texture and drawing thin tangential rectangles
+  const sliceW = 2; // source slice width in texture-space pixels (small => smoother wrap)
+  const arcPerPixel = circumference / texW; // tangential length per texture pixel
+
+  // Translate to center to simplify rotations
+  ctx.translate(center, center);
+
+  for (let sx = 0; sx < texW; sx += sliceW) {
+    const curSliceW = Math.min(sliceW, texW - sx);
+    const angle = (sx / texW) * Math.PI * 2; // angle position for this slice
+    const arcLen = curSliceW * arcPerPixel;
+
+    ctx.save();
+    ctx.rotate(angle);
+    // drawImage(source, sx, sy, sw, sh, dx, dy, dw, dh)
+    // Destination rectangle: positioned at x=innerR, y=-thickness/2, width=arcLen, height=thickness
+    ctx.drawImage(tex, sx, 0, curSliceW, texH, innerR, -thickness / 2, arcLen, thickness);
+    ctx.restore();
+  }
+
+  // restore transform + clipping
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.restore();
 }

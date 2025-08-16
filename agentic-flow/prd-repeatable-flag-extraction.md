@@ -19,19 +19,19 @@ Make the process that converts official flag SVG assets into canonical stripe co
 - Designer/reviewer: verifies extracted colours and ordering.
 
 ## Success Criteria
-- Running one CLI command produces `agentic-flow/outputs/flag-colors.json` and `agentic-flow/outputs/flag-stripe-order.json` for all SVGs in `agentic-flow/assets/flags`.
+- Running the extractor produces `agentic-flow/outputs/flag-colors.json` and `agentic-flow/outputs/flag-stripe-order.json` for all SVGs in the canonical flags location.
 - `npx -y tsc -b --noEmit` and unit tests pass after proposed flag updates.
 - A CI pipeline can run the extractor, commit outputs, and open a draft PR with suggested `src/flags/flags.ts` changes.
 
 ## Data shapes
-- Input: SVG files (UTF-8) in `agentic-flow/assets/flags/*.svg`.
+- Input: SVG files (UTF-8) in `public/flags/*.svg` (the repository's canonical, public-facing flags directory).
 - Outputs (current):
   - `agentic-flow/outputs/flag-colors.json` — map filename → colour frequency list.
   - `agentic-flow/outputs/flag-stripe-order.json` — map filename → ordered array of hex colours or named tokens.
 - App model: `src/flags/flags.ts` entries conform to `FlagSpec` in `src/flags/schema.ts`.
 
 ## Pipeline Overview
-1. Place authoritative SVGs inside `agentic-flow/assets/flags/` (filenames should be stable and descriptive).
+1. Place authoritative SVGs inside `public/flags/` (filenames should be stable and descriptive). `public/flags/` is the single source of truth for flag artwork and is served at `/flags/<name>.svg` in development and production static hosting.
 2. Run extractor(s):
    - `agentic-flow/scripts/extract-svg-colors.cjs` — counts hex/rgb occurrences.
    - `agentic-flow/scripts/extract-svg-stripes.cjs` — infers element-order stripe lists and resolves simple gradients.
@@ -71,7 +71,7 @@ npx -y tsc -b --noEmit
 - Reviewer tasks: verify colour hex values and stripe order; edit `src/flags/flags.ts` if needed.
 
 ## Runbook: common failures
-- No SVGs found in `agentic-flow/assets/flags`:
+- No SVGs found in `public/flags`:
   - Action: ensure files are present and readable; filenames should end with `.svg`.
 - Extractor fails (syntax error or unknown tokens):
   - Action: open failing SVG and inspect non-standard CSS or embedded scripts; report to engineering.
