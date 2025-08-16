@@ -6,13 +6,6 @@ flags:
     reason: "Totalitarian dictatorship under the Kim regime with severe, systemic human rights abuses, political prison camps, and repression of dissent."
     link: "https://en.wikipedia.org/wiki/North_Korea"
 
-  - name: "China — Five-star Red Flag"
-    svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_China.svg"
-    description: "Large gold star with four smaller stars on a red field."
-    type: "Authoritarian State"
-    reason: "Centralized one-party rule with extensive surveillance, suppression of political dissent, and documented abuses against Uyghurs and other minorities."
-    link: "https://en.wikipedia.org/wiki/Politics_of_China"
-
   - name: "Eritrea — Flag of Eritrea"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Eritrea.svg"
     description: "Green, blue and red tricolour with a gold olive wreath emblem."
@@ -83,9 +76,4 @@ flags:
     reason: "Symbol of transgender visibility; transgender people face discrimination and legal obstacles in many places."
     link: "https://en.wikipedia.org/wiki/Transgender_flag"
 
-  - name: "Indigenous (Generic) — Indigenous rights flag"
-    svg_url: "https://commons.wikimedia.org/wiki/File:Indigenous_peoples_flag.svg"
-    description: "Varies by community; symbolic flags representing indigenous identities and rights."
-    type: "Marginalised Group"
-    reason: "Indigenous peoples worldwide face dispossession, cultural erasure, and systemic discrimination."
-    link: "https://en.wikipedia.org/wiki/Indigenous_peoples"
+# TODO: Add indigenous peoples, way more LGBTQ+ flags, GRT flags

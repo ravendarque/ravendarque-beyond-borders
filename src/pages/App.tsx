@@ -17,6 +17,10 @@ import MenuItem from '@mui/material/MenuItem';
 import Slider from '@mui/material/Slider';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormLabel from '@mui/material/FormLabel';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import FileUploadIcon from '@mui/icons-material/UploadFile';
@@ -43,6 +47,7 @@ export function App() {
   const velocityRef = useRef<{ vx: number; vy: number } | null>(null);
   const imageOffsetRef = useRef<{ x: number; y: number }>(imageOffset);
   const lastMoveRef = useRef<{ clientX: number; clientY: number; t: number } | null>(null);
+  const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
 
   const selectedFlag = useMemo<FlagSpec | undefined>(
     () => flags.find((f: FlagSpec) => f.id === flagId),
@@ -187,36 +192,150 @@ export function App() {
 
   async function draw() {
   if (!imageUrl || !selectedFlag || !canvasRef.current) return;
-    // rendering state intentionally omitted for simplicity
-    const img = await createImageBitmap(await (await fetch(imageUrl)).blob());
-    // Optionally load an image to use as the border (e.g., use the flag SVG directly)
-    let borderImageBitmap: ImageBitmap | undefined = undefined;
+  // rendering state intentionally omitted for simplicity
+  devLog('[draw] start', { imageUrl, presentation, flagId });
+    // Try to decode the uploaded image reliably. Some headless environments
+    // (and some image blobs) can cause createImageBitmap(blob) to throw a
+    // DOMException: "The source image could not be decoded." Wrap and
+    // fallback to an HTMLImageElement load, then createImageBitmap from that.
+    let img: ImageBitmap;
     try {
-      // Use recommended.borderStyle === 'use-flag-image' or special-case Palestine
-      const useFlagImage = (selectedFlag as any).recommended?.borderStyle === 'use-flag-image' || selectedFlag.id === 'ps';
-      if (useFlagImage) {
-        // Attempt to fetch a local SVG asset matching the flag id
-  // Filenames use Wikimedia-style names; canonical runtime path is /flags/<filename>.svg (public/flags)
-        const candidateMap: Record<string, string> = {
-          ps: 'Flag_of_Palestine.svg',
-        };
-        const candidate = candidateMap[selectedFlag.id];
-        if (candidate) {
-          try {
-            // Prefer public/flags (served as static files) then try src assets then the original agentic-flow path
-            const publicUrl = `/flags/${candidate}`;
-            let resp = await fetch(publicUrl);
-            if (!resp.ok) {
-              // No other fallback: `public/flags` is the single source of truth now.
-              resp = new Response(null, { status: 404 });
-            }
+      // Fetch blob first so we can log diagnostics if decoding fails
+      const fetched = await fetch(imageUrl);
+      const blob = await fetched.blob();
+      try {
+        img = await createImageBitmap(blob);
+      } catch (err) {
+  devLog('[draw] createImageBitmap(blob) failed — blob info:', { size: (blob as any).size, type: blob.type }, err && ((err as any).stack || err));
+        throw err;
+      }
+    } catch (err) {
+  devLog('[draw] createImageBitmap(blob) failed, falling back to HTMLImage decode', err && ((err as any).stack || err));
+      try {
+        const imgEl = new Image();
+        imgEl.crossOrigin = 'anonymous';
+        await new Promise<void>((res, rej) => {
+          imgEl.onload = () => res();
+          imgEl.onerror = (e) => rej(e);
+          imgEl.src = imageUrl as string;
+        });
+        img = await createImageBitmap(imgEl);
+      } catch (err2) {
+        devLog('[draw] createImageBitmap from HTMLImage failed, using 1x1 transparent fallback', err2);
+        // Final fallback: 1x1 transparent canvas -> ImageBitmap so renderer can still run
+        const oc = document.createElement('canvas');
+        oc.width = 1;
+        oc.height = 1;
+        const octx = oc.getContext('2d')!;
+        octx.clearRect(0, 0, 1, 1);
+        img = await createImageBitmap(oc as any);
+      }
+    }
+  // Optionally load or synthesize an image to use as the border (cutout presentation)
+    let borderImageBitmap: ImageBitmap | undefined = undefined;
+    function devLog(...args: any[]) {
+      try {
+        // Prefer Vite's import.meta.env.DEV when available; fall back to NODE_ENV check in Node.
+        const viteDev = typeof (import.meta as any) !== 'undefined' && !!(import.meta as any).env?.DEV;
+        const nodeDev = typeof process !== 'undefined' && !!(process.env && process.env.NODE_ENV !== 'production');
+        if (viteDev || nodeDev) {
+          // eslint-disable-next-line no-console
+          console.log(...args);
+        }
+      } catch {}
+    }
+
+    try {
+  // Deterministic SVG lookup for cutout: prefer an explicit svgFilename on the flag, else use `/flags/{id}.svg`.
+  if (presentation === 'cutout') {
+        try {
+          const svgFile = (selectedFlag as any).svgFilename ?? `${selectedFlag.id}.svg`;
+          const publicUrl = `/flags/${svgFile}`;
+            devLog('[cutout] attempting fetch', publicUrl);
+            const resp = await fetch(publicUrl);
+            devLog('[cutout] fetch response', publicUrl, resp.status, resp.ok);
             if (resp.ok) {
               const blob = await resp.blob();
+                devLog('[cutout] fetched blob', { size: (blob as any).size, type: blob.type });
               borderImageBitmap = await createImageBitmap(blob);
+                devLog('[cutout] created borderImageBitmap from SVG', borderImageBitmap?.width, borderImageBitmap?.height);
+              // Quick sanity check: ensure bitmap has at least some non-transparent pixels; if not, discard and fallback
+              try {
+                const checkCanvas = document.createElement('canvas');
+                checkCanvas.width = Math.max(1, Math.min(64, borderImageBitmap.width));
+                checkCanvas.height = Math.max(1, Math.min(64, borderImageBitmap.height));
+                const cctx = checkCanvas.getContext('2d')!;
+                cctx.drawImage(borderImageBitmap, 0, 0, checkCanvas.width, checkCanvas.height);
+                const id = cctx.getImageData(0, 0, checkCanvas.width, checkCanvas.height).data;
+                let anyOpaque = false;
+                for (let i = 3; i < id.length; i += 4) {
+                  if (id[i] > 8) { anyOpaque = true; break; }
+                }
+                if (!anyOpaque) {
+                  devLog('[cutout] SVG bitmap appears empty/transparent, discarding to use synthesized fallback');
+                  borderImageBitmap = undefined;
+                } else {
+                  devLog('[cutout] SVG bitmap sanity-check PASSED (has opaque pixels)');
+                }
+              } catch (err) {
+                devLog('[cutout] bitmap sanity-check failed', err);
+              }
             }
-          } catch {
-            // ignore fetch/create errors and fall back to generated rings
+        } catch {
+          // fall back to synthesized bitmap below
+        }
+      }
+
+  // If cutout requested but no SVG available, synthesize a rectangular flag bitmap from the stripe data
+  if (!borderImageBitmap && presentation === 'cutout' && selectedFlag) {
+        // Create a canvas representing the full flag (landscape aspect). Use 3:2 as a reasonable default.
+        const FLAG_W = 900;
+        const FLAG_H = 600;
+        const flagCanvas = document.createElement('canvas');
+        flagCanvas.width = FLAG_W;
+        flagCanvas.height = FLAG_H;
+        const fctx = flagCanvas.getContext('2d')!;
+        // Draw background white first
+        fctx.clearRect(0, 0, FLAG_W, FLAG_H);
+
+        const stripes = selectedFlag.pattern.stripes;
+        const total = stripes.reduce((s, x) => s + x.weight, 0);
+
+        if (selectedFlag.pattern.orientation === 'horizontal') {
+          // Draw top->bottom stripes
+          let y = 0;
+          for (const s of stripes) {
+            const hpx = Math.max(1, Math.round((s.weight / total) * FLAG_H));
+            fctx.fillStyle = s.color;
+            fctx.fillRect(0, y, FLAG_W, hpx);
+            y += hpx;
           }
+          if (y < FLAG_H) {
+            fctx.fillStyle = stripes[stripes.length - 1]?.color ?? '#000';
+            fctx.fillRect(0, y, FLAG_W - 0, FLAG_H - y);
+          }
+        } else {
+          // vertical orientation: draw left->right
+          let x = 0;
+          for (const s of stripes) {
+            const wpx = Math.max(1, Math.round((s.weight / total) * FLAG_W));
+            fctx.fillStyle = s.color;
+            fctx.fillRect(x, 0, wpx, FLAG_H);
+            x += wpx;
+          }
+          if (x < FLAG_W) {
+            fctx.fillStyle = stripes[stripes.length - 1]?.color ?? '#000';
+            fctx.fillRect(x, 0, FLAG_W - x, FLAG_H);
+          }
+        }
+
+        try {
+          borderImageBitmap = await createImageBitmap(flagCanvas);
+          devLog('[cutout] synthesized borderImageBitmap', borderImageBitmap?.width, borderImageBitmap?.height);
+        } catch (err) {
+          devLog('[cutout] failed to create bitmap from synthesized flag', err);
+          // ignore and fall back to renderer-generated stripes
+          borderImageBitmap = undefined;
         }
       }
     } catch {
@@ -230,6 +349,7 @@ export function App() {
       thicknessPct: thickness,
       imageInsetPx,
       imageOffsetPx: { x: Math.round(imageOffset.x), y: Math.round(imageOffset.y) },
+      presentation,
       backgroundColor: bg === 'transparent' ? null : bg,
   borderImageBitmap: borderImageBitmap as any,
     });
@@ -263,7 +383,7 @@ export function App() {
     // Auto-apply whenever inputs change
     draw();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageUrl, flagId, thickness, size, insetPct, bg, imageOffset.x, imageOffset.y]);
+  }, [imageUrl, flagId, thickness, size, insetPct, bg, imageOffset.x, imageOffset.y, presentation]);
 
   // Pointer handlers for dragging the image within the crop
   useEffect(() => {
@@ -474,6 +594,21 @@ export function App() {
                   </Select>
                 </FormControl>
 
+                <FormControl component="fieldset" sx={{ mt: 1 }}>
+                  <FormLabel component="legend">Presentation</FormLabel>
+                  <RadioGroup
+                    row
+                    value={presentation}
+                    onChange={(e) => setPresentation(e.target.value as any)}
+                    aria-label="presentation"
+                    name="presentation"
+                  >
+                    <FormControlLabel value="ring" control={<Radio />} label="Ring" disabled={!imageUrl} />
+                    <FormControlLabel value="segment" control={<Radio />} label="Segment" disabled={!imageUrl} />
+                    <FormControlLabel value="cutout" control={<Radio />} label="Cutout" disabled={!imageUrl} />
+                  </RadioGroup>
+                </FormControl>
+
                 <Box sx={{ opacity: imageUrl ? 1 : 0.6 }}>
                   <Typography gutterBottom>Border thickness: {thickness}%</Typography>
                   <Slider
@@ -598,6 +733,7 @@ export function App() {
                           thicknessPct: thickness,
                           imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
                           imageOffsetPx: { x: Math.round(imageOffset.x), y: Math.round(imageOffset.y) },
+                          presentation,
                           backgroundColor: bg === 'transparent' ? null : bg,
                         });
                         const a = document.createElement('a');
