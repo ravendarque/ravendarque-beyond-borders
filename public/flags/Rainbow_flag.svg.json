@@ -1,0 +1,29 @@
+{
+  "name": "LGBT Pride — Rainbow Flag",
+  "filename": "Rainbow_flag.svg",
+  "source_page": "https://commons.wikimedia.org/wiki/File:Rainbow_flag.svg",
+  "media_url": "https://upload.wikimedia.org/wikipedia/commons/8/8f/Rainbow_flag.svg",
+  "size": 2000,
+  "description": "Six horizontal colored stripes representing LGBTQ+ pride and diversity.",
+  "type": "Marginalised Group",
+  "reason": "Represents LGBTQ+ communities; in many countries LGBTQ+ people face criminalization, discrimination, and violence.",
+  "link": "https://en.wikipedia.org/wiki/Rainbow_flag",
+  "colors": [
+    "#f00000",
+    "#f09000",
+    "#f0f000",
+    "#00c000",
+    "#3060f0",
+    "#9000f0",
+    "#b57edc"
+  ],
+  "stripe_order": [
+    "#f00000",
+    "#f09000",
+    "#f0f000",
+    "#00c000",
+    "#3060f0",
+    "#9000f0",
+    "#b57edc"
+  ]
+}
