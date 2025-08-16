@@ -1,0 +1,54 @@
+[
+  {
+    "name": "North Korea — Ramhongsaek Konghwagukgi",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Flag_of_North_Korea.svg/1200px-Flag_of_North_Korea.svg"
+  },
+  {
+    "name": "China — Five-star Red Flag",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Semi-protection-shackle.svg/120px-Semi-protection-shackle.svg"
+  },
+  {
+    "name": "Eritrea — Flag of Eritrea",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Flag_of_Eritrea.svg/1200px-Flag_of_Eritrea.svg"
+  },
+  {
+    "name": "Iran — Flag of the Islamic Republic of Iran",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Semi-protection-shackle.svg/120px-Semi-protection-shackle.svg"
+  },
+  {
+    "name": "Palestine — Palestinian flag",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Semi-protection-shackle.svg/120px-Semi-protection-shackle.svg"
+  },
+  {
+    "name": "Tibet — Snow Lion Flag",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Flag_of_Tibet.svg/1200px-Flag_of_Tibet.svg"
+  },
+  {
+    "name": "Western Sahara — Sahrawi Arab Democratic Republic",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Flag_of_the_Sahrawi_Arab_Democratic_Republic.svg/1200px-Flag_of_the_Sahrawi_Arab_Democratic_Republic.svg"
+  },
+  {
+    "name": "Kurdistan — Kurdish flag (Roj)",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Semi-protection-shackle.svg/120px-Semi-protection-shackle.svg"
+  },
+  {
+    "name": "Uyghur (East Turkestan) — East Turkestan flag",
+    "error": "Error: Bad status 404 for https://commons.wikimedia.org/wiki/File:East_Turkestan_flag.svg"
+  },
+  {
+    "name": "Rohingya — Rohingya flag",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Rohingya_flag.svg/1200px-Rohingya_flag.svg"
+  },
+  {
+    "name": "LGBT Pride — Rainbow Flag",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Rainbow_flag.svg/1200px-Rainbow_flag.svg"
+  },
+  {
+    "name": "Transgender Pride — Transgender flag",
+    "error": "Error: Bad status 400 for https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Semi-protection-shackle.svg/120px-Semi-protection-shackle.svg"
+  },
+  {
+    "name": "Indigenous (Generic) — Indigenous rights flag",
+    "error": "Error: Bad status 404 for https://commons.wikimedia.org/wiki/File:Indigenous_peoples_flag.svg"
+  }
+]
