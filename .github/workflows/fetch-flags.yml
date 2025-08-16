@@ -1,6 +1,12 @@
 name: Fetch flags and generate metadata
 
 on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'feat/**'
+    paths:
+      - 'data/flag-data.yaml'
   workflow_dispatch:
 
 jobs:
@@ -18,10 +24,14 @@ jobs:
       - name: Run fetch-and-extract
         run: |
           node scripts/fetch-and-extract.cjs
-      - name: Commit and push
-        run: |
-          git config user.email "actions@github.com"
-          git config user.name "github-actions[bot]"
-          git add public/flags data/flag-metadata.json
-          git commit -m "chore: update flags and metadata (automated)" || echo "no changes"
-          git push || echo "push failed"
+      - name: Create pull request with updated flags
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update flags (automated)"
+          branch: update/flags-${{ github.run_id }}
+          title: "chore: update flags (automated)"
+          body: |
+            This PR was created automatically by the fetch workflow and contains updated flag assets under `public/flags`.
+          labels: automated, flags
+          commit-paths: public/flags
