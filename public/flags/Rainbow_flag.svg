@@ -1,1 +1,51 @@
-PLACEHOLDER
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+  xmlns:xlink="http://www.w3.org/1999/xlink" width="1140" height="600">
+  <desc>Rainbow Flag</desc>
+  <defs>
+    <polygon id="point"
+      points="-0.1624598481164531,0 0,0.5 0.1624598481164531,0"
+      transform="scale(0.0616)" fill="white"/>
+      <!-- "0.162..." = (tangent of 18 deg.) / 2 -->
+    <g id="star">
+      <use xlink:href="#point" transform="rotate(-108)"/>
+      <use xlink:href="#point" transform="rotate( -36)"/>
+      <use xlink:href="#point" transform="rotate(  36)"/>
+      <use xlink:href="#point" transform="rotate( 108)"/>
+      <use xlink:href="#point" transform="rotate( 180)"/>
+    </g>
+    <g id="row5">
+      <use xlink:href="#star" x="-0.252"/>
+      <use xlink:href="#star" x="-0.126"/>
+      <use xlink:href="#star"/>
+      <use xlink:href="#star" x=" 0.126"/>
+      <use xlink:href="#star" x=" 0.252"/>
+    </g>
+    <g id="row6">
+      <use xlink:href="#row5" x="-0.063"/>
+      <use xlink:href="#star" x=" 0.315"/>
+    </g>
+    <g id="rowx4">
+      <use xlink:href="#row6"/>
+      <use xlink:href="#row5" y="0.054"/>
+      <use xlink:href="#row6" y="0.108"/>
+      <use xlink:href="#row5" y="0.162"/>
+    </g>
+    <g id="union">
+      <use xlink:href="#rowx4" y="-0.216"/>
+      <use xlink:href="#rowx4"/>
+      <use xlink:href="#row6" y="0.216"/>
+    </g>
+  </defs>
+  <rect width="1140" height="100" fill="#f00000"/>
+  <rect width="1140" height="100" fill="#f09000" y="100"/>
+  <rect width="1140" height="100" fill="#f0f000" y="200"/>
+  <rect width="1140" height="100" fill="#00c000" y="300"/>
+  <rect width="1140" height="100" fill="#3060f0" y="400"/>
+  <rect width="1140" height="100" fill="#9000f0" y="500"/>
+  <rect width="456" height="323.076923076923" fill="#b57edc"/>
+  <use xlink:href="#union" transform="translate(228,161.5384615384615)
+    scale(600)"/>
+</svg>
