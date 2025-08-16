@@ -9,6 +9,7 @@ export const Stripe = z.object({
 export const FlagSpec = z.object({
   id: z.string(),
   displayName: z.string(),
+  svgFilename: z.string().optional(),
   category: z.enum(['marginalized', 'national']),
   sources: z.object({
     referenceUrl: z.string().url().optional(),

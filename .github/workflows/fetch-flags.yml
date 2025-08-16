@@ -1,0 +1,27 @@
+name: Fetch flags and generate metadata
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Run fetch-and-extract
+        run: |
+          node scripts/fetch-and-extract.cjs
+      - name: Commit and push
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git add public/flags data/flag-metadata.json
+          git commit -m "chore: update flags and metadata (automated)" || echo "no changes"
+          git push || echo "push failed"

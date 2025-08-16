@@ -13,11 +13,6 @@ Make the process that converts official flag SVG assets into canonical stripe co
 - Perfect visual rendering of complex emblems (this focuses on stripe colours and dominant fills, not complex emblem recolouring).
 - Legal clearance for flag use; this is a technical pipeline only.
 
-## Stakeholders
-- Product owner: defines which flags to include.
-- Engineering: implements scripts and CI.
-- Designer/reviewer: verifies extracted colours and ordering.
-
 ## Success Criteria
 - Running the extractor produces `agentic-flow/outputs/flag-colors.json` and `agentic-flow/outputs/flag-stripe-order.json` for all SVGs in the canonical flags location.
 - `npx -y tsc -b --noEmit` and unit tests pass after proposed flag updates.
