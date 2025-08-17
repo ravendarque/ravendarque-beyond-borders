@@ -1,6 +1,6 @@
 # Beyond Borders
 
-![CI](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/ci-validate-flags.yml/badge.svg)
 
 Add a circular, flag-colored border to your profile picture to show support for marginalized groups and selected causes.
 
@@ -27,6 +27,26 @@ PRD is defined in `beyond-borders-prd-0.1.md`. App scaffolding to be created (Vi
   - Start dev server: `pnpm dev` or `npm run dev`
   - Build: `pnpm build` or `npm run build`
   - Preview: `pnpm preview` or `npm run preview`
+
+  ## Flag validation & fetching
+
+  This project requires SVG flag assets to live in `public/flags` for accurate previews and exports. A validator is provided to ensure every `svgFilename` referenced in `src/flags/flags.ts` has a corresponding file in `public/flags`.
+
+  - Run the validator locally:
+
+  ```bash
+  node scripts/validate-flags.cjs
+  ```
+
+  - Fetch or refresh flags (recommended to run from CI or with `--push` to commit the results):
+
+  ```bash
+  node scripts/fetch-and-extract.cjs --ci
+  # or for interactive/local run that commits/pushes:
+  node scripts/fetch-and-extract.cjs --push
+  ```
+
+  The GitHub Actions workflow runs the validator before the build so missing SVGs will fail CI with a clear message.
 
 ## Project Structure (planned)
 - src/

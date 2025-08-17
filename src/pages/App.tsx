@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { ThemeModeContext } from '../main';
 import { flags } from '../flags/flags';
+import FlagSwatch from '@/components/FlagSwatch';
 import type { FlagSpec } from '../flags/schema';
 import { renderAvatar } from '@/renderer/render';
 import Container from '@mui/material/Container';
@@ -28,9 +29,10 @@ import DownloadIcon from '@mui/icons-material/Download';
 
 export function App() {
   const { mode, setMode } = useContext(ThemeModeContext);
+  const [inputMode, setInputMode] = useState<'none' | 'image' | 'flag'>('none');
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [flagId, setFlagId] = useState(flags[0]?.id ?? '');
+  const [flagId, setFlagId] = useState<string>('');
   const [thickness, setThickness] = useState(7);
   const size = 1024 as const; // Size of the canvas (fixed at 1024)
   const [insetPct, setInsetPct] = useState(0); // +inset, -outset as percent of size
@@ -48,11 +50,156 @@ export function App() {
   const imageOffsetRef = useRef<{ x: number; y: number }>(imageOffset);
   const lastMoveRef = useRef<{ clientX: number; clientY: number; t: number } | null>(null);
   const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
+  const [flagImgFallback, setFlagImgFallback] = useState(false);
+  const [flagPreviewError, setFlagPreviewError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const flagPreviewImgRef = useRef<HTMLImageElement | null>(null);
+  // Cache rasterized canvases per-flag id to avoid repeated fetch/rasterize work
+  // We keep a small LRU order to prevent unbounded memory usage.
+  const rasterizedFlagCache = useRef<Map<string, HTMLCanvasElement>>(new Map());
+  const rasterizedFlagOrder = useRef<string[]>([]);
+  const RASTER_CACHE_MAX = 12;
+
+  function pruneRasterCacheIfNeeded() {
+    const map = rasterizedFlagCache.current;
+    const order = rasterizedFlagOrder.current;
+    while (order.length > RASTER_CACHE_MAX) {
+      const oldest = order.shift();
+      if (oldest) map.delete(oldest);
+    }
+  }
+
+  async function getRasterizedFlagCanvas(f: FlagSpec) {
+    const cache = rasterizedFlagCache.current;
+    const order = rasterizedFlagOrder.current;
+    if (cache.has(f.id)) {
+      // mark as recently used
+      const idx = order.indexOf(f.id);
+      if (idx >= 0) {
+        order.splice(idx, 1);
+        order.push(f.id);
+      }
+      return cache.get(f.id)!;
+    }
+    // Try SVG rasterize from public/flags if available
+    if ((f as any).svgFilename) {
+      try {
+        const publicUrl = `/flags/${(f as any).svgFilename}`;
+        const resp = await fetch(publicUrl);
+        if (resp.ok) {
+          const blob = await resp.blob();
+          // Rasterize via Image element to produce a canvas
+          try {
+            const url = URL.createObjectURL(blob);
+            const imgEl = new Image();
+            imgEl.crossOrigin = 'anonymous';
+            await new Promise<void>((res, rej) => {
+              imgEl.onload = () => res();
+              imgEl.onerror = (e) => rej(e);
+              imgEl.src = url;
+            });
+            const W = Math.max(900, Math.min(1600, imgEl.naturalWidth || 900));
+            const H = Math.max(600, Math.min(1200, imgEl.naturalHeight || 600));
+            const rc = document.createElement('canvas');
+            rc.width = W;
+            rc.height = H;
+            const rctx = rc.getContext('2d')!;
+            rctx.clearRect(0, 0, W, H);
+            rctx.drawImage(imgEl, 0, 0, W, H);
+            URL.revokeObjectURL(url);
+            cache.set(f.id, rc);
+            order.push(f.id);
+            pruneRasterCacheIfNeeded();
+            return rc;
+          } catch {
+            // fall through to bitmap fallback
+          }
+        }
+      } catch {
+        // ignore and fall back to synthesized
+      }
+    }
+  // Do not synthesize stripes here — flags must provide SVGs in public/flags.
+  // Return undefined to indicate rasterization is not available.
+  return undefined;
+  }
+
+  function resetAll(keepFlag: boolean = false) {
+    setImageUrl(null);
+    try {
+      imageBitmapRef.current = null;
+    } catch {}
+    try {
+      if (imgRef.current) {
+        // revoke any preview URL
+        const prev = (imgRef.current as any)?.dataset?.previewUrl;
+        if (prev) URL.revokeObjectURL(prev);
+        imgRef.current.src = '';
+      }
+    } catch {}
+    try {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch {}
+    setImageOffset({ x: 0, y: 0 });
+    imageOffsetRef.current = { x: 0, y: 0 };
+    setThickness(7);
+    setInsetPct(0);
+    setBg('transparent');
+    setPresentation('ring');
+    // clear selected flag (no default) unless caller asked to keep it
+    if (!keepFlag) {
+      setFlagId('');
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('bb_selectedFlag');
+      } catch {}
+    }
+  }
+
+  function switchMode(mode: 'image' | 'flag') {
+    if (mode === inputMode) return;
+    // reset most state when switching modes but keep the selected flag
+    resetAll(true);
+    setInputMode(mode);
+  }
+
+  // Persist selected flag across reloads and keep it in localStorage
+  useEffect(() => {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      if (flagId) {
+        window.localStorage.setItem('bb_selectedFlag', flagId);
+      } else {
+        window.localStorage.removeItem('bb_selectedFlag');
+      }
+    } catch {}
+  }, [flagId]);
+
+  // Load persisted flag on mount (if present and valid)
+  useEffect(() => {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      const stored = window.localStorage.getItem('bb_selectedFlag');
+      if (stored && !flagId) {
+        // only set if not already selected; verify flag exists
+        const found = flags.find((f: FlagSpec) => f.id === stored);
+        if (found) setFlagId(stored);
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selectedFlag = useMemo<FlagSpec | undefined>(
     () => flags.find((f: FlagSpec) => f.id === flagId),
     [flagId],
   );
+
+  // NOTE: buildFlagGradient was moved into `src/flags/utils.ts` and
+  // swatches now use the `FlagSwatch` component — keep rasterization
+  // and caching centralized via `getRasterizedFlagCanvas` above.
+
+  const presentationEnabled = inputMode === 'image' && Boolean(imageUrl) && Boolean(flagId) && Boolean(selectedFlag);
 
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -190,7 +337,128 @@ export function App() {
     return { x: Math.round(offsetX), y: Math.round(offsetY) };
   }
 
+  // Allow keyboard nudging of the image when the preview canvas is focused.
+  function handleCanvasKeyDown(e: React.KeyboardEvent<HTMLCanvasElement>) {
+    if (!imageUrl) return;
+    const step = e.shiftKey ? 20 : 5;
+    let dx = 0;
+    let dy = 0;
+    switch (e.key) {
+      case 'ArrowLeft':
+        dx = -step;
+        break;
+      case 'ArrowRight':
+        dx = step;
+        break;
+      case 'ArrowUp':
+        dy = -step;
+        break;
+      case 'ArrowDown':
+        dy = step;
+        break;
+      case 'Home': {
+        const b = boundsRef.current;
+        if (b) {
+          const v = { x: b.minX, y: imageOffsetRef.current.y };
+          imageOffsetRef.current = v;
+          setImageOffset(v);
+        }
+        return;
+      }
+      case 'End': {
+        const b = boundsRef.current;
+        if (b) {
+          const v = { x: b.maxX, y: imageOffsetRef.current.y };
+          imageOffsetRef.current = v;
+          setImageOffset(v);
+        }
+        return;
+      }
+      default:
+        return;
+    }
+    const b = boundsRef.current;
+    const nx = b ? clamp(imageOffsetRef.current.x + dx, b.minX, b.maxX) : imageOffsetRef.current.x + dx;
+    const ny = b ? clamp(imageOffsetRef.current.y + dy, b.minY, b.maxY) : imageOffsetRef.current.y + dy;
+    const v = { x: nx, y: ny };
+    imageOffsetRef.current = v;
+    setImageOffset(v);
+    e.preventDefault();
+  }
+
   async function draw() {
+  // If user is in flag mode (no uploaded image) but a flag is selected,
+  // draw a full-bleed flag preview into the preview canvas so users can
+  // see the flag filling the square preview area.
+  if (inputMode === 'flag' && selectedFlag && canvasRef.current) {
+      const c = canvasRef.current;
+      const ctx = c.getContext('2d')!;
+      c.width = size;
+      c.height = size;
+      ctx.clearRect(0, 0, size, size);
+      try {
+        // Prefer rasterizing the SVG via createImageBitmap(blob) so the
+        // browser's SVG rasterization respects the viewBox/preserveAspectRatio
+        // and yields a faithful image which we then cover-crop into the
+        // square preview. Fall back to cached rasterized canvas or
+        // synthesized stripe rendering.
+        let sourceCanvas: HTMLCanvasElement | undefined = undefined;
+        try {
+          const svgFile = (selectedFlag as any).svgFilename;
+          if (svgFile) {
+            try {
+              const resp = await fetch(`/flags/${svgFile}`);
+              if (resp.ok) {
+                const blob = await resp.blob();
+                try {
+                  // createImageBitmap(blob) will rasterize the SVG honoring viewBox.
+                  const bm = await createImageBitmap(blob);
+                  const rc = document.createElement('canvas');
+                  rc.width = Math.max(900, bm.width);
+                  rc.height = Math.max(600, bm.height);
+                  const rctx = rc.getContext('2d')!;
+                  rctx.clearRect(0, 0, rc.width, rc.height);
+                  rctx.drawImage(bm as any, 0, 0, rc.width, rc.height);
+                  sourceCanvas = rc;
+                } catch {
+                  // fall back to cached rasterized canvas below
+                  sourceCanvas = undefined;
+                }
+              }
+            } catch {
+              // ignore and fall back
+            }
+          }
+        } catch {
+          // ignore
+        }
+
+        if (!sourceCanvas) {
+          // No SVG or cached raster available — per policy flags must exist in public/flags.
+          // Surface an explicit preview error to the user instead of synthesizing.
+          try { setFlagPreviewError('Flag SVG not found or failed to rasterize. Ensure the flag SVG exists in public/flags.'); } catch {}
+          try { setFlagImgFallback(true); } catch {}
+        } else {
+          // draw the source canvas into the square preview canvas using cover scaling
+          const sw = sourceCanvas.width;
+          const sh = sourceCanvas.height;
+          const scale = Math.max(size / sw, size / sh);
+          const dw = Math.round(sw * scale);
+          const dh = Math.round(sh * scale);
+          const dx = Math.round((size - dw) / 2);
+          const dy = Math.round((size - dh) / 2);
+          ctx.drawImage(sourceCanvas, dx, dy, dw, dh);
+          try { setFlagImgFallback(false); } catch {}
+          try { setFlagPreviewError(null); } catch {}
+        }
+      } catch {
+        // ignore synthesis errors and leave canvas blank
+        try { setFlagImgFallback(true); } catch {}
+        try { setFlagPreviewError('Error rendering flag preview'); } catch {}
+      }
+      return;
+  }
+
   if (!imageUrl || !selectedFlag || !canvasRef.current) return;
   // rendering state intentionally omitted for simplicity
   devLog('[draw] start', { imageUrl, presentation, flagId });
@@ -245,46 +513,49 @@ export function App() {
       } catch {}
     }
 
-    try {
-  // Deterministic SVG lookup for cutout: prefer an explicit svgFilename on the flag, else use `/flags/{id}.svg`.
+  // Deterministic SVG lookup for cutout: prefer a cached rasterized canvas
   if (presentation === 'cutout') {
+    try {
+      const rc = await getRasterizedFlagCanvas(selectedFlag);
+      if (rc) {
         try {
-          const svgFile = (selectedFlag as any).svgFilename ?? `${selectedFlag.id}.svg`;
-          const publicUrl = `/flags/${svgFile}`;
-            devLog('[cutout] attempting fetch', publicUrl);
-            const resp = await fetch(publicUrl);
-            devLog('[cutout] fetch response', publicUrl, resp.status, resp.ok);
-            if (resp.ok) {
-              const blob = await resp.blob();
-                devLog('[cutout] fetched blob', { size: (blob as any).size, type: blob.type });
-              borderImageBitmap = await createImageBitmap(blob);
-                devLog('[cutout] created borderImageBitmap from SVG', borderImageBitmap?.width, borderImageBitmap?.height);
-              // Quick sanity check: ensure bitmap has at least some non-transparent pixels; if not, discard and fallback
-              try {
-                const checkCanvas = document.createElement('canvas');
-                checkCanvas.width = Math.max(1, Math.min(64, borderImageBitmap.width));
-                checkCanvas.height = Math.max(1, Math.min(64, borderImageBitmap.height));
-                const cctx = checkCanvas.getContext('2d')!;
-                cctx.drawImage(borderImageBitmap, 0, 0, checkCanvas.width, checkCanvas.height);
-                const id = cctx.getImageData(0, 0, checkCanvas.width, checkCanvas.height).data;
-                let anyOpaque = false;
-                for (let i = 3; i < id.length; i += 4) {
-                  if (id[i] > 8) { anyOpaque = true; break; }
-                }
-                if (!anyOpaque) {
-                  devLog('[cutout] SVG bitmap appears empty/transparent, discarding to use synthesized fallback');
-                  borderImageBitmap = undefined;
-                } else {
-                  devLog('[cutout] SVG bitmap sanity-check PASSED (has opaque pixels)');
-                }
-              } catch (err) {
-                devLog('[cutout] bitmap sanity-check failed', err);
-              }
+          borderImageBitmap = await createImageBitmap(rc as any);
+          devLog('[cutout] used cached rasterized canvas for borderImageBitmap', borderImageBitmap?.width, borderImageBitmap?.height);
+        } catch (err) {
+          devLog('[cutout] createImageBitmap from cached canvas failed', err);
+          borderImageBitmap = undefined;
+        }
+
+        // Sanity-check the bitmap to ensure it's not completely transparent
+        try {
+          if (borderImageBitmap) {
+            const sample = Math.max(32, Math.min(256, Math.floor(Math.min(borderImageBitmap.width, borderImageBitmap.height, 256))));
+            const checkCanvas = document.createElement('canvas');
+            checkCanvas.width = sample;
+            checkCanvas.height = sample;
+            const cctx = checkCanvas.getContext('2d')!;
+            cctx.clearRect(0, 0, sample, sample);
+            cctx.drawImage(borderImageBitmap, 0, 0, sample, sample);
+            const id = cctx.getImageData(0, 0, sample, sample).data;
+            let anyOpaque = false;
+            for (let i = 3; i < id.length; i += 4) {
+              if (id[i] > 16) { anyOpaque = true; break; }
             }
-        } catch {
-          // fall back to synthesized bitmap below
+            if (!anyOpaque) {
+              devLog('[cutout] SVG bitmap appears empty/transparent at sample size', sample, 'discarding to use synthesized fallback');
+              borderImageBitmap = undefined;
+            } else {
+              devLog('[cutout] SVG bitmap sanity-check PASSED (has opaque pixels) at sample', sample);
+            }
+          }
+        } catch (err) {
+          devLog('[cutout] bitmap sanity-check failed', err);
         }
       }
+    } catch (err) {
+      devLog('[cutout] getRasterizedFlagCanvas failed', err);
+    }
+  }
 
   // If cutout requested but no SVG available, synthesize a rectangular flag bitmap from the stripe data
   if (!borderImageBitmap && presentation === 'cutout' && selectedFlag) {
@@ -338,9 +609,6 @@ export function App() {
           borderImageBitmap = undefined;
         }
       }
-    } catch {
-      // ignore
-    }
     // Inset (+) should increase the gap (smaller image radius), Outset (-) reduces it.
     // Renderer interprets positive imageInsetPx as increasing gap, so negate here if current behavior is reversed.
     const imageInsetPx = Math.round(((insetPct * -1) / 100) * size);
@@ -556,82 +824,129 @@ export function App() {
         <Grid xs={12} md={6}>
           <Stack spacing={2}>
             <Paper sx={{ p: 2 }} elevation={1}>
-              <Stack spacing={1}>
-                  <Button
-                  component="label"
-                  startIcon={<FileUploadIcon />}
-                  sx={{ mt: 1 }}
-                  variant="outlined"
-                >
-                    Choose image
-                  <input
-                    hidden
-                    accept="image/png, image/jpeg"
-                    type="file"
-                    onChange={onFileChange}
-                  />
-                </Button>
-                {/* image preview removed per UX request */}
-              </Stack>
+                <Stack spacing={1}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
+                      <Button
+                        component="label"
+                        variant={inputMode === 'image' ? 'contained' : 'outlined'}
+                        onClick={() => setInputMode('image')}
+                        size="small"
+                        startIcon={<FileUploadIcon />}
+                        sx={{ flex: 1, minWidth: 0 }}
+                        aria-pressed={inputMode === 'image'}
+                        aria-label="Switch to image mode and upload a file"
+                        focusRipple
+                        disableElevation
+                      >
+                        Image mode
+                        <input
+                          ref={(el) => (fileInputRef.current = el)}
+                          hidden
+                          accept="image/png, image/jpeg"
+                          type="file"
+                          onChange={(e) => {
+                            onFileChange(e as any);
+                            setInputMode('image');
+                          }}
+                        />
+                      </Button>
+                      <Box component="span" sx={{ width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>OR</Box>
+                      <Button
+                        variant={inputMode === 'flag' ? 'contained' : 'outlined'}
+                        onClick={() => switchMode('flag')}
+                        size="small"
+                        sx={{ flex: 1, minWidth: 0 }}
+                        aria-pressed={inputMode === 'flag'}
+                        aria-label="Switch to flag selection mode"
+                        focusRipple
+                        disableElevation
+                      >
+                        Flag mode
+                      </Button>
+                    </Box>
+                  </Stack>
+
+                  {/* removed duplicate file upload button; CHOOSE IMAGE above now handles file input */}
+                </Stack>
             </Paper>
 
-            <Paper sx={{ p: 2 }} elevation={1}>
-              <Stack spacing={2} sx={{ opacity: imageUrl ? 1 : 0.6, pointerEvents: imageUrl ? 'auto' : 'none' }}>
-                <FormControl fullWidth>
-                  <InputLabel id="flag-select-label">Flag</InputLabel>
-                  <Select
-                    labelId="flag-select-label"
-                    value={flagId}
-                    label="Flag"
-                    onChange={(e) => setFlagId(e.target.value as string)}
-                    disabled={!imageUrl}
-                  >
-                    {flags.map((f: FlagSpec) => (
-                      <MenuItem key={f.id} value={f.id}>
-                        {f.displayName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+            {/* Moved flag selection up so it appears directly after the input controls */}
+            <Paper sx={{ p: 2, mt: 2 }} elevation={1}>
+              <FormControl fullWidth>
+                <InputLabel id="flag-select-label">Select a flag</InputLabel>
+                <Select
+                  labelId="flag-select-label"
+                  value={flagId}
+                  label="Select a flag"
+                  onChange={(e) => setFlagId(e.target.value as string)}
+                  disabled={!(inputMode === 'flag' || Boolean(imageUrl))}
+                  inputProps={{ 'aria-label': 'Flag selection' }}
+                  renderValue={(val) => {
+                    const v = val as string;
+                    if (!v) return <em>Choose a flag…</em>;
+                    const found = flags.find((ff: FlagSpec) => ff.id === v);
+                    if (!found) return v;
+                    return <FlagSwatch flag={found} showName />;
+                  }}
+                >
+                  {flags.map((f: FlagSpec) => (
+                    <MenuItem key={f.id} value={f.id}>
+                      <FlagSwatch flag={f} showName />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Paper>
 
+            <Paper sx={{ p: 2, position: 'relative' }} elevation={1}>
+              <Stack
+                spacing={2}
+                sx={{
+                  opacity: presentationEnabled ? 1 : 0.95,
+                  pointerEvents: presentationEnabled ? 'auto' : 'none',
+                  transition: 'filter 200ms ease, opacity 200ms ease, box-shadow 200ms ease',
+                  filter: presentationEnabled ? 'none' : 'grayscale(0.6) brightness(0.92) contrast(0.95)',
+                }}
+              >
                 <FormControl component="fieldset" sx={{ mt: 1 }}>
                   <FormLabel component="legend">Presentation</FormLabel>
                   <RadioGroup
                     row
                     value={presentation}
                     onChange={(e) => setPresentation(e.target.value as any)}
-                    aria-label="presentation"
+                      aria-label="Presentation style"
                     name="presentation"
                   >
-                    <FormControlLabel value="ring" control={<Radio />} label="Ring" disabled={!imageUrl} />
-                    <FormControlLabel value="segment" control={<Radio />} label="Segment" disabled={!imageUrl} />
-                    <FormControlLabel value="cutout" control={<Radio />} label="Cutout" disabled={!imageUrl} />
+                    <FormControlLabel value="ring" control={<Radio />} label="Ring" disabled={!presentationEnabled} />
+                    <FormControlLabel value="segment" control={<Radio />} label="Segment" disabled={!presentationEnabled} />
+                    <FormControlLabel value="cutout" control={<Radio />} label="Cutout" disabled={!presentationEnabled} />
                   </RadioGroup>
                 </FormControl>
 
-                <Box sx={{ opacity: imageUrl ? 1 : 0.6 }}>
+                <Box sx={{ opacity: presentationEnabled ? 1 : 0.6 }}>
                   <Typography gutterBottom>Border thickness: {thickness}%</Typography>
                   <Slider
                     min={5}
                     max={20}
                     value={thickness}
                     onChange={(_, v) => setThickness(v as number)}
-                    aria-label="Border thickness"
-                    disabled={!imageUrl}
+                      aria-label="Border thickness"
+                    disabled={!presentationEnabled}
                   />
                 </Box>
 
                 <Grid container spacing={1}>
                   <Grid xs={12}>
-                    <Box sx={{ opacity: imageUrl ? 1 : 0.6 }}>
+                    <Box sx={{ opacity: presentationEnabled ? 1 : 0.6 }}>
                       <Typography variant="body2">Inset/Outset: {insetPct}%</Typography>
                       <Slider
                         min={-5}
                         max={5}
                         value={insetPct}
                         onChange={(_, v) => setInsetPct(v as number)}
-                        aria-label="Inset outset"
-                        disabled={!imageUrl}
+                        aria-label="Inset or outset"
+                        disabled={!presentationEnabled}
                       />
                     </Box>
                   </Grid>
@@ -645,7 +960,8 @@ export function App() {
                       value={bg}
                       label="Background"
                       onChange={(e) => setBg(e.target.value as any)}
-                      disabled={!imageUrl}
+                      disabled={!presentationEnabled}
+                      inputProps={{ 'aria-label': 'Background color' }}
                     >
                       {/* Color preview swatches inside menu items */}
                       <MenuItem value="transparent">
@@ -728,6 +1044,22 @@ export function App() {
                       onClick={async () => {
                         if (!imageUrl || !selectedFlag) return;
                         const img = await createImageBitmap(await (await fetch(imageUrl)).blob());
+
+                        // Try to reuse cached rasterized flag canvas for border if available
+                        let borderImageBitmap: ImageBitmap | undefined = undefined;
+                        try {
+                          const rc = await getRasterizedFlagCanvas(selectedFlag);
+                          if (rc) {
+                            try {
+                              borderImageBitmap = await createImageBitmap(rc as any);
+                            } catch {
+                              borderImageBitmap = undefined;
+                            }
+                          }
+                        } catch {
+                          borderImageBitmap = undefined;
+                        }
+
                         const blob = await renderAvatar(img, selectedFlag, {
                           size,
                           thicknessPct: thickness,
@@ -735,6 +1067,7 @@ export function App() {
                           imageOffsetPx: { x: Math.round(imageOffset.x), y: Math.round(imageOffset.y) },
                           presentation,
                           backgroundColor: bg === 'transparent' ? null : bg,
+                          borderImageBitmap: borderImageBitmap as any,
                         });
                         const a = document.createElement('a');
                         a.href = URL.createObjectURL(blob);
@@ -759,6 +1092,7 @@ export function App() {
                     </Button>
                   </Stack>
               </Stack>
+              {/* Visual-only disabled state (grayscale / slight darken) -- no overlay text */}
             </Paper>
           </Stack>
         </Grid>
@@ -813,7 +1147,11 @@ export function App() {
                   ref={canvasRef}
                   width={size}
                   height={size}
-                  title={imageUrl ? 'Drag to reposition image' : undefined}
+                  title={imageUrl ? 'Drag to reposition image. Use arrow keys to nudge when focused.' : undefined}
+                  tabIndex={0}
+                  role="img"
+                  aria-label={imageUrl ? 'Preview canvas. Drag to reposition image. Use arrow keys to nudge.' : 'Preview canvas'}
+                  onKeyDown={handleCanvasKeyDown}
                   sx={(theme) => ({
                     display: 'block',
                     width: '100%',
@@ -868,6 +1206,62 @@ export function App() {
                       zIndex: 10,
                       display: imageUrl ? 'block' : 'none',
                     })}
+                  />
+                  {/* Error overlay when flag preview cannot render */}
+                  {flagPreviewError ? (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 20,
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      <Box
+                        sx={(t) => ({
+                          bgcolor: t.palette.mode === 'dark' ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.9)',
+                          color: t.palette.mode === 'dark' ? '#fff' : '#111',
+                          px: 2,
+                          py: 1,
+                          borderRadius: 1,
+                          boxShadow: t.shadows[3],
+                          fontSize: 12,
+                          maxWidth: '90%',
+                          textAlign: 'center',
+                        })}
+                      >
+                        {flagPreviewError}
+                      </Box>
+                    </Box>
+                  ) : null}
+                  {/* Flag-mode preview: show the SVG (or raster fallback) as an <img> that covers the box for a crisp preview */}
+                  <Box
+                    component="img"
+                    ref={flagPreviewImgRef}
+                    src={inputMode === 'flag' && selectedFlag ? ((selectedFlag as any).svgFilename ? `/flags/${(selectedFlag as any).svgFilename}` : undefined) : undefined}
+                    alt={selectedFlag ? selectedFlag.displayName : ''}
+                    sx={(theme) => ({
+                      position: 'absolute',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      pointerEvents: 'none',
+                      // Only display the overlay image when the fallback flagImgFallback
+                      // state is true. When false the canvas rendering should be visible
+                      // and the overlay must remain hidden to avoid masking it.
+                      zIndex: inputMode === 'flag' && flagImgFallback ? 10 : 0,
+                      display: inputMode === 'flag' && !!selectedFlag && flagImgFallback ? 'block' : 'none',
+                      // keep lower contrast for non-selected states
+                      filter: inputMode === 'flag' && !!selectedFlag ? 'none' : 'grayscale(1)'
+                    })}
+                    onError={(e: any) => {
+                      // hide if SVG failed to load (fallback to canvas synthesis will be used)
+                      try { e.currentTarget.style.display = 'none'; } catch {}
+                    }}
                   />
               </Box>
             </Box>

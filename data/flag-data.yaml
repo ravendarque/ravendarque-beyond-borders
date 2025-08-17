@@ -76,4 +76,25 @@ flags:
     reason: "Symbol of transgender visibility; transgender people face discrimination and legal obstacles in many places."
     link: "https://en.wikipedia.org/wiki/Transgender_flag"
 
+  - name: "Ukraine — Flag of Ukraine"
+    svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Ukraine.svg"
+    description: "Two horizontal bands of blue (top) and yellow (bottom)."
+    type: "Nation"
+    reason: "National flag of Ukraine; widely used as a symbol of sovereignty and national identity."
+    link: "https://en.wikipedia.org/wiki/Flag_of_Ukraine"
+
+  - name: "Australian Aboriginal Peoples — Australian Aboriginal Flag"
+    svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Australian_Aboriginal_peoples.svg"
+    description: "Black top half, red bottom half, with a central yellow circle representing the Sun."
+    type: "Indigenous Peoples"
+    reason: "Represents Aboriginal peoples of Australia and is used as a symbol of identity, cultural resilience, and political rights."
+    link: "https://en.wikipedia.org/wiki/Aboriginal_flag"
+
+  - name: "Non-binary Pride — Non-binary flag"
+    svg_url: "https://commons.wikimedia.org/wiki/File:Nonbinary_flag.svg"
+    description: "Four horizontal stripes: yellow, white, purple, and black representing people whose gender is outside the binary."
+    type: "Marginalised Group"
+    reason: "Represents non-binary people and their visibility; used in LGBTQ+ contexts to acknowledge gender diversity."
+    link: "https://en.wikipedia.org/wiki/Non-binary_gender#Flags"
+
 # TODO: Add indigenous peoples, way more LGBTQ+ flags, GRT flags
