@@ -115,8 +115,9 @@ export async function renderAvatar(
       tctx.drawImage(options.borderImageBitmap, 0, 0, bw, bh, dx, dy, dw, dh);
       const bmpTex = await createImageBitmap(tex as any);
       // Map left-edge -> top of ring
-      const startAngle = -Math.PI / 2;
-      drawTexturedAnnulus(ctx, r, ringInner, ringOuter, bmpTex, startAngle);
+    const startAngle = -Math.PI / 2;
+    // For cutout presentation we want to *erase* the ring where the flag texture is opaque.
+    drawTexturedAnnulus(ctx, r, ringInner, ringOuter, bmpTex, startAngle, 'erase');
     } catch {
       // fallback: draw it directly (older behavior)
       try {
@@ -149,8 +150,8 @@ export async function renderAvatar(
         // convert to ImageBitmap for consistent drawing in drawTexturedAnnulus
         // createImageBitmap is available in browser; OffscreenCanvas in node test env should be fine
   const bmp = await createImageBitmap(tex as any);
-  // Map the left edge of the flat stripe texture to the top of the ring
-  drawTexturedAnnulus(ctx, r, ringInner, ringOuter, bmp, -Math.PI / 2);
+  // Map the left edge of the flat stripe texture to the top of the ring and erase where the flag is opaque
+  drawTexturedAnnulus(ctx, r, ringInner, ringOuter, bmp, -Math.PI / 2, 'erase');
       }
     } catch {
       // fallback: semi-transparent concentric rings
@@ -287,6 +288,7 @@ function drawTexturedAnnulus(
   outerR: number,
   bitmap: ImageBitmap,
   startAngle = 0,
+  mode: 'normal' | 'erase' = 'normal',
 ) {
   const thickness = outerR - innerR;
   if (thickness <= 0) return;
@@ -299,7 +301,7 @@ function drawTexturedAnnulus(
 
   // Render the source bitmap into a texture canvas using cover semantics
   const tex = new OffscreenCanvas(texW, texH);
-  const tctx = tex.getContext('2d')!;
+  const texCtx = tex.getContext('2d')!;
   const bw = bitmap.width;
   const bh = bitmap.height;
   const scale = Math.max(texW / bw, texH / bh);
@@ -307,11 +309,11 @@ function drawTexturedAnnulus(
   const dh = Math.round(bh * scale);
   const dx = Math.round((texW - dw) / 2);
   const dy = Math.round((texH - dh) / 2);
-  tctx.clearRect(0, 0, texW, texH);
-  tctx.drawImage(bitmap, 0, 0, bw, bh, dx, dy, dw, dh);
+  texCtx.clearRect(0, 0, texW, texH);
+  texCtx.drawImage(bitmap, 0, 0, bw, bh, dx, dy, dw, dh);
 
   // Read texture pixels for direct sampling
-  const srcData = tctx.getImageData(0, 0, texW, texH);
+  const srcData = texCtx.getImageData(0, 0, texW, texH);
   const srcBuf = srcData.data;
 
   // Destination bounding box (tight around the outer circle)
@@ -322,8 +324,8 @@ function drawTexturedAnnulus(
 
   // Create a temporary destination canvas to populate the annulus pixels precisely
   const dest = new OffscreenCanvas(destW, destH);
-  const dctx = dest.getContext('2d')!;
-  const destImage = dctx.createImageData(destW, destH);
+  const destCtx = dest.getContext('2d')!;
+  const destImage = destCtx.createImageData(destW, destH);
   const dstBuf = destImage.data;
 
   // Precompute values
@@ -371,11 +373,36 @@ function drawTexturedAnnulus(
   }
 
   // Put the sampled annulus onto the destination canvas and draw it into the main context
-  dctx.putImageData(destImage, 0, 0);
+  destCtx.putImageData(destImage, 0, 0);
 
-  // Composite the annulus onto the target canvas at the proper position
+  if (mode === 'normal') {
+    // Composite the annulus onto the target canvas at the proper position
+    ctx.save();
+    ctx.drawImage(dest, minX, minY);
+    ctx.restore();
+    return;
+  }
+
+  // Erase mode: where dest has alpha > 0, clear the corresponding pixels on the target canvas
+  // We'll use an offscreen temporary to read the existing pixels and composite an erased result.
+  const target = new OffscreenCanvas(destW, destH);
+  const targetCtx = target.getContext('2d')!;
+  // Draw the current canvas region into target
+  targetCtx.clearRect(0, 0, destW, destH);
+  targetCtx.drawImage((ctx as CanvasRenderingContext2D).canvas as any, minX, minY, destW, destH, 0, 0, destW, destH);
+  const targetData = targetCtx.getImageData(0, 0, destW, destH);
+  const targetBuf = targetData.data;
+  const maskData = destCtx.getImageData(0, 0, destW, destH).data;
+  for (let i = 0; i < targetBuf.length; i += 4) {
+    const alpha = maskData[i + 3];
+    if (alpha > 8) {
+      // erase (make transparent)
+      targetBuf[i + 3] = 0;
+    }
+  }
+  targetCtx.putImageData(targetData, 0, 0);
+  // Draw the erased region back onto the main context
   ctx.save();
-  // Ensure we place the pixel-perfect annulus over the intended center
-  ctx.drawImage(dest, minX, minY);
+  ctx.drawImage(target, minX, minY);
   ctx.restore();
 }
