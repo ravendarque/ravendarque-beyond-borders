@@ -101,22 +101,18 @@ export function App() {
     pushDebugLog({ tag: 'upload', stage: 'received', name: f.name, size: f.size });
     
     const url = URL.createObjectURL(f);
-    pushDebugLog({ tag: 'upload', stage: 'url-created', url: url.slice(-20) });
-    
     setImageUrl(url);
-    pushDebugLog({ tag: 'upload', stage: 'state-set' });
     
-    // Call draw() with the URL directly to avoid state timing issues
-    pushDebugLog({ tag: 'upload', stage: 'calling-draw-with-url' });
-    drawWithUrl(url);
+    // Auto-trigger rendering
+    setTimeout(() => draw(), 100);
   }
 
-  // Helper function that calls draw with a specific image URL
-  const drawWithUrl = useCallback(async function drawWithUrl(specificImageUrl: string) {
-    pushDebugLog({ tag: 'draw', stage: 'start-with-url', hasImage: !!specificImageUrl, hasFlagId: !!flagId });
+  // Main draw/render function - simplified!
+  const draw = useCallback(async () => {
+    pushDebugLog({ tag: 'draw', stage: 'start', hasImage: !!imageUrl, hasFlagId: !!flagId });
 
     // Clear canvas if no image
-    if (!specificImageUrl || !canvasRef.current) {
+    if (!imageUrl || !canvasRef.current) {
       pushDebugLog({ tag: 'draw', stage: 'skipped-no-image' });
       if (canvasRef.current) {
         const ctx = canvasRef.current.getContext('2d')!;
@@ -145,8 +141,8 @@ export function App() {
 
       pushDebugLog({ tag: 'draw', stage: 'rendering', flagId: flag.id });
 
-      // Load image using the specific URL
-      const fetched = await fetch(specificImageUrl);
+      // Load image
+      const fetched = await fetch(imageUrl);
       const blob = await fetched.blob();
       const img = await createImageBitmap(blob);
       
@@ -195,14 +191,7 @@ export function App() {
       pushDebugLog({ tag: 'draw', stage: 'failed', error: String(err) });
       // console.error('[draw] failed:', err); // Commented to avoid lint error
     }
-  }, [flagId, canvasRef, size, thickness, insetPct, imageOffset, presentation, bg, overlayUrl, flagsList, setOverlayUrl]);
-
-  // Main draw/render function - simplified!
-  const draw = useCallback(async () => {
-    if (!imageUrl) return;
-    pushDebugLog({ tag: 'draw', stage: 'delegating-to-url-version' });
-    await drawWithUrl(imageUrl);
-  }, [imageUrl, drawWithUrl]); // Dependencies for useCallback
+  }, [flagsList, imageUrl, flagId, thickness, insetPct, bg, presentation, imageOffset.x, imageOffset.y, overlayUrl]); // Dependencies for useCallback
 
   // Auto-redraw when parameters change
   useEffect(() => {
