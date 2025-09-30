@@ -21,17 +21,17 @@ export default function FlagSwatch({ flag, size = 36, showName = false }: { flag
           backgroundPosition: 'center',
         }}
       >
-        {(flag as any).svgFilename && (
+        {(flag as any).png_preview || (flag as any).png_full || (flag as any).svgFilename ? (
           <Box
             component="img"
-            src={`/flags/${(flag as any).svgFilename}`}
+            src={`/flags/${(flag as any).png_preview || (flag as any).png_full || (flag as any).svgFilename}`}
             alt=""
             sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
             onError={(e: any) => {
               try { e.currentTarget.style.display = 'none'; } catch {}
             }}
           />
-        )}
+        ) : null}
       </Box>
       {showName && <Typography>{flag.displayName}</Typography>}
     </Box>

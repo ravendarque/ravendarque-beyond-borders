@@ -37,7 +37,6 @@ export const flags: FlagSpec[] = [
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
   },
-  // Additional flags imported from agentic dataset
   {
     id: 'nk',
     displayName: 'North Korea',
@@ -266,7 +265,7 @@ export const flags: FlagSpec[] = [
   {
     id: 'pride',
     displayName: 'Pride (Rainbow)',
-    svgFilename: 'Rainbow_flag.svg',
+  svgFilename: 'Gay_Pride_Flag.svg',
     category: 'marginalized',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rainbow_flag' },
     status: 'active',

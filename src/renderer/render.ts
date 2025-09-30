@@ -56,6 +56,82 @@ export async function renderAvatar(
   const imageInset = options.imageInsetPx ?? 0; // can be negative (outset)
   const imageRadius = clamp(ringInner - imageInset, 0, r - 0.5);
 
+  // Decide border style early to handle cutout differently
+  const stripes = flag.pattern.stripes;
+  const totalWeight = stripes.reduce((s: number, x: { weight: number }) => s + x.weight, 0);
+  const presentation = options.presentation as 'ring' | 'segment' | 'cutout' | undefined;
+  let borderStyle: 'concentric' | 'angular' | 'cutout';
+  if (presentation === 'ring') borderStyle = 'concentric';
+  else if (presentation === 'segment') borderStyle = 'angular';
+  else if (presentation === 'cutout') borderStyle = 'cutout';
+  else borderStyle = flag.pattern.orientation === 'horizontal' ? 'concentric' : 'angular';
+
+  // Special handling for cutout: draw image in center, show flag through ring cutout
+  if (borderStyle === 'cutout') {
+    // Step 1: Draw the user's image in the center circle
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(r, r, ringOuter, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+
+    const offsetX = options.imageOffsetPx?.x ?? 0;
+    const offsetY = options.imageOffsetPx?.y ?? 0;
+    
+    const iw = image.width;
+    const ih = image.height;
+    const target = ringOuter * 2;
+    const scale = Math.max(target / iw, target / ih);
+    const dw = iw * scale;
+    const dh = ih * scale;
+    const cx = canvasW / 2 + offsetX;
+    const cy = canvasH / 2 + offsetY;
+    
+    ctx.drawImage(image, cx - dw / 2, cy - dh / 2, dw, dh);
+    ctx.restore();
+
+    // Step 2: Create a flag texture for the ring area
+    const flagCanvas = new OffscreenCanvas(canvasW, canvasH);
+    const flagCtx = flagCanvas.getContext('2d')!;
+    
+    // Draw stripes across the full canvas
+    if (flag.pattern.orientation === 'horizontal') {
+      // Horizontal stripes
+      let y = 0;
+      for (const stripe of stripes) {
+        const frac = stripe.weight / totalWeight;
+        const h = frac * canvasH;
+        flagCtx.fillStyle = stripe.color;
+        flagCtx.fillRect(0, y, canvasW, h);
+        y += h;
+      }
+    } else {
+      // Vertical stripes
+      let x = 0;
+      for (const stripe of stripes) {
+        const frac = stripe.weight / totalWeight;
+        const w = frac * canvasW;
+        flagCtx.fillStyle = stripe.color;
+        flagCtx.fillRect(x, 0, w, canvasH);
+        x += w;
+      }
+    }
+    
+    // Clip the flag to only the ring area (annulus)
+    flagCtx.globalCompositeOperation = 'destination-in';
+    flagCtx.fillStyle = 'white'; // Color doesn't matter, only alpha
+    flagCtx.beginPath();
+    flagCtx.arc(r, r, ringOuter, 0, Math.PI * 2);
+    flagCtx.arc(r, r, ringInner, Math.PI * 2, 0, true); // Cut out the inner circle
+    flagCtx.fill();
+    
+    // Step 3: Draw the flag ring on top of the image
+    ctx.drawImage(flagCanvas, 0, 0);
+
+    // Skip the normal border drawing
+  } else {
+    // Normal ring/segment mode: Draw image in center, then draw border
+
   // Draw circular masked image (kept inside border)
   ctx.save();
   ctx.beginPath();
@@ -80,21 +156,12 @@ export async function renderAvatar(
   ctx.restore();
 
   // Draw ring segments for the flag
-  const stripes = flag.pattern.stripes;
-  const totalWeight = stripes.reduce((s: number, x: { weight: number }) => s + x.weight, 0);
   // Decide border style: take explicit presentation if provided, else fall back to recommended or stripe orientation
-  const presentation = options.presentation as 'ring' | 'segment' | 'cutout' | undefined;
-  let borderStyle: 'concentric' | 'angular' | 'cutout';
-  if (presentation === 'ring') borderStyle = 'concentric';
-  else if (presentation === 'segment') borderStyle = 'angular';
-  else if (presentation === 'cutout') borderStyle = 'cutout';
-  else borderStyle = flag.pattern.orientation === 'horizontal' ? 'concentric' : 'angular';
-
   // If a border image bitmap is provided, prefer rendering it wrapped around the annulus.
-  if (options.borderImageBitmap) {
+  // (Not used for cutout mode which has its own rendering path above)
+  if (options.borderImageBitmap && presentation !== 'cutout') {
   devLog('[render] borderImageBitmap present', options.borderImageBitmap?.width, options.borderImageBitmap?.height);
     // If the caller provided an SVG (or any) bitmap, generate a texture mapped to the ring
-  // For cutout we want the left edge of the SVG to map to the top of the ring (startAngle = -PI/2)
     const thickness = Math.max(1, Math.round(ringOuter - ringInner));
     const midR = (ringInner + ringOuter) / 2;
     const circumference = Math.max(2, Math.round(2 * Math.PI * midR));
@@ -115,9 +182,8 @@ export async function renderAvatar(
       tctx.drawImage(options.borderImageBitmap, 0, 0, bw, bh, dx, dy, dw, dh);
       const bmpTex = await createImageBitmap(tex as any);
       // Map left-edge -> top of ring
-    const startAngle = -Math.PI / 2;
-    // For cutout presentation we want to *erase* the ring where the flag texture is opaque.
-    drawTexturedAnnulus(ctx, r, ringInner, ringOuter, bmpTex, startAngle, 'erase');
+      const startAngle = -Math.PI / 2;
+      drawTexturedAnnulus(ctx, r, ringInner, ringOuter, bmpTex, startAngle, 'normal');
     } catch {
       // fallback: draw it directly (older behavior)
       try {
@@ -133,33 +199,6 @@ export async function renderAvatar(
   } else if (borderStyle === 'concentric') {
     // Map horizontal stripes to concentric annuli from outer->inner to preserve stripe order (top => outer)
     drawConcentricRings(ctx, r, ringInner, ringOuter, stripes, totalWeight);
-  } else if (borderStyle === 'cutout') {
-    // cutout presentation: render the flag pattern as a wrapped texture around the ring
-    try {
-      // If we already have an explicit border image, use it (wrapped)
-      if (options.borderImageBitmap) {
-        drawTexturedAnnulus(ctx, r, ringInner, ringOuter, options.borderImageBitmap);
-      } else {
-        // create a stripe texture matching the flag pattern and wrap it
-        const thickness = Math.max(1, Math.round(ringOuter - ringInner));
-        const midR = (ringInner + ringOuter) / 2;
-        const circumference = Math.max(2, Math.round(2 * Math.PI * midR));
-        const texW = circumference;
-        const texH = thickness;
-        const tex = createStripeTexture(stripes, flag.pattern.orientation, texW, texH);
-        // convert to ImageBitmap for consistent drawing in drawTexturedAnnulus
-        // createImageBitmap is available in browser; OffscreenCanvas in node test env should be fine
-  const bmp = await createImageBitmap(tex as any);
-  // Map the left edge of the flat stripe texture to the top of the ring and erase where the flag is opaque
-  drawTexturedAnnulus(ctx, r, ringInner, ringOuter, bmp, -Math.PI / 2, 'erase');
-      }
-    } catch {
-      // fallback: semi-transparent concentric rings
-      ctx.save();
-      ctx.globalAlpha = 0.64;
-      drawConcentricRings(ctx, r, ringInner, ringOuter, stripes, totalWeight);
-      ctx.restore();
-    }
   } else {
     // default: angular arcs (vertical stripes map naturally around circumference)
     let start = -Math.PI / 2; // start at top center
@@ -171,6 +210,7 @@ export async function renderAvatar(
       start = end;
     }
   }
+  } // Close the else block for non-cutout mode
 
   // Optional outer stroke
   if (options.outerStroke) {
@@ -252,6 +292,7 @@ function clamp(n: number, min: number, max: number) {
  * orientation is 'horizontal' or 'vertical'. For wrapping we always render horizontally
  * across the width (circumference) and use height as thickness.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function createStripeTexture(stripes: { color: string; weight: number }[], orientation: string, w: number, h: number) {
   const canvas = new OffscreenCanvas(Math.max(1, w), Math.max(1, h));
   const ctx = canvas.getContext('2d')!;
