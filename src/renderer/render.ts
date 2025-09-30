@@ -60,10 +60,11 @@ export async function renderAvatar(
    * and the flag pattern appears only in the border/ring area
    */
   if (borderStyle === 'cutout') {
-    // Step 1: Draw the user's image in the center circle
+    // Step 1: Draw the user's image in the center circle (respecting inset)
     ctx.save();
     ctx.beginPath();
-    ctx.arc(r, r, ringOuter, 0, Math.PI * 2);
+    // Clip to the inner circle area (where the image should appear)
+    ctx.arc(r, r, imageRadius, 0, Math.PI * 2);
     ctx.closePath();
     ctx.clip();
 
@@ -72,7 +73,8 @@ export async function renderAvatar(
     
     const iw = image.width;
     const ih = image.height;
-    const target = ringOuter * 2;
+    // Scale image to fit the inner circle (respecting inset)
+    const target = imageRadius * 2;
     const scale = Math.max(target / iw, target / ih);
     const dw = iw * scale;
     const dh = ih * scale;
