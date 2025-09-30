@@ -39,9 +39,6 @@ export function App() {
   const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
   const [imageOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
-  
-  // Debug state
-  const [lastDebugEntries, setLastDebugEntries] = useState<any[]>([]);
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -49,24 +46,14 @@ export function App() {
   
   const size = 1024 as const;
 
-  // Debug helper
-  function pushDebugLog(obj: any) {
-    try {
-      if (typeof window === 'undefined') return;
-      (window as any).__BB_DEBUG__ = (window as any).__BB_DEBUG__ || [];
-      (window as any).__BB_DEBUG__.push(obj);
-      // console.debug('[BB_DEBUG]', JSON.stringify(obj)); // Commented to avoid lint error
-      setLastDebugEntries(prev => [...prev.slice(-4), obj]);
-    } catch {}
-  }
-
-  // Load flags on mount
+  /**
+   * Load available flags and restore persisted flag selection
+   */
   useEffect(() => {
     (async () => {
       try {
         const loaded = await loadFlags();
         setFlagsList(loaded || []);
-        pushDebugLog({ tag: 'flags', stage: 'loaded', count: Array.isArray(loaded) ? loaded.length : 0 });
       } catch {
         setFlagsList([]);
       }
@@ -75,14 +62,13 @@ export function App() {
     // Load persisted flag from localStorage
     try {
       const stored = localStorage.getItem('bb_selectedFlag');
-      if (stored) {
-        setFlagId(stored);
-        pushDebugLog({ tag: 'flags', stage: 'selected-from-storage', id: stored });
-      }
+      if (stored) setFlagId(stored);
     } catch {}
-  }, []); // flagId intentionally omitted to avoid infinite loop
+  }, []);
 
-  // Persist flag selection
+  /**
+   * Persist flag selection to localStorage
+   */
   useEffect(() => {
     try {
       if (flagId) {
@@ -93,31 +79,31 @@ export function App() {
     } catch {}
   }, [flagId]);
 
-  // File upload handler
+  /**
+   * Handle file upload and trigger rendering
+   */
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
     
-    pushDebugLog({ tag: 'upload', stage: 'received', name: f.name, size: f.size });
-    
-    const url = URL.createObjectURL(f);
-    pushDebugLog({ tag: 'upload', stage: 'url-created', url: url.slice(-20) });
-    
+    const url = URL.createObjectURL(file);
     setImageUrl(url);
-    pushDebugLog({ tag: 'upload', stage: 'state-set' });
     
-    // Call draw() with the URL directly to avoid state timing issues
-    pushDebugLog({ tag: 'upload', stage: 'calling-draw-with-url' });
-    drawWithUrl(url);
+    // Render immediately with the new URL to avoid React state timing issues
+    renderWithImageUrl(url);
   }
 
-  // Helper function that calls draw with a specific image URL
-  const drawWithUrl = useCallback(async function drawWithUrl(specificImageUrl: string) {
-    pushDebugLog({ tag: 'draw', stage: 'start-with-url', hasImage: !!specificImageUrl, hasFlagId: !!flagId });
-
-    // Clear canvas if no image
+  /**
+   * Render avatar with flag border using the provided image URL
+   * This function handles the complete rendering pipeline:
+   * 1. Load and validate inputs (image, flag)
+   * 2. Transform flag data to renderer format
+   * 3. Call renderAvatar to generate the bordered image
+   * 4. Update the overlay with the result
+   */
+  const renderWithImageUrl = useCallback(async function renderWithImageUrl(specificImageUrl: string) {
+    // Exit early if no image or canvas
     if (!specificImageUrl || !canvasRef.current) {
-      pushDebugLog({ tag: 'draw', stage: 'skipped-no-image' });
       if (canvasRef.current) {
         const ctx = canvasRef.current.getContext('2d')!;
         ctx.clearRect(0, 0, size, size);
@@ -125,9 +111,8 @@ export function App() {
       return;
     }
 
-    // Clear overlay if no flag
+    // Clear overlay if no flag selected
     if (!flagId) {
-      pushDebugLog({ tag: 'draw', stage: 'skipped-no-flag' });
       if (overlayUrl) {
         URL.revokeObjectURL(overlayUrl);
         setOverlayUrl(null);
@@ -136,36 +121,25 @@ export function App() {
     }
 
     try {
-      // Find flag
-      let flag = flagsList.find((f: any) => f.id === flagId);
-      if (!flag) {
-        pushDebugLog({ tag: 'draw', stage: 'flag-not-found', flagId });
-        return;
-      }
+      // Find selected flag
+      const flag = flagsList.find((f: any) => f.id === flagId);
+      if (!flag) return;
 
-      pushDebugLog({ tag: 'draw', stage: 'rendering', flagId: flag.id });
-
-      // Load image using the specific URL
-      const fetched = await fetch(specificImageUrl);
-      const blob = await fetched.blob();
+      // Load image
+      const response = await fetch(specificImageUrl);
+      const blob = await response.blob();
       const img = await createImageBitmap(blob);
-      
-      pushDebugLog({ tag: 'draw', stage: 'image-loaded', w: img.width, h: img.height });
 
       // Transform flag data to format expected by renderAvatar
       const transformedFlag = { ...flag };
-      if (flag.layouts && flag.layouts.length > 0 && !flag.pattern) {
-        const layout = flag.layouts[0];
-        if (layout.colors && Array.isArray(layout.colors)) {
-          transformedFlag.pattern = {
-            stripes: layout.colors.map((color: string) => ({ color, weight: 1 })),
-            orientation: 'horizontal'
-          };
-          pushDebugLog({ tag: 'draw', stage: 'flag-transformed', colors: layout.colors.length });
-        }
+      if (flag.layouts?.[0]?.colors && !flag.pattern) {
+        transformedFlag.pattern = {
+          stripes: flag.layouts[0].colors.map((color: string) => ({ color, weight: 1 })),
+          orientation: 'horizontal'
+        };
       }
 
-      // Render avatar
+      // Render avatar with flag border
       const resultBlob = await renderAvatar(img, transformedFlag, {
         size,
         thicknessPct: thickness,
@@ -175,9 +149,7 @@ export function App() {
         backgroundColor: bg === 'transparent' ? null : bg,
       });
 
-      pushDebugLog({ tag: 'draw', stage: 'render-complete', blobSize: resultBlob.size });
-
-      // Create overlay
+      // Create overlay URL from result
       const blobUrl = URL.createObjectURL(resultBlob);
       
       // Clean up previous overlay
@@ -186,33 +158,36 @@ export function App() {
       }
       
       setOverlayUrl(blobUrl);
-      pushDebugLog({ tag: 'draw', stage: 'overlay-set' });
 
-      // Set test completion hook
-      try { (window as any).__BB_UPLOAD_DONE__ = true; } catch {}
+      // Set test completion hook for E2E tests
+      try { 
+        (window as any).__BB_UPLOAD_DONE__ = true; 
+      } catch {
+        // Ignore errors setting test hooks
+      }
 
     } catch (err) {
-      pushDebugLog({ tag: 'draw', stage: 'failed', error: String(err) });
-      // console.error('[draw] failed:', err); // Commented to avoid lint error
+      // Silent fail - could add user-facing error handling here
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Failed to render avatar:', err);
+      }
     }
-  }, [flagId, canvasRef, size, thickness, insetPct, imageOffset, presentation, bg, overlayUrl, flagsList, setOverlayUrl]);
+  }, [flagId, size, thickness, insetPct, imageOffset, presentation, bg, overlayUrl, flagsList]);
 
-  // Main draw/render function - simplified!
-  const draw = useCallback(async () => {
-    if (!imageUrl) return;
-    pushDebugLog({ tag: 'draw', stage: 'delegating-to-url-version' });
-    await drawWithUrl(imageUrl);
-  }, [imageUrl, drawWithUrl]); // Dependencies for useCallback
-
-  // Auto-redraw when parameters change
+  /**
+   * Auto-render when image or flag selection changes
+   */
   useEffect(() => {
     if (imageUrl && flagId) {
-      const timeoutId = setTimeout(() => draw(), 100);
+      const timeoutId = setTimeout(() => renderWithImageUrl(imageUrl), 100);
       return () => clearTimeout(timeoutId);
     }
-  }, [draw, imageUrl, flagId]); // Include all dependencies
+  }, [imageUrl, flagId, renderWithImageUrl]);
 
-  // Download handler
+  /**
+   * Download the rendered avatar as a PNG file
+   */
   function handleDownload() {
     if (!overlayUrl) return;
     const a = document.createElement('a');
@@ -376,22 +351,6 @@ export function App() {
                 />
               )}
             </Box>
-          </Paper>
-
-          {/* Debug Panel */}
-          <Paper sx={{ p: 2, mt: 2, fontSize: '0.75rem', fontFamily: 'monospace' }}>
-            <Typography variant="caption" display="block">
-              BB debug
-              imageUrl: {imageUrl ? imageUrl.slice(-20) : 'null'}
-              overlayUrl: {overlayUrl ? 'set' : 'null'}
-              flagId: {flagId}
-              imageOffset: {imageOffset.x},{imageOffset.y}
-            </Typography>
-            {lastDebugEntries.slice(-3).map((entry, i) => (
-              <Typography key={i} variant="caption" display="block">
-                {JSON.stringify(entry)}
-              </Typography>
-            ))}
           </Paper>
         </Grid>
       </Grid>
