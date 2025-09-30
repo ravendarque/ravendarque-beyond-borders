@@ -30,17 +30,6 @@ export async function renderAvatar(
   const canvas = new OffscreenCanvas(canvasW, canvasH);
   const ctx = canvas.getContext('2d')!;
 
-  function devLog(...args: any[]) {
-    try {
-      const viteDev = typeof (import.meta as any) !== 'undefined' && !!(import.meta as any).env?.DEV;
-      const nodeDev = typeof process !== 'undefined' && !!(process.env && process.env.NODE_ENV !== 'production');
-      if (viteDev || nodeDev) {
-        // eslint-disable-next-line no-console
-        console.log(...args);
-      }
-    } catch {}
-  }
-
   // Background fill (optional, else transparent)
   if (options.backgroundColor) {
     ctx.save();
@@ -66,7 +55,10 @@ export async function renderAvatar(
   else if (presentation === 'cutout') borderStyle = 'cutout';
   else borderStyle = flag.pattern.orientation === 'horizontal' ? 'concentric' : 'angular';
 
-  // Special handling for cutout: draw image in center, show flag through ring cutout
+  /**
+   * CUTOUT MODE: Special rendering where the user's image is centered
+   * and the flag pattern appears only in the border/ring area
+   */
   if (borderStyle === 'cutout') {
     // Step 1: Draw the user's image in the center circle
     ctx.save();
@@ -128,9 +120,12 @@ export async function renderAvatar(
     // Step 3: Draw the flag ring on top of the image
     ctx.drawImage(flagCanvas, 0, 0);
 
-    // Skip the normal border drawing
+    // Cutout mode complete - skip normal border rendering below
   } else {
-    // Normal ring/segment mode: Draw image in center, then draw border
+    /**
+     * NORMAL MODE (Ring/Segment): Draw user's image in center,
+     * then add flag-colored border around it
+     */
 
   // Draw circular masked image (kept inside border)
   ctx.save();
@@ -160,7 +155,6 @@ export async function renderAvatar(
   // If a border image bitmap is provided, prefer rendering it wrapped around the annulus.
   // (Not used for cutout mode which has its own rendering path above)
   if (options.borderImageBitmap && presentation !== 'cutout') {
-  devLog('[render] borderImageBitmap present', options.borderImageBitmap?.width, options.borderImageBitmap?.height);
     // If the caller provided an SVG (or any) bitmap, generate a texture mapped to the ring
     const thickness = Math.max(1, Math.round(ringOuter - ringInner));
     const midR = (ringInner + ringOuter) / 2;
