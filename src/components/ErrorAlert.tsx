@@ -48,6 +48,9 @@ export function ErrorAlert({
       severity={severity}
       onClose={onDismiss}
       sx={{ mb: 2 }}
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
     >
       <AlertTitle>Error</AlertTitle>
       
@@ -72,6 +75,7 @@ export function ErrorAlert({
             variant="outlined"
             onClick={onRetry}
             color="inherit"
+            aria-label="Retry the failed operation"
           >
             Try Again
           </Button>

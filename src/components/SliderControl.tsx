@@ -27,7 +27,7 @@ export function SliderControl({
 }: SliderControlProps) {
   return (
     <Box>
-      <Typography gutterBottom>
+      <Typography gutterBottom id={`${label.replace(/\s+/g, '-').toLowerCase()}-label`}>
         {label}: {value}{unit}
       </Typography>
       <Slider
@@ -36,6 +36,9 @@ export function SliderControl({
         min={min}
         max={max}
         step={step}
+        aria-labelledby={`${label.replace(/\s+/g, '-').toLowerCase()}-label`}
+        aria-valuetext={`${value}${unit}`}
+        valueLabelDisplay="auto"
       />
     </Box>
   );

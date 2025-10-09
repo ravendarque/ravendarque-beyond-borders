@@ -132,22 +132,50 @@ export function App() {
   }
 
   return (
-    <Container maxWidth="lg">
-      <Grid container spacing={3}>
-        {/* Header */}
-        <Grid xs={12}>
-          <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
-              Beyond Borders
+    <>
+      {/* Skip Link for Keyboard Navigation */}
+      <a
+        href="#main-content"
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          zIndex: 999,
+          padding: '1em',
+          backgroundColor: '#fff',
+          color: '#000',
+          textDecoration: 'none',
+          border: '2px solid #000',
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.left = '0';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.left = '-9999px';
+        }}
+      >
+        Skip to main content
+      </a>
+      
+      <Container maxWidth="lg" component="main" id="main-content">
+        <Grid container spacing={3}>
+          {/* Header */}
+          <Grid xs={12} component="header">
+            <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+              <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+                Beyond Borders
+              </Typography>
+              <IconButton 
+                onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
+                aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              >
+                {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+              </IconButton>
+            </Stack>
+            <Typography variant="subtitle1" color="textSecondary">
+              Add a circular, flag-colored border to your profile picture.
             </Typography>
-            <IconButton onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}>
-              {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
-            </IconButton>
-          </Stack>
-          <Typography variant="subtitle1" color="textSecondary">
-            Add a circular, flag-colored border to your profile picture.
-          </Typography>
-        </Grid>
+          </Grid>
 
         {/* Error Display */}
         {error && (
@@ -211,5 +239,6 @@ export function App() {
         </Grid>
       </Grid>
     </Container>
+    </>
   );
 }

@@ -43,11 +43,13 @@ export function AvatarPreview({
             borderRadius: '50%',
             imageRendering: 'auto',
           }}
+          aria-label="Avatar preview canvas"
+          role="img"
         />
         {overlayUrl && (
           <img
             src={overlayUrl}
-            alt="Result overlay"
+            alt="Generated avatar with flag border"
             style={{
               position: 'absolute',
               top: 0,
@@ -75,8 +77,11 @@ export function AvatarPreview({
               flexDirection: 'column',
               gap: 2,
             }}
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
           >
-            <CircularProgress size={40} sx={{ color: 'white' }} />
+            <CircularProgress size={40} sx={{ color: 'white' }} aria-hidden="true" />
             <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
               Loading...
             </Typography>
