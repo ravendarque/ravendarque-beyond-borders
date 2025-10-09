@@ -1,6 +1,14 @@
 import type { FlagSpec } from '../flags/schema';
 import { createCanvas, canvasToBlob, clamp as utilClamp } from './canvas-utils';
 import { validateFlagPattern } from './flag-validation';
+import {
+  RenderPerformanceTracker,
+  calculateDownsampleSize,
+  downsampleImage,
+  shouldDownsample,
+  logRenderMetrics,
+  type RenderMetrics,
+} from './performance';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -12,6 +20,14 @@ export interface RenderOptions {
   borderImageBitmap?: ImageBitmap | undefined; // optional image to use for border rendering (SVG bitmap)
   presentation?: 'ring' | 'segment' | 'cutout';
   backgroundColor?: string | null; // null => transparent
+  enablePerformanceTracking?: boolean; // Enable performance metrics logging (default: development only)
+  enableDownsampling?: boolean; // Enable automatic image downsampling (default: true)
+  onProgress?: (progress: number) => void; // Progress callback (0-1)
+}
+
+export interface RenderResult {
+  blob: Blob;
+  metrics?: RenderMetrics;
 }
 
 export async function renderAvatar(
@@ -21,6 +37,38 @@ export async function renderAvatar(
 ): Promise<Blob> {
   // Validate flag pattern before rendering
   validateFlagPattern(flag);
+  
+  // Performance tracking
+  const tracker = new RenderPerformanceTracker();
+  const enableTracking = options.enablePerformanceTracking ?? (process.env.NODE_ENV === 'development');
+  if (enableTracking) {
+    tracker.start();
+    tracker.mark('start');
+  }
+  
+  // Image downsampling for large images
+  const enableDownsampling = options.enableDownsampling ?? true;
+  let processedImage = image;
+  let wasDownsampled = false;
+  let downsampleRatio = 1;
+  
+  if (enableDownsampling && shouldDownsample(image.width, image.height, options.size)) {
+    const downsampleSize = calculateDownsampleSize(image.width, image.height, options.size);
+    processedImage = await downsampleImage(image, downsampleSize.width, downsampleSize.height);
+    wasDownsampled = true;
+    downsampleRatio = downsampleSize.scale;
+    
+    if (enableTracking) {
+      tracker.mark('imageDownsampled');
+    }
+  }
+  
+  if (enableTracking) {
+    tracker.mark('imageLoaded');
+  }
+  
+  // Report progress: image loaded (20%)
+  options.onProgress?.(0.2);
   
   const size = options.size;
   const canvasW = size;
@@ -74,8 +122,9 @@ export async function renderAvatar(
     ctx.closePath();
     ctx.clip();
     
-    const iw = image.width;
-    const ih = image.height;
+    // Use downsampled image if available
+    const iw = processedImage.width;
+    const ih = processedImage.height;
     // Scale image to fit the inner circle (respecting inset)
     const target = imageRadius * 2;
     const scale = Math.max(target / iw, target / ih);
@@ -84,8 +133,11 @@ export async function renderAvatar(
     const cx = canvasW / 2; // Always centered
     const cy = canvasH / 2; // Always centered
     
-    ctx.drawImage(image, cx - dw / 2, cy - dh / 2, dw, dh);
+    ctx.drawImage(processedImage, cx - dw / 2, cy - dh / 2, dw, dh);
     ctx.restore();
+    
+    // Report progress: image drawn (40%)
+    options.onProgress?.(0.4);
 
     // Step 2: Create a flag texture for the ring area
     // Use imageOffsetPx for flag pattern shifting (in cutout mode only)
@@ -162,8 +214,9 @@ export async function renderAvatar(
   ctx.clip();
 
   // Fit image into the inner circle (cover)
-  const iw = image.width,
-    ih = image.height;
+  // Use downsampled image if available
+  const iw = processedImage.width,
+    ih = processedImage.height;
   const target = imageRadius * 2;
   const scale = Math.max(target / iw, target / ih);
   const dw = iw * scale,
@@ -171,8 +224,11 @@ export async function renderAvatar(
   // Center in canvas (no offset in ring/segment modes)
   const cx = canvasW / 2,
     cy = canvasH / 2;
-  ctx.drawImage(image, cx - dw / 2, cy - dh / 2, dw, dh);
+  ctx.drawImage(processedImage, cx - dw / 2, cy - dh / 2, dw, dh);
   ctx.restore();
+  
+  // Report progress: image drawn (50%)
+  options.onProgress?.(0.5);
 
   // Draw ring segments for the flag
   // Decide border style: take explicit presentation if provided, else fall back to recommended or stripe orientation
@@ -229,6 +285,12 @@ export async function renderAvatar(
     }
   }
   } // Close the else block for non-cutout mode
+  
+  // Report progress: rendering complete (80%)
+  if (enableTracking) {
+    tracker.mark('renderComplete');
+  }
+  options.onProgress?.(0.8);
 
   // Optional outer stroke
   if (options.outerStroke) {
@@ -241,6 +303,23 @@ export async function renderAvatar(
 
   // Export PNG (using canvasToBlob with fallback support)
   const blob = await canvasToBlob(canvas, 'image/png');
+  
+  // Report progress: export complete (100%)
+  if (enableTracking) {
+    tracker.mark('exportComplete');
+    
+    // Generate and log metrics
+    const metrics = tracker.complete(
+      { width: image.width, height: image.height },
+      { width: canvasW, height: canvasH },
+      wasDownsampled,
+      downsampleRatio
+    );
+    
+    logRenderMetrics(metrics);
+  }
+  options.onProgress?.(1.0);
+  
   return blob;
 }
 
