@@ -131,6 +131,7 @@ export function ControlPanel({
           onClick={onDownload}
           disabled={downloadDisabled}
           fullWidth
+          aria-label="Download generated avatar as PNG file"
         >
           Download
         </Button>

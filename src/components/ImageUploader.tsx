@@ -96,6 +96,7 @@ export function ImageUploader({ onFileChange, onError }: ImageUploaderProps) {
         id="file-upload"
         type="file"
         onChange={handleFileChange}
+        aria-label="Upload image file (JPG or PNG, max 10 MB)"
       />
       <label htmlFor="file-upload">
         <Button
@@ -103,6 +104,7 @@ export function ImageUploader({ onFileChange, onError }: ImageUploaderProps) {
           component="span"
           startIcon={<FileUploadIcon />}
           fullWidth
+          aria-label="Choose image file to upload"
         >
           Choose Image
         </Button>
