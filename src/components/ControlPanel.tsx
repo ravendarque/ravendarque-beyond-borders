@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -47,8 +47,9 @@ export interface ControlPanelProps {
 
 /**
  * Control panel component containing all user controls
+ * Optimized with React.memo and useCallback
  */
-export function ControlPanel({
+function ControlPanelComponent({
   onFileChange,
   onFileError,
   flagId,
@@ -67,6 +68,14 @@ export function ControlPanel({
   onDownload,
   downloadDisabled,
 }: ControlPanelProps) {
+  // Memoize background change handler
+  const handleBgChange = useCallback(
+    (event: { target: { value: string } }) => {
+      onBgChange(event.target.value);
+    },
+    [onBgChange]
+  );
+  
   return (
     <Paper sx={{ p: 3 }}>
       <Stack spacing={3}>
@@ -117,7 +126,7 @@ export function ControlPanel({
         {/* Background */}
         <FormControl fullWidth>
           <InputLabel>Background</InputLabel>
-          <Select value={bg} onChange={(e) => onBgChange(e.target.value)} label="Background">
+          <Select value={bg} onChange={handleBgChange} label="Background">
             <MenuItem value="transparent">Transparent</MenuItem>
             <MenuItem value="#ffffff">White</MenuItem>
             <MenuItem value="#000000">Black</MenuItem>
@@ -139,3 +148,8 @@ export function ControlPanel({
     </Paper>
   );
 }
+
+/**
+ * Memoized ControlPanel - only re-renders when props change
+ */
+export const ControlPanel = React.memo(ControlPanelComponent);
