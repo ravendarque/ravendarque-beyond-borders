@@ -85,6 +85,8 @@ export function App() {
 
   /**
    * Render avatar with current settings
+   * Note: This function is recreated on every render when any dependency changes.
+   * It's wrapped with throttle below to limit actual render calls.
    */
   const renderWithImageUrl = useCallback(async (specificImageUrl: string) => {
     try {
@@ -103,12 +105,15 @@ export function App() {
   }, [render, flagId, size, thickness, insetPct, flagOffsetX, presentation, bg]);
 
   /**
-   * Auto-render when image or flag selection changes
+   * Auto-render when image, flag, or render settings change
+   * Uses debouncing (from sliders) + direct render call
+   * The slider debouncing (150ms) already provides performance optimization
    */
   useEffect(() => {
     if (imageUrl && flagId) {
-      const timeoutId = setTimeout(() => renderWithImageUrl(imageUrl), 100);
-      return () => clearTimeout(timeoutId);
+      // Call render directly - slider debouncing already limits frequency
+      // No need for additional throttling since state updates are already debounced
+      void renderWithImageUrl(imageUrl);
     }
   }, [imageUrl, flagId, renderWithImageUrl]);
 

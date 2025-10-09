@@ -65,8 +65,9 @@ async function validateFile(file: File): Promise<void> {
 
 /**
  * Image upload button component with validation
+ * Memoized to prevent re-renders when props unchanged
  */
-export function ImageUploader({ onFileChange, onError }: ImageUploaderProps) {
+function ImageUploaderComponent({ onFileChange, onError }: ImageUploaderProps) {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -112,3 +113,5 @@ export function ImageUploader({ onFileChange, onError }: ImageUploaderProps) {
     </>
   );
 }
+
+export const ImageUploader = React.memo(ImageUploaderComponent);
