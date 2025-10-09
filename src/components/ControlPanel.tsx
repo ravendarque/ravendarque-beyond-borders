@@ -1,0 +1,137 @@
+import React from 'react';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import DownloadIcon from '@mui/icons-material/Download';
+import { ImageUploader } from './ImageUploader';
+import { FlagSelector } from './FlagSelector';
+import { PresentationControls } from './PresentationControls';
+import { SliderControl } from './SliderControl';
+import type { FlagSpec } from '@/flags/schema';
+
+export interface ControlPanelProps {
+  // File upload
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+
+  // Flag selection
+  flagId: string;
+  flags: FlagSpec[];
+  onFlagChange: (flagId: string) => void;
+
+  // Presentation
+  presentation: 'ring' | 'segment' | 'cutout';
+  onPresentationChange: (value: 'ring' | 'segment' | 'cutout') => void;
+
+  // Sliders
+  thickness: number;
+  onThicknessChange: (value: number) => void;
+  insetPct: number;
+  onInsetPctChange: (value: number) => void;
+  flagOffsetX: number;
+  onFlagOffsetXChange: (value: number) => void;
+
+  // Background
+  bg: string | 'transparent';
+  onBgChange: (value: string) => void;
+
+  // Download
+  onDownload: () => void;
+  downloadDisabled: boolean;
+}
+
+/**
+ * Control panel component containing all user controls
+ */
+export function ControlPanel({
+  onFileChange,
+  flagId,
+  flags,
+  onFlagChange,
+  presentation,
+  onPresentationChange,
+  thickness,
+  onThicknessChange,
+  insetPct,
+  onInsetPctChange,
+  flagOffsetX,
+  onFlagOffsetXChange,
+  bg,
+  onBgChange,
+  onDownload,
+  downloadDisabled,
+}: ControlPanelProps) {
+  return (
+    <Paper sx={{ p: 3 }}>
+      <Stack spacing={3}>
+        {/* File Upload */}
+        <ImageUploader onFileChange={onFileChange} />
+
+        {/* Flag Selection */}
+        <FlagSelector value={flagId} flags={flags} onChange={onFlagChange} />
+
+        {/* Presentation Style */}
+        <PresentationControls value={presentation} onChange={onPresentationChange} />
+
+        {/* Border Thickness */}
+        <SliderControl
+          label="Border thickness"
+          value={thickness}
+          min={3}
+          max={20}
+          step={1}
+          onChange={onThicknessChange}
+          unit="%"
+        />
+
+        {/* Inset/Outset */}
+        <SliderControl
+          label="Inset/Outset"
+          value={insetPct}
+          min={-10}
+          max={10}
+          step={1}
+          onChange={onInsetPctChange}
+          unit="%"
+        />
+
+        {/* Flag Offset (Cutout mode only) */}
+        {presentation === 'cutout' && (
+          <SliderControl
+            label="Flag Offset"
+            value={flagOffsetX}
+            min={-200}
+            max={200}
+            step={5}
+            onChange={onFlagOffsetXChange}
+            unit="px"
+          />
+        )}
+
+        {/* Background */}
+        <FormControl fullWidth>
+          <InputLabel>Background</InputLabel>
+          <Select value={bg} onChange={(e) => onBgChange(e.target.value)} label="Background">
+            <MenuItem value="transparent">Transparent</MenuItem>
+            <MenuItem value="#ffffff">White</MenuItem>
+            <MenuItem value="#000000">Black</MenuItem>
+          </Select>
+        </FormControl>
+
+        {/* Download Button */}
+        <Button
+          variant="outlined"
+          startIcon={<DownloadIcon />}
+          onClick={onDownload}
+          disabled={downloadDisabled}
+          fullWidth
+        >
+          Download
+        </Button>
+      </Stack>
+    </Paper>
+  );
+}
