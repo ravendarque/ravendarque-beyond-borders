@@ -1,3 +1,5 @@
+# Flag data source for Beyond Borders
+# This file is the source of truth for all flags in the application
 flags:
   - name: "North Korea — Ramhongsaek Konghwagukgi"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_North_Korea.svg"
