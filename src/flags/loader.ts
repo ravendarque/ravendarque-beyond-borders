@@ -1,3 +1,6 @@
+import { retryFetch } from '@/utils/retry';
+import { FlagDataError } from '@/types/errors';
+
 export type FlagMeta = {
   id: string;
   displayName: string;
@@ -17,18 +20,42 @@ export type FlagMeta = {
 
 let cached: FlagMeta[] | null = null;
 
+/**
+ * Load flags data from JSON file with retry logic
+ * Throws FlagDataError on failure
+ */
 export async function loadFlags(): Promise<FlagMeta[]> {
   if (cached) return cached;
+  
   try {
-    const resp = await fetch('/flags/flags.json');
-    if (!resp.ok) throw new Error('Failed to load flags.json');
+    // Use retryFetch for automatic retry on network failures
+    const resp = await retryFetch('/flags/flags.json', {}, {
+      maxAttempts: 3,
+      initialDelay: 500,
+    });
+    
+    if (!resp.ok) {
+      throw FlagDataError.loadFailed(
+        new Error(`HTTP ${resp.status}: ${resp.statusText}`)
+      );
+    }
+    
     const j = await resp.json();
-    if (!Array.isArray(j)) throw new Error('flags.json did not contain an array');
+    
+    if (!Array.isArray(j)) {
+      throw FlagDataError.dataInvalid('flags.json');
+    }
+    
     cached = j as FlagMeta[];
     return cached;
-  } catch (e) {
-    console.warn('loadFlags failed', e && (e as any).message);
-    return [];
+  } catch (error) {
+    // If it's already a FlagDataError, re-throw it
+    if (error instanceof FlagDataError) {
+      throw error;
+    }
+    
+    // Otherwise, wrap it in a FlagDataError
+    throw FlagDataError.loadFailed(error as Error);
   }
 }
 
