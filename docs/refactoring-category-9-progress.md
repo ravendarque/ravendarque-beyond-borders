@@ -3,20 +3,23 @@
 ## Status: IN PROGRESS ⏳
 
 **Priority:** 🔴 Critical  
-**Commit:** 22e4505
+**Commits:** 22e4505, eb12015, dfe1693
 
 ## Overview
 Adding comprehensive test coverage to improve code quality and prevent regressions.
 
-## Completed: Hook Tests ✅
+## Completed: Hook & Component Tests ✅
 
 ### Test Files Created
 1. **test/unit/hooks/usePersistedState.test.ts** (164 lines, 12 tests)
 2. **test/unit/hooks/useFlagImageCache.test.ts** (127 lines, 8 tests)
 3. **test/unit/hooks/useAvatarRenderer.test.ts** (266 lines, 11 tests)
 4. **test/unit/components/SliderControl.test.tsx** (104 lines, 8 tests)
+5. **test/unit/components/ImageUploader.test.tsx** (105 lines, 8 tests)
+6. **test/unit/components/FlagSelector.test.tsx** (134 lines, 9 tests)
+7. **test/unit/components/PresentationControls.test.tsx** (112 lines, 10 tests)
 
-**Total:** 661 lines, 39 test cases
+**Total:** 1,012 lines, 66 test cases across 7 files
 
 ## usePersistedState Tests (12 tests)
 
@@ -150,10 +153,11 @@ expect(slider.value).toBe('50');
 
 ## Remaining Work
 
-### Component Tests (Not Started)
-- [ ] ImageUploader component
-- [ ] FlagSelector component  
-- [ ] PresentationControls component
+### Component Tests (In Progress)
+- [x] SliderControl component (8 tests)
+- [x] ImageUploader component (8 tests)
+- [x] FlagSelector component (9 tests)
+- [x] PresentationControls component (10 tests)
 - [ ] AvatarPreview component
 - [ ] ControlPanel component
 
@@ -168,23 +172,102 @@ expect(slider.value).toBe('50');
 - [ ] Mock patterns documentation
 - [ ] CI/CD integration notes
 
+## ImageUploader Tests (8 tests)
+
+### Test Coverage
+- ✅ Render upload button
+- ✅ Render hidden file input with correct attributes
+- ✅ Have correct accept attribute for images
+- ✅ Have correct id for label association
+- ✅ Call onFileChange when file is selected
+- ✅ Handle multiple file selections
+- ✅ Pass event to onFileChange callback
+- ✅ Render upload icon
+
+### Key Testing Patterns
+```typescript
+// Test file upload with userEvent
+const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+const file = new File(['test'], 'test.png', { type: 'image/png' });
+await user.upload(fileInput, file);
+
+// Verify event structure
+expect(onFileChange).toHaveBeenCalledWith(
+  expect.objectContaining({
+    target: expect.objectContaining({
+      files: expect.any(FileList),
+    }),
+  })
+);
+```
+
+## FlagSelector Tests (9 tests)
+
+### Test Coverage
+- ✅ Render label (handling MUI duplicate labels)
+- ✅ Render with empty value
+- ✅ Render with selected value
+- ✅ Render all flag options when opened
+- ✅ Call onChange when flag is selected
+- ✅ Call onChange with empty string when None is selected
+- ✅ Handle empty flags array
+- ✅ Render correct number of options
+- ✅ Use flag id as option value
+
+### Key Testing Patterns
+```typescript
+// Handle MUI duplicate labels (label + fieldset legend)
+const labels = screen.getAllByText('Select a flag');
+expect(labels.length).toBeGreaterThan(0);
+
+// Test dropdown interaction
+const select = document.querySelector('[role="combobox"]') as HTMLElement;
+await user.click(select);
+const flag1Option = screen.getByText('Flag One');
+await user.click(flag1Option);
+```
+
+## PresentationControls Tests (10 tests)
+
+### Test Coverage
+- ✅ Render label
+- ✅ Render all three radio options
+- ✅ Render with ring/segment/cutout selected
+- ✅ Call onChange when ring/segment/cutout selected
+- ✅ Only have one radio selected at a time
+- ✅ Render radios in a row
+
+### Key Testing Patterns
+```typescript
+// Test radio button selection
+const ringRadio = screen.getByRole('radio', { name: 'Ring' }) as HTMLInputElement;
+expect(ringRadio.checked).toBe(true);
+
+// Test onChange callback
+await user.click(cutoutRadio);
+expect(onChange).toHaveBeenCalledWith('cutout');
+```
+
 ## Impact
 
 ### Code Quality
 - **Before:** 6 tests in test/unit/flags.test.ts
-- **After:** 45+ tests (39 new + 6 existing)
-- **Coverage:** All 3 custom hooks now have comprehensive test coverage
+- **After:** 72+ tests (66 new + 6 existing)
+- **Coverage:** All 3 custom hooks + 4 components now have comprehensive test coverage
 
 ### Confidence
 - State management edge cases validated
 - Error handling scenarios tested
 - Memory leak prevention verified
 - Browser API integration mocked correctly
+- Component rendering and interaction validated
+- MUI component integration tested
 
 ### Maintainability
-- Tests serve as documentation for hook behavior
+- Tests serve as documentation for hook and component behavior
 - Regression prevention for future refactoring
 - Clear patterns for adding more tests
+- Consistent test structure across all files
 
 ## Next Steps
 
