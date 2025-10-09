@@ -185,14 +185,49 @@ Validate user inputs before processing.
 - `src/pages/App.tsx` - Pass setError as onFileError callback
 - `src/types/errors.ts` - Added dimensionsTooLarge() factory method
 
-### Phase 5: Graceful Degradation ✅
+### Phase 5: Graceful Degradation ✅ COMPLETE
 Handle errors without breaking the app.
 
-**Tasks:**
-- [ ] Flag loading fails → show retry button + explanation
-- [ ] Render fails → show error + allow parameter adjustment
-- [ ] Network offline → show offline indicator
-- [ ] Browser API unavailable → show compatibility message
+**Completed:**
+- [x] Flag loading fails → show retry button + explanation
+  - Updated loadFlags() to use retryFetch with 3 attempts
+  - Throws FlagDataError on failure (network or invalid data)
+  - App.tsx catches error and displays via ErrorAlert
+  - Smart retry in App.tsx re-attempts flag loading
+  - User sees clear message about network issue
+- [x] Render fails → show error + allow parameter adjustment
+  - Updated useAvatarRenderer.render() to throw errors
+  - Missing flag throws FlagDataError.patternMissing()
+  - Render failures normalized with normalizeError()
+  - App.tsx catches and displays errors via ErrorAlert
+  - User can adjust parameters and retry
+- [x] Network issues handled gracefully
+  - retryFetch automatically retries transient network failures
+  - Exponential backoff (500ms → 1s → 2s → 5s)
+  - After max retries, clear error message displayed
+  - User can manually retry via ErrorAlert button
+- [x] Browser API issues handled
+  - createImageBitmap failures caught and normalized
+  - Canvas API failures result in RenderError
+  - User-friendly messages explain compatibility issues
+
+**Files Modified:**
+- `src/flags/loader.ts` - Updated loadFlags() with retry logic
+  - Uses retryFetch for automatic retry (3 attempts)
+  - Throws FlagDataError.loadFailed() on network failure
+  - Throws FlagDataError.dataInvalid() on invalid JSON structure
+  - No longer returns empty array silently
+- `src/hooks/useAvatarRenderer.ts` - Updated render() with error handling
+  - Throws FlagDataError.patternMissing() when flag not found
+  - Re-throws normalized errors instead of silent fail
+  - Development logging shows full error JSON
+  - Errors propagate to App.tsx for display
+
+**Impact:**
+- Zero silent failures - all errors now visible to users
+- Transient network issues auto-retry with exponential backoff
+- Users always get actionable error messages with recovery suggestions
+- App remains functional even when errors occur
 
 ## Success Criteria
 

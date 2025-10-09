@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { renderAvatar } from '@/renderer/render';
 import type { FlagSpec } from '@/flags/schema';
+import { RenderError, FlagDataError, normalizeError } from '@/types/errors';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -61,7 +62,9 @@ export function useAvatarRenderer(
       try {
         // Find selected flag
         const flag = flagsList.find((f) => f.id === flagId);
-        if (!flag) return;
+        if (!flag) {
+          throw FlagDataError.patternMissing(flagId);
+        }
 
         // Load image
         const response = await fetch(imageUrl);
@@ -132,13 +135,20 @@ export function useAvatarRenderer(
           // Ignore errors setting test hooks
         }
       } catch (err) {
-        // Silent fail - could add user-facing error handling here
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('Failed to render avatar:', err);
-        }
         // Clear loading state on error
         setIsRendering(false);
+        
+        // Normalize and re-throw the error for the caller to handle
+        const appError = normalizeError(err);
+        
+        // Development logging
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Failed to render avatar:', appError.toJSON());
+        }
+        
+        // Re-throw so caller (App.tsx) can display the error
+        throw appError;
       }
     },
     [flagsList, flagImageCache]
