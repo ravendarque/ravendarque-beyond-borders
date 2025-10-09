@@ -12,10 +12,12 @@ import { FlagSelector } from './FlagSelector';
 import { PresentationControls } from './PresentationControls';
 import { SliderControl } from './SliderControl';
 import type { FlagSpec } from '@/flags/schema';
+import type { FileValidationError } from '@/types/errors';
 
 export interface ControlPanelProps {
   // File upload
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileError?: (error: FileValidationError) => void;
 
   // Flag selection
   flagId: string;
@@ -48,6 +50,7 @@ export interface ControlPanelProps {
  */
 export function ControlPanel({
   onFileChange,
+  onFileError,
   flagId,
   flags,
   onFlagChange,
@@ -68,7 +71,7 @@ export function ControlPanel({
     <Paper sx={{ p: 3 }}>
       <Stack spacing={3}>
         {/* File Upload */}
-        <ImageUploader onFileChange={onFileChange} />
+        <ImageUploader onFileChange={onFileChange} onError={onFileError} />
 
         {/* Flag Selection */}
         <FlagSelector value={flagId} flags={flags} onChange={onFlagChange} />

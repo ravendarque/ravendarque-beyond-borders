@@ -180,6 +180,7 @@ export function App() {
         <Grid xs={12} md={6}>
           <ControlPanel
             onFileChange={onFileChange}
+            onFileError={setError}
             flagId={flagId}
             flags={flagsListRef.current}
             onFlagChange={setFlagId}
