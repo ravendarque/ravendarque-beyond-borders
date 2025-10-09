@@ -6,6 +6,7 @@ import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { ControlPanel } from '@/components/ControlPanel';
 import { AvatarPreview } from '@/components/AvatarPreview';
+import { ErrorAlert } from '@/components/ErrorAlert';
 import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
@@ -14,6 +15,8 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import type { FlagSpec } from '@/flags/schema';
+import type { AppError } from '@/types/errors';
+import { normalizeError } from '@/types/errors';
 
 export function App() {
   const { mode, setMode } = useContext(ThemeModeContext);
@@ -33,6 +36,7 @@ export function App() {
   // Trigger re-render when flags are loaded (flagsListRef doesn't cause re-renders)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [flagsLoaded, setFlagsLoaded] = useState(false);
+  const [error, setError] = useState<AppError | null>(null);
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -53,9 +57,11 @@ export function App() {
         const loaded = await loadFlags();
         flagsListRef.current = (loaded as FlagSpec[]) || [];
         setFlagsLoaded(true); // Trigger re-render to show flags
-      } catch {
+        setError(null); // Clear any previous errors
+      } catch (err) {
         flagsListRef.current = [];
         setFlagsLoaded(true);
+        setError(normalizeError(err));
       }
     })();
   }, []);
@@ -78,14 +84,19 @@ export function App() {
    * Render avatar with current settings
    */
   const renderWithImageUrl = useCallback(async (specificImageUrl: string) => {
-    await render(specificImageUrl, flagId, {
-      size,
-      thickness,
-      insetPct,
-      flagOffsetX,
-      presentation,
-      bg,
-    });
+    try {
+      await render(specificImageUrl, flagId, {
+        size,
+        thickness,
+        insetPct,
+        flagOffsetX,
+        presentation,
+        bg,
+      });
+      setError(null); // Clear any previous render errors
+    } catch (err) {
+      setError(normalizeError(err));
+    }
   }, [render, flagId, size, thickness, insetPct, flagOffsetX, presentation, bg]);
 
   /**
@@ -137,6 +148,33 @@ export function App() {
             Add a circular, flag-colored border to your profile picture.
           </Typography>
         </Grid>
+
+        {/* Error Display */}
+        {error && (
+          <Grid xs={12}>
+            <ErrorAlert
+              error={error}
+              onRetry={() => {
+                setError(null);
+                // Retry flag loading if error occurred during load
+                if (flagsListRef.current.length === 0) {
+                  loadFlags().then(loaded => {
+                    flagsListRef.current = (loaded as FlagSpec[]) || [];
+                    setFlagsLoaded(true);
+                    setError(null);
+                  }).catch(err => {
+                    setError(normalizeError(err));
+                  });
+                }
+                // Retry rendering if error occurred during render
+                else if (imageUrl && flagId) {
+                  renderWithImageUrl(imageUrl);
+                }
+              }}
+              onDismiss={() => setError(null)}
+            />
+          </Grid>
+        )}
 
         {/* Controls */}
         <Grid xs={12} md={6}>
