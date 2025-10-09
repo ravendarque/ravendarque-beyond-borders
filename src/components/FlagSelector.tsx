@@ -13,8 +13,9 @@ export interface FlagSelectorProps {
 
 /**
  * Flag selection dropdown component
+ * Memoized to prevent re-renders when props unchanged
  */
-export function FlagSelector({ value, flags, onChange }: FlagSelectorProps) {
+function FlagSelectorComponent({ value, flags, onChange }: FlagSelectorProps) {
   return (
     <FormControl fullWidth>
       <InputLabel>Select a flag</InputLabel>
@@ -29,3 +30,5 @@ export function FlagSelector({ value, flags, onChange }: FlagSelectorProps) {
     </FormControl>
   );
 }
+
+export const FlagSelector = React.memo(FlagSelectorComponent);

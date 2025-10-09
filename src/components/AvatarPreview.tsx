@@ -15,8 +15,9 @@ export interface AvatarPreviewProps {
 
 /**
  * Avatar preview component with canvas and loading overlay
+ * Memoized to prevent re-renders when props unchanged
  */
-export function AvatarPreview({
+function AvatarPreviewComponent({
   size,
   displaySize,
   canvasRef,
@@ -91,3 +92,5 @@ export function AvatarPreview({
     </Paper>
   );
 }
+
+export const AvatarPreview = React.memo(AvatarPreviewComponent);

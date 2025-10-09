@@ -12,8 +12,9 @@ export interface PresentationControlsProps {
 
 /**
  * Presentation mode radio button group component
+ * Memoized to prevent re-renders when props unchanged
  */
-export function PresentationControls({ value, onChange }: PresentationControlsProps) {
+function PresentationControlsComponent({ value, onChange }: PresentationControlsProps) {
   return (
     <FormControl component="fieldset">
       <FormLabel component="legend">Presentation</FormLabel>
@@ -29,3 +30,5 @@ export function PresentationControls({ value, onChange }: PresentationControlsPr
     </FormControl>
   );
 }
+
+export const PresentationControls = React.memo(PresentationControlsComponent);
