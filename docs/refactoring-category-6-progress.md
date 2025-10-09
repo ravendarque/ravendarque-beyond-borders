@@ -151,15 +151,39 @@ Implement automatic retry for transient failures.
 
 **Next:** Integrate retry logic into flag loading and rendering hooks
 
-### Phase 4: Input Validation ✅
+### Phase 4: Input Validation ✅ COMPLETE
 Validate user inputs before processing.
 
-**Tasks:**
-- [ ] Add file size validation (max 10 MB)
-- [ ] Add file type validation (JPG/PNG only)
-- [ ] Add image dimension validation (reasonable limits)
-- [ ] Show clear error messages for validation failures
-- [ ] Prevent oversized files from loading
+**Completed:**
+- [x] Add file size validation (max 10 MB)
+  - Throws FileValidationError.fileTooLarge(size, maxSize)
+  - Shows file size in MB with user-friendly message
+- [x] Add file type validation (JPG/PNG only)
+  - Validates against MIME types: image/jpeg, image/jpg, image/png
+  - Updated accept attribute to match allowed types
+  - Throws FileValidationError.invalidFileType(type)
+- [x] Add image dimension validation (max 4096px)
+  - Validates both width and height
+  - Loads image to check actual dimensions
+  - Throws new FileValidationError.dimensionsTooLarge()
+- [x] Show clear error messages for validation failures
+  - Validation errors passed through onError callback
+  - Displayed via ErrorAlert in App component
+  - User-friendly messages with recovery suggestions
+- [x] Prevent invalid files from loading
+  - Validation happens before onFileChange is called
+  - Input is cleared on validation failure
+  - Same file can be re-selected after fix
+
+**Files Modified:**
+- `src/components/ImageUploader.tsx` - Added validation logic (93 lines total, +60 lines)
+  - validateFile() function with size/type checks
+  - validateImageDimensions() async function with Image loading
+  - handleFileChange() wrapper to validate before passing to parent
+  - MAX_FILE_SIZE, ALLOWED_TYPES, MAX_DIMENSION constants
+- `src/components/ControlPanel.tsx` - Added onFileError prop
+- `src/pages/App.tsx` - Pass setError as onFileError callback
+- `src/types/errors.ts` - Added dimensionsTooLarge() factory method
 
 ### Phase 5: Graceful Degradation ✅
 Handle errors without breaking the app.

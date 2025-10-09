@@ -143,6 +143,15 @@ export class FileValidationError extends AppError {
       'Try a different image file or re-save this image and try again.'
     );
   }
+
+  static dimensionsTooLarge(width: number, height: number, maxDimension: number): FileValidationError {
+    return new FileValidationError(
+      ErrorCode.FILE_INVALID_TYPE, // Reusing this code for dimension validation
+      `Image dimensions ${width}x${height} exceed maximum ${maxDimension}px`,
+      `This image is too large (${width}x${height} pixels). Maximum dimension is ${maxDimension}px.`,
+      `Please resize the image to ${maxDimension}px or smaller and try again.`
+    );
+  }
 }
 
 /**
