@@ -1,4 +1,6 @@
 import type { FlagSpec } from '../flags/schema';
+import { createCanvas, canvasToBlob, clamp as utilClamp } from './canvas-utils';
+import { validateFlagPattern } from './flag-validation';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -17,6 +19,9 @@ export async function renderAvatar(
   flag: FlagSpec,
   options: RenderOptions,
 ): Promise<Blob> {
+  // Validate flag pattern before rendering
+  validateFlagPattern(flag);
+  
   const size = options.size;
   const canvasW = size;
   const canvasH = size;
@@ -26,9 +31,8 @@ export async function renderAvatar(
   const thickness = Math.round((options.thicknessPct / 100) * base);
   const padding = Math.round(((options.paddingPct ?? 0) / 100) * base);
 
-  // Create canvas
-  const canvas = new OffscreenCanvas(canvasW, canvasH);
-  const ctx = canvas.getContext('2d')!;
+  // Create canvas (with OffscreenCanvas fallback and size validation)
+  const { canvas, ctx } = createCanvas(canvasW, canvasH);
 
   // Background fill (optional, else transparent)
   if (options.backgroundColor) {
@@ -45,20 +49,16 @@ export async function renderAvatar(
   const imageInset = options.imageInsetPx ?? 0; // can be negative (outset)
   const imageRadius = clamp(ringInner - imageInset, 0, r - 0.5);
 
-  // Validate that flag has pattern data
-  if (!flag.pattern) {
-    throw new Error('Flag pattern is required for rendering');
-  }
-
   // Decide border style early to handle cutout differently
-  const stripes = flag.pattern.stripes;
+  // Pattern is guaranteed to exist due to validateFlagPattern above
+  const stripes = flag.pattern!.stripes;
   const totalWeight = stripes.reduce((s: number, x: { weight: number }) => s + x.weight, 0);
   const presentation = options.presentation as 'ring' | 'segment' | 'cutout' | undefined;
   let borderStyle: 'concentric' | 'angular' | 'cutout';
   if (presentation === 'ring') borderStyle = 'concentric';
   else if (presentation === 'segment') borderStyle = 'angular';
   else if (presentation === 'cutout') borderStyle = 'cutout';
-  else borderStyle = flag.pattern.orientation === 'horizontal' ? 'concentric' : 'angular';
+  else borderStyle = flag.pattern!.orientation === 'horizontal' ? 'concentric' : 'angular';
 
   /**
    * CUTOUT MODE: Special rendering where the user's image is centered
@@ -108,7 +108,8 @@ export async function renderAvatar(
       flagCtx.drawImage(options.borderImageBitmap, dx, dy, dw, dh);
     } else {
       // Draw stripes from pattern data
-      if (flag.pattern.orientation === 'horizontal') {
+      // Pattern is guaranteed to exist due to validateFlagPattern above
+      if (flag.pattern!.orientation === 'horizontal') {
         // Horizontal stripes - draw across full width
         let y = 0;
         for (const stripe of stripes) {
@@ -238,8 +239,8 @@ export async function renderAvatar(
     ctx.stroke();
   }
 
-  // Export PNG
-  const blob = await canvas.convertToBlob({ type: 'image/png' });
+  // Export PNG (using canvasToBlob with fallback support)
+  const blob = await canvasToBlob(canvas, 'image/png');
   return blob;
 }
 
