@@ -37,7 +37,7 @@ export function App() {
   const [insetPct, setInsetPct] = useState(0);
   const [bg, setBg] = useState<string | 'transparent'>('transparent');
   const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
-  const [imageOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [flagOffsetX, setFlagOffsetX] = useState(0);
   const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
 
   // Refs
@@ -139,14 +139,23 @@ export function App() {
         };
       }
 
+      // Load flag PNG image for cutout mode (for accurate rendering of complex flags)
+      let flagImageBitmap: ImageBitmap | undefined;
+      if (presentation === 'cutout' && flag.png_full) {
+        const flagResponse = await fetch(`/flags/${flag.png_full}`);
+        const flagBlob = await flagResponse.blob();
+        flagImageBitmap = await createImageBitmap(flagBlob);
+      }
+
       // Render avatar with flag border
       const resultBlob = await renderAvatar(img, transformedFlag, {
         size,
         thicknessPct: thickness,
         imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
-        imageOffsetPx: { x: Math.round(imageOffset.x), y: Math.round(imageOffset.y) },
+        imageOffsetPx: { x: Math.round(flagOffsetX), y: 0 },
         presentation,
         backgroundColor: bg === 'transparent' ? null : bg,
+        borderImageBitmap: flagImageBitmap,
       });
 
       // Create overlay URL from result
@@ -173,7 +182,7 @@ export function App() {
         console.error('Failed to render avatar:', err);
       }
     }
-  }, [flagId, size, thickness, insetPct, imageOffset, presentation, bg, overlayUrl, flagsList]);
+  }, [flagId, size, thickness, insetPct, flagOffsetX, presentation, bg, overlayUrl, flagsList]);
 
   /**
    * Auto-render when image or flag selection changes
@@ -289,6 +298,20 @@ export function App() {
                   step={1}
                 />
               </Box>
+
+              {/* Flag Offset (Cutout mode only) */}
+              {presentation === 'cutout' && (
+                <Box>
+                  <Typography gutterBottom>Flag Offset: {flagOffsetX}px</Typography>
+                  <Slider
+                    value={flagOffsetX}
+                    onChange={(_, value) => setFlagOffsetX(value as number)}
+                    min={-200}
+                    max={200}
+                    step={5}
+                  />
+                </Box>
+              )}
 
               {/* Background */}
               <FormControl fullWidth>

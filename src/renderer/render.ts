@@ -61,15 +61,13 @@ export async function renderAvatar(
    */
   if (borderStyle === 'cutout') {
     // Step 1: Draw the user's image in the center circle (respecting inset)
+    // Image is always centered in cutout mode (imageOffsetPx is used for flag offset instead)
     ctx.save();
     ctx.beginPath();
     // Clip to the inner circle area (where the image should appear)
     ctx.arc(r, r, imageRadius, 0, Math.PI * 2);
     ctx.closePath();
     ctx.clip();
-
-    const offsetX = options.imageOffsetPx?.x ?? 0;
-    const offsetY = options.imageOffsetPx?.y ?? 0;
     
     const iw = image.width;
     const ih = image.height;
@@ -78,36 +76,54 @@ export async function renderAvatar(
     const scale = Math.max(target / iw, target / ih);
     const dw = iw * scale;
     const dh = ih * scale;
-    const cx = canvasW / 2 + offsetX;
-    const cy = canvasH / 2 + offsetY;
+    const cx = canvasW / 2; // Always centered
+    const cy = canvasH / 2; // Always centered
     
     ctx.drawImage(image, cx - dw / 2, cy - dh / 2, dw, dh);
     ctx.restore();
 
     // Step 2: Create a flag texture for the ring area
-    const flagCanvas = new OffscreenCanvas(canvasW, canvasH);
+    // Use imageOffsetPx for flag pattern shifting (in cutout mode only)
+    const flagOffsetX = options.imageOffsetPx?.x ?? 0;
+    const extraWidth = Math.abs(flagOffsetX) * 3; // Extra space for shifting
+    const flagCanvas = new OffscreenCanvas(canvasW + extraWidth, canvasH);
     const flagCtx = flagCanvas.getContext('2d')!;
     
-    // Draw stripes across the full canvas
-    if (flag.pattern.orientation === 'horizontal') {
-      // Horizontal stripes
-      let y = 0;
-      for (const stripe of stripes) {
-        const frac = stripe.weight / totalWeight;
-        const h = frac * canvasH;
-        flagCtx.fillStyle = stripe.color;
-        flagCtx.fillRect(0, y, canvasW, h);
-        y += h;
-      }
+    // If a border image (PNG) is provided, use it for accurate flag rendering
+    if (options.borderImageBitmap) {
+      // Draw the flag PNG image scaled to fit the canvas
+      const bw = options.borderImageBitmap.width;
+      const bh = options.borderImageBitmap.height;
+      const scale = Math.max(flagCanvas.width / bw, flagCanvas.height / bh);
+      const dw = bw * scale;
+      const dh = bh * scale;
+      // Center the flag and apply horizontal offset
+      const dx = (flagCanvas.width - dw) / 2 - flagOffsetX;
+      const dy = (flagCanvas.height - dh) / 2;
+      flagCtx.drawImage(options.borderImageBitmap, dx, dy, dw, dh);
     } else {
-      // Vertical stripes
-      let x = 0;
-      for (const stripe of stripes) {
-        const frac = stripe.weight / totalWeight;
-        const w = frac * canvasW;
-        flagCtx.fillStyle = stripe.color;
-        flagCtx.fillRect(x, 0, w, canvasH);
-        x += w;
+      // Draw stripes from pattern data
+      if (flag.pattern.orientation === 'horizontal') {
+        // Horizontal stripes - draw across full width
+        let y = 0;
+        for (const stripe of stripes) {
+          const frac = stripe.weight / totalWeight;
+          const h = frac * canvasH;
+          flagCtx.fillStyle = stripe.color;
+          flagCtx.fillRect(0, y, flagCanvas.width, h);
+          y += h;
+        }
+      } else {
+        // Vertical stripes - shift the pattern horizontally
+        // Start position adjusted by flag offset
+        let x = extraWidth / 2 - flagOffsetX; // Negative because we want to shift content, not canvas
+        for (const stripe of stripes) {
+          const frac = stripe.weight / totalWeight;
+          const w = frac * canvasW;
+          flagCtx.fillStyle = stripe.color;
+          flagCtx.fillRect(x, 0, w, canvasH);
+          x += w;
+        }
       }
     }
     
@@ -115,12 +131,13 @@ export async function renderAvatar(
     flagCtx.globalCompositeOperation = 'destination-in';
     flagCtx.fillStyle = 'white'; // Color doesn't matter, only alpha
     flagCtx.beginPath();
-    flagCtx.arc(r, r, ringOuter, 0, Math.PI * 2);
-    flagCtx.arc(r, r, ringInner, Math.PI * 2, 0, true); // Cut out the inner circle
+    flagCtx.arc(r + extraWidth / 2, r, ringOuter, 0, Math.PI * 2);
+    flagCtx.arc(r + extraWidth / 2, r, ringInner, Math.PI * 2, 0, true); // Cut out the inner circle
     flagCtx.fill();
     
     // Step 3: Draw the flag ring on top of the image
-    ctx.drawImage(flagCanvas, 0, 0);
+    // Offset the drawing position to account for the extra canvas width
+    ctx.drawImage(flagCanvas, -extraWidth / 2, 0);
 
     // Cutout mode complete - skip normal border rendering below
   } else {

@@ -10,6 +10,8 @@ export const FlagSpec = z.object({
   id: z.string(),
   displayName: z.string(),
   svgFilename: z.string().optional(),
+  png_full: z.string(), // Required PNG for accurate rendering
+  png_preview: z.string().optional(),
   category: z.enum(['marginalized', 'national']),
   sources: z.object({
     referenceUrl: z.string().url().optional(),
@@ -20,7 +22,11 @@ export const FlagSpec = z.object({
     type: z.literal('stripes'),
     orientation: z.enum(['horizontal', 'vertical']),
     stripes: z.array(Stripe).min(2),
-  }),
+  }).optional(),
+  layouts: z.array(z.object({
+    type: z.string(),
+    colors: z.array(z.string()),
+  })).optional(),
   recommended: z.object({
     borderStyle: z.enum(['ring-stripes', 'ring-solid']),
     primaryColor: z
@@ -28,7 +34,7 @@ export const FlagSpec = z.object({
       .regex(/^#([0-9a-fA-F]{3}){1,2}$/)
       .optional(),
     defaultThicknessPct: z.number().min(5).max(20),
-  }),
+  }).optional(),
 });
 
 export type FlagSpec = z.infer<typeof FlagSpec>;
