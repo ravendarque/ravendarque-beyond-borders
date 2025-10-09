@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { App } from './pages/App';
 import { createAppTheme } from './theme';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export const ThemeModeContext = createContext<{
   mode: 'light' | 'dark';
@@ -48,7 +49,9 @@ function Root() {
     <ThemeModeContext.Provider value={{ mode: modeState, setMode }}>
       <ThemeProvider theme={appTheme}>
         <CssBaseline />
-        <App />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
       </ThemeProvider>
     </ThemeModeContext.Provider>
   );
