@@ -4,6 +4,8 @@ import { loadFlags } from '../flags/loader';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { useFocusManagement } from '@/hooks/useFocusManagement';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { ControlPanel } from '@/components/ControlPanel';
 import { AvatarPreview } from '@/components/AvatarPreview';
 import { ErrorAlert } from '@/components/ErrorAlert';
@@ -47,6 +49,7 @@ export function App() {
   // Custom hooks
   const flagImageCache = useFlagImageCache();
   const { overlayUrl, isRendering, render } = useAvatarRenderer(flagsListRef.current, flagImageCache);
+  const { focusRef: errorFocusRef, setFocus: focusError } = useFocusManagement<HTMLDivElement>();
 
   /**
    * Load available flags on mount
@@ -121,6 +124,16 @@ export function App() {
   }, [imageUrl]);
 
   /**
+   * Focus management: Focus on error when it appears
+   */
+  useEffect(() => {
+    if (error) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => focusError(), 100);
+    }
+  }, [error, focusError]);
+
+  /**
    * Download the rendered avatar as a PNG file
    */
   function handleDownload() {
@@ -131,28 +144,26 @@ export function App() {
     a.click();
   }
 
+  /**
+   * Keyboard shortcuts
+   */
+  useKeyboardShortcuts([
+    {
+      key: 'd',
+      ctrlKey: true,
+      callback: (e) => {
+        e.preventDefault();
+        handleDownload();
+      },
+      description: 'Download avatar',
+      enabled: !!overlayUrl, // Only enable when avatar is ready
+    },
+  ]);
+
   return (
     <>
       {/* Skip Link for Keyboard Navigation */}
-      <a
-        href="#main-content"
-        style={{
-          position: 'absolute',
-          left: '-9999px',
-          zIndex: 999,
-          padding: '1em',
-          backgroundColor: '#fff',
-          color: '#000',
-          textDecoration: 'none',
-          border: '2px solid #000',
-        }}
-        onFocus={(e) => {
-          e.currentTarget.style.left = '0';
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.left = '-9999px';
-        }}
-      >
+      <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
       
@@ -179,7 +190,7 @@ export function App() {
 
         {/* Error Display */}
         {error && (
-          <Grid xs={12}>
+          <Grid xs={12} ref={errorFocusRef} tabIndex={-1} sx={{ outline: 'none' }}>
             <ErrorAlert
               error={error}
               onRetry={() => {

@@ -109,12 +109,28 @@ Ensure Beyond Borders is fully accessible to all users, including those using as
 - `src/components/ControlPanel.tsx` - Added aria-label to download button
 - `src/hooks/usePrefersReducedMotion.ts` (NEW) - Hook for detecting reduced motion preference
 
-### Phase 2: Keyboard Navigation (High Priority)
-- [ ] Add skip link to main content
-- [ ] Ensure all interactive elements are keyboard accessible
-- [ ] Add visible focus indicators for keyboard nav
-- [ ] Manage focus after modals/errors
-- [ ] Add keyboard shortcuts documentation
+### Phase 2: Keyboard Navigation ✅ COMPLETE
+- [x] Add skip link to main content
+- [x] Ensure all interactive elements are keyboard accessible
+- [x] Add visible focus indicators for keyboard nav
+- [x] Manage focus after modals/errors
+- [x] Add keyboard shortcuts (Ctrl+D for download)
+- [x] Create focus management utilities
+- [x] Create keyboard shortcuts infrastructure
+
+**Files Modified:**
+- `src/hooks/useFocusManagement.ts` (NEW, 145 lines) - Reusable focus management hook with setFocus, saveFocus, restoreFocus, focusFirstIn, and useFocusTrap for modal focus containment
+- `src/hooks/useKeyboardShortcuts.ts` (NEW, 92 lines) - Keyboard shortcut system supporting modifier keys (Ctrl, Shift, Alt) with formatShortcut utility
+- `src/styles.css` - Enhanced with :focus-visible (3px outline, 2px offset), prefers-reduced-motion support, skip-link class
+- `src/pages/App.tsx` - Integrated useFocusManagement for automatic error focusing, added useKeyboardShortcuts with Ctrl+D for download, simplified skip link to use CSS class
+
+**Features Added:**
+- **Focus Management**: Automatic focus on errors for keyboard users (programmatic focusing with tabIndex={-1})
+- **Focus Trap**: useFocusTrap hook prevents Tab from leaving modals
+- **Keyboard Shortcuts**: Ctrl+D downloads avatar (only enabled when avatar is ready)
+- **Visual Indicators**: Enhanced :focus-visible styles with 3px outline meeting WCAG contrast requirements
+- **Skip Link**: Accessible skip link positioned off-screen until focused, styled with CSS class
+- **Reduced Motion**: @media query in CSS respects user motion preferences
 
 ### Phase 3: Screen Reader Support (High Priority)
 - [ ] Test with NVDA/JAWS/VoiceOver
