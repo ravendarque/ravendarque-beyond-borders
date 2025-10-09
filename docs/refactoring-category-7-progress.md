@@ -190,12 +190,40 @@ const flagOffsetX = options.imageOffsetPx?.x ?? 0;
   - Uses `validateFlagPattern()` before rendering (catches invalid flags early)
   - Added non-null assertions for flag.pattern (validated above)
 
-### Phase 2: Color Accuracy (High Priority)
-- [ ] Document color space assumptions (sRGB)
-- [ ] Add color validation (valid hex codes)
-- [ ] Test flag colors against official specifications
-- [ ] Add optional color profile embedding in PNG export
-- [ ] Consider canvas color space API for future
+### Phase 2: Color Accuracy ✅ COMPLETE
+- [x] Document color space assumptions (sRGB)
+- [x] Add color validation (valid hex codes)
+- [x] Create color accuracy testing utilities
+- [x] Define official flag color specifications
+- [x] Create color sampling and comparison tools
+- [ ] Test actual flags.json colors against official specifications (TODO: requires visual review)
+- [ ] Add optional color profile embedding in PNG export (future enhancement)
+- [ ] Consider canvas color space API for future (experimental)
+
+**Files Created:**
+- `docs/color-accuracy-specification.md` (NEW, 340 lines) - Comprehensive color spec:
+  - Defines sRGB as standard color space
+  - Sets ±1 RGB tolerance for accuracy
+  - Documents official flag colors (Trans Pride, Progress Pride, etc.)
+  - Testing procedures and color accuracy checklist
+  - Color space conversion notes
+  - Future enhancements (Display P3, ICC profiles, HDR)
+
+- `src/renderer/color-accuracy.ts` (NEW, 280 lines) - Color testing utilities:
+  - `hexToRgb()`, `rgbToHex()` - Color format conversion
+  - `colorDistance()` - Euclidean distance between colors
+  - `colorsMatch()` - Check if colors within tolerance
+  - `samplePixel()`, `samplePixelsAverage()` - Canvas color sampling
+  - `generateStripeSamplePoints()` - Sample points for circular stripes
+  - `testStripeColor()` - Test single stripe accuracy
+  - `formatColorTestResult()` - Human-readable test output
+  - `OFFICIAL_FLAG_COLORS` - Reference colors for 7 pride flags
+
+**Notes:**
+- Current flags.json uses approximate colors (e.g., Trans Pride `#60d0ff` vs official `#5BCEFA`)
+- Color validation utilities ready for use
+- Testing framework ready for automated color accuracy checks
+- Can be used to verify color accuracy after flag updates
 
 ### Phase 3: Performance Optimization (Medium Priority)
 - [ ] Add image downsampling for large uploads (>2x final size)
