@@ -70,10 +70,10 @@ export function useAvatarRenderer(
 
         // Transform flag data to format expected by renderAvatar
         const transformedFlag: FlagSpec = { ...flag };
-        if ((flag as any).layouts?.[0]?.colors && !flag.pattern) {
+        if (flag.layouts?.[0]?.colors && !flag.pattern) {
           transformedFlag.pattern = {
             type: 'stripes' as const,
-            stripes: (flag as any).layouts[0].colors.map((color: string) => ({
+            stripes: flag.layouts[0].colors.map((color: string) => ({
               color,
               weight: 1,
             })),
@@ -84,8 +84,8 @@ export function useAvatarRenderer(
         // Load flag PNG image for cutout mode (for accurate rendering of complex flags)
         // Use cache to avoid re-fetching the same flag image
         let flagImageBitmap: ImageBitmap | undefined;
-        if (presentation === 'cutout' && (flag as any).png_full) {
-          const cacheKey = (flag as any).png_full;
+        if (presentation === 'cutout' && flag.png_full) {
+          const cacheKey = flag.png_full;
 
           // Check cache first
           if (flagImageCache.has(cacheKey)) {
@@ -95,7 +95,7 @@ export function useAvatarRenderer(
             setIsRendering(true);
 
             // Fetch and cache the flag image
-            const flagResponse = await fetch(`/flags/${(flag as any).png_full}`);
+            const flagResponse = await fetch(`/flags/${flag.png_full}`);
             const flagBlob = await flagResponse.blob();
             flagImageBitmap = await createImageBitmap(flagBlob);
             flagImageCache.set(cacheKey, flagImageBitmap);
@@ -127,7 +127,7 @@ export function useAvatarRenderer(
 
         // Set test completion hook for E2E tests
         try {
-          (window as any).__BB_UPLOAD_DONE__ = true;
+          window.__BB_UPLOAD_DONE__ = true;
         } catch {
           // Ignore errors setting test hooks
         }

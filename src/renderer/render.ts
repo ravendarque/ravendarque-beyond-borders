@@ -45,6 +45,11 @@ export async function renderAvatar(
   const imageInset = options.imageInsetPx ?? 0; // can be negative (outset)
   const imageRadius = clamp(ringInner - imageInset, 0, r - 0.5);
 
+  // Validate that flag has pattern data
+  if (!flag.pattern) {
+    throw new Error('Flag pattern is required for rendering');
+  }
+
   // Decide border style early to handle cutout differently
   const stripes = flag.pattern.stripes;
   const totalWeight = stripes.reduce((s: number, x: { weight: number }) => s + x.weight, 0);
@@ -192,7 +197,7 @@ export async function renderAvatar(
       const dy = Math.round((texH - dh) / 2);
       tctx.clearRect(0, 0, texW, texH);
       tctx.drawImage(options.borderImageBitmap, 0, 0, bw, bh, dx, dy, dw, dh);
-      const bmpTex = await createImageBitmap(tex as any);
+      const bmpTex = await createImageBitmap(tex);
       // Map left-edge -> top of ring
       const startAngle = -Math.PI / 2;
       drawTexturedAnnulus(ctx, r, ringInner, ringOuter, bmpTex, startAngle, 'normal');
@@ -442,7 +447,7 @@ function drawTexturedAnnulus(
   const targetCtx = target.getContext('2d')!;
   // Draw the current canvas region into target
   targetCtx.clearRect(0, 0, destW, destH);
-  targetCtx.drawImage((ctx as CanvasRenderingContext2D).canvas as any, minX, minY, destW, destH, 0, 0, destW, destH);
+  targetCtx.drawImage(ctx.canvas, minX, minY, destW, destH, 0, 0, destW, destH);
   const targetData = targetCtx.getImageData(0, 0, destW, destH);
   const targetBuf = targetData.data;
   const maskData = destCtx.getImageData(0, 0, destW, destH).data;
