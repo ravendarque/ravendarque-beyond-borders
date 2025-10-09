@@ -650,6 +650,24 @@ async function workerForFlag(f) {
         metadata.png_preview = id + '.preview.png';
         // ensure metadata.filename records the canonical svg filename
         metadata.filename = filename;
+        
+        // Extract colors from the rendered PNG for accurate color data
+        const pngFullPath = path.join(outDir, pngFull);
+        if (fs.existsSync(pngFullPath)) {
+          try {
+            console.log('Extracting colors from PNG:', pngFullPath);
+            const pngColors = await helpers.extractColorsFromPng(pngFullPath);
+            if (pngColors && pngColors.length > 0) {
+              console.log('Extracted colors from PNG:', pngColors);
+              metadata.colors = pngColors;
+              metadata.stripe_order = pngColors;
+            }
+          } catch (e) {
+            console.warn('Failed to extract colors from PNG:', e.message);
+            // Fall back to SVG colors if PNG extraction fails
+          }
+        }
+        
         // delete the source SVG after successful rasterization to avoid storing svg files
         if (!WANT_DRY) {
           try { fs.unlinkSync(dst); console.log('Removed source SVG', dst); } catch (e) {}

@@ -14,8 +14,8 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#5BCEFA', weight: 1, label: 'blue' },
-        { color: '#F5A9B8', weight: 1, label: 'yellow' },
+        { color: '#60D0FF', weight: 1, label: 'blue' },
+        { color: '#F0B0C0', weight: 1, label: 'yellow' },
         { color: '#FFFFFF', weight: 1, label: 'white' }
       ],
     },
@@ -34,8 +34,8 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#0057B7', weight: 1, label: 'blue' },
-        { color: '#FFD700', weight: 1, label: 'gold' }
+        { color: '#FFD000', weight: 1, label: 'orange' },
+        { color: '#0050B0', weight: 1, label: 'blue' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -53,9 +53,10 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#034DA2', weight: 1, label: 'blue' },
+        { color: '#F02020', weight: 1, label: 'red' },
+        { color: '#0050A0', weight: 1, label: 'blue' },
         { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#EC1D25', weight: 1, label: 'red' }
+        { color: '#F09090', weight: 1, label: 'red' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -73,8 +74,10 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#CC0000', weight: 1, label: 'red' },
-        { color: '#FFFF00', weight: 1, label: 'yellow' }
+        { color: '#000000', weight: 1, label: 'black' },
+        { color: '#D00000', weight: 1, label: 'red' },
+        { color: '#FFFF00', weight: 1, label: 'yellow' },
+        { color: '#202000', weight: 1, label: 'red' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -92,10 +95,10 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#E4002B', weight: 1, label: 'red' },
-        { color: '#43B02A', weight: 1, label: 'green' },
-        { color: '#418FDE', weight: 1, label: 'blue' },
-        { color: '#FFC72C', weight: 1, label: 'orange' }
+        { color: '#E00030', weight: 1, label: 'red' },
+        { color: '#4090E0', weight: 1, label: 'blue' },
+        { color: '#40B030', weight: 1, label: 'green' },
+        { color: '#FFD030', weight: 1, label: 'orange' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -113,9 +116,9 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#DA0000', weight: 1, label: 'red' },
         { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#239F40', weight: 1, label: 'green' }
+        { color: '#E00000', weight: 1, label: 'red' },
+        { color: '#20A040', weight: 1, label: 'green' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -133,10 +136,10 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
+        { color: '#F02020', weight: 1, label: 'red' },
+        { color: '#209040', weight: 1, label: 'green' },
         { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#ED2024', weight: 1, label: 'red' },
-        { color: '#278E43', weight: 1, label: 'green' },
-        { color: '#FEBD11', weight: 1, label: 'orange' }
+        { color: '#FFC010', weight: 1, label: 'orange' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -154,10 +157,10 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#2D2D2D', weight: 1, label: 'black' },
-        { color: '#9B59D0', weight: 1, label: 'purple' },
+        { color: '#FFF030', weight: 1, label: 'orange' },
+        { color: '#303030', weight: 1, label: 'black' },
         { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#FFF433', weight: 1, label: 'orange' }
+        { color: '#A060D0', weight: 1, label: 'purple' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -175,12 +178,12 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#770088', weight: 1, label: 'purple' },
-        { color: '#004CFF', weight: 1, label: 'blue' },
-        { color: '#028121', weight: 1, label: 'green' },
-        { color: '#FFEE00', weight: 1, label: 'orange' },
-        { color: '#FF8D00', weight: 1, label: 'orange' },
-        { color: '#E50000', weight: 1, label: 'red' }
+        { color: '#E00000', weight: 1, label: 'red' },
+        { color: '#0050FF', weight: 1, label: 'blue' },
+        { color: '#FF9000', weight: 1, label: 'orange' },
+        { color: '#FFF000', weight: 1, label: 'orange' },
+        { color: '#700090', weight: 1, label: 'purple' },
+        { color: '#008020', weight: 1, label: 'green' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -198,9 +201,10 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#009639', weight: 1, label: 'green' },
+        { color: '#000000', weight: 1, label: 'black' },
+        { color: '#009040', weight: 1, label: 'green' },
         { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#ED2E38', weight: 1, label: 'red' }
+        { color: '#F03040', weight: 1, label: 'red' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -218,13 +222,9 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#000000', weight: 1, label: 'black' },
-        { color: '#D4AC34', weight: 1, label: 'orange' },
-        { color: '#D4AF37', weight: 1, label: 'orange' },
-        { color: '#FBFBFA', weight: 1, label: 'white' },
-        { color: '#14642C', weight: 1, label: 'green' },
-        { color: '#0B6623', weight: 1, label: 'green' }
+        { color: '#106020', weight: 1, label: 'green' },
+        { color: '#D0B030', weight: 1, label: 'orange' },
+        { color: '#FFFFFF', weight: 1, label: 'white' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -242,14 +242,10 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#84BE86', weight: 1, label: 'cyan' },
-        { color: '#328C4E', weight: 1, label: 'green' },
-        { color: '#F4E109', weight: 1, label: 'orange' },
-        { color: '#DA251C', weight: 1, label: 'red' },
-        { color: '#29166F', weight: 1, label: 'blue' },
+        { color: '#E02020', weight: 1, label: 'red' },
+        { color: '#301070', weight: 1, label: 'blue' },
         { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#000000', weight: 1, label: 'black' },
-        { color: '#F1C700', weight: 1, label: 'orange' }
+        { color: '#F0E010', weight: 1, label: 'orange' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -267,7 +263,7 @@ export const flags: FlagSpec[] = [
       type: 'stripes',
       orientation: 'horizontal',
       stripes: [
-        { color: '#559EE2', weight: 1, label: 'blue' },
+        { color: '#50A0E0', weight: 1, label: 'blue' },
         { color: '#FFFFFF', weight: 1, label: 'white' }
       ],
     },
@@ -287,9 +283,9 @@ export const flags: FlagSpec[] = [
       orientation: 'horizontal',
       stripes: [
         { color: '#000000', weight: 1, label: 'black' },
-        { color: '#007A3D', weight: 1, label: 'green' },
+        { color: '#008040', weight: 1, label: 'green' },
         { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#C4111B', weight: 1, label: 'red' }
+        { color: '#C01020', weight: 1, label: 'red' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
