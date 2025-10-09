@@ -144,14 +144,13 @@ export async function renderAvatar(
     /**
      * NORMAL MODE (Ring/Segment): Draw user's image in center,
      * then add flag-colored border around it
+     * Note: imageOffsetPx is NOT used in ring/segment modes - it's only for flag offset in cutout mode
      */
 
   // Draw circular masked image (kept inside border)
   ctx.save();
   ctx.beginPath();
-  // Apply optional image offset to center when drawing the image
-  const offsetX = options.imageOffsetPx?.x ?? 0;
-  const offsetY = options.imageOffsetPx?.y ?? 0;
+  // Image is always centered in ring/segment modes (no offset)
   ctx.arc(r + 0, r + 0, imageRadius, 0, Math.PI * 2);
   ctx.closePath();
   ctx.clip();
@@ -163,9 +162,9 @@ export async function renderAvatar(
   const scale = Math.max(target / iw, target / ih);
   const dw = iw * scale,
     dh = ih * scale;
-  // Center in canvas (apply offset)
-  const cx = canvasW / 2 + offsetX,
-    cy = canvasH / 2 + offsetY;
+  // Center in canvas (no offset in ring/segment modes)
+  const cx = canvasW / 2,
+    cy = canvasH / 2;
   ctx.drawImage(image, cx - dw / 2, cy - dh / 2, dw, dh);
   ctx.restore();
 
