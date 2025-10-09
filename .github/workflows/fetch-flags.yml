@@ -21,9 +21,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+      - name: Install dependencies
+        run: npm ci
       - name: Run fetch-and-extract
         run: |
           node scripts/fetch-and-extract.cjs
+      - name: Sync flags.ts from flags.json
+        run: |
+          node scripts/sync-flags-ts.cjs
+      - name: Validate flag data integrity
+        run: |
+          npm test -- flags.test.ts
+      - name: Validate flag assets quality
+        run: |
+          node scripts/validate-flags.cjs
       - name: Create pull request with updated flags
         uses: peter-evans/create-pull-request@v5
         with:
@@ -32,6 +43,21 @@ jobs:
           branch: update/flags-${{ github.run_id }}
           title: "chore: update flags (automated)"
           body: |
-            This PR was created automatically by the fetch workflow and contains updated flag assets under `public/flags`.
+            This PR was created automatically by the fetch workflow and contains updated flag assets.
+            
+            ## Changes
+            - 🖼️ Updated flag PNGs in `public/flags/`
+            - 📝 Updated `public/flags/flags.json` manifest
+            - 🔧 Synced `src/flags/flags.ts` from manifest
+            
+            ## Validation
+            - ✅ Unit tests passed (flags.test.ts)
+            - ✅ Flag asset quality validated (validate-flags.cjs)
+            - ✅ All PNG files exist and fill canvas properly
+            - ✅ All flags have required properties
+            
+            Safe to merge! 🚀
           labels: automated, flags
-          commit-paths: public/flags
+          commit-paths: |
+            public/flags
+            src/flags/flags.ts
