@@ -1,9 +1,9 @@
 # Category 9: Testing Gaps - Progress Report
 
-## Status: IN PROGRESS ⏳
+## Status: COMPONENT TESTS COMPLETE ✅
 
 **Priority:** 🔴 Critical  
-**Commits:** 22e4505, eb12015, dfe1693
+**Commits:** 22e4505, eb12015, dfe1693, c720ecc, cb3999a
 
 ## Overview
 Adding comprehensive test coverage to improve code quality and prevent regressions.
@@ -18,8 +18,10 @@ Adding comprehensive test coverage to improve code quality and prevent regressio
 5. **test/unit/components/ImageUploader.test.tsx** (105 lines, 8 tests)
 6. **test/unit/components/FlagSelector.test.tsx** (134 lines, 9 tests)
 7. **test/unit/components/PresentationControls.test.tsx** (112 lines, 10 tests)
+8. **test/unit/components/AvatarPreview.test.tsx** (158 lines, 17 tests)
+9. **test/unit/components/ControlPanel.test.tsx** (212 lines, 20 tests)
 
-**Total:** 1,012 lines, 66 test cases across 7 files
+**Total:** 1,382 lines, 103 test cases across 9 files
 
 ## usePersistedState Tests (12 tests)
 
@@ -153,13 +155,13 @@ expect(slider.value).toBe('50');
 
 ## Remaining Work
 
-### Component Tests (In Progress)
+### Component Tests (Complete ✅)
 - [x] SliderControl component (8 tests)
 - [x] ImageUploader component (8 tests)
 - [x] FlagSelector component (9 tests)
 - [x] PresentationControls component (10 tests)
-- [ ] AvatarPreview component
-- [ ] ControlPanel component
+- [x] AvatarPreview component (17 tests)
+- [x] ControlPanel component (20 tests)
 
 ### Integration Tests (Not Started)
 - [ ] Complete rendering workflow (upload → select → render)
@@ -248,12 +250,86 @@ await user.click(cutoutRadio);
 expect(onChange).toHaveBeenCalledWith('cutout');
 ```
 
+## AvatarPreview Tests (17 tests)
+
+### Test Coverage
+- ✅ Render preview title
+- ✅ Render canvas with correct dimensions (width, height)
+- ✅ Render canvas with correct display size
+- ✅ Apply circular border radius to canvas
+- ✅ Attach canvas ref correctly
+- ✅ Not render overlay when overlayUrl is null
+- ✅ Render overlay when overlayUrl is provided
+- ✅ Position overlay absolutely over canvas
+- ✅ Apply correct dimensions to overlay
+- ✅ Not render loading overlay when not rendering
+- ✅ Render loading overlay when isRendering is true
+- ✅ Render circular progress when loading
+- ✅ Handle different size combinations
+- ✅ Render overlay and loading state simultaneously
+- ✅ Have pointer-events none on overlay
+- ✅ Render inside Paper component
+
+### Key Testing Patterns
+```typescript
+// Test canvas ref attachment
+const props = createDefaultProps();
+render(<AvatarPreview {...props} />);
+expect(props.canvasRef.current).toBeInstanceOf(HTMLCanvasElement);
+
+// Verify canvas dimensions
+const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+expect(canvas.width).toBe(512);
+expect(canvas.style.width).toBe('300px');
+
+// Check loading overlay
+expect(screen.getByText('Loading...')).toBeTruthy();
+const progress = document.querySelector('[role="progressbar"]');
+```
+
+## ControlPanel Tests (20 tests)
+
+### Test Coverage
+- ✅ Render all child components (ImageUploader, FlagSelector, PresentationControls, SliderControl)
+- ✅ Render Border thickness slider with correct value
+- ✅ Render Inset/Outset slider with correct value
+- ✅ Conditionally render Flag Offset slider (only in cutout mode)
+- ✅ Not render Flag Offset in ring/segment modes
+- ✅ Render Background selector
+- ✅ Render Download button with correct enabled/disabled state
+- ✅ Call onDownload when Download button clicked
+- ✅ Call onBgChange when background changed
+- ✅ Pass flags and flagId to FlagSelector correctly
+- ✅ Render all controls in Stack layout
+- ✅ Render inside Paper component
+- ✅ Render with different slider values
+- ✅ Render download icon
+
+### Key Testing Patterns
+```typescript
+// Test conditional rendering
+render(<ControlPanel {...defaultProps} presentation="cutout" />);
+expect(screen.getByText('Flag Offset: 0px')).toBeTruthy();
+
+render(<ControlPanel {...defaultProps} presentation="ring" />);
+expect(screen.queryByText(/Flag Offset/)).toBeFalsy();
+
+// Test background selector interaction
+const bgSelect = Array.from(bgSelects).find((el) => {
+  const parent = el.closest('.MuiFormControl-root');
+  return parent?.textContent?.includes('Background');
+});
+await user.click(bgSelect);
+await user.click(screen.getByText('White'));
+expect(onBgChange).toHaveBeenCalledWith('#ffffff');
+```
+
 ## Impact
 
 ### Code Quality
 - **Before:** 6 tests in test/unit/flags.test.ts
-- **After:** 72+ tests (66 new + 6 existing)
-- **Coverage:** All 3 custom hooks + 4 components now have comprehensive test coverage
+- **After:** 109 tests (103 new + 6 existing)
+- **Coverage:** ALL 3 custom hooks + ALL 6 components now have comprehensive test coverage
 
 ### Confidence
 - State management edge cases validated
