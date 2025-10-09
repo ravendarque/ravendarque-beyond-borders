@@ -22,6 +22,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import CircularProgress from '@mui/material/CircularProgress';
 import FileUploadIcon from '@mui/icons-material/UploadFile';
 import DownloadIcon from '@mui/icons-material/Download';
 
@@ -39,10 +40,14 @@ export function App() {
   const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
   const [flagOffsetX, setFlagOffsetX] = useState(0);
   const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
+  const [isRendering, setIsRendering] = useState(false);
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  
+  // Cache for flag ImageBitmaps to avoid re-fetching when switching modes
+  const flagImageCache = useRef<Map<string, ImageBitmap>>(new Map());
   
   const size = 1024 as const;
 
@@ -64,6 +69,19 @@ export function App() {
       const stored = localStorage.getItem('bb_selectedFlag');
       if (stored) setFlagId(stored);
     } catch {}
+
+    // Cleanup: close all cached ImageBitmaps on unmount to free memory
+    const cache = flagImageCache.current;
+    return () => {
+      cache.forEach((bitmap) => {
+        try {
+          bitmap.close();
+        } catch {
+          // Ignore errors closing bitmaps
+        }
+      });
+      cache.clear();
+    };
   }, []);
 
   /**
@@ -108,6 +126,7 @@ export function App() {
         const ctx = canvasRef.current.getContext('2d')!;
         ctx.clearRect(0, 0, size, size);
       }
+      setIsRendering(false);
       return;
     }
 
@@ -117,6 +136,7 @@ export function App() {
         URL.revokeObjectURL(overlayUrl);
         setOverlayUrl(null);
       }
+      setIsRendering(false);
       return;
     }
 
@@ -140,11 +160,26 @@ export function App() {
       }
 
       // Load flag PNG image for cutout mode (for accurate rendering of complex flags)
+      // Use cache to avoid re-fetching the same flag image
       let flagImageBitmap: ImageBitmap | undefined;
       if (presentation === 'cutout' && flag.png_full) {
-        const flagResponse = await fetch(`/flags/${flag.png_full}`);
-        const flagBlob = await flagResponse.blob();
-        flagImageBitmap = await createImageBitmap(flagBlob);
+        const cacheKey = flag.png_full;
+        
+        // Check cache first
+        if (flagImageCache.current.has(cacheKey)) {
+          flagImageBitmap = flagImageCache.current.get(cacheKey);
+        } else {
+          // Show loading indicator only when fetching flag image (not cached)
+          setIsRendering(true);
+          
+          // Fetch and cache the flag image
+          const flagResponse = await fetch(`/flags/${flag.png_full}`);
+          const flagBlob = await flagResponse.blob();
+          flagImageBitmap = await createImageBitmap(flagBlob);
+          flagImageCache.current.set(cacheKey, flagImageBitmap);
+          
+          setIsRendering(false);
+        }
       }
 
       // Render avatar with flag border
@@ -181,6 +216,8 @@ export function App() {
         // eslint-disable-next-line no-console
         console.error('Failed to render avatar:', err);
       }
+      // Clear loading state on error
+      setIsRendering(false);
     }
   }, [flagId, size, thickness, insetPct, flagOffsetX, presentation, bg, overlayUrl, flagsList]);
 
@@ -372,6 +409,29 @@ export function App() {
                     pointerEvents: 'none',
                   }}
                 />
+              )}
+              {isRendering && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: 300,
+                    height: 300,
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'column',
+                    gap: 2,
+                  }}
+                >
+                  <CircularProgress size={40} sx={{ color: 'white' }} />
+                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
+                    Loading...
+                  </Typography>
+                </Box>
               )}
             </Box>
           </Paper>
