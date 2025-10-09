@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { renderAvatar } from '@/renderer/render';
 import type { FlagSpec } from '@/flags/schema';
 
@@ -23,6 +23,12 @@ export function useAvatarRenderer(
 ) {
   const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
+  
+  // Use ref to track overlayUrl for cleanup without adding to dependencies
+  const overlayUrlRef = useRef<string | null>(null);
+  
+  // Keep ref in sync with state
+  overlayUrlRef.current = overlayUrl;
 
   /**
    * Render avatar with flag border using the provided image URL
@@ -44,8 +50,8 @@ export function useAvatarRenderer(
 
       // Clear overlay if no flag selected
       if (!flagId) {
-        if (overlayUrl) {
-          URL.revokeObjectURL(overlayUrl);
+        if (overlayUrlRef.current) {
+          URL.revokeObjectURL(overlayUrlRef.current);
           setOverlayUrl(null);
         }
         setIsRendering(false);
@@ -113,8 +119,8 @@ export function useAvatarRenderer(
         const blobUrl = URL.createObjectURL(resultBlob);
 
         // Clean up previous overlay
-        if (overlayUrl) {
-          URL.revokeObjectURL(overlayUrl);
+        if (overlayUrlRef.current) {
+          URL.revokeObjectURL(overlayUrlRef.current);
         }
 
         setOverlayUrl(blobUrl);
@@ -135,8 +141,17 @@ export function useAvatarRenderer(
         setIsRendering(false);
       }
     },
-    [flagsList, flagImageCache, overlayUrl]
+    [flagsList, flagImageCache]
   );
+
+  // Cleanup: revoke object URL on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (overlayUrlRef.current) {
+        URL.revokeObjectURL(overlayUrlRef.current);
+      }
+    };
+  }, []);
 
   return {
     overlayUrl,

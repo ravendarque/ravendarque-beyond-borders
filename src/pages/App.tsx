@@ -1,101 +1,64 @@
 import React, { useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { useTheme } from '@mui/material/styles';
 import { ThemeModeContext } from '../main';
 import { loadFlags } from '../flags/loader';
-import { renderAvatar } from '@/renderer/render';
+import { useFlagImageCache } from '@/hooks/useFlagImageCache';
+import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
+import { usePersistedState } from '@/hooks/usePersistedState';
+import { ControlPanel } from '@/components/ControlPanel';
+import { AvatarPreview } from '@/components/AvatarPreview';
 import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Grid from '@mui/material/Unstable_Grid2';
-import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import Slider from '@mui/material/Slider';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import CircularProgress from '@mui/material/CircularProgress';
-import FileUploadIcon from '@mui/icons-material/UploadFile';
-import DownloadIcon from '@mui/icons-material/Download';
+import type { FlagSpec } from '@/flags/schema';
 
 export function App() {
   const { mode, setMode } = useContext(ThemeModeContext);
-  const theme = useTheme();
+
+  // Constants
+  const size = 1024 as const;
+  const displaySize = 300;
 
   // State
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [flagId, setFlagId] = useState<string>('');
-  const [flagsList, setFlagsList] = useState<any[]>([]);
+  const [flagId, setFlagId] = usePersistedState<string>('bb_selectedFlag', '');
   const [thickness, setThickness] = useState(7);
   const [insetPct, setInsetPct] = useState(0);
   const [bg, setBg] = useState<string | 'transparent'>('transparent');
   const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
   const [flagOffsetX, setFlagOffsetX] = useState(0);
-  const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
-  const [isRendering, setIsRendering] = useState(false);
+  // Trigger re-render when flags are loaded (flagsListRef doesn't cause re-renders)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [flagsLoaded, setFlagsLoaded] = useState(false);
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  
-  // Cache for flag ImageBitmaps to avoid re-fetching when switching modes
-  const flagImageCache = useRef<Map<string, ImageBitmap>>(new Map());
-  
-  const size = 1024 as const;
+  // Use ref for flagsList since it's loaded once and never changes
+  // This avoids unnecessary re-renders
+  const flagsListRef = useRef<FlagSpec[]>([]);
+
+  // Custom hooks
+  const flagImageCache = useFlagImageCache();
+  const { overlayUrl, isRendering, render } = useAvatarRenderer(flagsListRef.current, flagImageCache);
 
   /**
-   * Load available flags and restore persisted flag selection
+   * Load available flags on mount
    */
   useEffect(() => {
     (async () => {
       try {
         const loaded = await loadFlags();
-        setFlagsList(loaded || []);
+        flagsListRef.current = (loaded as FlagSpec[]) || [];
+        setFlagsLoaded(true); // Trigger re-render to show flags
       } catch {
-        setFlagsList([]);
+        flagsListRef.current = [];
+        setFlagsLoaded(true);
       }
     })();
-
-    // Load persisted flag from localStorage
-    try {
-      const stored = localStorage.getItem('bb_selectedFlag');
-      if (stored) setFlagId(stored);
-    } catch {}
-
-    // Cleanup: close all cached ImageBitmaps on unmount to free memory
-    const cache = flagImageCache.current;
-    return () => {
-      cache.forEach((bitmap) => {
-        try {
-          bitmap.close();
-        } catch {
-          // Ignore errors closing bitmaps
-        }
-      });
-      cache.clear();
-    };
   }, []);
-
-  /**
-   * Persist flag selection to localStorage
-   */
-  useEffect(() => {
-    try {
-      if (flagId) {
-        localStorage.setItem('bb_selectedFlag', flagId);
-      } else {
-        localStorage.removeItem('bb_selectedFlag');
-      }
-    } catch {}
-  }, [flagId]);
 
   /**
    * Handle file upload and trigger rendering
@@ -103,123 +66,27 @@ export function App() {
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     const url = URL.createObjectURL(file);
     setImageUrl(url);
-    
+
     // Render immediately with the new URL to avoid React state timing issues
     renderWithImageUrl(url);
   }
 
   /**
-   * Render avatar with flag border using the provided image URL
-   * This function handles the complete rendering pipeline:
-   * 1. Load and validate inputs (image, flag)
-   * 2. Transform flag data to renderer format
-   * 3. Call renderAvatar to generate the bordered image
-   * 4. Update the overlay with the result
+   * Render avatar with current settings
    */
-  const renderWithImageUrl = useCallback(async function renderWithImageUrl(specificImageUrl: string) {
-    // Exit early if no image or canvas
-    if (!specificImageUrl || !canvasRef.current) {
-      if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d')!;
-        ctx.clearRect(0, 0, size, size);
-      }
-      setIsRendering(false);
-      return;
-    }
-
-    // Clear overlay if no flag selected
-    if (!flagId) {
-      if (overlayUrl) {
-        URL.revokeObjectURL(overlayUrl);
-        setOverlayUrl(null);
-      }
-      setIsRendering(false);
-      return;
-    }
-
-    try {
-      // Find selected flag
-      const flag = flagsList.find((f: any) => f.id === flagId);
-      if (!flag) return;
-
-      // Load image
-      const response = await fetch(specificImageUrl);
-      const blob = await response.blob();
-      const img = await createImageBitmap(blob);
-
-      // Transform flag data to format expected by renderAvatar
-      const transformedFlag = { ...flag };
-      if (flag.layouts?.[0]?.colors && !flag.pattern) {
-        transformedFlag.pattern = {
-          stripes: flag.layouts[0].colors.map((color: string) => ({ color, weight: 1 })),
-          orientation: 'horizontal'
-        };
-      }
-
-      // Load flag PNG image for cutout mode (for accurate rendering of complex flags)
-      // Use cache to avoid re-fetching the same flag image
-      let flagImageBitmap: ImageBitmap | undefined;
-      if (presentation === 'cutout' && flag.png_full) {
-        const cacheKey = flag.png_full;
-        
-        // Check cache first
-        if (flagImageCache.current.has(cacheKey)) {
-          flagImageBitmap = flagImageCache.current.get(cacheKey);
-        } else {
-          // Show loading indicator only when fetching flag image (not cached)
-          setIsRendering(true);
-          
-          // Fetch and cache the flag image
-          const flagResponse = await fetch(`/flags/${flag.png_full}`);
-          const flagBlob = await flagResponse.blob();
-          flagImageBitmap = await createImageBitmap(flagBlob);
-          flagImageCache.current.set(cacheKey, flagImageBitmap);
-          
-          setIsRendering(false);
-        }
-      }
-
-      // Render avatar with flag border
-      const resultBlob = await renderAvatar(img, transformedFlag, {
-        size,
-        thicknessPct: thickness,
-        imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
-        imageOffsetPx: { x: Math.round(flagOffsetX), y: 0 },
-        presentation,
-        backgroundColor: bg === 'transparent' ? null : bg,
-        borderImageBitmap: flagImageBitmap,
-      });
-
-      // Create overlay URL from result
-      const blobUrl = URL.createObjectURL(resultBlob);
-      
-      // Clean up previous overlay
-      if (overlayUrl) {
-        URL.revokeObjectURL(overlayUrl);
-      }
-      
-      setOverlayUrl(blobUrl);
-
-      // Set test completion hook for E2E tests
-      try { 
-        (window as any).__BB_UPLOAD_DONE__ = true; 
-      } catch {
-        // Ignore errors setting test hooks
-      }
-
-    } catch (err) {
-      // Silent fail - could add user-facing error handling here
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('Failed to render avatar:', err);
-      }
-      // Clear loading state on error
-      setIsRendering(false);
-    }
-  }, [flagId, size, thickness, insetPct, flagOffsetX, presentation, bg, overlayUrl, flagsList]);
+  const renderWithImageUrl = useCallback(async (specificImageUrl: string) => {
+    await render(specificImageUrl, flagId, {
+      size,
+      thickness,
+      insetPct,
+      flagOffsetX,
+      presentation,
+      bg,
+    });
+  }, [render, flagId, size, thickness, insetPct, flagOffsetX, presentation, bg]);
 
   /**
    * Auto-render when image or flag selection changes
@@ -230,6 +97,17 @@ export function App() {
       return () => clearTimeout(timeoutId);
     }
   }, [imageUrl, flagId, renderWithImageUrl]);
+
+  /**
+   * Cleanup: revoke imageUrl on unmount to prevent memory leaks
+   */
+  useEffect(() => {
+    return () => {
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, [imageUrl]);
 
   /**
    * Download the rendered avatar as a PNG file
@@ -262,179 +140,35 @@ export function App() {
 
         {/* Controls */}
         <Grid xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Stack spacing={3}>
-              {/* File Upload */}
-              <Box>
-                <input
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  id="file-upload"
-                  type="file"
-                  onChange={onFileChange}
-                />
-                <label htmlFor="file-upload">
-                  <Button
-                    variant="contained"
-                    component="span"
-                    startIcon={<FileUploadIcon />}
-                    fullWidth
-                  >
-                    Choose Image
-                  </Button>
-                </label>
-              </Box>
-
-              {/* Flag Selection */}
-              <FormControl fullWidth>
-                <InputLabel>Select a flag</InputLabel>
-                <Select value={flagId} onChange={(e) => setFlagId(e.target.value)} label="Select a flag">
-                  <MenuItem value="">None</MenuItem>
-                  {flagsList.map((flag) => (
-                    <MenuItem key={flag.id} value={flag.id}>
-                      {flag.displayName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {/* Presentation Style */}
-              <FormControl component="fieldset">
-                <FormLabel component="legend">Presentation</FormLabel>
-                <RadioGroup
-                  row
-                  value={presentation}
-                  onChange={(e) => setPresentation(e.target.value as 'ring' | 'segment' | 'cutout')}
-                >
-                  <FormControlLabel value="ring" control={<Radio />} label="Ring" />
-                  <FormControlLabel value="segment" control={<Radio />} label="Segment" />
-                  <FormControlLabel value="cutout" control={<Radio />} label="Cutout" />
-                </RadioGroup>
-              </FormControl>
-
-              {/* Border Thickness */}
-              <Box>
-                <Typography gutterBottom>Border thickness: {thickness}%</Typography>
-                <Slider
-                  value={thickness}
-                  onChange={(_, value) => setThickness(value as number)}
-                  min={3}
-                  max={20}
-                  step={1}
-                />
-              </Box>
-
-              {/* Inset/Outset */}
-              <Box>
-                <Typography gutterBottom>Inset/Outset: {insetPct}%</Typography>
-                <Slider
-                  value={insetPct}
-                  onChange={(_, value) => setInsetPct(value as number)}
-                  min={-10}
-                  max={10}
-                  step={1}
-                />
-              </Box>
-
-              {/* Flag Offset (Cutout mode only) */}
-              {presentation === 'cutout' && (
-                <Box>
-                  <Typography gutterBottom>Flag Offset: {flagOffsetX}px</Typography>
-                  <Slider
-                    value={flagOffsetX}
-                    onChange={(_, value) => setFlagOffsetX(value as number)}
-                    min={-200}
-                    max={200}
-                    step={5}
-                  />
-                </Box>
-              )}
-
-              {/* Background */}
-              <FormControl fullWidth>
-                <InputLabel>Background</InputLabel>
-                <Select value={bg} onChange={(e) => setBg(e.target.value)} label="Background">
-                  <MenuItem value="transparent">Transparent</MenuItem>
-                  <MenuItem value="#ffffff">White</MenuItem>
-                  <MenuItem value="#000000">Black</MenuItem>
-                </Select>
-              </FormControl>
-
-              {/* Download Button */}
-              <Button
-                variant="outlined"
-                startIcon={<DownloadIcon />}
-                onClick={handleDownload}
-                disabled={!overlayUrl}
-                fullWidth
-              >
-                Download
-              </Button>
-            </Stack>
-          </Paper>
+          <ControlPanel
+            onFileChange={onFileChange}
+            flagId={flagId}
+            flags={flagsListRef.current}
+            onFlagChange={setFlagId}
+            presentation={presentation}
+            onPresentationChange={setPresentation}
+            thickness={thickness}
+            onThicknessChange={setThickness}
+            insetPct={insetPct}
+            onInsetPctChange={setInsetPct}
+            flagOffsetX={flagOffsetX}
+            onFlagOffsetXChange={setFlagOffsetX}
+            bg={bg}
+            onBgChange={setBg}
+            onDownload={handleDownload}
+            downloadDisabled={!overlayUrl}
+          />
         </Grid>
 
         {/* Preview */}
         <Grid xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Preview
-            </Typography>
-            <Box sx={{ position: 'relative', display: 'inline-block' }}>
-              <canvas
-                ref={canvasRef}
-                width={size}
-                height={size}
-                style={{
-                  width: 300,
-                  height: 300,
-                  border: '1px solid',
-                  borderColor: theme.palette.divider,
-                  borderRadius: '50%',
-                  imageRendering: 'auto',
-                }}
-              />
-              {overlayUrl && (
-                <img
-                  ref={imgRef}
-                  src={overlayUrl}
-                  alt="Result overlay"
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: 300,
-                    height: 300,
-                    borderRadius: '50%',
-                    pointerEvents: 'none',
-                  }}
-                />
-              )}
-              {isRendering && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: 300,
-                    height: 300,
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexDirection: 'column',
-                    gap: 2,
-                  }}
-                >
-                  <CircularProgress size={40} sx={{ color: 'white' }} />
-                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
-                    Loading...
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-          </Paper>
+          <AvatarPreview
+            size={size}
+            displaySize={displaySize}
+            canvasRef={canvasRef}
+            overlayUrl={overlayUrl}
+            isRendering={isRendering}
+          />
         </Grid>
       </Grid>
     </Container>
