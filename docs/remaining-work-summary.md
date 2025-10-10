@@ -55,7 +55,7 @@
 
 ## 🔄 PARTIALLY COMPLETE CATEGORIES
 
-### Category 7: Renderer Issues (3/6 PHASES COMPLETE)
+### Category 7: Renderer Issues (5/6 PHASES COMPLETE)
 
 **Priority:** 🔴 Critical
 
@@ -74,17 +74,28 @@
 - Performance tracking and metrics
 - Progress callbacks for loading indicators
 
-#### ❌ Phase 4: Export Quality (NOT STARTED)
-**Tasks:**
-- [ ] Add JPEG export option with quality control
-- [ ] Add WebP export option  
-- [ ] Add social media presets (optimized sizes/quality)
-- [ ] Add file size estimation before export
-- [ ] Optimize PNG compression
+#### ✅ Phase 4: Export Quality (PARTIALLY COMPLETE - Commit 1bb2ef0)
+**Completed Tasks:**
+- [x] Add file size estimation before export (sizeBytes, sizeKB in RenderResult)
+- [x] Optimize PNG compression (pngQuality parameter, default 0.92)
+- [x] Updated renderAvatar return type to RenderResult (BREAKING CHANGE)
+- [x] Updated all callers (useAvatarRenderer, App-simple, App-backup, tests)
+- [x] Enhanced documentation with usage examples
 
-**Why Important:** Better file sizes for social media uploads
+**Skipped Tasks (per user request):**
+- [ ] Add JPEG export option with quality control (not implemented)
+- [ ] Add WebP export option (not implemented)
+- [ ] Add social media presets (optimized sizes/quality) (not implemented)
 
-#### ✅ Phase 5: API Cleanup (COMPLETE - Commit pending)
+**Improvements:**
+- File size now visible before upload validation
+- PNG compression quality configurable (0-1 range)
+- Breaking change: renderAvatar returns `RenderResult { blob, sizeBytes, sizeKB, metrics? }` instead of plain `Blob`
+- Migration: Use `result.blob` instead of direct blob
+
+**Why Important:** Better file size control for social media uploads, immediate size feedback
+
+#### ✅ Phase 5: API Cleanup (COMPLETE - Commit 206a5fb)
 **Completed Tasks:**
 - [x] Separated `imageOffsetPx` and `flagOffsetPx` parameters for clarity
 - [x] Enhanced RenderOptions interface with comprehensive JSDoc comments
