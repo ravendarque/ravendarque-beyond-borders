@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { renderAvatar } from '@/renderer/render';
 import type { FlagSpec } from '@/flags/schema';
-import { RenderError, FlagDataError, normalizeError } from '@/types/errors';
+import { FlagDataError, normalizeError } from '@/types/errors';
 
 export interface RenderOptions {
   size: 512 | 1024;

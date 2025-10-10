@@ -1,5 +1,5 @@
 import type { FlagSpec } from '../flags/schema';
-import { createCanvas, canvasToBlob, clamp as utilClamp } from './canvas-utils';
+import { createCanvas, canvasToBlob } from './canvas-utils';
 import { validateFlagPattern } from './flag-validation';
 import {
   RenderPerformanceTracker,
