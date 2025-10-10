@@ -6,6 +6,7 @@ import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useFocusManagement } from '@/hooks/useFocusManagement';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useFlagPreloader } from '@/hooks/useFlagPreloader';
 import { ControlPanel } from '@/components/ControlPanel';
 import { AvatarPreview } from '@/components/AvatarPreview';
 import { ErrorAlert } from '@/components/ErrorAlert';
@@ -50,6 +51,9 @@ export function App() {
   const flagImageCache = useFlagImageCache();
   const { overlayUrl, isRendering, render } = useAvatarRenderer(flagsListRef.current, flagImageCache);
   const { focusRef: errorFocusRef, setFocus: focusError } = useFocusManagement<HTMLDivElement>();
+  
+  // Preload priority flags on idle to improve perceived performance
+  useFlagPreloader(flagsListRef.current, flagImageCache, flagId);
 
   /**
    * Load available flags on mount
