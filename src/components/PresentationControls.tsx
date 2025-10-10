@@ -16,7 +16,7 @@ export interface PresentationControlsProps {
  */
 function PresentationControlsComponent({ value, onChange }: PresentationControlsProps) {
   return (
-    <FormControl component="fieldset">
+    <FormControl component="fieldset" role="radiogroup" aria-labelledby="presentation-label">
       <FormLabel component="legend" id="presentation-label">
         Presentation Style
       </FormLabel>
@@ -29,26 +29,26 @@ function PresentationControlsComponent({ value, onChange }: PresentationControls
       >
         <FormControlLabel 
           value="ring" 
-          control={<Radio />} 
+          control={<Radio inputProps={{ 'aria-describedby': 'ring-description' }} />} 
           label="Ring"
-          aria-label="Ring style: Full circular border"
         />
         <FormControlLabel 
           value="segment" 
-          control={<Radio />} 
+          control={<Radio inputProps={{ 'aria-describedby': 'segment-description' }} />} 
           label="Segment"
-          aria-label="Segment style: Partial arc border"
         />
         <FormControlLabel 
           value="cutout" 
-          control={<Radio />} 
+          control={<Radio inputProps={{ 'aria-describedby': 'cutout-description' }} />} 
           label="Cutout"
-          aria-label="Cutout style: Flag fills the border area"
         />
       </RadioGroup>
       <span id="presentation-description" className="visually-hidden">
-        Choose how the flag border appears around your avatar
+        Choose how the flag border appears around your avatar. Ring shows a full circular border, Segment shows a partial arc, and Cutout fills the border area with the flag pattern.
       </span>
+      <span id="ring-description" className="visually-hidden">Full circular border around the entire avatar</span>
+      <span id="segment-description" className="visually-hidden">Partial arc border on one side of the avatar</span>
+      <span id="cutout-description" className="visually-hidden">Flag pattern fills the border area completely</span>
     </FormControl>
   );
 }

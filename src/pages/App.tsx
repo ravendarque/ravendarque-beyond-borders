@@ -176,14 +176,25 @@ export function App() {
 
   return (
     <>
-      {/* Screen Reader Status Announcements */}
+      {/* Screen Reader Status Announcements - Live Region for Dynamic Content */}
       <div
         role="status"
         aria-live="polite"
         aria-atomic="true"
         className="visually-hidden"
+        aria-relevant="additions text"
       >
         {statusMessage}
+      </div>
+      
+      {/* Assertive announcements for errors */}
+      <div
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        className="visually-hidden"
+      >
+        {error ? `Error: ${error.message}` : ''}
       </div>
       
       {/* Skip Links for Keyboard Navigation */}
@@ -197,24 +208,25 @@ export function App() {
         Skip to preview
       </a>
       
-      <Container maxWidth="lg" role="main" id="main-content" aria-label="Avatar border creator application">
+      <Container maxWidth="lg" component="main" id="main-content" aria-labelledby="app-title">
         <Grid container spacing={3}>
           {/* Header */}
           <Grid xs={12} component="header" role="banner">
             <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
-              <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+              <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700 }}>
                 Beyond Borders
               </Typography>
               <IconButton 
                 onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
                 aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                aria-pressed={mode === 'dark'}
                 title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               >
-                {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+                {mode === 'light' ? <Brightness4Icon aria-hidden="true" /> : <Brightness7Icon aria-hidden="true" />}
               </IconButton>
             </Stack>
-            <Typography variant="subtitle1" color="textSecondary" component="p">
-              Add a circular, flag-colored border to your profile picture.
+            <Typography variant="subtitle1" color="textSecondary" component="p" id="app-description">
+              Add a circular, flag-colored border to your profile picture. Upload an image, select a flag, and customize your border.
             </Typography>
           </Grid>
 
@@ -250,6 +262,9 @@ export function App() {
           <Typography variant="h2" id="controls-heading" sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}>
             Avatar Settings
           </Typography>
+          <span id="controls-description" className="visually-hidden">
+            Upload your profile picture, choose a flag, and customize the border style and appearance.
+          </span>
           <ControlPanel
             onFileChange={onFileChange}
             onFileError={setError}
@@ -272,10 +287,13 @@ export function App() {
         </Grid>
 
         {/* Preview */}
-        <Grid xs={12} md={6} component="section" aria-labelledby="preview-heading" id="preview">
+        <Grid xs={12} md={6} component="section" aria-labelledby="preview-heading" aria-describedby="preview-description" id="preview">
           <Typography variant="h2" id="preview-heading" sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}>
             Preview
           </Typography>
+          <span id="preview-description" className="visually-hidden">
+            Live preview of your avatar with the selected flag border. The preview updates automatically as you change settings.
+          </span>
           <AvatarPreview
             size={size}
             displaySize={displaySize}
