@@ -77,27 +77,39 @@ function ControlPanelComponent({
   );
   
   return (
-    <Paper sx={{ p: 3 }}>
+    <Paper sx={{ p: 3 }} role="form" aria-labelledby="controls-heading">
       <Stack spacing={3}>
         {/* File Upload */}
-        <ImageUploader onFileChange={onFileChange} onError={onFileError} />
+        <div role="group" aria-labelledby="upload-group-label">
+          <span id="upload-group-label" className="visually-hidden">Image Upload</span>
+          <ImageUploader onFileChange={onFileChange} onError={onFileError} />
+        </div>
 
         {/* Flag Selection */}
-        <FlagSelector value={flagId} flags={flags} onChange={onFlagChange} />
+        <div role="group" aria-labelledby="flag-group-label">
+          <span id="flag-group-label" className="visually-hidden">Flag Selection</span>
+          <FlagSelector value={flagId} flags={flags} onChange={onFlagChange} />
+        </div>
 
         {/* Presentation Style */}
-        <PresentationControls value={presentation} onChange={onPresentationChange} />
+        <div role="group" aria-labelledby="presentation-group-label">
+          <span id="presentation-group-label" className="visually-hidden">Border Style</span>
+          <PresentationControls value={presentation} onChange={onPresentationChange} />
+        </div>
 
         {/* Border Thickness */}
-        <SliderControl
-          label="Border thickness"
-          value={thickness}
-          min={3}
-          max={20}
-          step={1}
-          onChange={onThicknessChange}
-          unit="%"
-        />
+        <div role="group" aria-labelledby="thickness-group-label">
+          <span id="thickness-group-label" className="visually-hidden">Border Appearance</span>
+          <SliderControl
+            label="Border thickness"
+            value={thickness}
+            min={3}
+            max={20}
+            step={1}
+            onChange={onThicknessChange}
+            unit="%"
+          />
+        </div>
 
         {/* Inset/Outset */}
         <SliderControl
@@ -125,25 +137,40 @@ function ControlPanelComponent({
 
         {/* Background */}
         <FormControl fullWidth>
-          <InputLabel>Background</InputLabel>
-          <Select value={bg} onChange={handleBgChange} label="Background">
+          <InputLabel id="background-select-label">Background</InputLabel>
+          <Select 
+            value={bg} 
+            onChange={handleBgChange} 
+            label="Background"
+            labelId="background-select-label"
+            aria-describedby="background-description"
+          >
             <MenuItem value="transparent">Transparent</MenuItem>
             <MenuItem value="#ffffff">White</MenuItem>
             <MenuItem value="#000000">Black</MenuItem>
           </Select>
+          <span id="background-description" className="visually-hidden">
+            Choose the background color for your avatar. Transparent is recommended for most uses.
+          </span>
         </FormControl>
 
         {/* Download Button */}
         <Button
           variant="outlined"
-          startIcon={<DownloadIcon />}
+          startIcon={<DownloadIcon aria-hidden="true" />}
           onClick={onDownload}
           disabled={downloadDisabled}
           fullWidth
-          aria-label="Download generated avatar as PNG file"
+          aria-label={downloadDisabled ? "Download button. Please upload an image and select a flag first." : "Download generated avatar as PNG file"}
+          aria-describedby="download-description"
         >
           Download
         </Button>
+        <span id="download-description" className="visually-hidden">
+          {downloadDisabled 
+            ? "The download button will be enabled after you upload an image and select a flag." 
+            : "Click to download your avatar with the flag border as a PNG file."}
+        </span>
       </Stack>
     </Paper>
   );

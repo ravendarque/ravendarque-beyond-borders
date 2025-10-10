@@ -60,8 +60,13 @@ function SliderControlComponent({
     [label]
   );
   
+  const descriptionId = React.useMemo(
+    () => `${label.replace(/\s+/g, '-').toLowerCase()}-description`,
+    [label]
+  );
+  
   return (
-    <Box>
+    <Box role="group" aria-labelledby={labelId}>
       <Typography gutterBottom id={labelId}>
         {label}: {localValue}{unit}
       </Typography>
@@ -72,9 +77,16 @@ function SliderControlComponent({
         max={max}
         step={step}
         aria-labelledby={labelId}
-        aria-valuetext={`${localValue}${unit}`}
+        aria-valuetext={`${label} ${localValue}${unit}`}
+        aria-valuenow={localValue}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-describedby={descriptionId}
         valueLabelDisplay="auto"
       />
+      <span id={descriptionId} className="visually-hidden">
+        Use left and right arrow keys to adjust {label.toLowerCase()}. Current value is {localValue}{unit}. Range is from {min} to {max}.
+      </span>
     </Box>
   );
 }
