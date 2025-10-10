@@ -84,14 +84,21 @@
 
 **Why Important:** Better file sizes for social media uploads
 
-#### ❌ Phase 5: API Cleanup (NOT STARTED)
-**Tasks:**
-- [ ] Separate `imageOffsetPx` and `flagOffsetPx` parameters
-- [ ] Simplify RenderOptions interface
-- [ ] Add JSDoc documentation for all functions
-- [ ] Add rendering examples to docs
+#### ✅ Phase 5: API Cleanup (COMPLETE - Commit pending)
+**Completed Tasks:**
+- [x] Separated `imageOffsetPx` and `flagOffsetPx` parameters for clarity
+- [x] Enhanced RenderOptions interface with comprehensive JSDoc comments
+- [x] Added JSDoc documentation for renderAvatar function with examples
+- [x] Created complete API documentation (docs/renderer-api.md)
+- [x] Fixed process.env usage (migrated to import.meta.env.DEV)
+- [x] Maintained backward compatibility (imageOffsetPx still works in cutout mode)
 
-**Why Important:** Cleaner API, less confusion for future maintenance
+**Improvements:**
+- `imageOffsetPx`: Now clearly for user image offset in ring/segment modes
+- `flagOffsetPx`: New parameter for flag pattern offset in cutout mode
+- Comprehensive JSDoc with usage examples and type documentation
+- API migration guide for breaking changes
+- Full renderer API documentation with examples
 
 #### ❌ Phase 6: Testing (NOT STARTED)
 **Tasks:**
