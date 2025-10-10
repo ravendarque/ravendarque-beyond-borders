@@ -154,6 +154,60 @@ onProgress: (progress) => {
 
 ---
 
+#### `pngQuality?: number`
+PNG compression quality (0-1, higher = better quality but larger file).
+
+**Default:** `0.92` (optimal balance between quality and file size)
+
+**Use case:** Reduce file size for social media uploads or storage constraints.
+
+**Note:** PNG compression is lossless, but this setting affects encoding efficiency and final file size. Values below 0.8 may produce noticeably larger files due to less efficient compression.
+
+**Example:**
+```typescript
+// High quality, larger file size
+pngQuality: 0.95
+
+// Balanced (default)
+pngQuality: 0.92
+
+// Smaller file size, still good quality
+pngQuality: 0.85
+```
+
+---
+
+## Return Value: RenderResult
+
+The `renderAvatar` function returns a `RenderResult` object containing:
+
+```typescript
+interface RenderResult {
+  blob: Blob;              // The rendered image as a Blob
+  sizeBytes: number;       // Actual file size in bytes
+  sizeKB: string;          // File size in KB (formatted, e.g., "156.23")
+  metrics?: RenderMetrics; // Performance metrics (if tracking enabled)
+}
+```
+
+**Usage:**
+```typescript
+const result = await renderAvatar(image, flag, options);
+
+// Use the blob for download/display
+const url = URL.createObjectURL(result.blob);
+
+// Display file size to user
+console.log(`Export size: ${result.sizeKB} KB`);
+
+// Check if file is too large
+if (result.sizeBytes > 500 * 1024) {
+  console.warn('File is larger than 500 KB');
+}
+```
+
+---
+
 ## Usage Examples
 
 ### Example 1: Ring Mode with Background
@@ -161,13 +215,16 @@ onProgress: (progress) => {
 ```typescript
 import { renderAvatar } from '@/renderer/render';
 
-const blob = await renderAvatar(userImage, palestineFlag, {
+const result = await renderAvatar(userImage, palestineFlag, {
   size: 1024,
   thicknessPct: 15,
   presentation: 'ring',
   backgroundColor: '#ffffff',
   imageInsetPx: 10 // Add 10px space around image
 });
+
+console.log(`Export size: ${result.sizeKB} KB`); // e.g., "156.23 KB"
+const url = URL.createObjectURL(result.blob);
 ```
 
 ---
@@ -175,7 +232,7 @@ const blob = await renderAvatar(userImage, palestineFlag, {
 ### Example 2: Cutout Mode with Flag Offset
 
 ```typescript
-const blob = await renderAvatar(userImage, kurdistanFlag, {
+const result = await renderAvatar(userImage, kurdistanFlag, {
   size: 1024,
   thicknessPct: 20,
   presentation: 'cutout',
@@ -183,6 +240,11 @@ const blob = await renderAvatar(userImage, kurdistanFlag, {
   borderImageBitmap: flagPNG, // Use pre-rendered flag PNG
   backgroundColor: null // Transparent background
 });
+
+// Check file size before uploading
+if (result.sizeBytes > 500 * 1024) {
+  console.warn('File larger than 500 KB, consider reducing quality');
+}
 ```
 
 ---
@@ -190,7 +252,7 @@ const blob = await renderAvatar(userImage, kurdistanFlag, {
 ### Example 3: Segment Mode with Progress Tracking
 
 ```typescript
-const blob = await renderAvatar(userImage, ukraineFlag, {
+const result = await renderAvatar(userImage, ukraineFlag, {
   size: 512,
   thicknessPct: 12,
   presentation: 'segment',
@@ -198,21 +260,28 @@ const blob = await renderAvatar(userImage, ukraineFlag, {
     updateProgressBar(progress * 100);
   }
 });
+
+// Display file size to user
+showMessage(`Avatar created successfully! Size: ${result.sizeKB} KB`);
 ```
 
 ---
 
-### Example 4: Ring Mode with Image Offset
+### Example 4: Optimized Export for Social Media
 
 ```typescript
-// Fine-tune image centering when subject is off-center
-const blob = await renderAvatar(userImage, tibetFlag, {
+// Optimize for smaller file size with custom compression
+const result = await renderAvatar(userImage, tibetFlag, {
   size: 1024,
   thicknessPct: 15,
   presentation: 'ring',
-  imageOffsetPx: { x: -20, y: 10 }, // Shift image 20px left, 10px down
-  imageInsetPx: -5 // Expand image slightly into border
+  pngQuality: 0.85, // Reduce quality slightly for smaller file
+  imageOffsetPx: { x: -20, y: 10 }, // Fine-tune image position
+  imageInsetPx: -5
 });
+
+console.log(`Optimized size: ${result.sizeKB} KB (${result.sizeBytes.toLocaleString()} bytes)`);
+// Typical output: "Optimized size: 128.45 KB (131,532 bytes)"
 ```
 
 ---

@@ -108,7 +108,7 @@ export function useAvatarRenderer(
         }
 
         // Render avatar with flag border
-        const resultBlob = await renderAvatar(img, transformedFlag, {
+        const result = await renderAvatar(img, transformedFlag, {
           size,
           thicknessPct: thickness,
           imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
@@ -118,8 +118,8 @@ export function useAvatarRenderer(
           borderImageBitmap: flagImageBitmap,
         });
 
-        // Create overlay URL from result
-        const blobUrl = URL.createObjectURL(resultBlob);
+        // Create overlay URL from result blob
+        const blobUrl = URL.createObjectURL(result.blob);
 
         // Clean up previous overlay
         if (overlayUrlRef.current) {

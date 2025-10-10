@@ -17,8 +17,10 @@ describe('renderer', () => {
   it('renders a PNG blob for a simple image', async () => {
   const img = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL)
     const flag = flags[0]
-    const blob = await renderAvatar(img as any, flag, { size: 512, thicknessPct: 7, backgroundColor: null })
-    expect(blob).toBeInstanceOf(Blob)
-    expect(blob.type).toBe('image/png')
+    const result = await renderAvatar(img as any, flag, { size: 512, thicknessPct: 7, backgroundColor: null })
+    expect(result.blob).toBeInstanceOf(Blob)
+    expect(result.blob.type).toBe('image/png')
+    expect(result.sizeBytes).toBeGreaterThan(0)
+    expect(result.sizeKB).toMatch(/^\d+\.\d{2}$/) // Format: "123.45"
   })
 })

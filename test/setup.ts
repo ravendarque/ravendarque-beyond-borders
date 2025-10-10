@@ -31,7 +31,10 @@ class MockOffscreenCanvas {
     return new Mock2DContext() as any
   }
   async convertToBlob(opts?: BlobPropertyBag): Promise<Blob> {
-    return new Blob([], { type: opts?.type ?? 'image/png' })
+    // Create a blob with some fake PNG data to simulate realistic file size
+    // Real PNG would be much larger, but this is enough for testing
+    const fakeImageData = new Array(this.width * this.height).fill(0);
+    return new Blob([new Uint8Array(fakeImageData)], { type: opts?.type ?? 'image/png' })
   }
 }
 
