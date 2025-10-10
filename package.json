@@ -43,6 +43,7 @@
     "jsdom": "^25.0.0",
     "playwright": "^1.36.0",
     "prettier": "^3.6.2",
+    "rollup-plugin-visualizer": "^6.0.4",
     "sharp": "^0.34.3",
     "svgo": "^4.0.0",
     "typescript": "^5.5.4",
