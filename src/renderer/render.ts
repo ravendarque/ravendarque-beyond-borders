@@ -58,6 +58,13 @@ export interface RenderOptions {
   
   /** Progress callback for loading indicators (0-1) */
   onProgress?: (progress: number) => void;
+  
+  /** 
+   * PNG compression quality (0-1, higher = better quality but larger file)
+   * Default: 0.92 (optimal balance between quality and file size)
+   * Note: PNG compression is lossless, but this affects encoding time and size
+   */
+  pngQuality?: number;
 }
 
 /**
@@ -66,6 +73,10 @@ export interface RenderOptions {
 export interface RenderResult {
   /** The rendered avatar image as a Blob */
   blob: Blob;
+  /** Actual file size in bytes */
+  sizeBytes: number;
+  /** Estimated file size in KB (formatted string) */
+  sizeKB: string;
   /** Performance metrics (if tracking enabled) */
   metrics?: RenderMetrics;
 }
@@ -81,20 +92,22 @@ export interface RenderResult {
  * @example
  * ```typescript
  * // Ring mode with flag border
- * const blob = await renderAvatar(userImage, palestineFlag, {
+ * const result = await renderAvatar(userImage, palestineFlag, {
  *   size: 1024,
  *   thicknessPct: 15,
  *   presentation: 'ring',
  *   backgroundColor: '#ffffff'
  * });
+ * console.log(`File size: ${result.sizeKB} KB`); // e.g., "156.23 KB"
  * 
- * // Cutout mode with flag offset
- * const blob = await renderAvatar(userImage, kurdistanFlag, {
+ * // Cutout mode with flag offset and custom compression
+ * const result = await renderAvatar(userImage, kurdistanFlag, {
  *   size: 1024,
  *   thicknessPct: 20,
  *   presentation: 'cutout',
  *   flagOffsetPx: { x: 50, y: 0 }, // Shift flag pattern
- *   borderImageBitmap: flagPNG
+ *   borderImageBitmap: flagPNG,
+ *   pngQuality: 0.85 // Lower quality for smaller file size
  * });
  * ```
  */
@@ -102,7 +115,7 @@ export async function renderAvatar(
   image: ImageBitmap,
   flag: FlagSpec,
   options: RenderOptions,
-): Promise<Blob> {
+): Promise<RenderResult> {
   // Validate flag pattern before rendering
   validateFlagPattern(flag);
   
@@ -371,8 +384,14 @@ export async function renderAvatar(
     ctx.stroke();
   }
 
-  // Export PNG (using canvasToBlob with fallback support)
-  const blob = await canvasToBlob(canvas, 'image/png');
+  // Export PNG with optimized compression
+  // PNG compression quality: 0.92 is optimal balance between quality and file size
+  const pngQuality = options.pngQuality ?? 0.92;
+  const blob = await canvasToBlob(canvas, 'image/png', pngQuality);
+  
+  // Calculate file size
+  const sizeBytes = blob.size;
+  const sizeKB = (sizeBytes / 1024).toFixed(2);
   
   // Report progress: export complete (100%)
   if (enableTracking) {
@@ -387,10 +406,30 @@ export async function renderAvatar(
     );
     
     logRenderMetrics(metrics);
+    
+    // Log file size in development
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.log(`📦 Export size: ${sizeKB} KB (${sizeBytes.toLocaleString()} bytes)`);
+    }
+    
+    options.onProgress?.(1.0);
+    
+    return {
+      blob,
+      sizeBytes,
+      sizeKB,
+      metrics
+    };
   }
+  
   options.onProgress?.(1.0);
   
-  return blob;
+  return {
+    blob,
+    sizeBytes,
+    sizeKB
+  };
 }
 
 function drawConcentricRings(

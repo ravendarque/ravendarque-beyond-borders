@@ -162,7 +162,7 @@ export function App() {
       }
 
       // Render avatar
-      const resultBlob = await renderAvatar(img, transformedFlag, {
+      const result = await renderAvatar(img, transformedFlag, {
         size,
         thicknessPct: thickness,
         imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
@@ -171,10 +171,10 @@ export function App() {
         backgroundColor: bg === 'transparent' ? null : bg,
       });
 
-      pushDebugLog({ tag: 'draw', stage: 'render-complete', blobSize: resultBlob.size });
+      pushDebugLog({ tag: 'draw', stage: 'render-complete', blobSize: result.sizeBytes });
 
       // Create overlay
-      const blobUrl = URL.createObjectURL(resultBlob);
+      const blobUrl = URL.createObjectURL(result.blob);
       
       // Clean up previous overlay
       if (overlayUrl) {
