@@ -10,25 +10,30 @@ on:
   workflow_dispatch:
 
 jobs:
-  fetch:
+  fetch-and-validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - name: Set up Node
+          
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          
       - name: Install dependencies
         run: npm ci
-      - name: Run fetch-and-extract
-        run: |
-          node scripts/fetch-and-extract.cjs
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        
+      - name: Fetch and extract flags
+        run: node scripts/fetch-and-extract.cjs
+        
       - name: Sync flags.ts from flags.json
-        run: |
-          node scripts/sync-flags-ts.cjs
+        run: node scripts/sync-flags-ts.cjs
       - name: Validate flag data integrity
         run: |
           npm test -- flags.test.ts
@@ -41,23 +46,24 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: update flags (automated)"
           branch: update/flags-${{ github.run_id }}
-          title: "chore: update flags (automated)"
+          title: "🏴 Update flags (automated)"
           body: |
-            This PR was created automatically by the fetch workflow and contains updated flag assets.
+            Automated flag update triggered by changes to flag-data.yaml.
             
             ## Changes
             - 🖼️ Updated flag PNGs in `public/flags/`
             - 📝 Updated `public/flags/flags.json` manifest
             - 🔧 Synced `src/flags/flags.ts` from manifest
             
-            ## Validation
+            ## Pre-merge Validation
             - ✅ Unit tests passed (flags.test.ts)
             - ✅ Flag asset quality validated (validate-flags.cjs)
             - ✅ All PNG files exist and fill canvas properly
             - ✅ All flags have required properties
             
-            Safe to merge! 🚀
+            **Note**: CI will run automatically on this PR for final validation.
           labels: automated, flags
+          assignees: ${{ github.actor }}
           commit-paths: |
             public/flags
             src/flags/flags.ts
