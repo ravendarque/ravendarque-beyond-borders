@@ -6,6 +6,21 @@ This file contains instructions for GitHub Copilot to follow when working on the
 
 Beyond Borders is a web application that allows users to add circular, flag-colored borders to their profile pictures to show support for marginalized groups and selected causes. The app is built with React, TypeScript, Vite, and uses Canvas 2D for rendering.
 
+## File Organization
+
+### Local Working Files
+
+Use the `.local/` directory for all temporary and local development files:
+- Temporary scripts and PowerShell files
+- Test outputs and screenshots
+- Work-in-progress data files
+- Personal notes and todos
+- Any files that shouldn't be committed
+
+**Example:** `.local/temp-script.ps1`, `.local/screenshots/preview.png`, `.local/notes.md`
+
+The entire `.local/` directory is gitignored (except `.local/README.md`), ensuring a clean repository without cluttering .gitignore with specific patterns.
+
 ## Core Development Workflow
 
 ### 1. Issue-First Development
