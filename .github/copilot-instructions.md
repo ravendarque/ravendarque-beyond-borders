@@ -156,7 +156,10 @@ See `.github/project-fields.json` for complete field configuration.
 
 Test file locations:
 - Unit tests: `test/unit/`
-- E2E tests: `tests/`
+- Integration tests: `test/integration/`
+- E2E tests: `test/e2e/`
+- Test fixtures: `test/fixtures/`
+- Test data: `test/test-data/`
 
 ### Code Organization
 
@@ -176,6 +179,14 @@ src/
 ├── utils/          # Shared utilities
 ├── types/          # TypeScript type definitions
 └── styles/         # Global styles (Tailwind)
+
+test/
+├── unit/           # Unit tests (Vitest)
+├── integration/    # Integration tests (Vitest)
+├── e2e/            # E2E tests (Playwright)
+├── fixtures/       # Test fixtures (images, etc.)
+├── test-data/      # Test data files
+└── setup.ts        # Test setup configuration
 ```
 
 ## Git Commit Standards
