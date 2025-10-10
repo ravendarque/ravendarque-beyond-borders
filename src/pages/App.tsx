@@ -40,6 +40,7 @@ export function App() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [flagsLoaded, setFlagsLoaded] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>(''); // For screen reader announcements
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -94,6 +95,7 @@ export function App() {
    */
   const renderWithImageUrl = useCallback(async (specificImageUrl: string) => {
     try {
+      setStatusMessage('Rendering avatar...');
       await render(specificImageUrl, flagId, {
         size,
         thickness,
@@ -103,8 +105,11 @@ export function App() {
         bg,
       });
       setError(null); // Clear any previous render errors
+      setStatusMessage('Avatar rendered successfully. Ready to download.');
     } catch (err) {
-      setError(normalizeError(err));
+      const normalizedError = normalizeError(err);
+      setError(normalizedError);
+      setStatusMessage(`Error: ${normalizedError.message}`);
     }
   }, [render, flagId, size, thickness, insetPct, flagOffsetX, presentation, bg]);
 
@@ -171,15 +176,31 @@ export function App() {
 
   return (
     <>
-      {/* Skip Link for Keyboard Navigation */}
+      {/* Screen Reader Status Announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="visually-hidden"
+      >
+        {statusMessage}
+      </div>
+      
+      {/* Skip Links for Keyboard Navigation */}
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
+      <a href="#controls" className="skip-link">
+        Skip to controls
+      </a>
+      <a href="#preview" className="skip-link">
+        Skip to preview
+      </a>
       
-      <Container maxWidth="lg" component="main" id="main-content">
+      <Container maxWidth="lg" role="main" id="main-content" aria-label="Avatar border creator application">
         <Grid container spacing={3}>
           {/* Header */}
-          <Grid xs={12} component="header">
+          <Grid xs={12} component="header" role="banner">
             <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
               <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
                 Beyond Borders
@@ -192,7 +213,7 @@ export function App() {
                 {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
               </IconButton>
             </Stack>
-            <Typography variant="subtitle1" color="textSecondary">
+            <Typography variant="subtitle1" color="textSecondary" component="p">
               Add a circular, flag-colored border to your profile picture.
             </Typography>
           </Grid>
@@ -225,7 +246,10 @@ export function App() {
         )}
 
         {/* Controls */}
-        <Grid xs={12} md={6}>
+        <Grid xs={12} md={6} component="section" aria-labelledby="controls-heading" id="controls">
+          <Typography variant="h2" id="controls-heading" sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}>
+            Avatar Settings
+          </Typography>
           <ControlPanel
             onFileChange={onFileChange}
             onFileError={setError}
@@ -248,7 +272,10 @@ export function App() {
         </Grid>
 
         {/* Preview */}
-        <Grid xs={12} md={6}>
+        <Grid xs={12} md={6} component="section" aria-labelledby="preview-heading" id="preview">
+          <Typography variant="h2" id="preview-heading" sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}>
+            Preview
+          </Typography>
           <AvatarPreview
             size={size}
             displaySize={displaySize}

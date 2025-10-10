@@ -17,16 +17,38 @@ export interface PresentationControlsProps {
 function PresentationControlsComponent({ value, onChange }: PresentationControlsProps) {
   return (
     <FormControl component="fieldset">
-      <FormLabel component="legend">Presentation</FormLabel>
+      <FormLabel component="legend" id="presentation-label">
+        Presentation Style
+      </FormLabel>
       <RadioGroup
         row
         value={value}
         onChange={(e) => onChange(e.target.value as 'ring' | 'segment' | 'cutout')}
+        aria-labelledby="presentation-label"
+        aria-describedby="presentation-description"
       >
-        <FormControlLabel value="ring" control={<Radio />} label="Ring" />
-        <FormControlLabel value="segment" control={<Radio />} label="Segment" />
-        <FormControlLabel value="cutout" control={<Radio />} label="Cutout" />
+        <FormControlLabel 
+          value="ring" 
+          control={<Radio />} 
+          label="Ring"
+          aria-label="Ring style: Full circular border"
+        />
+        <FormControlLabel 
+          value="segment" 
+          control={<Radio />} 
+          label="Segment"
+          aria-label="Segment style: Partial arc border"
+        />
+        <FormControlLabel 
+          value="cutout" 
+          control={<Radio />} 
+          label="Cutout"
+          aria-label="Cutout style: Flag fills the border area"
+        />
       </RadioGroup>
+      <span id="presentation-description" className="visually-hidden">
+        Choose how the flag border appears around your avatar
+      </span>
     </FormControl>
   );
 }
