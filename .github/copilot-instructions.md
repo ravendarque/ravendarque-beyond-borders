@@ -83,16 +83,27 @@ When creating issues, use this structure:
 [Any relevant technical details, dependencies, or considerations]
 ```
 
-### 3. Progress Tracking
+### 3. Progress Tracking and Issue Lifecycle
 
-- Update issue status as work progresses
-- Check off completed tasks in the issue body
-- Add comments for significant updates or blockers
-- Track the status as follows:
-    - New issue: Ready
-    - Work started: In progress
-    - PR created: In review
-    - PR merged: Done
+**IMPORTANT: Never close issues manually. Issues are closed automatically when PRs are merged.**
+
+Update issue status as work progresses:
+
+1. **Ready** - Issue is ready to be worked on
+2. **In Progress** - Work has started on the feature branch
+3. **In Review** - Work is complete, committed, ready for PR review
+4. **Done** - PR has been merged to main (GitHub auto-closes issue)
+
+**Status Workflow:**
+- Create issue → Set to "Ready" or "In Progress"
+- Complete work & commit → Set to "In Review"
+- Create PR → Keep in "In Review"
+- PR merged → GitHub auto-closes and sets to "Done"
+
+**Never:**
+- Don't manually close issues (let PR merge do it)
+- Don't set status to "Done" manually
+- Don't leave issues in "In Progress" after work is committed
 
 ### 4. GitHub Project Configuration
 
