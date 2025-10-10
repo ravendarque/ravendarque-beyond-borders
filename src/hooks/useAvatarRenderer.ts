@@ -112,7 +112,7 @@ export function useAvatarRenderer(
           size,
           thicknessPct: thickness,
           imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
-          imageOffsetPx: { x: Math.round(flagOffsetX), y: 0 },
+          flagOffsetPx: { x: Math.round(flagOffsetX), y: 0 }, // Use flagOffsetPx for cutout mode
           presentation,
           backgroundColor: bg === 'transparent' ? null : bg,
           borderImageBitmap: flagImageBitmap,

@@ -10,26 +10,94 @@ import {
   type RenderMetrics,
 } from './performance';
 
+/**
+ * Options for rendering an avatar with flag border
+ */
 export interface RenderOptions {
+  /** Output size in pixels (512 or 1024) */
   size: 512 | 1024;
-  thicknessPct: number; // 5..20
+  
+  /** Border thickness as percentage of canvas size (5-20) */
+  thicknessPct: number;
+  
+  /** Padding around the outer edge as percentage of canvas size */
   paddingPct?: number;
+  
+  /** Optional stroke around the outer edge */
   outerStroke?: { color: string; widthPx: number };
-  imageInsetPx?: number; // inset between image edge and inner ring
-  imageOffsetPx?: { x: number; y: number }; // offset to apply to image center (pixels)
-  borderImageBitmap?: ImageBitmap | undefined; // optional image to use for border rendering (SVG bitmap)
+  
+  /** Inset between image edge and inner ring (positive = shrink, negative = expand) */
+  imageInsetPx?: number;
+  
+  /** 
+   * Offset to apply to the user's image center in ring/segment modes (pixels)
+   * Note: Not used in cutout mode - use flagOffsetPx instead
+   */
+  imageOffsetPx?: { x: number; y: number };
+  
+  /**
+   * Offset to apply to flag pattern in cutout mode (pixels)
+   * Only applies when presentation is 'cutout'
+   */
+  flagOffsetPx?: { x: number; y: number };
+  
+  /** Optional pre-rendered flag image (PNG) for accurate flag rendering */
+  borderImageBitmap?: ImageBitmap | undefined;
+  
+  /** Border presentation style */
   presentation?: 'ring' | 'segment' | 'cutout';
-  backgroundColor?: string | null; // null => transparent
-  enablePerformanceTracking?: boolean; // Enable performance metrics logging (default: development only)
-  enableDownsampling?: boolean; // Enable automatic image downsampling (default: true)
-  onProgress?: (progress: number) => void; // Progress callback (0-1)
+  
+  /** Background color (null or 'transparent' for transparent background) */
+  backgroundColor?: string | null;
+  
+  /** Enable performance metrics logging (default: development mode only) */
+  enablePerformanceTracking?: boolean;
+  
+  /** Enable automatic image downsampling for large images (default: true) */
+  enableDownsampling?: boolean;
+  
+  /** Progress callback for loading indicators (0-1) */
+  onProgress?: (progress: number) => void;
 }
 
+/**
+ * Result of rendering an avatar
+ */
 export interface RenderResult {
+  /** The rendered avatar image as a Blob */
   blob: Blob;
+  /** Performance metrics (if tracking enabled) */
   metrics?: RenderMetrics;
 }
 
+/**
+ * Renders an avatar with a flag-themed border
+ * 
+ * @param image - The user's image as an ImageBitmap
+ * @param flag - Flag specification with colors, pattern, and metadata
+ * @param options - Rendering options (size, style, offsets, etc.)
+ * @returns A Promise that resolves to a Blob containing the rendered PNG image
+ * 
+ * @example
+ * ```typescript
+ * // Ring mode with flag border
+ * const blob = await renderAvatar(userImage, palestineFlag, {
+ *   size: 1024,
+ *   thicknessPct: 15,
+ *   presentation: 'ring',
+ *   backgroundColor: '#ffffff'
+ * });
+ * 
+ * // Cutout mode with flag offset
+ * const blob = await renderAvatar(userImage, kurdistanFlag, {
+ *   size: 1024,
+ *   thicknessPct: 20,
+ *   presentation: 'cutout',
+ *   flagOffsetPx: { x: 50, y: 0 }, // Shift flag pattern
+ *   borderImageBitmap: flagPNG
+ * });
+ * ```
+ */
 export async function renderAvatar(
   image: ImageBitmap,
   flag: FlagSpec,
@@ -40,7 +108,7 @@ export async function renderAvatar(
   
   // Performance tracking
   const tracker = new RenderPerformanceTracker();
-  const enableTracking = options.enablePerformanceTracking ?? (process.env.NODE_ENV === 'development');
+  const enableTracking = options.enablePerformanceTracking ?? (import.meta.env.DEV);
   if (enableTracking) {
     tracker.start();
     tracker.mark('start');
@@ -140,8 +208,8 @@ export async function renderAvatar(
     options.onProgress?.(0.4);
 
     // Step 2: Create a flag texture for the ring area
-    // Use imageOffsetPx for flag pattern shifting (in cutout mode only)
-    const flagOffsetX = options.imageOffsetPx?.x ?? 0;
+    // Use flagOffsetPx (or imageOffsetPx for backward compatibility) for flag pattern shifting
+    const flagOffsetX = options.flagOffsetPx?.x ?? options.imageOffsetPx?.x ?? 0;
     const extraWidth = Math.abs(flagOffsetX) * 3; // Extra space for shifting
     const flagCanvas = new OffscreenCanvas(canvasW + extraWidth, canvasH);
     const flagCtx = flagCanvas.getContext('2d')!;
@@ -202,14 +270,16 @@ export async function renderAvatar(
     /**
      * NORMAL MODE (Ring/Segment): Draw user's image in center,
      * then add flag-colored border around it
-     * Note: imageOffsetPx is NOT used in ring/segment modes - it's only for flag offset in cutout mode
+     * Note: imageOffsetPx can be used to shift image center if needed
      */
 
   // Draw circular masked image (kept inside border)
   ctx.save();
   ctx.beginPath();
-  // Image is always centered in ring/segment modes (no offset)
-  ctx.arc(r + 0, r + 0, imageRadius, 0, Math.PI * 2);
+  // Apply image offset if provided (for fine-tuning centering)
+  const imgOffsetX = options.imageOffsetPx?.x ?? 0;
+  const imgOffsetY = options.imageOffsetPx?.y ?? 0;
+  ctx.arc(r + imgOffsetX, r + imgOffsetY, imageRadius, 0, Math.PI * 2);
   ctx.closePath();
   ctx.clip();
 
@@ -221,9 +291,9 @@ export async function renderAvatar(
   const scale = Math.max(target / iw, target / ih);
   const dw = iw * scale,
     dh = ih * scale;
-  // Center in canvas (no offset in ring/segment modes)
-  const cx = canvasW / 2,
-    cy = canvasH / 2;
+  // Center in canvas (with optional offset for fine-tuning)
+  const cx = canvasW / 2 + imgOffsetX,
+    cy = canvasH / 2 + imgOffsetY;
   ctx.drawImage(processedImage, cx - dw / 2, cy - dh / 2, dw, dh);
   ctx.restore();
   
