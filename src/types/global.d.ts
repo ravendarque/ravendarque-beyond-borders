@@ -18,6 +18,8 @@ interface Window {
 interface ImportMetaEnv {
   readonly NODE_ENV: 'development' | 'production' | 'test';
   readonly MODE: string;
+  readonly DEV: boolean;
+  readonly PROD: boolean;
 }
 
 interface ImportMeta {
