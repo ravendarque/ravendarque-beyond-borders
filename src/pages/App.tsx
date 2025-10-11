@@ -197,14 +197,122 @@ export function App() {
         {error ? `Error: ${error.message}` : ''}
       </div>
       
-      {/* Skip Links for Keyboard Navigation */}
-      <a href="#main-content" className="skip-link">
+      {/* Skip Links for Keyboard Navigation - using inline styles to ensure they work */}
+      <a 
+        href="#main-content" 
+        style={{
+          position: 'absolute',
+          left: '-10000px',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden'
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.position = 'fixed';
+          e.currentTarget.style.left = '10px';
+          e.currentTarget.style.top = '10px';
+          e.currentTarget.style.width = 'auto';
+          e.currentTarget.style.height = 'auto';
+          e.currentTarget.style.overflow = 'visible';
+          e.currentTarget.style.zIndex = '9999';
+          e.currentTarget.style.padding = '1em';
+          e.currentTarget.style.backgroundColor = 'var(--accent)';
+          e.currentTarget.style.color = 'white';
+          e.currentTarget.style.borderRadius = '4px';
+          e.currentTarget.style.fontWeight = '600';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.position = 'absolute';
+          e.currentTarget.style.left = '-10000px';
+          e.currentTarget.style.width = '1px';
+          e.currentTarget.style.height = '1px';
+          e.currentTarget.style.overflow = 'hidden';
+          e.currentTarget.style.zIndex = '';
+          e.currentTarget.style.padding = '';
+          e.currentTarget.style.backgroundColor = '';
+          e.currentTarget.style.color = '';
+          e.currentTarget.style.borderRadius = '';
+          e.currentTarget.style.fontWeight = '';
+        }}
+      >
         Skip to main content
       </a>
-      <a href="#controls" className="skip-link">
+      <a 
+        href="#controls"
+        style={{
+          position: 'absolute',
+          left: '-10000px',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden'
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.position = 'fixed';
+          e.currentTarget.style.left = '10px';
+          e.currentTarget.style.top = '50px';
+          e.currentTarget.style.width = 'auto';
+          e.currentTarget.style.height = 'auto';
+          e.currentTarget.style.overflow = 'visible';
+          e.currentTarget.style.zIndex = '9999';
+          e.currentTarget.style.padding = '1em';
+          e.currentTarget.style.backgroundColor = 'var(--accent)';
+          e.currentTarget.style.color = 'white';
+          e.currentTarget.style.borderRadius = '4px';
+          e.currentTarget.style.fontWeight = '600';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.position = 'absolute';
+          e.currentTarget.style.left = '-10000px';
+          e.currentTarget.style.width = '1px';
+          e.currentTarget.style.height = '1px';
+          e.currentTarget.style.overflow = 'hidden';
+          e.currentTarget.style.zIndex = '';
+          e.currentTarget.style.padding = '';
+          e.currentTarget.style.backgroundColor = '';
+          e.currentTarget.style.color = '';
+          e.currentTarget.style.borderRadius = '';
+          e.currentTarget.style.fontWeight = '';
+        }}
+      >
         Skip to controls
       </a>
-      <a href="#preview" className="skip-link">
+      <a 
+        href="#preview"
+        style={{
+          position: 'absolute',
+          left: '-10000px',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden'
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.position = 'fixed';
+          e.currentTarget.style.left = '10px';
+          e.currentTarget.style.top = '90px';
+          e.currentTarget.style.width = 'auto';
+          e.currentTarget.style.height = 'auto';
+          e.currentTarget.style.overflow = 'visible';
+          e.currentTarget.style.zIndex = '9999';
+          e.currentTarget.style.padding = '1em';
+          e.currentTarget.style.backgroundColor = 'var(--accent)';
+          e.currentTarget.style.color = 'white';
+          e.currentTarget.style.borderRadius = '4px';
+          e.currentTarget.style.fontWeight = '600';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.position = 'absolute';
+          e.currentTarget.style.left = '-10000px';
+          e.currentTarget.style.width = '1px';
+          e.currentTarget.style.height = '1px';
+          e.currentTarget.style.overflow = 'hidden';
+          e.currentTarget.style.zIndex = '';
+          e.currentTarget.style.padding = '';
+          e.currentTarget.style.backgroundColor = '';
+          e.currentTarget.style.color = '';
+          e.currentTarget.style.borderRadius = '';
+          e.currentTarget.style.fontWeight = '';
+        }}
+      >
         Skip to preview
       </a>
       
