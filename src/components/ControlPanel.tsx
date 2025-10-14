@@ -7,6 +7,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import DownloadIcon from '@mui/icons-material/Download';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { ImageUploader } from './ImageUploader';
 import { FlagSelector } from './FlagSelector';
 import { PresentationControls } from './PresentationControls';
@@ -43,6 +44,10 @@ export interface ControlPanelProps {
   // Download
   onDownload: () => void;
   downloadDisabled: boolean;
+
+  // Copy to clipboard
+  onCopy?: () => void;
+  copyDisabled?: boolean;
 }
 
 /**
@@ -67,6 +72,8 @@ function ControlPanelComponent({
   onBgChange,
   onDownload,
   downloadDisabled,
+  onCopy,
+  copyDisabled,
 }: ControlPanelProps) {
   // Memoize background change handler
   const handleBgChange = useCallback(
@@ -154,22 +161,35 @@ function ControlPanelComponent({
           </span>
         </FormControl>
 
-        {/* Download Button */}
-        <Button
-          variant="outlined"
-          startIcon={<DownloadIcon aria-hidden="true" />}
-          onClick={onDownload}
-          disabled={downloadDisabled}
-          fullWidth
-          aria-label={downloadDisabled ? "Download button. Please upload an image and select a flag first." : "Download generated avatar as PNG file"}
-          aria-describedby="download-description"
-        >
-          Download
-        </Button>
-        <span id="download-description" className="visually-hidden">
+        {/* Download and Copy Buttons */}
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon aria-hidden="true" />}
+            onClick={onDownload}
+            disabled={downloadDisabled}
+            fullWidth
+            aria-label={downloadDisabled ? "Download button. Please upload an image and select a flag first." : "Download generated avatar as PNG file"}
+          >
+            Download
+          </Button>
+          {onCopy && (
+            <Button
+              variant="outlined"
+              startIcon={<ContentCopyIcon aria-hidden="true" />}
+              onClick={onCopy}
+              disabled={copyDisabled}
+              fullWidth
+              aria-label={copyDisabled ? "Copy button. Please upload an image and select a flag first." : "Copy generated avatar to clipboard"}
+            >
+              Copy
+            </Button>
+          )}
+        </Stack>
+        <span className="visually-hidden" aria-live="polite">
           {downloadDisabled 
-            ? "The download button will be enabled after you upload an image and select a flag." 
-            : "Click to download your avatar with the flag border as a PNG file."}
+            ? "The download and copy buttons will be enabled after you upload an image and select a flag." 
+            : "Click download to save your avatar as a PNG file, or copy to copy it to your clipboard."}
         </span>
       </Stack>
     </Paper>
