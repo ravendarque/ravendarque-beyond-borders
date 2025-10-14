@@ -9,6 +9,7 @@ describe('flags schema', () => {
       category: 'marginalized',
       sources: {},
       status: 'active',
+      png_full: 'trans-pride.png', // Required field
       pattern: {
         type: 'stripes',
         orientation: 'horizontal',

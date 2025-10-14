@@ -57,7 +57,7 @@ describe('ControlPanel', () => {
   it('should render PresentationControls component', () => {
     render(<ControlPanel {...defaultProps} />);
     
-    expect(screen.getByText('Presentation')).toBeTruthy();
+    expect(screen.getByText('Presentation Style')).toBeTruthy();
     expect(screen.getByText('Ring')).toBeTruthy();
     expect(screen.getByText('Segment')).toBeTruthy();
     expect(screen.getByText('Cutout')).toBeTruthy();

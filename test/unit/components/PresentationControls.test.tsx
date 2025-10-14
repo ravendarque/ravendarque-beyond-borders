@@ -8,7 +8,7 @@ describe('PresentationControls', () => {
     const onChange = vi.fn();
     render(<PresentationControls value="ring" onChange={onChange} />);
     
-    expect(screen.getByText('Presentation')).toBeTruthy();
+    expect(screen.getByText('Presentation Style')).toBeTruthy();
   });
 
   it('should render all three radio options', () => {

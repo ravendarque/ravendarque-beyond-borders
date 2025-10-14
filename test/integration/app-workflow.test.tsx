@@ -197,7 +197,7 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
   it('should render presentation controls with all options', () => {
     renderApp();
     
-    expect(screen.getByText('Presentation')).toBeTruthy();
+    expect(screen.getByText('Presentation Style')).toBeTruthy();
     expect(screen.getByText('Ring')).toBeTruthy();
     expect(screen.getByText('Segment')).toBeTruthy();
     expect(screen.getByText('Cutout')).toBeTruthy();
