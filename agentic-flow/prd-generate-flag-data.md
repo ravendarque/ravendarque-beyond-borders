@@ -26,9 +26,9 @@ This file will serve as a reusable knowledge base for further applications (visu
 | `name`      | String | The official or widely recognized name of the flag, including entity name. |
 | `svg_url`   | URL    | Direct link to the SVG version of the flag (preferably Wikimedia Commons). |
 | `description` | String | Description of the flag’s design and symbols. |
-| `type`      | Enum (Human-readable) | Category of cause: `"Authoritarian State"`, `"Occupied / Disputed Territory"`, or `"Stateless People"`. |
+| `type`      | Enum (Human-readable) | Category of cause: `"Authoritarian State"`, `"Occupied / Disputed Territory"`, `"Stateless People"`, `"Marginalised Group"`, `"LGBTQIA+"`, `"Indigenous Peoples"`. |
 | `reason`    | String | A concise explanation of why the entity is under oppression. |
-| `link`      | URL    | A link to more information about the cause. |
+| `links`      | URL    | A link to more information about the cause. |
 
 ---
 
