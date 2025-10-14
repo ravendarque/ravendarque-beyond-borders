@@ -159,6 +159,36 @@ export function App() {
   }
 
   /**
+   * Copy the rendered avatar to clipboard
+   */
+  async function handleCopy() {
+    if (!overlayUrl) return;
+
+    try {
+      // Check if Clipboard API is supported
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        setStatusMessage('Copy to clipboard not supported in this browser');
+        setError(normalizeError(new Error('Clipboard API not supported')));
+        return;
+      }
+
+      // Fetch the blob from the object URL
+      const response = await fetch(overlayUrl);
+      const blob = await response.blob();
+
+      // Create clipboard item and write to clipboard
+      const item = new ClipboardItem({ 'image/png': blob });
+      await navigator.clipboard.write([item]);
+
+      setStatusMessage('Avatar copied to clipboard!');
+      setError(null);
+    } catch (err) {
+      setStatusMessage('Failed to copy to clipboard');
+      setError(normalizeError(err));
+    }
+  }
+
+  /**
    * Keyboard shortcuts
    */
   useKeyboardShortcuts([
@@ -391,6 +421,8 @@ export function App() {
             onBgChange={setBg}
             onDownload={handleDownload}
             downloadDisabled={!overlayUrl}
+            onCopy={handleCopy}
+            copyDisabled={!overlayUrl}
           />
         </Grid>
 
