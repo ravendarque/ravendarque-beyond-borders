@@ -217,16 +217,19 @@ describe('useAvatarRenderer', () => {
 
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    await result.current.render('blob:test-image', 'test', {
-      size: 1024,
-      thickness: 7,
-      insetPct: 0,
-      flagOffsetX: 0,
-      presentation: 'ring',
-      bg: 'transparent',
-    });
+    // Expect the error to be thrown (re-thrown as AppError)
+    await expect(
+      result.current.render('blob:test-image', 'test', {
+        size: 1024,
+        thickness: 7,
+        insetPct: 0,
+        flagOffsetX: 0,
+        presentation: 'ring',
+        bg: 'transparent',
+      })
+    ).rejects.toThrow('Render error');
 
-    // Should not throw and should clear rendering state
+    // Should clear rendering state even when error occurs
     expect(result.current.isRendering).toBe(false);
   });
 
