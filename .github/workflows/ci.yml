@@ -29,6 +29,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Validate flag SVGs
+        run: node scripts/validate-flags.cjs
+
+      - name: Lint code
+        run: npm run lint
+
       - name: Typecheck and build
         run: npm run build
 
