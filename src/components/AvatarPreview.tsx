@@ -125,7 +125,7 @@ function AvatarPreviewComponent({
               width: displaySize,
               height: displaySize,
               borderRadius: '50%',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -138,15 +138,15 @@ function AvatarPreviewComponent({
             aria-label="Rendering avatar with flag border, please wait"
           >
             <CircularProgress 
-              size={40} 
+              size={48} 
               sx={{ color: 'white' }} 
               aria-hidden="true"
               aria-label="Loading progress indicator"
             />
-            <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }} aria-hidden="true">
-              Loading...
+            <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, fontSize: '0.95rem' }} aria-hidden="true">
+              Rendering...
             </Typography>
-            <span className="visually-hidden">Rendering in progress. This may take a few seconds.</span>
+            <span className="visually-hidden">Rendering avatar with flag border. This may take a moment.</span>
           </Box>
         )}
       </Box>

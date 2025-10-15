@@ -24,6 +24,7 @@ export interface ControlPanelProps {
   flagId: string;
   flags: FlagSpec[];
   onFlagChange: (flagId: string) => void;
+  flagsLoading?: boolean; // NEW: Track if flags are being loaded
 
   // Presentation
   presentation: 'ring' | 'segment' | 'cutout';
@@ -44,10 +45,12 @@ export interface ControlPanelProps {
   // Download
   onDownload: () => void;
   downloadDisabled: boolean;
+  isDownloading?: boolean; // NEW: Track if download is in progress
 
   // Copy to clipboard
   onCopy?: () => void;
   copyDisabled?: boolean;
+  isCopying?: boolean; // NEW: Track if copy is in progress
 }
 
 /**
@@ -60,6 +63,7 @@ function ControlPanelComponent({
   flagId,
   flags,
   onFlagChange,
+  flagsLoading = false,
   presentation,
   onPresentationChange,
   thickness,
@@ -72,8 +76,10 @@ function ControlPanelComponent({
   onBgChange,
   onDownload,
   downloadDisabled,
+  isDownloading = false,
   onCopy,
   copyDisabled,
+  isCopying = false,
 }: ControlPanelProps) {
   // Memoize background change handler
   const handleBgChange = useCallback(
@@ -95,7 +101,7 @@ function ControlPanelComponent({
         {/* Flag Selection */}
         <div role="group" aria-labelledby="flag-group-label">
           <span id="flag-group-label" className="visually-hidden">Flag Selection</span>
-          <FlagSelector value={flagId} flags={flags} onChange={onFlagChange} />
+          <FlagSelector value={flagId} flags={flags} onChange={onFlagChange} isLoading={flagsLoading} />
         </div>
 
         {/* Presentation Style */}
@@ -167,22 +173,24 @@ function ControlPanelComponent({
             variant="outlined"
             startIcon={<DownloadIcon aria-hidden="true" />}
             onClick={onDownload}
-            disabled={downloadDisabled}
+            disabled={downloadDisabled || isDownloading || isCopying}
             fullWidth
             aria-label={downloadDisabled ? "Download button. Please upload an image and select a flag first." : "Download generated avatar as PNG file"}
+            aria-busy={isDownloading}
           >
-            Download
+            {isDownloading ? 'Downloading...' : 'Download'}
           </Button>
           {onCopy && (
             <Button
               variant="outlined"
               startIcon={<ContentCopyIcon aria-hidden="true" />}
               onClick={onCopy}
-              disabled={copyDisabled}
+              disabled={copyDisabled || isDownloading || isCopying}
               fullWidth
               aria-label={copyDisabled ? "Copy button. Please upload an image and select a flag first." : "Copy generated avatar to clipboard"}
+              aria-busy={isCopying}
             >
-              Copy
+              {isCopying ? 'Copying...' : 'Copy'}
             </Button>
           )}
         </Stack>

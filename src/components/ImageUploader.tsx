@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import FileUploadIcon from '@mui/icons-material/UploadFile';
 import { FileValidationError } from '@/types/errors';
 
@@ -69,6 +70,7 @@ async function validateFile(file: File): Promise<void> {
  */
 function ImageUploaderComponent({ onFileChange, onError }: ImageUploaderProps) {
   const [isDragging, setIsDragging] = React.useState(false);
+  const [isValidating, setIsValidating] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,6 +78,9 @@ function ImageUploaderComponent({ onFileChange, onError }: ImageUploaderProps) {
     if (!file) return;
 
     try {
+      // Show loading state during validation
+      setIsValidating(true);
+      
       // Validate file before passing to parent
       await validateFile(file);
       
@@ -89,6 +94,9 @@ function ImageUploaderComponent({ onFileChange, onError }: ImageUploaderProps) {
       if (onError && error instanceof FileValidationError) {
         onError(error);
       }
+    } finally {
+      // Clear loading state after validation (success or error)
+      setIsValidating(false);
     }
   };
 
@@ -121,6 +129,9 @@ function ImageUploaderComponent({ onFileChange, onError }: ImageUploaderProps) {
     if (!file) return;
 
     try {
+      // Show loading state during validation
+      setIsValidating(true);
+      
       // Validate file
       await validateFile(file);
       
@@ -140,6 +151,9 @@ function ImageUploaderComponent({ onFileChange, onError }: ImageUploaderProps) {
       if (onError && error instanceof FileValidationError) {
         onError(error);
       }
+    } finally {
+      // Clear loading state after validation
+      setIsValidating(false);
     }
   };
 
@@ -169,18 +183,20 @@ function ImageUploaderComponent({ onFileChange, onError }: ImageUploaderProps) {
           aria-label="Upload image file (JPG or PNG, max 10 MB)"
           aria-describedby="file-upload-requirements"
         />
-        <label htmlFor="file-upload" style={{ cursor: 'pointer', display: 'block' }}>
+        <label htmlFor="file-upload" style={{ cursor: isValidating ? 'wait' : 'pointer', display: 'block' }}>
           <Button
             variant="contained"
             component="span"
-            startIcon={<FileUploadIcon />}
+            startIcon={isValidating ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <FileUploadIcon />}
             fullWidth
+            disabled={isValidating}
             aria-label="Choose image file to upload or drag and drop"
+            aria-busy={isValidating}
             sx={{
               pointerEvents: 'none', // Let label handle the click
             }}
           >
-            {isDragging ? 'Drop image here' : 'Choose Image'}
+            {isValidating ? 'Validating...' : isDragging ? 'Drop image here' : 'Choose Image'}
           </Button>
         </label>
         {!isDragging && (
