@@ -3,7 +3,6 @@ import { ThemeModeContext } from '../main';
 import { loadFlags } from '../flags/loader';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
-import { usePersistedState } from '@/hooks/usePersistedState';
 import { useFocusManagement } from '@/hooks/useFocusManagement';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useFlagPreloader } from '@/hooks/useFlagPreloader';
@@ -39,7 +38,7 @@ export function App() {
 
   // State
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [flagId, setFlagId] = usePersistedState<string>('bb_selectedFlag', '');
+  const [flagId, setFlagId] = useState<string>('');
   const [thickness, setThickness] = useState(7);
   const [insetPct, setInsetPct] = useState(0);
   const [bg, setBg] = useState<string | 'transparent'>('transparent');
@@ -482,6 +481,7 @@ export function App() {
             overlayUrl={overlayUrl}
             isRendering={isRendering}
             hasImage={!!imageUrl}
+            hasFlag={!!flagId}
           />
         </Grid>
 
@@ -503,6 +503,7 @@ export function App() {
           <ControlPanel
             onFileChange={onFileChange}
             onFileError={setError}
+            hasImage={!!imageUrl}
             flagId={flagId}
             flags={flagsListRef.current}
             onFlagChange={setFlagId}

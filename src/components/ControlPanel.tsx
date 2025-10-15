@@ -8,10 +8,12 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import DownloadIcon from '@mui/icons-material/Download';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import Typography from '@mui/material/Typography';
 import { ImageUploader } from './ImageUploader';
 import { FlagSelector } from './FlagSelector';
 import { PresentationControls } from './PresentationControls';
 import { SliderControl } from './SliderControl';
+import { StepIndicator } from './StepIndicator';
 import type { FlagSpec } from '@/flags/schema';
 import type { FileValidationError } from '@/types/errors';
 
@@ -19,6 +21,7 @@ export interface ControlPanelProps {
   // File upload
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileError?: (error: FileValidationError) => void;
+  hasImage?: boolean; // Track if an image has been uploaded
 
   // Flag selection
   flagId: string;
@@ -60,6 +63,7 @@ export interface ControlPanelProps {
 function ControlPanelComponent({
   onFileChange,
   onFileError,
+  hasImage = false,
   flagId,
   flags,
   onFlagChange,
@@ -90,82 +94,101 @@ function ControlPanelComponent({
   );
   
   return (
-    <Paper sx={{ p: 3 }} role="form" aria-labelledby="controls-heading">
+    <Paper sx={{ p: 4 }} role="form" aria-labelledby="controls-heading">
+      <Typography variant="h6" gutterBottom sx={{ fontSize: '1.5rem', fontWeight: 700, mb: 4 }}>
+        Avatar Settings
+      </Typography>
+      
       <Stack spacing={3}>
-        {/* File Upload */}
-        <div role="group" aria-labelledby="upload-group-label">
-          <span id="upload-group-label" className="visually-hidden">Image Upload</span>
-          <ImageUploader onFileChange={onFileChange} onError={onFileError} />
-        </div>
+        {/* Step 1: Image Upload Section */}
+        <Stack spacing={2}>
+          <Stack spacing={0}>
+            <StepIndicator stepNumber={1} title="Upload Image" isComplete={hasImage} />
+            <Typography 
+              variant="caption" 
+              sx={{ pl: 7, opacity: 0.9, fontSize: '0.8125rem', mt: '-6px !important' }}
+            >
+              JPG or PNG, max 10 MB, up to 4K resolution
+            </Typography>
+          </Stack>
+          <Stack spacing={2} sx={{ pl: 7 }}>
+            <ImageUploader onFileChange={onFileChange} onError={onFileError} />
+          </Stack>
+        </Stack>
 
-        {/* Flag Selection */}
-        <div role="group" aria-labelledby="flag-group-label">
-          <span id="flag-group-label" className="visually-hidden">Flag Selection</span>
-          <FlagSelector value={flagId} flags={flags} onChange={onFlagChange} isLoading={flagsLoading} />
-        </div>
+        {/* Step 2: Flag Selection Section */}
+        <Stack spacing={2}>
+          <StepIndicator stepNumber={2} title="Select Flag" isComplete={!!flagId} />
+          <Stack spacing={2} sx={{ pl: 7 }}>
+            <FlagSelector value={flagId} flags={flags} onChange={onFlagChange} isLoading={flagsLoading} />
+          </Stack>
+        </Stack>
 
-        {/* Presentation Style */}
-        <div role="group" aria-labelledby="presentation-group-label">
-          <span id="presentation-group-label" className="visually-hidden">Border Style</span>
-          <PresentationControls value={presentation} onChange={onPresentationChange} />
-        </div>
-
-        {/* Border Thickness */}
-        <div role="group" aria-labelledby="thickness-group-label">
-          <span id="thickness-group-label" className="visually-hidden">Border Appearance</span>
-          <SliderControl
-            label="Border thickness"
-            value={thickness}
-            min={3}
-            max={20}
-            step={1}
-            onChange={onThicknessChange}
-            unit="%"
+        {/* Step 3: Appearance Section */}
+        <Stack spacing={2}>
+          <StepIndicator 
+            stepNumber={3} 
+            title="Customize Appearance" 
+            isComplete={hasImage && !!flagId} 
           />
-        </div>
+          <Stack spacing={2} sx={{ pl: 7 }}>
+            <PresentationControls value={presentation} onChange={onPresentationChange} />
 
-        {/* Inset/Outset */}
-        <SliderControl
-          label="Inset/Outset"
-          value={insetPct}
-          min={-10}
-          max={10}
-          step={1}
-          onChange={onInsetPctChange}
-          unit="%"
-        />
+            {/* Border Thickness */}
+            <SliderControl
+              label="Border thickness"
+              value={thickness}
+              min={3}
+              max={20}
+              step={1}
+              onChange={onThicknessChange}
+              unit="%"
+            />
 
-        {/* Flag Offset (Cutout mode only) */}
-        {presentation === 'cutout' && (
-          <SliderControl
-            label="Flag Offset"
-            value={flagOffsetX}
-            min={-200}
-            max={200}
-            step={5}
-            onChange={onFlagOffsetXChange}
-            unit="px"
-          />
-        )}
+            {/* Inset/Outset */}
+            <SliderControl
+              label="Inset/Outset"
+              value={insetPct}
+              min={-10}
+              max={10}
+              step={1}
+              onChange={onInsetPctChange}
+              unit="%"
+            />
 
-        {/* Background */}
-        <FormControl fullWidth>
-          <InputLabel id="background-select-label">Background</InputLabel>
-          <Select 
-            value={bg} 
-            onChange={handleBgChange} 
-            label="Background"
-            labelId="background-select-label"
-            aria-describedby="background-description"
-          >
-            <MenuItem value="transparent">Transparent</MenuItem>
-            <MenuItem value="#ffffff">White</MenuItem>
-            <MenuItem value="#000000">Black</MenuItem>
-          </Select>
-          <span id="background-description" className="visually-hidden">
-            Choose the background color for your avatar. Transparent is recommended for most uses.
-          </span>
-        </FormControl>
+            {/* Flag Offset (Cutout mode only) */}
+            {presentation === 'cutout' && (
+              <SliderControl
+                label="Flag Offset"
+                value={flagOffsetX}
+                min={-200}
+                max={200}
+                step={5}
+                onChange={onFlagOffsetXChange}
+                unit="px"
+              />
+            )}
+
+            {/* Background */}
+            <FormControl fullWidth>
+              <InputLabel id="background-select-label">Background</InputLabel>
+              <Select 
+                value={bg} 
+                onChange={handleBgChange} 
+                label="Background"
+                labelId="background-select-label"
+                aria-describedby="background-description"
+              >
+                <MenuItem value="transparent">Transparent</MenuItem>
+                <MenuItem value="#ffffff">White</MenuItem>
+                <MenuItem value="#000000">Black</MenuItem>
+              </Select>
+              <span id="background-description" className="visually-hidden">
+                Choose the background color for your avatar. Transparent is recommended for most uses.
+              </span>
+            </FormControl>
+          </Stack>
+        </Stack>
 
         {/* Download and Copy Buttons */}
         <Stack direction="row" spacing={2}>
