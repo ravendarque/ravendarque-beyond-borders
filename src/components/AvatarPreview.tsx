@@ -4,6 +4,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
+import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 
 export interface AvatarPreviewProps {
   size: number;
@@ -11,6 +12,7 @@ export interface AvatarPreviewProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   overlayUrl: string | null;
   isRendering: boolean;
+  hasImage?: boolean; // NEW: Track if image is uploaded
 }
 
 /**
@@ -23,6 +25,7 @@ function AvatarPreviewComponent({
   canvasRef,
   overlayUrl,
   isRendering,
+  hasImage = false,
 }: AvatarPreviewProps) {
   const theme = useTheme();
 
@@ -62,6 +65,56 @@ function AvatarPreviewComponent({
               pointerEvents: 'none',
             }}
           />
+        )}
+        {/* Empty State - Show when no image uploaded */}
+        {!hasImage && !isRendering && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: displaySize,
+              height: displaySize,
+              borderRadius: '50%',
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              gap: 1.5,
+            }}
+            role="status"
+            aria-label="No image uploaded yet. Upload an image to get started."
+          >
+            <ImageOutlinedIcon 
+              sx={{ 
+                fontSize: 64, 
+                color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)',
+              }} 
+              aria-hidden="true"
+            />
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)',
+                fontWeight: 500,
+                textAlign: 'center',
+                px: 2,
+              }}
+            >
+              Upload an image
+            </Typography>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.3)',
+                textAlign: 'center',
+                px: 2,
+              }}
+            >
+              to get started
+            </Typography>
+          </Box>
         )}
         {isRendering && (
           <Box

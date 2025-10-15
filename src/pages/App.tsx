@@ -478,6 +478,7 @@ export function App() {
             canvasRef={canvasRef}
             overlayUrl={overlayUrl}
             isRendering={isRendering}
+            hasImage={!!imageUrl}
           />
         </Grid>
       </Grid>

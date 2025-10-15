@@ -3,6 +3,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import FormHelperText from '@mui/material/FormHelperText';
 import type { FlagSpec } from '@/flags/schema';
 
 export interface FlagSelectorProps {
@@ -30,7 +31,7 @@ function FlagSelectorComponent({ value, flags, onChange }: FlagSelectorProps) {
         onChange={(e) => onChange(e.target.value)} 
         label="Select a flag"
         labelId="flag-select-label"
-        aria-describedby="flag-select-description"
+        aria-describedby="flag-select-description flag-helper-text"
       >
         <MenuItem value="">
           <em>None</em>
@@ -44,6 +45,11 @@ function FlagSelectorComponent({ value, flags, onChange }: FlagSelectorProps) {
       <span id="flag-select-description" className="visually-hidden">
         {flagDescription}. Choose a flag to add as a border to your avatar.
       </span>
+      {!value && (
+        <FormHelperText id="flag-helper-text">
+          Select a flag to add a colorful border to your avatar
+        </FormHelperText>
+      )}
     </FormControl>
   );
 }

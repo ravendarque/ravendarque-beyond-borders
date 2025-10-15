@@ -144,54 +144,71 @@ function ImageUploaderComponent({ onFileChange, onError }: ImageUploaderProps) {
   };
 
   return (
-    <div
-      onDragEnter={handleDragEnter}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      style={{
-        position: 'relative',
-        border: isDragging ? '2px dashed var(--accent)' : '2px dashed transparent',
-        borderRadius: '4px',
-        padding: isDragging ? '8px' : '10px',
-        backgroundColor: isDragging ? 'rgba(249, 115, 22, 0.08)' : 'transparent',
-        transition: 'all 150ms ease',
-      }}
-    >
-      <input
-        ref={inputRef}
-        accept="image/jpeg,image/jpg,image/png"
-        style={{ display: 'none' }}
-        id="file-upload"
-        type="file"
-        onChange={handleFileChange}
-        aria-label="Upload image file (JPG or PNG, max 10 MB)"
-      />
-      <label htmlFor="file-upload" style={{ cursor: 'pointer', display: 'block' }}>
-        <Button
-          variant="contained"
-          component="span"
-          startIcon={<FileUploadIcon />}
-          fullWidth
-          aria-label="Choose image file to upload or drag and drop"
-          sx={{
-            pointerEvents: 'none', // Let label handle the click
-          }}
-        >
-          {isDragging ? 'Drop image here' : 'Choose Image'}
-        </Button>
-      </label>
-      {!isDragging && (
-        <div style={{ 
-          textAlign: 'center', 
-          marginTop: '8px', 
-          fontSize: '0.875rem',
+    <div>
+      <div
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        style={{
+          position: 'relative',
+          border: isDragging ? '2px dashed var(--accent)' : '2px dashed transparent',
+          borderRadius: '4px',
+          padding: isDragging ? '8px' : '10px',
+          backgroundColor: isDragging ? 'rgba(249, 115, 22, 0.08)' : 'transparent',
+          transition: 'all 150ms ease',
+        }}
+      >
+        <input
+          ref={inputRef}
+          accept="image/jpeg,image/jpg,image/png"
+          style={{ display: 'none' }}
+          id="file-upload"
+          type="file"
+          onChange={handleFileChange}
+          aria-label="Upload image file (JPG or PNG, max 10 MB)"
+          aria-describedby="file-upload-requirements"
+        />
+        <label htmlFor="file-upload" style={{ cursor: 'pointer', display: 'block' }}>
+          <Button
+            variant="contained"
+            component="span"
+            startIcon={<FileUploadIcon />}
+            fullWidth
+            aria-label="Choose image file to upload or drag and drop"
+            sx={{
+              pointerEvents: 'none', // Let label handle the click
+            }}
+          >
+            {isDragging ? 'Drop image here' : 'Choose Image'}
+          </Button>
+        </label>
+        {!isDragging && (
+          <div style={{ 
+            textAlign: 'center', 
+            marginTop: '8px', 
+            fontSize: '0.875rem',
+            color: 'var(--text-secondary)',
+            opacity: 0.7
+          }}>
+            or drag and drop
+          </div>
+        )}
+      </div>
+      {/* File Requirements Guidance */}
+      <div 
+        id="file-upload-requirements"
+        style={{ 
+          marginTop: '12px', 
+          fontSize: '0.75rem',
           color: 'var(--text-secondary)',
-          opacity: 0.7
-        }}>
-          or drag and drop
-        </div>
-      )}
+          opacity: 0.8,
+          textAlign: 'center',
+          lineHeight: '1.4'
+        }}
+      >
+        Supports JPG and PNG • Max 10 MB • Up to 4K resolution
+      </div>
     </div>
   );
 }
