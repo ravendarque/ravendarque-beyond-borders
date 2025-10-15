@@ -13,6 +13,7 @@ export interface AvatarPreviewProps {
   overlayUrl: string | null;
   isRendering: boolean;
   hasImage?: boolean; // NEW: Track if image is uploaded
+  hasFlag?: boolean; // NEW: Track if flag is selected
 }
 
 /**
@@ -26,13 +27,14 @@ function AvatarPreviewComponent({
   overlayUrl,
   isRendering,
   hasImage = false,
+  hasFlag = false,
 }: AvatarPreviewProps) {
   const theme = useTheme();
 
   return (
-    <Paper sx={{ p: 3 }} role="region" aria-labelledby="preview-canvas-label">
-      <Typography variant="h6" gutterBottom id="preview-canvas-label" className="visually-hidden">
-        Avatar Preview Canvas
+    <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }} role="region" aria-labelledby="preview-canvas-label">
+      <Typography variant="h6" gutterBottom id="preview-canvas-label" sx={{ alignSelf: 'flex-start' }}>
+        Preview
       </Typography>
       <Box sx={{ position: 'relative', display: 'inline-block' }}>
         <canvas
@@ -66,8 +68,8 @@ function AvatarPreviewComponent({
             }}
           />
         )}
-        {/* Empty State - Show when no image uploaded */}
-        {!hasImage && !isRendering && (
+        {/* Empty State - Show when no flag selected */}
+        {!hasFlag && !isRendering && (
           <Box
             sx={{
               position: 'absolute',
@@ -84,7 +86,7 @@ function AvatarPreviewComponent({
               gap: 1.5,
             }}
             role="status"
-            aria-label="No image uploaded yet. Upload an image to get started."
+            aria-label={!hasImage ? "No image uploaded yet. Upload an image to get started." : "No flag selected yet. Select a flag to see your avatar."}
           >
             <ImageOutlinedIcon 
               sx={{ 
@@ -102,7 +104,7 @@ function AvatarPreviewComponent({
                 px: 2,
               }}
             >
-              Upload an image
+              {!hasImage ? 'Upload an image' : 'Select a flag'}
             </Typography>
             <Typography 
               variant="caption" 
@@ -112,7 +114,7 @@ function AvatarPreviewComponent({
                 px: 2,
               }}
             >
-              to get started
+              {!hasImage ? 'to get started' : 'to see your avatar'}
             </Typography>
           </Box>
         )}
