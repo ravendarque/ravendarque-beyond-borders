@@ -45,9 +45,10 @@ export function App() {
   const [bg, setBg] = useState<string | 'transparent'>('transparent');
   const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
   const [flagOffsetX, setFlagOffsetX] = useState(0);
-  // Trigger re-render when flags are loaded (flagsListRef doesn't cause re-renders)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [flagsLoaded, setFlagsLoaded] = useState(false);
+  // Track flag loading state for skeleton screens
+  const [flagsLoading, setFlagsLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>(''); // For screen reader announcements
 
@@ -71,13 +72,14 @@ export function App() {
   useEffect(() => {
     (async () => {
       try {
+        setFlagsLoading(true);
         const loaded = await loadFlags();
         flagsListRef.current = (loaded as FlagSpec[]) || [];
-        setFlagsLoaded(true); // Trigger re-render to show flags
+        setFlagsLoading(false); // Flags loaded, hide skeleton
         setError(null); // Clear any previous errors
       } catch (err) {
         flagsListRef.current = [];
-        setFlagsLoaded(true);
+        setFlagsLoading(false); // Still hide skeleton on error
         setError(normalizeError(err));
       }
     })();
@@ -160,9 +162,13 @@ export function App() {
   /**
    * Download the rendered avatar as a PNG file
    */
-  function handleDownload() {
+  async function handleDownload() {
     if (!overlayUrl) return;
     try {
+      setIsDownloading(true);
+      // Small delay to show loading state
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const a = document.createElement('a');
       a.href = overlayUrl;
       a.download = 'avatar-with-border.png';
@@ -172,6 +178,8 @@ export function App() {
     } catch {
       toast.error('Failed to download avatar');
       setStatusMessage('Failed to download avatar.');
+    } finally {
+      setIsDownloading(false);
     }
   }
 
@@ -182,6 +190,8 @@ export function App() {
     if (!overlayUrl) return;
 
     try {
+      setIsCopying(true);
+      
       // Check if Clipboard API is supported
       if (!navigator.clipboard || !window.ClipboardItem) {
         const message = 'Copy to clipboard not supported in this browser';
@@ -207,6 +217,8 @@ export function App() {
       toast.error(message);
       setStatusMessage(message);
       setError(normalizeError(err));
+    } finally {
+      setIsCopying(false);
     }
   }
 
@@ -424,11 +436,13 @@ export function App() {
                 setError(null);
                 // Retry flag loading if error occurred during load
                 if (flagsListRef.current.length === 0) {
+                  setFlagsLoading(true);
                   loadFlags().then(loaded => {
                     flagsListRef.current = (loaded as FlagSpec[]) || [];
-                    setFlagsLoaded(true);
+                    setFlagsLoading(false);
                     setError(null);
                   }).catch(err => {
+                    setFlagsLoading(false);
                     setError(normalizeError(err));
                   });
                 }
@@ -492,6 +506,7 @@ export function App() {
             flagId={flagId}
             flags={flagsListRef.current}
             onFlagChange={setFlagId}
+            flagsLoading={flagsLoading}
             presentation={presentation}
             onPresentationChange={setPresentation}
             thickness={thickness}
@@ -504,8 +519,10 @@ export function App() {
             onBgChange={setBg}
             onDownload={handleDownload}
             downloadDisabled={!overlayUrl}
+            isDownloading={isDownloading}
             onCopy={handleCopy}
             copyDisabled={!overlayUrl}
+            isCopying={isCopying}
           />
         </Grid>
       </Grid>

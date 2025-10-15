@@ -88,13 +88,13 @@ describe('AvatarPreview', () => {
   it('should not render loading overlay when not rendering', () => {
     render(<AvatarPreview {...defaultProps} isRendering={false} />);
     
-    expect(screen.queryByText('Loading...')).toBeFalsy();
+    expect(screen.queryByText('Rendering...')).toBeFalsy();
   });
 
   it('should render loading overlay when isRendering is true', () => {
     render(<AvatarPreview {...defaultProps} isRendering={true} />);
     
-    expect(screen.getByText('Loading...')).toBeTruthy();
+    expect(screen.getByText('Rendering...')).toBeTruthy();
   });
 
   it('should render circular progress when loading', () => {
@@ -109,8 +109,8 @@ describe('AvatarPreview', () => {
     const { container } = render(<AvatarPreview {...defaultProps} isRendering={true} />);
     
     // The loading overlay Box has backgroundColor in sx prop
-    // We can verify the Loading text is present which indicates the overlay is rendered
-    expect(screen.getByText('Loading...')).toBeTruthy();
+    // We can verify the Rendering text is present which indicates the overlay is rendered
+    expect(screen.getByText('Rendering...')).toBeTruthy();
   });
 
   it('should handle different size combinations', () => {
@@ -140,7 +140,7 @@ describe('AvatarPreview', () => {
     
     const overlay = document.querySelector('img[alt="Generated avatar with flag border"]');
     expect(overlay).toBeTruthy();
-    expect(screen.getByText('Loading...')).toBeTruthy();
+    expect(screen.getByText('Rendering...')).toBeTruthy();
   });
 
   it('should have pointer-events none on overlay', () => {
