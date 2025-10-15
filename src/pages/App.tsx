@@ -1,879 +1,264 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { useTheme } from '@mui/material/styles';
+import React, { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { ThemeModeContext } from '../main';
-import { flags } from '../flags/flags';
-import type { FlagSpec } from '../flags/schema';
-import { renderAvatar } from '@/renderer/render';
+import { loadFlags } from '../flags/loader';
+import { useFlagImageCache } from '@/hooks/useFlagImageCache';
+import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
+import { usePersistedState } from '@/hooks/usePersistedState';
+import { useFocusManagement } from '@/hooks/useFocusManagement';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useFlagPreloader } from '@/hooks/useFlagPreloader';
+import { ControlPanel } from '@/components/ControlPanel';
+import { AvatarPreview } from '@/components/AvatarPreview';
+import { ErrorAlert } from '@/components/ErrorAlert';
 import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Grid from '@mui/material/Unstable_Grid2';
-import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import Slider from '@mui/material/Slider';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import FileUploadIcon from '@mui/icons-material/UploadFile';
-import DownloadIcon from '@mui/icons-material/Download';
+import type { FlagSpec } from '@/flags/schema';
+import type { AppError } from '@/types/errors';
+import { normalizeError } from '@/types/errors';
 
 export function App() {
   const { mode, setMode } = useContext(ThemeModeContext);
 
+  // Constants
+  const size = 1024 as const;
+  const displaySize = 300;
+
+  // State
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [flagId, setFlagId] = useState(flags[0]?.id ?? '');
+  const [flagId, setFlagId] = usePersistedState<string>('bb_selectedFlag', '');
   const [thickness, setThickness] = useState(7);
-  const size = 1024 as const; // Size of the canvas (fixed at 1024)
-  const [insetPct, setInsetPct] = useState(0); // +inset, -outset as percent of size
+  const [insetPct, setInsetPct] = useState(0);
   const [bg, setBg] = useState<string | 'transparent'>('transparent');
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const checkerRef = useRef<HTMLCanvasElement | null>(null);
-  const theme = useTheme();
-  const [imageOffset, setImageOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const draggingRef = useRef<{ down: boolean; startX: number; startY: number; origX: number; origY: number } | null>(null);
-  const imageBitmapRef = useRef<ImageBitmap | null>(null);
-  const boundsRef = useRef<{ minX: number; maxX: number; minY: number; maxY: number } | null>(null);
-  const animRef = useRef<number | null>(null);
-  const velocityRef = useRef<{ vx: number; vy: number } | null>(null);
-  const imageOffsetRef = useRef<{ x: number; y: number }>(imageOffset);
-  const lastMoveRef = useRef<{ clientX: number; clientY: number; t: number } | null>(null);
   const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
+  const [flagOffsetX, setFlagOffsetX] = useState(0);
+  // Trigger re-render when flags are loaded (flagsListRef doesn't cause re-renders)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [flagsLoaded, setFlagsLoaded] = useState(false);
+  const [error, setError] = useState<AppError | null>(null);
 
-  const selectedFlag = useMemo<FlagSpec | undefined>(
-    () => flags.find((f: FlagSpec) => f.id === flagId),
-    [flagId],
-  );
+  // Refs
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Use ref for flagsList since it's loaded once and never changes
+  // This avoids unnecessary re-renders
+  const flagsListRef = useRef<FlagSpec[]>([]);
 
-  async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const url = URL.createObjectURL(f);
-    setImageUrl(url);
-    try {
-      const bmp = await createImageBitmap(f);
-      imageBitmapRef.current = bmp;
-      // compute clamping bounds and auto-center (use focal point)
-      computeBoundsFromImage(bmp);
-      const focal = await computeImageFocalPoint(bmp);
-      // compute initial offset to bring focal point to center
-      const initial = computeOffsetForFocal(bmp, focal);
-      const b = boundsRef.current;
-      if (b) {
-        const v = { x: clamp(initial.x, b.minX, b.maxX), y: clamp(initial.y, b.minY, b.maxY) };
-        imageOffsetRef.current = v;
-        setImageOffset(v);
-      } else {
-        imageOffsetRef.current = initial;
-        setImageOffset(initial);
-      }
-    } catch {
-      // ignore bitmap creation errors; draw() will still work via fetch(imageUrl)
-    }
-  }
+  // Custom hooks
+  const flagImageCache = useFlagImageCache();
+  const { overlayUrl, isRendering, render } = useAvatarRenderer(flagsListRef.current, flagImageCache);
+  const { focusRef: errorFocusRef, setFocus: focusError } = useFocusManagement<HTMLDivElement>();
+  
+  // Preload priority flags on idle to improve perceived performance
+  useFlagPreloader(flagsListRef.current, flagImageCache, flagId);
 
-  function clamp(n: number, min: number, max: number) {
-    return Math.min(Math.max(n, min), max);
-  }
-
-  function computeBoundsFromImage(imgBmp: ImageBitmap) {
-    const iw = imgBmp.width;
-    const ih = imgBmp.height;
-    const r = size / 2;
-    const base = Math.min(size, size);
-    const thicknessPx = Math.round((thickness / 100) * base);
-  const padding = Math.round((0 / 100) * base); // paddingPct unused in UI
-    const ringOuter = r - Math.max(1, padding);
-    const ringInner = Math.max(0, ringOuter - thicknessPx);
-    const imageInsetPx = Math.round(((insetPct * -1) / 100) * size);
-    const imageRadius = clamp(ringInner - imageInsetPx, 0, r - 0.5);
-    const target = imageRadius * 2;
-    const scale = Math.max(target / iw, target / ih);
-    const dw = iw * scale;
-    const dh = ih * scale;
-    let minX = imageRadius - dw / 2;
-    let maxX = dw / 2 - imageRadius;
-    let minY = imageRadius - dh / 2;
-    let maxY = dh / 2 - imageRadius;
-    // apply safety margin so edges can't reveal any blank areas near the circle
-    const marginPx = Math.round(Math.min(24, imageRadius * 0.05));
-    minX += marginPx;
-    maxX -= marginPx;
-    minY += marginPx;
-    maxY -= marginPx;
-    // ensure bounds valid
-    if (minX > maxX) {
-      const mid = (minX + maxX) / 2;
-      minX = maxX = mid;
-    }
-    if (minY > maxY) {
-      const mid = (minY + maxY) / 2;
-      minY = maxY = mid;
-    }
-    boundsRef.current = { minX, maxX, minY, maxY };
-  }
-
-  async function computeImageFocalPoint(imgBmp: ImageBitmap) {
-    // Downsample to small canvas to compute luminance centroid
-    const w = 128;
-    const h = Math.max(32, Math.round((imgBmp.height / imgBmp.width) * w));
-    const oc = new OffscreenCanvas(w, h);
-    const ctx = oc.getContext('2d')!;
-    // draw cover fit into small canvas
-    const scale = Math.max(w / imgBmp.width, h / imgBmp.height);
-    const dw = imgBmp.width * scale;
-    const dh = imgBmp.height * scale;
-    const dx = (w - dw) / 2;
-    const dy = (h - dh) / 2;
-    ctx.drawImage(imgBmp, dx, dy, dw, dh);
-    const data = ctx.getImageData(0, 0, w, h).data;
-    let sum = 0;
-    let sx = 0;
-    let sy = 0;
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const i = (y * w + x) * 4;
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        const a = data[i + 3] / 255;
-        const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) * a + 1e-6;
-        sum += lum;
-        sx += x * lum;
-        sy += y * lum;
-      }
-    }
-    const cx = sx / sum;
-    const cy = sy / sum;
-    // Map centroid back to original image pixel coordinates
-    // invert the drawImage transform
-    const fx = clamp((cx - dx) / scale, 0, imgBmp.width);
-    const fy = clamp((cy - dy) / scale, 0, imgBmp.height);
-    return { x: fx, y: fy };
-  }
-
-  function computeOffsetForFocal(imgBmp: ImageBitmap, focal: { x: number; y: number }) {
-    const iw = imgBmp.width;
-    const ih = imgBmp.height;
-    const r = size / 2;
-    const base = Math.min(size, size);
-    const thicknessPx = Math.round((thickness / 100) * base);
-    const padding = Math.round((0 / 100) * base);
-    const ringOuter = r - Math.max(1, padding);
-    const ringInner = Math.max(0, ringOuter - thicknessPx);
-    const imageInsetPx = Math.round(((insetPct * -1) / 100) * size);
-    const imageRadius = clamp(ringInner - imageInsetPx, 0, r - 0.5);
-    const target = imageRadius * 2;
-    const scale = Math.max(target / iw, target / ih);
-    const dw = iw * scale;
-    const dh = ih * scale;
-    // focal in image pixels; compute where focal will be in renderer if offset=0
-    // desired: focal maps to canvas center => compute required offset
-    const focalRenderX = focal.x * scale; // relative to image left within drawn area
-    const focalRenderY = focal.y * scale;
-    // when offset = 0, image is centered, so image left = canvasW/2 - dw/2
-    // focal absolute = (canvasW/2 - dw/2) + focalRenderX
-    // to move focal to canvas center, need offsetX such that
-    // (canvasW/2 + offsetX) - dw/2 + focalRenderX = canvasW/2
-    // => offsetX = dw/2 - focalRenderX
-    const offsetX = dw / 2 - focalRenderX;
-    const offsetY = dh / 2 - focalRenderY;
-    return { x: Math.round(offsetX), y: Math.round(offsetY) };
-  }
-
-  async function draw() {
-  if (!imageUrl || !selectedFlag || !canvasRef.current) return;
-  // rendering state intentionally omitted for simplicity
-  devLog('[draw] start', { imageUrl, presentation, flagId });
-    // Try to decode the uploaded image reliably. Some headless environments
-    // (and some image blobs) can cause createImageBitmap(blob) to throw a
-    // DOMException: "The source image could not be decoded." Wrap and
-    // fallback to an HTMLImageElement load, then createImageBitmap from that.
-    let img: ImageBitmap;
-    try {
-      // Fetch blob first so we can log diagnostics if decoding fails
-      const fetched = await fetch(imageUrl);
-      const blob = await fetched.blob();
+  /**
+   * Load available flags on mount
+   */
+  useEffect(() => {
+    (async () => {
       try {
-        img = await createImageBitmap(blob);
+        const loaded = await loadFlags();
+        flagsListRef.current = (loaded as FlagSpec[]) || [];
+        setFlagsLoaded(true); // Trigger re-render to show flags
+        setError(null); // Clear any previous errors
       } catch (err) {
-  devLog('[draw] createImageBitmap(blob) failed — blob info:', { size: (blob as any).size, type: blob.type }, err && ((err as any).stack || err));
-        throw err;
+        flagsListRef.current = [];
+        setFlagsLoaded(true);
+        setError(normalizeError(err));
       }
-    } catch (err) {
-  devLog('[draw] createImageBitmap(blob) failed, falling back to HTMLImage decode', err && ((err as any).stack || err));
-      try {
-        const imgEl = new Image();
-        imgEl.crossOrigin = 'anonymous';
-        await new Promise<void>((res, rej) => {
-          imgEl.onload = () => res();
-          imgEl.onerror = (e) => rej(e);
-          imgEl.src = imageUrl as string;
-        });
-        img = await createImageBitmap(imgEl);
-      } catch (err2) {
-        devLog('[draw] createImageBitmap from HTMLImage failed, using 1x1 transparent fallback', err2);
-        // Final fallback: 1x1 transparent canvas -> ImageBitmap so renderer can still run
-        const oc = document.createElement('canvas');
-        oc.width = 1;
-        oc.height = 1;
-        const octx = oc.getContext('2d')!;
-        octx.clearRect(0, 0, 1, 1);
-        img = await createImageBitmap(oc as any);
-      }
-    }
-  // Optionally load or synthesize an image to use as the border (cutout presentation)
-    let borderImageBitmap: ImageBitmap | undefined = undefined;
-    function devLog(...args: any[]) {
-      try {
-        // Prefer Vite's import.meta.env.DEV when available; fall back to NODE_ENV check in Node.
-        const viteDev = typeof (import.meta as any) !== 'undefined' && !!(import.meta as any).env?.DEV;
-        const nodeDev = typeof process !== 'undefined' && !!(process.env && process.env.NODE_ENV !== 'production');
-        if (viteDev || nodeDev) {
-          // eslint-disable-next-line no-console
-          console.log(...args);
-        }
-      } catch {}
-    }
-
-    try {
-  // Deterministic SVG lookup for cutout: prefer an explicit svgFilename on the flag, else use `/flags/{id}.svg`.
-  if (presentation === 'cutout') {
-        try {
-          const svgFile = (selectedFlag as any).svgFilename ?? `${selectedFlag.id}.svg`;
-          const publicUrl = `/flags/${svgFile}`;
-            devLog('[cutout] attempting fetch', publicUrl);
-            const resp = await fetch(publicUrl);
-            devLog('[cutout] fetch response', publicUrl, resp.status, resp.ok);
-            if (resp.ok) {
-              const blob = await resp.blob();
-                devLog('[cutout] fetched blob', { size: (blob as any).size, type: blob.type });
-              borderImageBitmap = await createImageBitmap(blob);
-                devLog('[cutout] created borderImageBitmap from SVG', borderImageBitmap?.width, borderImageBitmap?.height);
-              // Quick sanity check: ensure bitmap has at least some non-transparent pixels; if not, discard and fallback
-              try {
-                const checkCanvas = document.createElement('canvas');
-                checkCanvas.width = Math.max(1, Math.min(64, borderImageBitmap.width));
-                checkCanvas.height = Math.max(1, Math.min(64, borderImageBitmap.height));
-                const cctx = checkCanvas.getContext('2d')!;
-                cctx.drawImage(borderImageBitmap, 0, 0, checkCanvas.width, checkCanvas.height);
-                const id = cctx.getImageData(0, 0, checkCanvas.width, checkCanvas.height).data;
-                let anyOpaque = false;
-                for (let i = 3; i < id.length; i += 4) {
-                  if (id[i] > 8) { anyOpaque = true; break; }
-                }
-                if (!anyOpaque) {
-                  devLog('[cutout] SVG bitmap appears empty/transparent, discarding to use synthesized fallback');
-                  borderImageBitmap = undefined;
-                } else {
-                  devLog('[cutout] SVG bitmap sanity-check PASSED (has opaque pixels)');
-                }
-              } catch (err) {
-                devLog('[cutout] bitmap sanity-check failed', err);
-              }
-            }
-        } catch {
-          // fall back to synthesized bitmap below
-        }
-      }
-
-  // If cutout requested but no SVG available, synthesize a rectangular flag bitmap from the stripe data
-  if (!borderImageBitmap && presentation === 'cutout' && selectedFlag) {
-        // Create a canvas representing the full flag (landscape aspect). Use 3:2 as a reasonable default.
-        const FLAG_W = 900;
-        const FLAG_H = 600;
-        const flagCanvas = document.createElement('canvas');
-        flagCanvas.width = FLAG_W;
-        flagCanvas.height = FLAG_H;
-        const fctx = flagCanvas.getContext('2d')!;
-        // Draw background white first
-        fctx.clearRect(0, 0, FLAG_W, FLAG_H);
-
-        const stripes = selectedFlag.pattern.stripes;
-        const total = stripes.reduce((s, x) => s + x.weight, 0);
-
-        if (selectedFlag.pattern.orientation === 'horizontal') {
-          // Draw top->bottom stripes
-          let y = 0;
-          for (const s of stripes) {
-            const hpx = Math.max(1, Math.round((s.weight / total) * FLAG_H));
-            fctx.fillStyle = s.color;
-            fctx.fillRect(0, y, FLAG_W, hpx);
-            y += hpx;
-          }
-          if (y < FLAG_H) {
-            fctx.fillStyle = stripes[stripes.length - 1]?.color ?? '#000';
-            fctx.fillRect(0, y, FLAG_W - 0, FLAG_H - y);
-          }
-        } else {
-          // vertical orientation: draw left->right
-          let x = 0;
-          for (const s of stripes) {
-            const wpx = Math.max(1, Math.round((s.weight / total) * FLAG_W));
-            fctx.fillStyle = s.color;
-            fctx.fillRect(x, 0, wpx, FLAG_H);
-            x += wpx;
-          }
-          if (x < FLAG_W) {
-            fctx.fillStyle = stripes[stripes.length - 1]?.color ?? '#000';
-            fctx.fillRect(x, 0, FLAG_W - x, FLAG_H);
-          }
-        }
-
-        try {
-          borderImageBitmap = await createImageBitmap(flagCanvas);
-          devLog('[cutout] synthesized borderImageBitmap', borderImageBitmap?.width, borderImageBitmap?.height);
-        } catch (err) {
-          devLog('[cutout] failed to create bitmap from synthesized flag', err);
-          // ignore and fall back to renderer-generated stripes
-          borderImageBitmap = undefined;
-        }
-      }
-    } catch {
-      // ignore
-    }
-    // Inset (+) should increase the gap (smaller image radius), Outset (-) reduces it.
-    // Renderer interprets positive imageInsetPx as increasing gap, so negate here if current behavior is reversed.
-    const imageInsetPx = Math.round(((insetPct * -1) / 100) * size);
-    const blob = await renderAvatar(img, selectedFlag, {
-      size,
-      thicknessPct: thickness,
-      imageInsetPx,
-      imageOffsetPx: { x: Math.round(imageOffset.x), y: Math.round(imageOffset.y) },
-      presentation,
-      backgroundColor: bg === 'transparent' ? null : bg,
-  borderImageBitmap: borderImageBitmap as any,
-    });
-    const c = canvasRef.current;
-    const ctx = c.getContext('2d')!;
-    c.width = size;
-    c.height = size;
-    ctx.clearRect(0, 0, size, size);
-  // wrapper provides checkerboard when bg === 'transparent'
-
-    // Create blob URL and set it on the overlay <img> so transparency reveals the checkerboard.
-    const blobUrl = URL.createObjectURL(blob);
-    try {
-      // Revoke previous blob URL if present on img
-      const prev = (imgRef.current as any)?.dataset?.previewUrl;
-      if (prev) URL.revokeObjectURL(prev);
-    } catch {
-      // ignore
-    }
-    if (imgRef.current) {
-      imgRef.current.src = blobUrl;
-      try {
-        (imgRef.current as any).dataset.previewUrl = blobUrl;
-      } catch {
-        // ignore
-      }
-    }
-  }
-
-  useEffect(() => {
-    // Auto-apply whenever inputs change
-    draw();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageUrl, flagId, thickness, size, insetPct, bg, imageOffset.x, imageOffset.y, presentation]);
-
-  // Pointer handlers for dragging the image within the crop
-  useEffect(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-
-    const setOffset = (nx: number, ny: number) => {
-      imageOffsetRef.current = { x: nx, y: ny };
-      setImageOffset({ x: nx, y: ny });
-    };
-
-    const onDown = (e: PointerEvent) => {
-      el.setPointerCapture?.(e.pointerId);
-      draggingRef.current = {
-        down: true,
-        startX: e.clientX,
-        startY: e.clientY,
-        origX: imageOffsetRef.current.x,
-        origY: imageOffsetRef.current.y,
-      };
-      lastMoveRef.current = { clientX: e.clientX, clientY: e.clientY, t: performance.now() };
-      // cancel any running inertia
-      if (animRef.current) cancelAnimationFrame(animRef.current);
-      animRef.current = null;
-    };
-
-    const onMove = (e: PointerEvent) => {
-      if (!draggingRef.current?.down) return;
-      const d = draggingRef.current;
-      const dx = e.clientX - d.startX;
-      const dy = e.clientY - d.startY;
-      const rect = el.getBoundingClientRect();
-      const scale = size / rect.width;
-      const ddx = dx * scale;
-      const ddy = dy * scale;
-      const b = boundsRef.current;
-      const rawX = d.origX + ddx;
-      const rawY = d.origY + ddy;
-      const nx = b ? clamp(rawX, b.minX, b.maxX) : rawX;
-      const ny = b ? clamp(rawY, b.minY, b.maxY) : rawY;
-      // compute velocity from lastMoveRef (client space) and convert to renderer pixels
-      const last = lastMoveRef.current;
-      const now = performance.now();
-      if (last) {
-        const dt = Math.max(8, now - last.t); // ms
-        const vxClient = (e.clientX - last.clientX) / dt; // px per ms
-        const vyClient = (e.clientY - last.clientY) / dt;
-        // convert to internal pixels per frame approximation
-        const vx = vxClient * scale * 16.67; // px per ~frame (16.67ms)
-        const vy = vyClient * scale * 16.67;
-        velocityRef.current = { vx, vy };
-      }
-      lastMoveRef.current = { clientX: e.clientX, clientY: e.clientY, t: now };
-      setOffset(nx, ny);
-    };
-
-    const onUp = () => {
-      if (!draggingRef.current) return;
-      draggingRef.current.down = false;
-      // start inertia from the last measured velocity
-      const vel = velocityRef.current;
-      if (!vel) return;
-      let vx = vel.vx;
-      let vy = vel.vy;
-      const step = () => {
-        vx *= 0.92;
-        vy *= 0.92;
-        if (Math.abs(vx) < 0.5 && Math.abs(vy) < 0.5) {
-          if (animRef.current) cancelAnimationFrame(animRef.current);
-          animRef.current = null;
-          return;
-        }
-        setImageOffset((cur) => {
-          const b = boundsRef.current;
-          const nx = cur.x + vx;
-          const ny = cur.y + vy;
-          const clamped = b ? { x: clamp(nx, b.minX, b.maxX), y: clamp(ny, b.minY, b.maxY) } : { x: nx, y: ny };
-          imageOffsetRef.current = clamped;
-          return clamped;
-        });
-        animRef.current = requestAnimationFrame(step);
-      };
-      if (animRef.current) cancelAnimationFrame(animRef.current);
-      animRef.current = requestAnimationFrame(step);
-    };
-
-    el.addEventListener('pointerdown', onDown);
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
-    return () => {
-      el.removeEventListener('pointerdown', onDown);
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      if (animRef.current) cancelAnimationFrame(animRef.current);
-      animRef.current = null;
-    };
-    // attach once
+    })();
   }, []);
 
-  useEffect(() => {
-    // Draw checkerboard into the checker canvas when transparent background is selected
-    const c = checkerRef.current;
-    if (!c) return;
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    const rect = c.getBoundingClientRect();
-    const w = Math.max(1, Math.round(rect.width));
-    const h = Math.max(1, Math.round(rect.height));
-    c.width = Math.round(w * dpr);
-    c.height = Math.round(h * dpr);
-    c.style.width = `${w}px`;
-    c.style.height = `${h}px`;
-    const ctx = c.getContext('2d');
-    if (!ctx) return;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  /**
+   * Handle file upload and trigger rendering
+   */
+  async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (bg !== 'transparent') {
-      ctx.clearRect(0, 0, w, h);
-      return;
+    const url = URL.createObjectURL(file);
+    setImageUrl(url);
+
+    // Render immediately with the new URL to avoid React state timing issues
+    renderWithImageUrl(url);
+  }
+
+  /**
+   * Render avatar with current settings
+   * Note: This function is recreated on every render when any dependency changes.
+   * It's wrapped with throttle below to limit actual render calls.
+   */
+  const renderWithImageUrl = useCallback(async (specificImageUrl: string) => {
+    try {
+      await render(specificImageUrl, flagId, {
+        size,
+        thickness,
+        insetPct,
+        flagOffsetX,
+        presentation,
+        bg,
+      });
+      setError(null); // Clear any previous render errors
+    } catch (err) {
+      setError(normalizeError(err));
     }
+  }, [render, flagId, size, thickness, insetPct, flagOffsetX, presentation, bg]);
 
-    // Checker colours more contrasting for visibility
-    const checker1 = theme.palette.mode === 'dark' ? '#0b1220' : '#ffffff';
-    const checker2 = theme.palette.mode === 'dark' ? '#14202b' : '#e6e6e6';
-    const tile = 18; // CSS tile size used elsewhere
+  /**
+   * Auto-render when image, flag, or render settings change
+   * Uses debouncing (from sliders) + direct render call
+   * The slider debouncing (150ms) already provides performance optimization
+   */
+  useEffect(() => {
+    if (imageUrl && flagId) {
+      // Call render directly - slider debouncing already limits frequency
+      // No need for additional throttling since state updates are already debounced
+      void renderWithImageUrl(imageUrl);
+    }
+  }, [imageUrl, flagId, renderWithImageUrl]);
 
-    ctx.clearRect(0, 0, w, h);
-    for (let y = 0; y < h; y += tile) {
-      for (let x = 0; x < w; x += tile) {
-        const isEven = ((x / tile) + (y / tile)) % 2 === 0;
-        ctx.fillStyle = isEven ? checker1 : checker2;
-        ctx.fillRect(x, y, tile, tile);
+  /**
+   * Cleanup: revoke imageUrl on unmount to prevent memory leaks
+   */
+  useEffect(() => {
+    return () => {
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
       }
-    }
-  }, [bg, theme.palette.mode]);
+    };
+  }, [imageUrl]);
 
-  // Recompute bounds when size/thickness/inset change or when an image is present
+  /**
+   * Focus management: Focus on error when it appears
+   */
   useEffect(() => {
-    const bmp = imageBitmapRef.current;
-    if (!bmp) return;
-    computeBoundsFromImage(bmp);
-    // clamp current offset into new bounds
-    const b = boundsRef.current;
-    if (b) setImageOffset((s) => {
-      const v = { x: clamp(s.x, b.minX, b.maxX), y: clamp(s.y, b.minY, b.maxY) };
-      imageOffsetRef.current = v;
-      return v;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [thickness, insetPct]);
+    if (error) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => focusError(), 100);
+    }
+  }, [error, focusError]);
+
+  /**
+   * Download the rendered avatar as a PNG file
+   */
+  function handleDownload() {
+    if (!overlayUrl) return;
+    const a = document.createElement('a');
+    a.href = overlayUrl;
+    a.download = 'avatar-with-border.png';
+    a.click();
+  }
+
+  /**
+   * Keyboard shortcuts
+   */
+  useKeyboardShortcuts([
+    {
+      key: 'd',
+      ctrlKey: true,
+      callback: (e) => {
+        e.preventDefault();
+        handleDownload();
+      },
+      description: 'Download avatar',
+      enabled: !!overlayUrl, // Only enable when avatar is ready
+    },
+  ]);
 
   return (
-    <Container sx={{ py: 4 }} maxWidth="lg">
-      <Box mb={2} display="flex" alignItems="center" justifyContent="space-between">
-        <Box>
-          <Typography variant="h5">Beyond Borders</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Add a circular, flag-colored border to your profile picture.
-          </Typography>
-        </Box>
-        <IconButton
-          onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}
-          color="inherit"
-          aria-label="Toggle dark mode"
-        >
-          {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-        </IconButton>
-      </Box>
+    <>
+      {/* Skip Link for Keyboard Navigation */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      
+      <Container maxWidth="lg" component="main" id="main-content">
+        <Grid container spacing={3}>
+          {/* Header */}
+          <Grid xs={12} component="header">
+            <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+              <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+                Beyond Borders
+              </Typography>
+              <IconButton 
+                onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
+                aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              >
+                {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+              </IconButton>
+            </Stack>
+            <Typography variant="subtitle1" color="textSecondary">
+              Add a circular, flag-colored border to your profile picture.
+            </Typography>
+          </Grid>
 
-      <Grid container spacing={2}>
+        {/* Error Display */}
+        {error && (
+          <Grid xs={12} ref={errorFocusRef} tabIndex={-1} sx={{ outline: 'none' }}>
+            <ErrorAlert
+              error={error}
+              onRetry={() => {
+                setError(null);
+                // Retry flag loading if error occurred during load
+                if (flagsListRef.current.length === 0) {
+                  loadFlags().then(loaded => {
+                    flagsListRef.current = (loaded as FlagSpec[]) || [];
+                    setFlagsLoaded(true);
+                    setError(null);
+                  }).catch(err => {
+                    setError(normalizeError(err));
+                  });
+                }
+                // Retry rendering if error occurred during render
+                else if (imageUrl && flagId) {
+                  renderWithImageUrl(imageUrl);
+                }
+              }}
+              onDismiss={() => setError(null)}
+            />
+          </Grid>
+        )}
+
+        {/* Controls */}
         <Grid xs={12} md={6}>
-          <Stack spacing={2}>
-            <Paper sx={{ p: 2 }} elevation={1}>
-              <Stack spacing={1}>
-                  <Button
-                  component="label"
-                  startIcon={<FileUploadIcon />}
-                  sx={{ mt: 1 }}
-                  variant="outlined"
-                >
-                    Choose image
-                  <input
-                    hidden
-                    accept="image/png, image/jpeg"
-                    type="file"
-                    onChange={onFileChange}
-                  />
-                </Button>
-                {/* image preview removed per UX request */}
-              </Stack>
-            </Paper>
-
-            <Paper sx={{ p: 2 }} elevation={1}>
-              <Stack spacing={2} sx={{ opacity: imageUrl ? 1 : 0.6, pointerEvents: imageUrl ? 'auto' : 'none' }}>
-                <FormControl fullWidth>
-                  <InputLabel id="flag-select-label">Flag</InputLabel>
-                  <Select
-                    labelId="flag-select-label"
-                    value={flagId}
-                    label="Flag"
-                    onChange={(e) => setFlagId(e.target.value as string)}
-                    disabled={!imageUrl}
-                  >
-                    {flags.map((f: FlagSpec) => (
-                      <MenuItem key={f.id} value={f.id}>
-                        {f.displayName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <FormControl component="fieldset" sx={{ mt: 1 }}>
-                  <FormLabel component="legend">Presentation</FormLabel>
-                  <RadioGroup
-                    row
-                    value={presentation}
-                    onChange={(e) => setPresentation(e.target.value as any)}
-                    aria-label="presentation"
-                    name="presentation"
-                  >
-                    <FormControlLabel value="ring" control={<Radio />} label="Ring" disabled={!imageUrl} />
-                    <FormControlLabel value="segment" control={<Radio />} label="Segment" disabled={!imageUrl} />
-                    <FormControlLabel value="cutout" control={<Radio />} label="Cutout" disabled={!imageUrl} />
-                  </RadioGroup>
-                </FormControl>
-
-                <Box sx={{ opacity: imageUrl ? 1 : 0.6 }}>
-                  <Typography gutterBottom>Border thickness: {thickness}%</Typography>
-                  <Slider
-                    min={5}
-                    max={20}
-                    value={thickness}
-                    onChange={(_, v) => setThickness(v as number)}
-                    aria-label="Border thickness"
-                    disabled={!imageUrl}
-                  />
-                </Box>
-
-                <Grid container spacing={1}>
-                  <Grid xs={12}>
-                    <Box sx={{ opacity: imageUrl ? 1 : 0.6 }}>
-                      <Typography variant="body2">Inset/Outset: {insetPct}%</Typography>
-                      <Slider
-                        min={-5}
-                        max={5}
-                        value={insetPct}
-                        onChange={(_, v) => setInsetPct(v as number)}
-                        aria-label="Inset outset"
-                        disabled={!imageUrl}
-                      />
-                    </Box>
-                  </Grid>
-                </Grid>
-
-                <Box>
-                  <FormControl fullWidth>
-                    <InputLabel id="bg-label">Background</InputLabel>
-                    <Select
-                      labelId="bg-label"
-                      value={bg}
-                      label="Background"
-                      onChange={(e) => setBg(e.target.value as any)}
-                      disabled={!imageUrl}
-                    >
-                      {/* Color preview swatches inside menu items */}
-                      <MenuItem value="transparent">
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Box
-                            sx={{
-                              width: 18,
-                              height: 12,
-                              border: '1px solid var(--muted-border)',
-                              bgcolor: '#fff',
-                              backgroundImage:
-                                'linear-gradient(45deg,var(--muted-check) 25%, transparent 25%), linear-gradient(-45deg,var(--muted-check) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--muted-check) 75%), linear-gradient(-45deg, transparent 75%, var(--muted-check) 75%)',
-                              backgroundSize: '18px 18px',
-                              backgroundPosition: '0 0, 0 9px, 9px -9px, -9px 0',
-                            }}
-                          />
-                          <Typography>Transparent</Typography>
-                        </Stack>
-                      </MenuItem>
-                      <MenuItem value="#ffffff">
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Box
-                            sx={{
-                              width: 18,
-                              height: 12,
-                              border: '1px solid var(--muted-border)',
-                              bgcolor: '#ffffff',
-                            }}
-                          />
-                          <Typography>White</Typography>
-                        </Stack>
-                      </MenuItem>
-                      <MenuItem value="#000000">
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Box
-                            sx={{
-                              width: 18,
-                              height: 12,
-                              border: '1px solid var(--muted-border)',
-                              bgcolor: '#000000',
-                            }}
-                          />
-                          <Typography>Black</Typography>
-                        </Stack>
-                      </MenuItem>
-                      <MenuItem value="#f5f5f5">
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Box
-                            sx={{
-                              width: 18,
-                              height: 12,
-                              border: '1px solid var(--muted-border)',
-                              bgcolor: '#f5f5f5',
-                            }}
-                          />
-                          <Typography>Light Gray</Typography>
-                        </Stack>
-                      </MenuItem>
-                      <MenuItem value="#111827">
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Box
-                            sx={{
-                              width: 18,
-                              height: 12,
-                              border: '1px solid var(--muted-border)',
-                              bgcolor: '#111827',
-                            }}
-                          />
-                          <Typography>Slate</Typography>
-                        </Stack>
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Button
-                      variant="contained"
-                      startIcon={<DownloadIcon />}
-                      onClick={async () => {
-                        if (!imageUrl || !selectedFlag) return;
-                        const img = await createImageBitmap(await (await fetch(imageUrl)).blob());
-                        const blob = await renderAvatar(img, selectedFlag, {
-                          size,
-                          thicknessPct: thickness,
-                          imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
-                          imageOffsetPx: { x: Math.round(imageOffset.x), y: Math.round(imageOffset.y) },
-                          presentation,
-                          backgroundColor: bg === 'transparent' ? null : bg,
-                        });
-                        const a = document.createElement('a');
-                        a.href = URL.createObjectURL(blob);
-                        a.download = `beyond-borders_${selectedFlag.id}_${size}.png`;
-                        a.click();
-                      }}
-                      aria-label="Download generated PNG"
-                      disabled={!(imageUrl && selectedFlag)}
-                    >
-                      Download PNG
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      onClick={() => {
-                        const v = { x: 0, y: 0 };
-                        imageOffsetRef.current = v;
-                        setImageOffset(v);
-                      }}
-                      disabled={!imageUrl}
-                    >
-                      Reset position
-                    </Button>
-                  </Stack>
-              </Stack>
-            </Paper>
-          </Stack>
+          <ControlPanel
+            onFileChange={onFileChange}
+            onFileError={setError}
+            flagId={flagId}
+            flags={flagsListRef.current}
+            onFlagChange={setFlagId}
+            presentation={presentation}
+            onPresentationChange={setPresentation}
+            thickness={thickness}
+            onThicknessChange={setThickness}
+            insetPct={insetPct}
+            onInsetPctChange={setInsetPct}
+            flagOffsetX={flagOffsetX}
+            onFlagOffsetXChange={setFlagOffsetX}
+            bg={bg}
+            onBgChange={setBg}
+            onDownload={handleDownload}
+            downloadDisabled={!overlayUrl}
+          />
         </Grid>
 
+        {/* Preview */}
         <Grid xs={12} md={6}>
-          <Paper
-            sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            elevation={1}
-          >
-              <Box
-                sx={(theme) => ({
-                  width: '100%',
-                  maxWidth: 360,
-                borderRadius: 0, // keep square corners
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                // subtle theme-aware border and shadow to feel modern
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
-                boxShadow: theme.shadows[3],
-                // keep background transparent here; the inner square will render the checkerboard
-                backgroundColor: 'transparent',
-                p: 0,
-                position: 'relative',
-              })}
-            >
-              <Box
-                sx={(theme) => ({
-                  width: '100%',
-                  aspectRatio: '1 / 1',
-                  maxWidth: '100%',
-                  overflow: 'hidden',
-                  display: 'block',
-                  position: 'relative',
-                  // Apply the selected background color (or transparent for checkerboard)
-                  backgroundColor: bg === 'transparent' ? 'transparent' : bg,
-                  backgroundImage:
-                    bg === 'transparent'
-                      ? (() => {
-                          const checker1 = theme.palette.mode === 'dark' ? '#0b1220' : '#ffffff';
-                          const checker2 = theme.palette.mode === 'dark' ? '#1f2937' : '#e6e6e6';
-                          return `linear-gradient(45deg,${checker2} 25%, transparent 25%), linear-gradient(-45deg,${checker2} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${checker2} 75%), linear-gradient(-45deg, transparent 75%, ${checker2} 75%), linear-gradient(45deg,${checker1} 25%, transparent 25%), linear-gradient(-45deg,${checker1} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${checker1} 75%), linear-gradient(-45deg, transparent 75%, ${checker1} 75)`;
-                        })()
-                      : 'none',
-                  backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
-                  backgroundPosition: bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
-                  border: undefined,
-                })}
-              >
-                <Box
-                  component="canvas"
-                  ref={canvasRef}
-                  width={size}
-                  height={size}
-                  title={imageUrl ? 'Drag to reposition image' : undefined}
-                  sx={(theme) => ({
-                    display: 'block',
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: 0,
-                    // ensure transparent pixels show the checkerboard beneath
-                    // Keep the canvas transparent so PNG transparency shows the checkerboard
-                    // or the selected background color underneath (set on the container).
-                    backgroundColor: bg === 'transparent' ? 'transparent' : bg,
-                    backgroundImage:
-                      bg === 'transparent'
-                        ? (() => {
-                            const checker1 = theme.palette.mode === 'dark' ? '#0b1220' : '#ffffff';
-                            const checker2 = theme.palette.mode === 'dark' ? '#1f2937' : '#e6e6e6';
-                            return `linear-gradient(45deg,${checker2} 25%, transparent 25%), linear-gradient(-45deg,${checker2} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${checker2} 75%), linear-gradient(-45deg, transparent 75%, ${checker2} 75%), linear-gradient(45deg,${checker1} 25%, transparent 25%), linear-gradient(-45deg,${checker1} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${checker1} 75%), linear-gradient(-45deg, transparent 75%, ${checker1} 75)`;
-                          })()
-                        : 'none',
-                    backgroundSize: bg === 'transparent' ? '18px 18px' : undefined,
-                    backgroundPosition:
-                      bg === 'transparent' ? '0 0, 0 9px, 9px -9px, -9px 0, 0 0, 0 9px, 9px -9px, -9px 0' : undefined,
-                    objectFit: 'cover',
-                    zIndex: 1,
-                    transition: 'transform 220ms ease, opacity 180ms ease',
-                    cursor: imageUrl ? 'grab' : 'default',
-                    touchAction: 'none',
-                  })}
-                />
-                {/* Checkerboard canvas sits under the avatar canvas so transparent pixels reveal it */}
-                <Box
-                  component="canvas"
-                  ref={checkerRef}
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    zIndex: 0,
-                    pointerEvents: 'none',
-                  }}
-                />
-                  {/* Overlay img to display generated PNG so transparency reveals checkerboard */}
-                  <Box
-                    component="img"
-                    ref={imgRef}
-                    sx={(_theme) => ({
-                      position: 'absolute',
-                      inset: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      pointerEvents: 'none',
-                      zIndex: 10,
-                      display: imageUrl ? 'block' : 'none',
-                    })}
-                  />
-              </Box>
-            </Box>
-          </Paper>
+          <AvatarPreview
+            size={size}
+            displaySize={displaySize}
+            canvasRef={canvasRef}
+            overlayUrl={overlayUrl}
+            isRendering={isRendering}
+          />
         </Grid>
       </Grid>
     </Container>
+    </>
   );
 }
