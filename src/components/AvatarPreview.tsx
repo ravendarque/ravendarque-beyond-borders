@@ -32,10 +32,7 @@ function AvatarPreviewComponent({
   const theme = useTheme();
 
   return (
-    <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }} role="region" aria-labelledby="preview-canvas-label">
-      <Typography variant="h6" gutterBottom id="preview-canvas-label" sx={{ alignSelf: 'flex-start' }}>
-        Preview
-      </Typography>
+    <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }} role="region" aria-labelledby="preview-heading">
       <Box sx={{ position: 'relative', display: 'inline-block' }}>
         <canvas
           ref={canvasRef}
