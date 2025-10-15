@@ -17,6 +17,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import toast, { Toaster } from 'react-hot-toast';
 import type { FlagSpec } from '@/flags/schema';
 import type { AppError } from '@/types/errors';
 import { normalizeError } from '@/types/errors';
@@ -109,6 +110,7 @@ export function App() {
     } catch (err) {
       const normalizedError = normalizeError(err);
       setError(normalizedError);
+      toast.error(`Render failed: ${normalizedError.message}`);
       setStatusMessage(`Error: ${normalizedError.message}`);
     }
   }, [render, flagId, size, thickness, insetPct, flagOffsetX, presentation, bg]);
@@ -152,10 +154,17 @@ export function App() {
    */
   function handleDownload() {
     if (!overlayUrl) return;
-    const a = document.createElement('a');
-    a.href = overlayUrl;
-    a.download = 'avatar-with-border.png';
-    a.click();
+    try {
+      const a = document.createElement('a');
+      a.href = overlayUrl;
+      a.download = 'avatar-with-border.png';
+      a.click();
+      toast.success('Avatar downloaded successfully!');
+      setStatusMessage('Avatar downloaded successfully.');
+    } catch {
+      toast.error('Failed to download avatar');
+      setStatusMessage('Failed to download avatar.');
+    }
   }
 
   /**
@@ -167,7 +176,9 @@ export function App() {
     try {
       // Check if Clipboard API is supported
       if (!navigator.clipboard || !window.ClipboardItem) {
-        setStatusMessage('Copy to clipboard not supported in this browser');
+        const message = 'Copy to clipboard not supported in this browser';
+        toast.error(message);
+        setStatusMessage(message);
         setError(normalizeError(new Error('Clipboard API not supported')));
         return;
       }
@@ -180,10 +191,13 @@ export function App() {
       const item = new ClipboardItem({ 'image/png': blob });
       await navigator.clipboard.write([item]);
 
+      toast.success('Avatar copied to clipboard!');
       setStatusMessage('Avatar copied to clipboard!');
       setError(null);
     } catch (err) {
-      setStatusMessage('Failed to copy to clipboard');
+      const message = 'Failed to copy to clipboard';
+      toast.error(message);
+      setStatusMessage(message);
       setError(normalizeError(err));
     }
   }
@@ -206,6 +220,30 @@ export function App() {
 
   return (
     <>
+      {/* Toast Notifications */}
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: mode === 'dark' ? '#333' : '#fff',
+            color: mode === 'dark' ? '#fff' : '#333',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
+
       {/* Screen Reader Status Announcements - Live Region for Dynamic Content */}
       <div
         role="status"
