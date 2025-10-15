@@ -17,6 +17,8 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import toast, { Toaster } from 'react-hot-toast';
 import type { FlagSpec } from '@/flags/schema';
 import type { AppError } from '@/types/errors';
@@ -24,10 +26,16 @@ import { normalizeError } from '@/types/errors';
 
 export function App() {
   const { mode, setMode } = useContext(ThemeModeContext);
+  const theme = useTheme();
 
+  // Responsive breakpoints
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // < 600px
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md')); // 600-900px
+  
   // Constants
   const size = 1024 as const;
-  const displaySize = 300;
+  // Responsive display size based on viewport
+  const displaySize = isMobile ? Math.min(window.innerWidth - 80, 280) : isTablet ? 320 : 300;
 
   // State
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -385,7 +393,7 @@ export function App() {
       </a>
       
       <Container maxWidth="lg" component="main" id="main-content" aria-labelledby="app-title">
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, md: 3 }}>
           {/* Header */}
           <Grid xs={12} component="header" role="banner">
             <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
@@ -393,6 +401,7 @@ export function App() {
                 Beyond Borders
               </Typography>
               <IconButton 
+                size={isMobile ? 'large' : 'medium'}
                 onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
                 aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
                 aria-pressed={mode === 'dark'}
@@ -433,8 +442,44 @@ export function App() {
           </Grid>
         )}
 
-        {/* Controls */}
-        <Grid xs={12} md={6} component="section" aria-labelledby="controls-heading" id="controls">
+        {/* Preview - Shows first on mobile, second on desktop */}
+        <Grid 
+          xs={12} 
+          md={6} 
+          component="section" 
+          aria-labelledby="preview-heading" 
+          aria-describedby="preview-description" 
+          id="preview"
+          sx={{ 
+            order: { xs: 1, md: 2 },
+            mb: { xs: 3, md: 0 }
+          }}
+        >
+          <Typography variant="h2" id="preview-heading" sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}>
+            Preview
+          </Typography>
+          <span id="preview-description" className="visually-hidden">
+            Live preview of your avatar with the selected flag border. The preview updates automatically as you change settings.
+          </span>
+          <AvatarPreview
+            size={size}
+            displaySize={displaySize}
+            canvasRef={canvasRef}
+            overlayUrl={overlayUrl}
+            isRendering={isRendering}
+            hasImage={!!imageUrl}
+          />
+        </Grid>
+
+        {/* Controls - Shows second on mobile, first on desktop */}
+        <Grid 
+          xs={12} 
+          md={6} 
+          component="section" 
+          aria-labelledby="controls-heading" 
+          id="controls"
+          sx={{ order: { xs: 2, md: 1 } }}
+        >
           <Typography variant="h2" id="controls-heading" sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}>
             Avatar Settings
           </Typography>
@@ -461,24 +506,6 @@ export function App() {
             downloadDisabled={!overlayUrl}
             onCopy={handleCopy}
             copyDisabled={!overlayUrl}
-          />
-        </Grid>
-
-        {/* Preview */}
-        <Grid xs={12} md={6} component="section" aria-labelledby="preview-heading" aria-describedby="preview-description" id="preview">
-          <Typography variant="h2" id="preview-heading" sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}>
-            Preview
-          </Typography>
-          <span id="preview-description" className="visually-hidden">
-            Live preview of your avatar with the selected flag border. The preview updates automatically as you change settings.
-          </span>
-          <AvatarPreview
-            size={size}
-            displaySize={displaySize}
-            canvasRef={canvasRef}
-            overlayUrl={overlayUrl}
-            isRendering={isRendering}
-            hasImage={!!imageUrl}
           />
         </Grid>
       </Grid>
