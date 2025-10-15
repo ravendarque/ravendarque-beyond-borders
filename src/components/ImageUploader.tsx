@@ -211,20 +211,6 @@ function ImageUploaderComponent({ onFileChange, onError }: ImageUploaderProps) {
           </div>
         )}
       </div>
-      {/* File Requirements Guidance */}
-      <div 
-        id="file-upload-requirements"
-        style={{ 
-          marginTop: '12px', 
-          fontSize: '0.75rem',
-          color: 'var(--text-secondary)',
-          opacity: 0.8,
-          textAlign: 'center',
-          lineHeight: '1.4'
-        }}
-      >
-        Supports JPG and PNG • Max 10 MB • Up to 4K resolution
-      </div>
     </div>
   );
 }

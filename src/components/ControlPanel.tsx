@@ -95,10 +95,6 @@ function ControlPanelComponent({
   
   return (
     <Paper sx={{ p: 4 }} role="form" aria-labelledby="controls-heading">
-      <Typography variant="h6" gutterBottom sx={{ fontSize: '1.5rem', fontWeight: 700, mb: 4 }}>
-        Avatar Settings
-      </Typography>
-      
       <Stack spacing={3}>
         {/* Step 1: Image Upload Section */}
         <Stack spacing={2}>
