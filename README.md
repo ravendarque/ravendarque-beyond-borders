@@ -1,8 +1,11 @@
 # Beyond Borders
 
-![CI](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/ci-validate-flags.yml/badge.svg)
+![CI](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/ci.yml/badge.svg)
+![Deploy](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/deploy-pages.yml/badge.svg)
 
 Add a circular, flag-colored border to your profile picture to show support for marginalized groups and selected causes.
+
+🌐 **Live App**: [https://ravendarque.github.io/ravendarque-beyond-borders/](https://ravendarque.github.io/ravendarque-beyond-borders/)
 
 ## Overview
 - Upload an image (JPG/PNG)
@@ -11,9 +14,11 @@ Add a circular, flag-colored border to your profile picture to show support for 
 - Download as PNG (512/1024)
 
 ## Status
-PRD is defined in `beyond-borders-prd-0.1.md`. App scaffolding to be created (Vite + React + TypeScript).
+**✅ Live and deployed!** The app is built with Vite + React + TypeScript and automatically deployed to GitHub Pages on every push to main.
 
-## Tech Stack (planned)
+PRD is defined in `beyond-borders-prd-0.1.md`.
+
+## Tech Stack
 - React + TypeScript + Vite
 - Tailwind CSS + accessible primitives
 - Canvas 2D for rendering (OffscreenCanvas/Worker when available)
