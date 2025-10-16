@@ -3,8 +3,22 @@ name: CI
 on:
   push:
     branches: [ main, "feat/**" ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+      - '.local/**'
+      - 'LICENSE'
+      - '.gitignore'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+      - '.local/**'
+      - 'LICENSE'
+      - '.gitignore'
 
 permissions:
   contents: read
