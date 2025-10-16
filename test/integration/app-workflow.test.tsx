@@ -98,6 +98,11 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
       expect(screen.queryByText('Loading flags...')).toBeFalsy();
     }, { timeout: 2000 });
     
+    // Upload an image first to enable flag selection
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'avatar.png', { type: 'image/png' });
+    await user.upload(fileInput, file);
+    
     // Open flag selector
     const selects = document.querySelectorAll('[role="combobox"]');
     const flagSelect = Array.from(selects).find((el) => {
@@ -115,6 +120,25 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
     const user = userEvent.setup();
     renderApp();
     
+    // Upload image and select flag first to enable controls
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'avatar.png', { type: 'image/png' });
+    await user.upload(fileInput, file);
+    
+    // Wait for flags and select one
+    await waitFor(() => {
+      expect(screen.queryByText('Loading flags...')).toBeFalsy();
+    }, { timeout: 2000 });
+    
+    const selects = document.querySelectorAll('[role="combobox"]');
+    const flagSelect = Array.from(selects).find((el) => {
+      const parent = el.closest('.MuiFormControl-root');
+      return parent?.querySelector('label')?.textContent?.includes('Select a flag');
+    }) as HTMLElement;
+    await user.click(flagSelect);
+    const firstFlag = screen.getAllByRole('option')[1]; // Skip "None"
+    await user.click(firstFlag);
+    
     const segmentRadio = screen.getByRole('radio', { name: 'Segment' });
     await user.click(segmentRadio);
     
@@ -126,8 +150,26 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
     const user = userEvent.setup();
     renderApp();
     
-    // Should not show in ring mode
-    expect(screen.queryByText(/Flag Offset/)).toBeFalsy();
+    // Should not show in ring mode (even if we had controls enabled, which we don't yet)
+    expect(screen.queryByText(/Flag Horizontal Offset/)).toBeFalsy();
+    
+    // Upload image and select flag first to enable controls
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'avatar.png', { type: 'image/png' });
+    await user.upload(fileInput, file);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading flags...')).toBeFalsy();
+    }, { timeout: 2000 });
+    
+    const selects = document.querySelectorAll('[role="combobox"]');
+    const flagSelect = Array.from(selects).find((el) => {
+      const parent = el.closest('.MuiFormControl-root');
+      return parent?.querySelector('label')?.textContent?.includes('Select a flag');
+    }) as HTMLElement;
+    await user.click(flagSelect);
+    const firstFlag = screen.getAllByRole('option')[1]; // Skip "None"
+    await user.click(firstFlag);
     
     // Switch to cutout mode
     const cutoutRadio = screen.getByRole('radio', { name: 'Cutout' });
@@ -135,7 +177,7 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
     
     // Should show in cutout mode
     await waitFor(() => {
-      expect(screen.getByText(/Flag Offset/)).toBeTruthy();
+      expect(screen.getByText(/Flag Horizontal Offset/)).toBeTruthy();
     });
   });
 
@@ -165,9 +207,27 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
     const user = userEvent.setup();
     renderApp();
     
-    // Open background selector
+    // Upload image and select flag first to enable controls
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'avatar.png', { type: 'image/png' });
+    await user.upload(fileInput, file);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading flags...')).toBeFalsy();
+    }, { timeout: 2000 });
+    
     const selects = document.querySelectorAll('[role="combobox"]');
-    const bgSelect = Array.from(selects).find((el) => {
+    const flagSelect = Array.from(selects).find((el) => {
+      const parent = el.closest('.MuiFormControl-root');
+      return parent?.querySelector('label')?.textContent?.includes('Select a flag');
+    }) as HTMLElement;
+    await user.click(flagSelect);
+    const firstFlag = screen.getAllByRole('option')[1]; // Skip "None"
+    await user.click(firstFlag);
+    
+    // Open background selector
+    const selectsAfter = document.querySelectorAll('[role="combobox"]');
+    const bgSelect = Array.from(selectsAfter).find((el) => {
       const parent = el.closest('.MuiFormControl-root');
       return parent?.querySelector('label')?.textContent?.includes('Background');
     }) as HTMLElement;
@@ -211,6 +271,24 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
   it('should switch between presentation modes without errors', async () => {
     const user = userEvent.setup();
     renderApp();
+    
+    // Upload image and select flag first to enable controls
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'avatar.png', { type: 'image/png' });
+    await user.upload(fileInput, file);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading flags...')).toBeFalsy();
+    }, { timeout: 2000 });
+    
+    const selects = document.querySelectorAll('[role="combobox"]');
+    const flagSelect = Array.from(selects).find((el) => {
+      const parent = el.closest('.MuiFormControl-root');
+      return parent?.querySelector('label')?.textContent?.includes('Select a flag');
+    }) as HTMLElement;
+    await user.click(flagSelect);
+    const firstFlag = screen.getAllByRole('option')[1]; // Skip "None"
+    await user.click(firstFlag);
     
     // Switch through all modes
     await user.click(screen.getByRole('radio', { name: 'Segment' }));
