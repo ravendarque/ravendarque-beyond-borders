@@ -17,7 +17,8 @@ describe('AvatarPreview', () => {
   it('should render preview title', () => {
     render(<AvatarPreview {...defaultProps} />);
     
-    expect(screen.getByText('Preview')).toBeTruthy();
+    // Title is now visually-hidden for accessibility, but still in the DOM
+    expect(screen.getByText('Avatar Preview Canvas')).toBeTruthy();
   });
 
   it('should render canvas with correct dimensions', () => {
@@ -55,14 +56,14 @@ describe('AvatarPreview', () => {
   it('should not render overlay when overlayUrl is null', () => {
     render(<AvatarPreview {...defaultProps} overlayUrl={null} />);
     
-    const overlay = document.querySelector('img[alt="Result overlay"]');
+    const overlay = document.querySelector('img[alt="Generated avatar with flag border"]');
     expect(overlay).toBeFalsy();
   });
 
   it('should render overlay when overlayUrl is provided', () => {
     render(<AvatarPreview {...defaultProps} overlayUrl="blob:test-overlay" />);
     
-    const overlay = document.querySelector('img[alt="Result overlay"]') as HTMLImageElement;
+    const overlay = document.querySelector('img[alt="Generated avatar with flag border"]') as HTMLImageElement;
     expect(overlay).toBeTruthy();
     expect(overlay.src).toContain('blob:test-overlay');
   });
@@ -70,7 +71,7 @@ describe('AvatarPreview', () => {
   it('should position overlay absolutely over canvas', () => {
     render(<AvatarPreview {...defaultProps} overlayUrl="blob:test-overlay" />);
     
-    const overlay = document.querySelector('img[alt="Result overlay"]') as HTMLImageElement;
+    const overlay = document.querySelector('img[alt="Generated avatar with flag border"]') as HTMLImageElement;
     expect(overlay.style.position).toBe('absolute');
     expect(overlay.style.top).toBe('0px');
     expect(overlay.style.left).toBe('0px');
@@ -79,7 +80,7 @@ describe('AvatarPreview', () => {
   it('should apply correct dimensions to overlay', () => {
     render(<AvatarPreview {...defaultProps} overlayUrl="blob:test-overlay" displaySize={400} />);
     
-    const overlay = document.querySelector('img[alt="Result overlay"]') as HTMLImageElement;
+    const overlay = document.querySelector('img[alt="Generated avatar with flag border"]') as HTMLImageElement;
     expect(overlay.style.width).toBe('400px');
     expect(overlay.style.height).toBe('400px');
   });
@@ -87,13 +88,13 @@ describe('AvatarPreview', () => {
   it('should not render loading overlay when not rendering', () => {
     render(<AvatarPreview {...defaultProps} isRendering={false} />);
     
-    expect(screen.queryByText('Loading...')).toBeFalsy();
+    expect(screen.queryByText('Rendering...')).toBeFalsy();
   });
 
   it('should render loading overlay when isRendering is true', () => {
     render(<AvatarPreview {...defaultProps} isRendering={true} />);
     
-    expect(screen.getByText('Loading...')).toBeTruthy();
+    expect(screen.getByText('Rendering...')).toBeTruthy();
   });
 
   it('should render circular progress when loading', () => {
@@ -108,8 +109,8 @@ describe('AvatarPreview', () => {
     const { container } = render(<AvatarPreview {...defaultProps} isRendering={true} />);
     
     // The loading overlay Box has backgroundColor in sx prop
-    // We can verify the Loading text is present which indicates the overlay is rendered
-    expect(screen.getByText('Loading...')).toBeTruthy();
+    // We can verify the Rendering text is present which indicates the overlay is rendered
+    expect(screen.getByText('Rendering...')).toBeTruthy();
   });
 
   it('should handle different size combinations', () => {
@@ -137,15 +138,15 @@ describe('AvatarPreview', () => {
       />
     );
     
-    const overlay = document.querySelector('img[alt="Result overlay"]');
+    const overlay = document.querySelector('img[alt="Generated avatar with flag border"]');
     expect(overlay).toBeTruthy();
-    expect(screen.getByText('Loading...')).toBeTruthy();
+    expect(screen.getByText('Rendering...')).toBeTruthy();
   });
 
   it('should have pointer-events none on overlay', () => {
     render(<AvatarPreview {...defaultProps} overlayUrl="blob:test-overlay" />);
     
-    const overlay = document.querySelector('img[alt="Result overlay"]') as HTMLImageElement;
+    const overlay = document.querySelector('img[alt="Generated avatar with flag border"]') as HTMLImageElement;
     expect(overlay.style.pointerEvents).toBe('none');
   });
 

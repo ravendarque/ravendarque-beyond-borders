@@ -3,7 +3,6 @@ import { ThemeModeContext } from '../main';
 import { loadFlags } from '../flags/loader';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
-import { usePersistedState } from '@/hooks/usePersistedState';
 import { useFocusManagement } from '@/hooks/useFocusManagement';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useFlagPreloader } from '@/hooks/useFlagPreloader';
@@ -17,29 +16,40 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
+import toast, { Toaster } from 'react-hot-toast';
 import type { FlagSpec } from '@/flags/schema';
 import type { AppError } from '@/types/errors';
 import { normalizeError } from '@/types/errors';
 
 export function App() {
   const { mode, setMode } = useContext(ThemeModeContext);
+  const theme = useTheme();
 
+  // Responsive breakpoints
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // < 600px
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md')); // 600-900px
+  
   // Constants
   const size = 1024 as const;
-  const displaySize = 300;
+  // Responsive display size based on viewport
+  const displaySize = isMobile ? Math.min(window.innerWidth - 80, 280) : isTablet ? 320 : 300;
 
   // State
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [flagId, setFlagId] = usePersistedState<string>('bb_selectedFlag', '');
+  const [flagId, setFlagId] = useState<string>('');
   const [thickness, setThickness] = useState(7);
   const [insetPct, setInsetPct] = useState(0);
   const [bg, setBg] = useState<string | 'transparent'>('transparent');
   const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
   const [flagOffsetX, setFlagOffsetX] = useState(0);
-  // Trigger re-render when flags are loaded (flagsListRef doesn't cause re-renders)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [flagsLoaded, setFlagsLoaded] = useState(false);
+  // Track flag loading state for skeleton screens
+  const [flagsLoading, setFlagsLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>(''); // For screen reader announcements
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -61,13 +71,14 @@ export function App() {
   useEffect(() => {
     (async () => {
       try {
+        setFlagsLoading(true);
         const loaded = await loadFlags();
         flagsListRef.current = (loaded as FlagSpec[]) || [];
-        setFlagsLoaded(true); // Trigger re-render to show flags
+        setFlagsLoading(false); // Flags loaded, hide skeleton
         setError(null); // Clear any previous errors
       } catch (err) {
         flagsListRef.current = [];
-        setFlagsLoaded(true);
+        setFlagsLoading(false); // Still hide skeleton on error
         setError(normalizeError(err));
       }
     })();
@@ -94,6 +105,7 @@ export function App() {
    */
   const renderWithImageUrl = useCallback(async (specificImageUrl: string) => {
     try {
+      setStatusMessage('Rendering avatar...');
       await render(specificImageUrl, flagId, {
         size,
         thickness,
@@ -103,8 +115,12 @@ export function App() {
         bg,
       });
       setError(null); // Clear any previous render errors
+      setStatusMessage('Avatar rendered successfully. Ready to download.');
     } catch (err) {
-      setError(normalizeError(err));
+      const normalizedError = normalizeError(err);
+      setError(normalizedError);
+      toast.error(`Render failed: ${normalizedError.message}`);
+      setStatusMessage(`Error: ${normalizedError.message}`);
     }
   }, [render, flagId, size, thickness, insetPct, flagOffsetX, presentation, bg]);
 
@@ -145,12 +161,64 @@ export function App() {
   /**
    * Download the rendered avatar as a PNG file
    */
-  function handleDownload() {
+  async function handleDownload() {
     if (!overlayUrl) return;
-    const a = document.createElement('a');
-    a.href = overlayUrl;
-    a.download = 'avatar-with-border.png';
-    a.click();
+    try {
+      setIsDownloading(true);
+      // Small delay to show loading state
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const a = document.createElement('a');
+      a.href = overlayUrl;
+      a.download = 'avatar-with-border.png';
+      a.click();
+      toast.success('Avatar downloaded successfully!');
+      setStatusMessage('Avatar downloaded successfully.');
+    } catch {
+      toast.error('Failed to download avatar');
+      setStatusMessage('Failed to download avatar.');
+    } finally {
+      setIsDownloading(false);
+    }
+  }
+
+  /**
+   * Copy the rendered avatar to clipboard
+   */
+  async function handleCopy() {
+    if (!overlayUrl) return;
+
+    try {
+      setIsCopying(true);
+      
+      // Check if Clipboard API is supported
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        const message = 'Copy to clipboard not supported in this browser';
+        toast.error(message);
+        setStatusMessage(message);
+        setError(normalizeError(new Error('Clipboard API not supported')));
+        return;
+      }
+
+      // Fetch the blob from the object URL
+      const response = await fetch(overlayUrl);
+      const blob = await response.blob();
+
+      // Create clipboard item and write to clipboard
+      const item = new ClipboardItem({ 'image/png': blob });
+      await navigator.clipboard.write([item]);
+
+      toast.success('Avatar copied to clipboard!');
+      setStatusMessage('Avatar copied to clipboard!');
+      setError(null);
+    } catch (err) {
+      const message = 'Failed to copy to clipboard';
+      toast.error(message);
+      setStatusMessage(message);
+      setError(normalizeError(err));
+    } finally {
+      setIsCopying(false);
+    }
   }
 
   /**
@@ -171,29 +239,190 @@ export function App() {
 
   return (
     <>
-      {/* Skip Link for Keyboard Navigation */}
-      <a href="#main-content" className="skip-link">
+      {/* Toast Notifications */}
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: mode === 'dark' ? '#333' : '#fff',
+            color: mode === 'dark' ? '#fff' : '#333',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
+
+      {/* Screen Reader Status Announcements - Live Region for Dynamic Content */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="visually-hidden"
+        aria-relevant="additions text"
+      >
+        {statusMessage}
+      </div>
+      
+      {/* Assertive announcements for errors */}
+      <div
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        className="visually-hidden"
+      >
+        {error ? `Error: ${error.message}` : ''}
+      </div>
+      
+      {/* Skip Links for Keyboard Navigation - using inline styles to ensure they work */}
+      <a 
+        href="#main-content" 
+        style={{
+          position: 'absolute',
+          left: '-10000px',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden'
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.position = 'fixed';
+          e.currentTarget.style.left = '10px';
+          e.currentTarget.style.top = '10px';
+          e.currentTarget.style.width = 'auto';
+          e.currentTarget.style.height = 'auto';
+          e.currentTarget.style.overflow = 'visible';
+          e.currentTarget.style.zIndex = '9999';
+          e.currentTarget.style.padding = '1em';
+          e.currentTarget.style.backgroundColor = 'var(--accent)';
+          e.currentTarget.style.color = 'white';
+          e.currentTarget.style.borderRadius = '4px';
+          e.currentTarget.style.fontWeight = '600';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.position = 'absolute';
+          e.currentTarget.style.left = '-10000px';
+          e.currentTarget.style.width = '1px';
+          e.currentTarget.style.height = '1px';
+          e.currentTarget.style.overflow = 'hidden';
+          e.currentTarget.style.zIndex = '';
+          e.currentTarget.style.padding = '';
+          e.currentTarget.style.backgroundColor = '';
+          e.currentTarget.style.color = '';
+          e.currentTarget.style.borderRadius = '';
+          e.currentTarget.style.fontWeight = '';
+        }}
+      >
         Skip to main content
       </a>
+      <a 
+        href="#controls"
+        style={{
+          position: 'absolute',
+          left: '-10000px',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden'
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.position = 'fixed';
+          e.currentTarget.style.left = '10px';
+          e.currentTarget.style.top = '50px';
+          e.currentTarget.style.width = 'auto';
+          e.currentTarget.style.height = 'auto';
+          e.currentTarget.style.overflow = 'visible';
+          e.currentTarget.style.zIndex = '9999';
+          e.currentTarget.style.padding = '1em';
+          e.currentTarget.style.backgroundColor = 'var(--accent)';
+          e.currentTarget.style.color = 'white';
+          e.currentTarget.style.borderRadius = '4px';
+          e.currentTarget.style.fontWeight = '600';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.position = 'absolute';
+          e.currentTarget.style.left = '-10000px';
+          e.currentTarget.style.width = '1px';
+          e.currentTarget.style.height = '1px';
+          e.currentTarget.style.overflow = 'hidden';
+          e.currentTarget.style.zIndex = '';
+          e.currentTarget.style.padding = '';
+          e.currentTarget.style.backgroundColor = '';
+          e.currentTarget.style.color = '';
+          e.currentTarget.style.borderRadius = '';
+          e.currentTarget.style.fontWeight = '';
+        }}
+      >
+        Skip to controls
+      </a>
+      <a 
+        href="#preview"
+        style={{
+          position: 'absolute',
+          left: '-10000px',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden'
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.position = 'fixed';
+          e.currentTarget.style.left = '10px';
+          e.currentTarget.style.top = '90px';
+          e.currentTarget.style.width = 'auto';
+          e.currentTarget.style.height = 'auto';
+          e.currentTarget.style.overflow = 'visible';
+          e.currentTarget.style.zIndex = '9999';
+          e.currentTarget.style.padding = '1em';
+          e.currentTarget.style.backgroundColor = 'var(--accent)';
+          e.currentTarget.style.color = 'white';
+          e.currentTarget.style.borderRadius = '4px';
+          e.currentTarget.style.fontWeight = '600';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.position = 'absolute';
+          e.currentTarget.style.left = '-10000px';
+          e.currentTarget.style.width = '1px';
+          e.currentTarget.style.height = '1px';
+          e.currentTarget.style.overflow = 'hidden';
+          e.currentTarget.style.zIndex = '';
+          e.currentTarget.style.padding = '';
+          e.currentTarget.style.backgroundColor = '';
+          e.currentTarget.style.color = '';
+          e.currentTarget.style.borderRadius = '';
+          e.currentTarget.style.fontWeight = '';
+        }}
+      >
+        Skip to preview
+      </a>
       
-      <Container maxWidth="lg" component="main" id="main-content">
-        <Grid container spacing={3}>
+      <Container maxWidth="lg" component="main" id="main-content" aria-labelledby="app-title">
+        <Grid container spacing={{ xs: 2, md: 3 }}>
           {/* Header */}
-          <Grid xs={12} component="header">
+          <Grid xs={12} component="header" role="banner">
             <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
-              <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+              <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700 }}>
                 Beyond Borders
               </Typography>
               <IconButton 
+                size={isMobile ? 'large' : 'medium'}
                 onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
                 aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                aria-pressed={mode === 'dark'}
                 title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               >
-                {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+                {mode === 'light' ? <Brightness4Icon aria-hidden="true" /> : <Brightness7Icon aria-hidden="true" />}
               </IconButton>
             </Stack>
-            <Typography variant="subtitle1" color="textSecondary">
-              Add a circular, flag-colored border to your profile picture.
+            <Typography variant="subtitle1" color="textSecondary" component="p" id="app-description">
+              Add a circular, flag-colored border to your profile picture. Upload an image, select a flag, and customize your border.
             </Typography>
           </Grid>
 
@@ -206,11 +435,13 @@ export function App() {
                 setError(null);
                 // Retry flag loading if error occurred during load
                 if (flagsListRef.current.length === 0) {
+                  setFlagsLoading(true);
                   loadFlags().then(loaded => {
                     flagsListRef.current = (loaded as FlagSpec[]) || [];
-                    setFlagsLoaded(true);
+                    setFlagsLoading(false);
                     setError(null);
                   }).catch(err => {
+                    setFlagsLoading(false);
                     setError(normalizeError(err));
                   });
                 }
@@ -224,14 +455,59 @@ export function App() {
           </Grid>
         )}
 
-        {/* Controls */}
-        <Grid xs={12} md={6}>
+        {/* Preview - Shows first on mobile, second on desktop */}
+        <Grid 
+          xs={12} 
+          md={6} 
+          component="section" 
+          aria-labelledby="preview-heading" 
+          aria-describedby="preview-description" 
+          id="preview"
+          sx={{ 
+            order: { xs: 1, md: 2 },
+            mb: { xs: 3, md: 0 }
+          }}
+        >
+          <Typography variant="h2" id="preview-heading" sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}>
+            Preview
+          </Typography>
+          <span id="preview-description" className="visually-hidden">
+            Live preview of your avatar with the selected flag border. The preview updates automatically as you change settings.
+          </span>
+          <AvatarPreview
+            size={size}
+            displaySize={displaySize}
+            canvasRef={canvasRef}
+            overlayUrl={overlayUrl}
+            isRendering={isRendering}
+            hasImage={!!imageUrl}
+            hasFlag={!!flagId}
+          />
+        </Grid>
+
+        {/* Controls - Shows second on mobile, first on desktop */}
+        <Grid 
+          xs={12} 
+          md={6} 
+          component="section" 
+          aria-labelledby="controls-heading" 
+          id="controls"
+          sx={{ order: { xs: 2, md: 1 } }}
+        >
+          <Typography variant="h2" id="controls-heading" sx={{ fontSize: '1.25rem', fontWeight: 600, mb: 2 }}>
+            Avatar Settings
+          </Typography>
+          <span id="controls-description" className="visually-hidden">
+            Upload your profile picture, choose a flag, and customize the border style and appearance.
+          </span>
           <ControlPanel
             onFileChange={onFileChange}
             onFileError={setError}
+            hasImage={!!imageUrl}
             flagId={flagId}
             flags={flagsListRef.current}
             onFlagChange={setFlagId}
+            flagsLoading={flagsLoading}
             presentation={presentation}
             onPresentationChange={setPresentation}
             thickness={thickness}
@@ -244,17 +520,10 @@ export function App() {
             onBgChange={setBg}
             onDownload={handleDownload}
             downloadDisabled={!overlayUrl}
-          />
-        </Grid>
-
-        {/* Preview */}
-        <Grid xs={12} md={6}>
-          <AvatarPreview
-            size={size}
-            displaySize={displaySize}
-            canvasRef={canvasRef}
-            overlayUrl={overlayUrl}
-            isRendering={isRendering}
+            isDownloading={isDownloading}
+            onCopy={handleCopy}
+            copyDisabled={!overlayUrl}
+            isCopying={isCopying}
           />
         </Grid>
       </Grid>

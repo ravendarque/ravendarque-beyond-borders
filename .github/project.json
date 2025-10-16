@@ -1,0 +1,6 @@
+{ 
+  "id": "PVT_kwHOANLCeM4BFNzU",
+  "title": "Beyond Borders",
+  "url": "https://github.com/users/ravendarque/projects/2",
+  "cli": "gh project view 2 --owner ravendarque --format json --jq '{title,id,url}'"
+}

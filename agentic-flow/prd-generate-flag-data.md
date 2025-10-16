@@ -1,47 +1,17 @@
 
-# 📄 PRD: Dataset of Oppressed Nations, Peoples, and Marginalised Groups
+# 📄 PRD: Dataset of nations, peoples, and groups under oppression
 
 ## 1. Objective
-Produce a **structured YAML dataset** of flags representing countries, peoples, and marginalised groups under oppression. This will be used by another prompt to create the coloured flag borders in the app
+Produce a **structured YAML dataset** of flags representing countries, peoples, and oppressed groups. This will be used as the source of truth for creating the flag data for the Beyond Borders application
 
-The dataset should include:  
-- Authoritarian states  
-- Occupied / disputed territories  
-- Stateless or oppressed peoples  
-- LGBTQIA+ communities
-- Indigenous peoples and other marginalized groups like GRT
+The dataset should include the groups listed in section 2 of this document
 
 This file will serve as a reusable knowledge base for further applications (visualizations, websites, educational resources).  
 
 ---
 
-## 2. Data Format
-
-- **File format**: `YAML`  
-- **Root key**: `flags`  
-- **Each entry** must contain the following fields:
-
-| Field       | Type   | Description |
-|-------------|--------|-------------|
-| `name`      | String | The official or widely recognized name of the flag, including entity name. |
-| `svg_url`   | URL    | Direct link to the SVG version of the flag (preferably Wikimedia Commons). |
-| `description` | String | Description of the flag’s design and symbols. |
-| `type`      | Enum (Human-readable) | Category of cause: `"Authoritarian State"`, `"Occupied / Disputed Territory"`, or `"Stateless People"`. |
-| `reason`    | String | A concise explanation of why the entity is under oppression. |
-| `link`      | URL    | A link to more information about the cause. |
-
----
-
-## 3. Data Sources
-
-- **Primary source**: [Wikimedia Commons](https://commons.wikimedia.org) (for SVG URLs)  
-- **Secondary sources**:  
-  - Wikipedia articles on each flag/entity  
-  - Reports from NGOs (Amnesty, Human Rights Watch, Freedom House) for reasons  
-
----
-
-## 4. Categorization Rules
+## 2. Categorization Rules
+These following categories will be used to find and classify each flag entry:
 
 1. **Authoritarian State**  
    - UN-recognized sovereign states with limited/no political freedoms, dictatorship, or monarchy with repression.  
@@ -55,9 +25,35 @@ This file will serve as a reusable knowledge base for further applications (visu
    - Nations or ethnic groups without recognized statehood, often facing persecution.  
    - Examples: Kurds, Uyghurs, Rohingya, Tamils, Ogaden Somalis, Baloch.  
 
-4. **Marginalised Groups**
+4. **Oppressed Groups**
    - Groups facing systemic discrimination or social exclusion within a state.
    - Examples: LGBTQIA+ communities, Indigenous peoples
+
+---
+
+## 3. Data Sources
+
+- **Primary source**: [Wikimedia Commons](https://commons.wikimedia.org) (for SVG URLs)  
+- **Secondary sources**:  
+  - Wikipedia articles on each flag/entity  
+  - Reports from NGOs (Amnesty, Human Rights Watch, Freedom House) for reasons
+
+---
+
+## 4. Data Format
+
+- **File format**: `YAML`  
+- **Root key**: `flags`  
+- **Each entry** must contain the following fields:
+
+| Field       | Type   | Description |
+|-------------|--------|-------------|
+| `name`      | String | The official or widely recognized name of the flag, including entity name. |
+| `svg_url`   | URL    | Direct link to the SVG version of the flag (preferably Wikimedia Commons). |
+| `description` | String | Description of the flag’s design and symbols. |
+| `type`      | Enum (Human-readable) | Category of cause: See section 2 in this document |
+| `reason`    | String | A concise explanation of why the entity is under oppression. |
+| `links`      | List of URL    | Links to more information/further reading/credible sources about the cause. |
 
 ---
 
