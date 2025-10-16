@@ -196,7 +196,7 @@ scripts/
 3. **Commit assets:** Run `node scripts/fetch-and-extract.cjs --push` to generate and commit
 4. **Sync TypeScript:** Run `node scripts/sync-flags-ts.cjs` to update `flags.ts` automatically
 5. **Validate:** Run `node scripts/validate-flags.cjs` to verify
-6. **Test:** Run unit tests with `npm test -- flags.test.ts`
+6. **Test:** Run unit tests with `pnpm test -- flags.test.ts`
 
 **Note:** When using the GitHub Actions workflow, steps 4-6 happen automatically!
 
@@ -206,10 +206,10 @@ scripts/
 
 Most scripts require **Playwright** for browser automation:
 ```bash
-npm install -D playwright
+pnpm add -D playwright
 ```
 
 For flag generation, also install:
 ```bash
-npm install -D sharp @resvg/resvg-js js-yaml p-limit
+pnpm add -D sharp @resvg/resvg-js js-yaml p-limit
 ```

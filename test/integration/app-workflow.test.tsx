@@ -39,10 +39,87 @@ function renderApp() {
   );
 }
 
+// Helper to upload image and select flag (enables sections 2 and 3)
+async function uploadImageAndSelectFlag(user: ReturnType<typeof userEvent.setup>) {
+  // Upload an image
+  const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+  const file = new File(['test'], 'avatar.png', { type: 'image/png' });
+  await user.upload(fileInput, file);
+  
+  // Wait a tick for React state to flush
+  await new Promise(resolve => setTimeout(resolve, 0));
+  
+  // Wait for the flag selector section to be enabled (hasImage becomes true)
+  await waitFor(() => {
+    const selects = document.querySelectorAll('[role="combobox"]');
+    const flagSelect = Array.from(selects).find((el) => {
+      const parent = el.closest('.MuiFormControl-root');
+      return parent?.querySelector('label')?.textContent?.includes('Select a flag');
+    }) as HTMLElement;
+    
+    if (!flagSelect) {
+      throw new Error('Flag selector not found');
+    }
+    
+    // Check that the section is enabled
+    const section = flagSelect.closest('.MuiStack-root') as HTMLElement;
+    const computed = window.getComputedStyle(section);
+    if (computed.pointerEvents === 'none') {
+      throw new Error('Section 2 not enabled yet - hasImage is still false');
+    }
+  }, { timeout: 3000 });
+  
+  // Wait for flags to load
+  await waitFor(() => {
+    expect(screen.queryByText('Loading flags...')).toBeFalsy();
+  }, { timeout: 2000 });
+  
+  // Select a flag - waitFor will retry the click until it succeeds
+  await waitFor(async () => {
+    const selects = document.querySelectorAll('[role="combobox"]');
+    const flagSelect = Array.from(selects).find((el) => {
+      const parent = el.closest('.MuiFormControl-root');
+      return parent?.querySelector('label')?.textContent?.includes('Select a flag');
+    }) as HTMLElement;
+    
+    if (!flagSelect) {
+      throw new Error('Flag selector not found');
+    }
+    
+    // Try to click - if pointer-events is none, this will throw and waitFor will retry
+    await user.click(flagSelect);
+  }, { timeout: 5000 });
+  
+  // Select the first flag option
+  const firstFlag = await screen.findByRole('option', { name: /test flag/i });
+  await user.click(firstFlag);
+  
+  // No need to check pointer-events - if section 3 isn't enabled, 
+  // tests that try to interact with it will naturally fail with clear errors
+}
+
 describe('Integration: Complete Avatar Creation Workflow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    
+    // Mock Image constructor for file validation
+    global.Image = class MockImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      src = '';
+      width = 100;
+      height = 100;
+      
+      constructor() {
+        // Simulate immediate image load when src is set
+        setTimeout(() => {
+          if (this.onload) {
+            this.onload();
+          }
+        }, 0);
+      }
+    } as any;
     
     // Mock browser APIs
     global.createImageBitmap = vi.fn(async () => ({
@@ -51,12 +128,33 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
       close: vi.fn(),
     })) as any;
     
-    global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+    const createObjectURLSpy = vi.fn(() => 'blob:mock-url');
+    global.URL.createObjectURL = createObjectURLSpy;
     global.URL.revokeObjectURL = vi.fn();
     
-    global.fetch = vi.fn(async () => ({
-      blob: async () => new Blob(['test'], { type: 'image/png' }),
-    })) as any;
+    // Mock fetch to return valid flag data
+    global.fetch = vi.fn(async (url) => {
+      if (typeof url === 'string' && url.includes('flags.json')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => [
+            {
+              id: 'flag1',
+              displayName: 'Test Flag',
+              png_full: '/flags/test.png',
+              png_preview: '/flags/test.preview.png',
+            },
+          ],
+        } as Response;
+      }
+      // For other requests (like flag images)
+      return {
+        ok: true,
+        status: 200,
+        blob: async () => new Blob(['test'], { type: 'image/png' }),
+      } as Response;
+    }) as any;
   });
 
   it('should render the main app with all components', () => {
@@ -98,6 +196,23 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
       expect(screen.queryByText('Loading flags...')).toBeFalsy();
     }, { timeout: 2000 });
     
+    // Upload an image first to enable flag selection
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'avatar.png', { type: 'image/png' });
+    await user.upload(fileInput, file);
+    
+    // Wait for flag selector to become enabled
+    await waitFor(() => {
+      const selects = document.querySelectorAll('[role="combobox"]');
+      const flagSelect = Array.from(selects).find((el) => {
+        const parent = el.closest('.MuiFormControl-root');
+        return parent?.querySelector('label')?.textContent?.includes('Select a flag');
+      }) as HTMLElement;
+      
+      const section = flagSelect?.closest('.MuiStack-root') as HTMLElement;
+      expect(section?.style.pointerEvents).not.toBe('none');
+    }, { timeout: 1000 });
+    
     // Open flag selector
     const selects = document.querySelectorAll('[role="combobox"]');
     const flagSelect = Array.from(selects).find((el) => {
@@ -115,6 +230,9 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
     const user = userEvent.setup();
     renderApp();
     
+    // Upload image and select flag to enable controls
+    await uploadImageAndSelectFlag(user);
+    
     const segmentRadio = screen.getByRole('radio', { name: 'Segment' });
     await user.click(segmentRadio);
     
@@ -126,8 +244,14 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
     const user = userEvent.setup();
     renderApp();
     
-    // Should not show in ring mode
-    expect(screen.queryByText(/Flag Offset/)).toBeFalsy();
+    // Should not show in ring mode (even if we had controls enabled, which we don't yet)
+    expect(screen.queryByText(/Flag Horizontal Offset/)).toBeFalsy();
+    
+    // Upload image and select flag to enable controls
+    await uploadImageAndSelectFlag(user);
+    
+    // Still should not show in ring mode
+    expect(screen.queryByText(/Flag Horizontal Offset/)).toBeFalsy();
     
     // Switch to cutout mode
     const cutoutRadio = screen.getByRole('radio', { name: 'Cutout' });
@@ -135,13 +259,16 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
     
     // Should show in cutout mode
     await waitFor(() => {
-      expect(screen.getByText(/Flag Offset/)).toBeTruthy();
+      expect(screen.getByText(/Flag Horizontal Offset/)).toBeTruthy();
     });
   });
 
   it('should persist settings to localStorage', async () => {
     const user = userEvent.setup();
     renderApp();
+    
+    // Upload image and select flag to enable controls
+    await uploadImageAndSelectFlag(user);
     
     // Change thickness slider (should be persisted)
     const thicknessSlider = screen.getByText(/Border thickness/).parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
@@ -165,9 +292,12 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
     const user = userEvent.setup();
     renderApp();
     
+    // Upload image and select flag to enable controls
+    await uploadImageAndSelectFlag(user);
+    
     // Open background selector
-    const selects = document.querySelectorAll('[role="combobox"]');
-    const bgSelect = Array.from(selects).find((el) => {
+    const selectsAfter = document.querySelectorAll('[role="combobox"]');
+    const bgSelect = Array.from(selectsAfter).find((el) => {
       const parent = el.closest('.MuiFormControl-root');
       return parent?.querySelector('label')?.textContent?.includes('Background');
     }) as HTMLElement;
@@ -211,6 +341,9 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
   it('should switch between presentation modes without errors', async () => {
     const user = userEvent.setup();
     renderApp();
+    
+    // Upload image and select flag to enable controls
+    await uploadImageAndSelectFlag(user);
     
     // Switch through all modes
     await user.click(screen.getByRole('radio', { name: 'Segment' }));
