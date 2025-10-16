@@ -1,5 +1,6 @@
 import { retryFetch } from '@/utils/retry';
 import { FlagDataError } from '@/types/errors';
+import { getAssetUrl } from '@/config';
 
 export type FlagMeta = {
   id: string;
@@ -28,8 +29,8 @@ export async function loadFlags(): Promise<FlagMeta[]> {
   if (cached) return cached;
   
   try {
-    // Use base URL from Vite config to support GitHub Pages deployment
-    const flagsUrl = `${import.meta.env.BASE_URL}flags/flags.json`;
+    // Use configuration module to get properly formatted asset URL
+    const flagsUrl = getAssetUrl('flags/flags.json');
     
     // Use retryFetch for automatic retry on network failures
     const resp = await retryFetch(flagsUrl, {}, {
