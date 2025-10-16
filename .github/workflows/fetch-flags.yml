@@ -18,13 +18,16 @@ jobs:
         with:
           persist-credentials: true
           
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
         
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -36,7 +39,7 @@ jobs:
         run: node scripts/sync-flags-ts.cjs
       - name: Validate flag data integrity
         run: |
-          npm test -- flags.test.ts
+          pnpm test -- flags.test.ts
       - name: Validate flag assets quality
         run: |
           node scripts/validate-flags.cjs

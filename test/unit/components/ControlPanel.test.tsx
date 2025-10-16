@@ -38,6 +38,7 @@ describe('ControlPanel', () => {
     onBgChange: vi.fn(),
     onDownload: vi.fn(),
     downloadDisabled: false,
+    hasImage: true, // Enable sections for testing
   };
 
   it('should render ImageUploader component', () => {
@@ -72,7 +73,7 @@ describe('ControlPanel', () => {
   it('should render Inset/Outset slider', () => {
     render(<ControlPanel {...defaultProps} />);
     
-    expect(screen.getByText('Inset/Outset: 0%')).toBeTruthy();
+    expect(screen.getByText('Profile Image Inset/Outset: 0%')).toBeTruthy();
   });
 
   it('should not render Flag Offset slider when presentation is ring', () => {
@@ -88,9 +89,9 @@ describe('ControlPanel', () => {
   });
 
   it('should render Flag Offset slider when presentation is cutout', () => {
-    render(<ControlPanel {...defaultProps} presentation="cutout" />);
+    render(<ControlPanel {...defaultProps} presentation="cutout" flagId="flag1" />);
     
-    expect(screen.getByText('Flag Offset: 0px')).toBeTruthy();
+    expect(screen.getByText('Flag Horizontal Offset: 0px')).toBeTruthy();
   });
 
   it('should render Background selector', () => {
@@ -136,7 +137,7 @@ describe('ControlPanel', () => {
     const user = userEvent.setup();
     const onBgChange = vi.fn();
     
-    render(<ControlPanel {...defaultProps} onBgChange={onBgChange} />);
+    render(<ControlPanel {...defaultProps} onBgChange={onBgChange} flagId="flag1" />);
     
     // Open the background dropdown
     const bgSelects = document.querySelectorAll('[role="combobox"]');
@@ -192,12 +193,13 @@ describe('ControlPanel', () => {
         insetPct={-5}
         flagOffsetX={100}
         presentation="cutout"
+        flagId="flag1"
       />
     );
     
     expect(screen.getByText('Border thickness: 15%')).toBeTruthy();
-    expect(screen.getByText('Inset/Outset: -5%')).toBeTruthy();
-    expect(screen.getByText('Flag Offset: 100px')).toBeTruthy();
+    expect(screen.getByText('Profile Image Inset/Outset: -5%')).toBeTruthy();
+    expect(screen.getByText('Flag Horizontal Offset: 100px')).toBeTruthy();
   });
 
   it('should render download icon', () => {
