@@ -93,6 +93,11 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
     const user = userEvent.setup();
     renderApp();
     
+    // Wait for flags to finish loading (skeleton loader should disappear)
+    await waitFor(() => {
+      expect(screen.queryByText('Loading flags...')).toBeFalsy();
+    }, { timeout: 2000 });
+    
     // Open flag selector
     const selects = document.querySelectorAll('[role="combobox"]');
     const flagSelect = Array.from(selects).find((el) => {
@@ -197,7 +202,7 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
   it('should render presentation controls with all options', () => {
     renderApp();
     
-    expect(screen.getByText('Presentation')).toBeTruthy();
+    expect(screen.getByText('Presentation Style')).toBeTruthy();
     expect(screen.getByText('Ring')).toBeTruthy();
     expect(screen.getByText('Segment')).toBeTruthy();
     expect(screen.getByText('Cutout')).toBeTruthy();

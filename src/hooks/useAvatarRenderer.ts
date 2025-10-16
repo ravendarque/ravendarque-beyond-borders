@@ -60,6 +60,9 @@ export function useAvatarRenderer(
       }
 
       try {
+        // Show loading indicator at start of render process
+        setIsRendering(true);
+        
         // Find selected flag
         const flag = flagsList.find((f) => f.id === flagId);
         if (!flag) {
@@ -94,16 +97,11 @@ export function useAvatarRenderer(
           if (flagImageCache.has(cacheKey)) {
             flagImageBitmap = flagImageCache.get(cacheKey);
           } else {
-            // Show loading indicator only when fetching flag image (not cached)
-            setIsRendering(true);
-
             // Fetch and cache the flag image
             const flagResponse = await fetch(`/flags/${flag.png_full}`);
             const flagBlob = await flagResponse.blob();
             flagImageBitmap = await createImageBitmap(flagBlob);
             flagImageCache.set(cacheKey, flagImageBitmap);
-
-            setIsRendering(false);
           }
         }
 
@@ -127,6 +125,9 @@ export function useAvatarRenderer(
         }
 
         setOverlayUrl(blobUrl);
+        
+        // Clear loading state after successful render
+        setIsRendering(false);
 
         // Set test completion hook for E2E tests
         try {

@@ -22,6 +22,15 @@ Thumbs.db
 
 # Tests and coverage
 coverage/
+playwright-report/
+test-results/
+
+# Local working files (scripts, outputs, temp files, etc.)
+.local/
+!.local/README.md
+
+# Build artifacts
+*.tsbuildinfo
 
 # Env files (if used later)
 .env

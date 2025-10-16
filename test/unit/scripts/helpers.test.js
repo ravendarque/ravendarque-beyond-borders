@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const helpers = require('../lib/helpers.cjs');
+const helpers = require('../../../scripts/lib/helpers.cjs');
 
 test('sanitizeFilename strips paths and normalizes', () => {
   const s = helpers.sanitizeFilename('../File:Weird/Name<>.svg');
@@ -14,6 +14,6 @@ test('extractColorsFromSvgText normalizes colors', () => {
   const cols = helpers.extractColorsFromSvgText('#abc rgb(1,2,3) fill: red stop-color: blue');
   expect(cols).toContain('#aabbcc');
   expect(cols).toContain('#010203');
-  expect(cols).toContain('red');
-  expect(cols).toContain('blue');
+  expect(cols).toContain('#ff0000'); // Named color 'red' converts to hex
+  expect(cols).toContain('#0000ff'); // Named color 'blue' converts to hex
 });
