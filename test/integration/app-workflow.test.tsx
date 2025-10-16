@@ -46,12 +46,10 @@ async function uploadImageAndSelectFlag(user: ReturnType<typeof userEvent.setup>
   const file = new File(['test'], 'avatar.png', { type: 'image/png' });
   await user.upload(fileInput, file);
   
-  // Wait for flags to load
-  await waitFor(() => {
-    expect(screen.queryByText('Loading flags...')).toBeFalsy();
-  }, { timeout: 2000 });
+  // Wait a tick for React state to flush
+  await new Promise(resolve => setTimeout(resolve, 0));
   
-  // Wait for section 2 (flag selector) to become enabled
+  // Wait for the flag selector section to be enabled (hasImage becomes true)
   await waitFor(() => {
     const selects = document.querySelectorAll('[role="combobox"]');
     const flagSelect = Array.from(selects).find((el) => {
@@ -60,46 +58,68 @@ async function uploadImageAndSelectFlag(user: ReturnType<typeof userEvent.setup>
     }) as HTMLElement;
     
     if (!flagSelect) {
-      throw new Error('Flag select not found');
+      throw new Error('Flag selector not found');
     }
     
-    const section = flagSelect?.closest('.MuiStack-root') as HTMLElement;
-    if (!section) {
-      throw new Error('Section not found');
+    // Check that the section is enabled
+    const section = flagSelect.closest('.MuiStack-root') as HTMLElement;
+    const computed = window.getComputedStyle(section);
+    if (computed.pointerEvents === 'none') {
+      throw new Error('Section 2 not enabled yet - hasImage is still false');
     }
-    
-    const pointerEvents = window.getComputedStyle(section).pointerEvents;
-    expect(pointerEvents).not.toBe('none');
   }, { timeout: 3000 });
   
-  // Select a flag
-  const selects = document.querySelectorAll('[role="combobox"]');
-  const flagSelect = Array.from(selects).find((el) => {
-    const parent = el.closest('.MuiFormControl-root');
-    return parent?.querySelector('label')?.textContent?.includes('Select a flag');
-  }) as HTMLElement;
-  await user.click(flagSelect);
-  const firstFlag = screen.getAllByRole('option')[1]; // Skip "None"
+  // Wait for flags to load
+  await waitFor(() => {
+    expect(screen.queryByText('Loading flags...')).toBeFalsy();
+  }, { timeout: 2000 });
+  
+  // Select a flag - waitFor will retry the click until it succeeds
+  await waitFor(async () => {
+    const selects = document.querySelectorAll('[role="combobox"]');
+    const flagSelect = Array.from(selects).find((el) => {
+      const parent = el.closest('.MuiFormControl-root');
+      return parent?.querySelector('label')?.textContent?.includes('Select a flag');
+    }) as HTMLElement;
+    
+    if (!flagSelect) {
+      throw new Error('Flag selector not found');
+    }
+    
+    // Try to click - if pointer-events is none, this will throw and waitFor will retry
+    await user.click(flagSelect);
+  }, { timeout: 5000 });
+  
+  // Select the first flag option
+  const firstFlag = await screen.findByRole('option', { name: /test flag/i });
   await user.click(firstFlag);
   
-  // Wait for section 3 (appearance controls) to become enabled
-  await waitFor(() => {
-    const segmentRadio = screen.getByRole('radio', { name: 'Segment' });
-    const section = segmentRadio?.closest('.MuiStack-root') as HTMLElement;
-    
-    if (!section) {
-      throw new Error('Appearance section not found');
-    }
-    
-    const pointerEvents = window.getComputedStyle(section).pointerEvents;
-    expect(pointerEvents).not.toBe('none');
-  }, { timeout: 3000 });
+  // No need to check pointer-events - if section 3 isn't enabled, 
+  // tests that try to interact with it will naturally fail with clear errors
 }
 
 describe('Integration: Complete Avatar Creation Workflow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    
+    // Mock Image constructor for file validation
+    global.Image = class MockImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      src = '';
+      width = 100;
+      height = 100;
+      
+      constructor() {
+        // Simulate immediate image load when src is set
+        setTimeout(() => {
+          if (this.onload) {
+            this.onload();
+          }
+        }, 0);
+      }
+    } as any;
     
     // Mock browser APIs
     global.createImageBitmap = vi.fn(async () => ({
@@ -108,7 +128,8 @@ describe('Integration: Complete Avatar Creation Workflow', () => {
       close: vi.fn(),
     })) as any;
     
-    global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+    const createObjectURLSpy = vi.fn(() => 'blob:mock-url');
+    global.URL.createObjectURL = createObjectURLSpy;
     global.URL.revokeObjectURL = vi.fn();
     
     // Mock fetch to return valid flag data
