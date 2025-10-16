@@ -67,7 +67,7 @@ export function useFlagPreloader(
         preloadedRef.current.add(cacheKey);
 
         // Fetch and cache the flag image
-        const response = await fetch(`/flags/${flag.png_full}`);
+        const response = await fetch(`${import.meta.env.BASE_URL}flags/${flag.png_full}`);
         if (!response.ok) {
           return; // Silent fail for preloading
         }

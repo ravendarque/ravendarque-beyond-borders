@@ -98,7 +98,7 @@ export function useAvatarRenderer(
             flagImageBitmap = flagImageCache.get(cacheKey);
           } else {
             // Fetch and cache the flag image
-            const flagResponse = await fetch(`/flags/${flag.png_full}`);
+            const flagResponse = await fetch(`${import.meta.env.BASE_URL}flags/${flag.png_full}`);
             const flagBlob = await flagResponse.blob();
             flagImageBitmap = await createImageBitmap(flagBlob);
             flagImageCache.set(cacheKey, flagImageBitmap);

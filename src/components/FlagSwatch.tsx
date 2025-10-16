@@ -24,7 +24,7 @@ export default function FlagSwatch({ flag, size = 36, showName = false }: { flag
         {(flag as any).png_preview || (flag as any).png_full || (flag as any).svgFilename ? (
           <Box
             component="img"
-            src={`/flags/${(flag as any).png_preview || (flag as any).png_full || (flag as any).svgFilename}`}
+            src={`${import.meta.env.BASE_URL}flags/${(flag as any).png_preview || (flag as any).png_full || (flag as any).svgFilename}`}
             alt=""
             sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
             onError={(e: any) => {
