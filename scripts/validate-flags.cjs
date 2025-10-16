@@ -110,7 +110,7 @@ function canonicalizeId(name) {
   (async () => {
     let playwright = null;
     try { playwright = require('playwright'); } catch (e) {
-      console.error('Playwright is required for PNG usage validation. Install with: npm install -D playwright');
+    console.error('Playwright is required for PNG usage validation. Install with: pnpm add -D playwright');
       process.exit(1);
     }
     const chromium = playwright.chromium;

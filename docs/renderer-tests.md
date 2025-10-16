@@ -110,19 +110,19 @@ Comprehensive test suite for the renderer module, covering geometry calculations
 
 ### Run All Renderer Tests
 ```bash
-npm test -- test/unit/renderer
+pnpm test -- test/unit/renderer
 ```
 
 ### Run Specific Test File
 ```bash
-npm test -- test/unit/renderer/canvas-utils.test.ts
-npm test -- test/unit/renderer/flag-validation.test.ts
-npm test -- test/unit/renderer.test.ts
+pnpm test -- test/unit/renderer/canvas-utils.test.ts
+pnpm test -- test/unit/renderer/flag-validation.test.ts
+pnpm test -- test/unit/renderer.test.ts
 ```
 
 ### Watch Mode
 ```bash
-npm test -- test/unit/renderer --watch
+pnpm test -- test/unit/renderer --watch
 ```
 
 ## Test Data

@@ -23,10 +23,10 @@ PRD is defined in `beyond-borders-prd-0.1.md`. App scaffolding to be created (Vi
 ## Local Development (once scaffolded)
 - Requirements: Node 18+ (or 20+), pnpm or npm
 - Steps (to be run after scaffolding):
-  - Install deps: `pnpm install` or `npm install`
-  - Start dev server: `pnpm dev` or `npm run dev`
-  - Build: `pnpm build` or `npm run build`
-  - Preview: `pnpm preview` or `npm run preview`
+  - Install deps: `pnpm install`
+  - Start dev server: `pnpm dev`
+  - Build: `pnpm build`
+  - Preview: `pnpm preview`
 
   ## Flag validation & fetching
 
