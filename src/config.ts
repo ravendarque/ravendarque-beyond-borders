@@ -1,0 +1,90 @@
+/**
+ * Application configuration
+ * Centralizes environment-specific configuration and provides a clean API
+ * for accessing config values throughout the application.
+ */
+
+/**
+ * Configuration interface
+ */
+interface AppConfig {
+  /**
+   * Get the full URL for an asset path
+   * @param path - Relative path to the asset (e.g., 'flags/flags.json')
+   * @returns Full URL including base path
+   */
+  getAssetUrl: (path: string) => string;
+
+  /**
+   * Get the base URL for the application
+   * @returns Base URL (e.g., '/' or '/ravendarque-beyond-borders/')
+   */
+  getBaseUrl: () => string;
+
+  /**
+   * Check if running in development mode
+   */
+  isDevelopment: () => boolean;
+
+  /**
+   * Check if running in production mode
+   */
+  isProduction: () => boolean;
+}
+
+/**
+ * Create application configuration
+ * This encapsulates all environment variable access
+ */
+function createConfig(): AppConfig {
+  // Cache base URL to avoid repeated env var access
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const mode = import.meta.env.MODE || 'production';
+
+  return {
+    getAssetUrl(path: string): string {
+      // Remove leading slash from path if present
+      const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+      
+      // Combine base URL with path
+      // Handle trailing slash in base URL
+      const base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+      
+      return `${base}${cleanPath}`;
+    },
+
+    getBaseUrl(): string {
+      return baseUrl;
+    },
+
+    isDevelopment(): boolean {
+      return mode === 'development';
+    },
+
+    isProduction(): boolean {
+      return mode === 'production';
+    },
+  };
+}
+
+/**
+ * Global configuration instance
+ * This is the single source of truth for application configuration
+ */
+export const config = createConfig();
+
+/**
+ * Convenience function for getting asset URLs
+ * @param path - Relative path to the asset
+ * @returns Full URL including base path
+ * 
+ * @example
+ * ```ts
+ * const flagUrl = getAssetUrl('flags/flags.json');
+ * // Development: '/flags/flags.json'
+ * // Production: '/ravendarque-beyond-borders/flags/flags.json'
+ * ```
+ */
+export function getAssetUrl(path: string): string {
+  return config.getAssetUrl(path);
+}
