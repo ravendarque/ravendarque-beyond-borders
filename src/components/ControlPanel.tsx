@@ -98,22 +98,27 @@ function ControlPanelComponent({
       <Stack spacing={3}>
         {/* Step 1: Image Upload Section */}
         <Stack spacing={2}>
-          <Stack spacing={0}>
-            <StepIndicator stepNumber={1} title="Upload Image" isComplete={hasImage} />
-            <Typography 
-              variant="caption" 
-              sx={{ pl: 7, opacity: 0.9, fontSize: '0.8125rem', mt: '-6px !important' }}
-            >
-              JPG or PNG, max 10 MB, up to 4K resolution
-            </Typography>
-          </Stack>
+          <StepIndicator stepNumber={1} title="Choose Profile Image" isComplete={hasImage} />
+          <Typography 
+            variant="caption" 
+            sx={{ pl: 7, opacity: 0.9, fontSize: '0.8125rem', mt: '-6px !important' }}
+          >
+            JPG or PNG, max 10 MB, up to 4K resolution
+          </Typography>
           <Stack spacing={2} sx={{ pl: 7 }}>
             <ImageUploader onFileChange={onFileChange} onError={onFileError} />
           </Stack>
         </Stack>
 
         {/* Step 2: Flag Selection Section */}
-        <Stack spacing={2}>
+        <Stack 
+          spacing={2}
+          sx={{ 
+            opacity: hasImage ? 1 : 0.5,
+            pointerEvents: hasImage ? 'auto' : 'none',
+            transition: 'opacity 0.3s ease',
+          }}
+        >
           <StepIndicator stepNumber={2} title="Select Flag" isComplete={!!flagId} />
           <Stack spacing={2} sx={{ pl: 7 }}>
             <FlagSelector value={flagId} flags={flags} onChange={onFlagChange} isLoading={flagsLoading} />
@@ -121,7 +126,14 @@ function ControlPanelComponent({
         </Stack>
 
         {/* Step 3: Appearance Section */}
-        <Stack spacing={2}>
+        <Stack 
+          spacing={2}
+          sx={{ 
+            opacity: (hasImage && !!flagId) ? 1 : 0.5,
+            pointerEvents: (hasImage && !!flagId) ? 'auto' : 'none',
+            transition: 'opacity 0.3s ease',
+          }}
+        >
           <StepIndicator 
             stepNumber={3} 
             title="Customize Appearance" 
@@ -143,7 +155,7 @@ function ControlPanelComponent({
 
             {/* Inset/Outset */}
             <SliderControl
-              label="Inset/Outset"
+              label="Profile Image Inset/Outset"
               value={insetPct}
               min={-10}
               max={10}
@@ -155,7 +167,7 @@ function ControlPanelComponent({
             {/* Flag Offset (Cutout mode only) */}
             {presentation === 'cutout' && (
               <SliderControl
-                label="Flag Offset"
+                label="Flag Horizontal Offset"
                 value={flagOffsetX}
                 min={-200}
                 max={200}
