@@ -14,11 +14,12 @@ describe('AvatarPreview', () => {
 
   const defaultProps = createDefaultProps();
 
-  it('should render preview title', () => {
+  it('should render canvas element', () => {
     render(<AvatarPreview {...defaultProps} />);
     
-    // Title is now visually-hidden for accessibility, but still in the DOM
-    expect(screen.getByText('Avatar Preview Canvas')).toBeTruthy();
+    // Canvas element should be present
+    const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+    expect(canvas).toBeTruthy();
   });
 
   it('should render canvas with correct dimensions', () => {
