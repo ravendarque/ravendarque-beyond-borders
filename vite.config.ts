@@ -4,6 +4,10 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // Set base URL for GitHub Pages deployment
+  // In production, assets will be served from /ravendarque-beyond-borders/
+  // In development, assets are served from root /
+  base: process.env.NODE_ENV === 'production' ? '/ravendarque-beyond-borders/' : '/',
   plugins: [react()],
   resolve: {
     alias: {
