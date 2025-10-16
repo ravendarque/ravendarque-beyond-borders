@@ -20,13 +20,24 @@ PRD is defined in `beyond-borders-prd-0.1.md`. App scaffolding to be created (Vi
 - Zod for `flags.json` validation
 - Vitest/RTL + Playwright for tests
 
-## Local Development (once scaffolded)
-- Requirements: Node 18+ (or 20+), pnpm or npm
-- Steps (to be run after scaffolding):
-  - Install deps: `pnpm install`
-  - Start dev server: `pnpm dev`
-  - Build: `pnpm build`
-  - Preview: `pnpm preview`
+## Local Development
+- **Requirements**: Node 18+ (or 20+), pnpm or npm
+- **Install dependencies**: `pnpm install`
+- **Start dev server**: `pnpm dev`
+- **Build**: `pnpm build`
+- **Preview**: `pnpm preview`
+- **Run tests**: `pnpm test`
+
+### Contributing
+
+The `main` branch is protected. All changes must be made via pull requests:
+
+1. **Create a feature branch**: `git checkout -b feature/your-feature`
+2. **Make changes and commit**: Follow [conventional commits](https://www.conventionalcommits.org/)
+3. **Push and create PR**: `git push -u origin feature/your-feature`
+4. **Wait for CI checks** to pass (build, tests, flag validation)
+5. **Request review**: At least 1 approval required
+6. **Merge** after approval and passing checks
 
   ## Flag validation & fetching
 
