@@ -28,8 +28,11 @@ export async function loadFlags(): Promise<FlagMeta[]> {
   if (cached) return cached;
   
   try {
+    // Use base URL from Vite config to support GitHub Pages deployment
+    const flagsUrl = `${import.meta.env.BASE_URL}flags/flags.json`;
+    
     // Use retryFetch for automatic retry on network failures
-    const resp = await retryFetch('/flags/flags.json', {}, {
+    const resp = await retryFetch(flagsUrl, {}, {
       maxAttempts: 3,
       initialDelay: 500,
     });
