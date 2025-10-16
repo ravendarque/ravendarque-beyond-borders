@@ -1,0 +1,6 @@
+# CODEOWNERS governs reviewers automatically assigned for changes.
+# For syntax details: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# Order matters; first matching pattern wins.
+
+# Global ownership (entire repository)
+* @ravendarque
