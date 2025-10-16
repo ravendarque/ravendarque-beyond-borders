@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { FlagSpec } from '@/flags/schema';
+import { getAssetUrl, config } from '@/config';
 
 /**
  * Priority flags that should be preloaded on idle
@@ -67,7 +68,7 @@ export function useFlagPreloader(
         preloadedRef.current.add(cacheKey);
 
         // Fetch and cache the flag image
-        const response = await fetch(`/flags/${flag.png_full}`);
+        const response = await fetch(getAssetUrl(`flags/${flag.png_full}`));
         if (!response.ok) {
           return; // Silent fail for preloading
         }
@@ -79,13 +80,13 @@ export function useFlagPreloader(
         flagImageCache.set(cacheKey, bitmap);
 
         // Development logging
-        if (import.meta.env.DEV) {
+        if (config.isDevelopment()) {
           // eslint-disable-next-line no-console
           console.log(`[Preload] Flag image preloaded: ${flag.id}`);
         }
       } catch (error) {
         // Silent fail - preloading is best-effort
-        if (import.meta.env.DEV) {
+        if (config.isDevelopment()) {
           // eslint-disable-next-line no-console
           console.warn(`[Preload] Failed to preload ${flag.id}:`, error);
         }
