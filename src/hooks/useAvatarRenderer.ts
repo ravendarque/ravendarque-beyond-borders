@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { renderAvatar } from '@/renderer/render';
 import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
+import { getAssetUrl } from '@/config';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -98,7 +99,7 @@ export function useAvatarRenderer(
             flagImageBitmap = flagImageCache.get(cacheKey);
           } else {
             // Fetch and cache the flag image
-            const flagResponse = await fetch(`${import.meta.env.BASE_URL}flags/${flag.png_full}`);
+            const flagResponse = await fetch(getAssetUrl(`flags/${flag.png_full}`));
             const flagBlob = await flagResponse.blob();
             flagImageBitmap = await createImageBitmap(flagBlob);
             flagImageCache.set(cacheKey, flagImageBitmap);
