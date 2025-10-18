@@ -51,9 +51,9 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [imageUrl, setImageUrl] = useState<string | null>(initialImageUrl);
   const [imageName, setImageName] = useState<string | null>(null);
+  const [flagId, setFlagId] = useState<string>(initialFlagId);
   
-  // Persisted settings (survive navigation)
-  const [flagId, setFlagId] = usePersistedState('workflow-flagId', initialFlagId);
+  // Persisted settings (survive navigation/refresh)
   const [thickness, setThickness] = usePersistedState('workflow-thickness', 7);
   const [insetPct, setInsetPct] = usePersistedState('workflow-insetPct', 0);
   const [flagOffsetX, setFlagOffsetX] = usePersistedState('workflow-flagOffsetX', 0);
@@ -193,8 +193,7 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
     url.searchParams.delete('step');
     window.history.replaceState({}, '', url.toString());
 
-    // Clear persisted state
-    localStorage.removeItem('workflow-flagId');
+    // Clear persisted state (not flagId - that's session-only)
     localStorage.removeItem('workflow-thickness');
     localStorage.removeItem('workflow-insetPct');
     localStorage.removeItem('workflow-flagOffsetX');
