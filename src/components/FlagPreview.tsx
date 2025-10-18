@@ -60,8 +60,9 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
     return `/flags/${filename}`;
   };
 
-  // Size in pixels
-  const sizePx = size === 'small' ? 96 : 192;
+  // Size in pixels - rectangular flag preview
+  const width = size === 'small' ? 144 : 288;  // 3:2 aspect ratio for flags
+  const height = size === 'small' ? 96 : 192;
 
   if (!flag) {
     return (
@@ -69,9 +70,9 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
         aria-label="Flag preview"
         data-size={size}
         sx={{
-          width: sizePx,
-          height: sizePx,
-          borderRadius: '50%',
+          width: width,
+          height: height,
+          borderRadius: 1,
           bgcolor: 'grey.200',
           display: 'flex',
           alignItems: 'center',
@@ -113,8 +114,8 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
         data-clickable={!!onClick}
         sx={{
           position: 'relative',
-          width: sizePx,
-          height: sizePx,
+          width: width,
+          height: height,
           cursor: onClick ? 'pointer' : 'default',
           transition: 'transform 0.2s',
           '&:hover': onClick ? {
@@ -131,7 +132,7 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: '50%',
+              borderRadius: 1,
               bgcolor: 'grey.100',
             }}
           >
@@ -147,12 +148,12 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
           onLoad={handleImageLoad}
           onError={handleImageError}
           sx={{
-            width: sizePx,
-            height: sizePx,
-            borderRadius: '50%',
+            width: width,
+            height: height,
+            borderRadius: 1,
             objectFit: 'cover',
-            border: 4,
-            borderColor: 'grey.200',
+            border: 2,
+            borderColor: 'grey.300',
             opacity: isLoading ? 0 : 1,
             transition: 'opacity 0.3s',
           }}
@@ -167,7 +168,7 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: '50%',
+              borderRadius: 1,
               bgcolor: 'grey.200',
             }}
           >
