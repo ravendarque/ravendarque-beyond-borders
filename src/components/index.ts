@@ -1,6 +1,7 @@
 export { ImageUploader } from './ImageUploader';
 export { FlagSelector } from './FlagSelector';
 export { FlagDropdown } from './FlagDropdown';
+export { FlagPreview } from './FlagPreview';
 export { PresentationControls } from './PresentationControls';
 export { SliderControl } from './SliderControl';
 export { AvatarPreview } from './AvatarPreview';
@@ -11,6 +12,7 @@ export { StepProgressIndicator } from './StepProgressIndicator';
 export type { ImageUploaderProps } from './ImageUploader';
 export type { FlagSelectorProps } from './FlagSelector';
 export type { FlagDropdownProps } from './FlagDropdown';
+export type { FlagPreviewProps } from './FlagPreview';
 export type { PresentationControlsProps } from './PresentationControls';
 export type { SliderControlProps } from './SliderControl';
 export type { AvatarPreviewProps } from './AvatarPreview';
