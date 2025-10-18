@@ -51,35 +51,34 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
   // Determine image source (prefer preview for small size)
   const getImageSrc = () => {
     if (!flag) return '';
-    if (size === 'small' && flag.png_preview) {
-      return flag.png_preview;
-    }
-    return flag.png_full;
+    
+    // Construct full path to flag image in public/flags/
+    const filename = size === 'small' && flag.png_preview 
+      ? flag.png_preview 
+      : flag.png_full;
+    
+    return `/flags/${filename}`;
   };
 
-  // Size classes
-  const sizeClasses = size === 'small' 
-    ? 'w-24 h-24' 
-    : 'w-48 h-48 md:w-64 md:h-64';
-
-  // Interactive styling
-  const interactiveClasses = onClick
-    ? 'cursor-pointer hover:scale-105 transition-transform'
-    : '';
-
-  // Animation classes
-  const animationClasses = shouldAnimate
-    ? 'animate-fade-in'
-    : '';
+  // Size in pixels
+  const sizePx = size === 'small' ? 96 : 192;
 
   if (!flag) {
     return (
       <Box
         aria-label="Flag preview"
         data-size={size}
-        className={`${sizeClasses} rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center`}
+        sx={{
+          width: sizePx,
+          height: sizePx,
+          borderRadius: '50%',
+          bgcolor: 'grey.200',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       >
-        <Typography variant="body2" color="text.secondary" className="text-center px-4">
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', px: 2 }}>
           Select a flag to preview
         </Typography>
       </Box>
@@ -97,61 +96,92 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
 
   return (
     <Box
-      className="flex flex-col items-center gap-4"
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 2,
+      }}
       data-size={size}
       data-animate={shouldAnimate}
     >
-      <PreviewContainer
+      <Box
+        component={PreviewContainer}
         {...containerProps}
         aria-label="Flag preview"
         aria-busy={isLoading}
         data-clickable={!!onClick}
-        className={`relative ${sizeClasses} ${interactiveClasses} ${animationClasses}`}
+        sx={{
+          position: 'relative',
+          width: sizePx,
+          height: sizePx,
+          cursor: onClick ? 'pointer' : 'default',
+          transition: 'transform 0.2s',
+          '&:hover': onClick ? {
+            transform: 'scale(1.05)',
+          } : {},
+        }}
       >
         {/* Loading spinner */}
         {isLoading && (
           <Box
-            className="absolute inset-0 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800"
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              bgcolor: 'grey.100',
+            }}
           >
             <CircularProgress size={size === 'small' ? 24 : 40} />
           </Box>
         )}
 
         {/* Flag image */}
-        <img
+        <Box
+          component="img"
           src={getImageSrc()}
           alt={`${flag.displayName} flag`}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          className={`
-            ${sizeClasses}
-            rounded-full
-            object-cover
-            border-4
-            border-gray-200
-            dark:border-gray-700
-            ${isLoading ? 'opacity-0' : 'opacity-100'}
-            transition-opacity
-            duration-300
-          `}
+          sx={{
+            width: sizePx,
+            height: sizePx,
+            borderRadius: '50%',
+            objectFit: 'cover',
+            border: 4,
+            borderColor: 'grey.200',
+            opacity: isLoading ? 0 : 1,
+            transition: 'opacity 0.3s',
+          }}
         />
 
         {/* Error state */}
         {hasError && (
           <Box
-            className="absolute inset-0 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              bgcolor: 'grey.200',
+            }}
           >
-            <Typography variant="body2" color="error" className="text-center px-4">
+            <Typography variant="body2" color="error" sx={{ textAlign: 'center', px: 2 }}>
               Failed to load
             </Typography>
           </Box>
         )}
-      </PreviewContainer>
+      </Box>
 
       {/* Flag name */}
       <Typography
         variant={size === 'small' ? 'body2' : 'h6'}
-        className="font-medium text-center"
+        sx={{ fontWeight: 'medium', textAlign: 'center' }}
       >
         {flag.displayName}
       </Typography>
@@ -171,7 +201,7 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
         <Typography
           variant="body2"
           color="text.secondary"
-          className="text-center max-w-md"
+          sx={{ textAlign: 'center', maxWidth: '28rem' }}
         >
           {flag.sources.authorNote}
         </Typography>
