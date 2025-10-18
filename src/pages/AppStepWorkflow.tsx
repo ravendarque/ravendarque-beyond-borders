@@ -47,12 +47,21 @@ export function AppStepWorkflow() {
   const size = 1024 as const;
   const displaySize = isMobile ? Math.min(window.innerWidth - 80, 280) : isTablet ? 320 : 300;
 
-  // Step workflow state
-  const { currentStep, nextStep, prevStep, goToStep, startOver, completedSteps } = useStepWorkflow();
+  // Step workflow state - handles imageUrl, flagId, and navigation
+  const {
+    currentStep,
+    nextStep,
+    prevStep,
+    goToStep,
+    startOver,
+    completedSteps,
+    imageUrl,
+    setImageUrl,
+    flagId,
+    setFlagId,
+  } = useStepWorkflow();
 
-  // App state
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [flagId, setFlagId] = useState<string>('');
+  // App state (local to this component)
   const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
   const [flagsLoading, setFlagsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);

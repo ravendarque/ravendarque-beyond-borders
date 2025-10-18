@@ -167,7 +167,7 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
       )}
 
       {/* Description */}
-      {showDescription && flag.sources.authorNote && (
+      {showDescription && flag.sources?.authorNote && (
         <Typography
           variant="body2"
           color="text.secondary"

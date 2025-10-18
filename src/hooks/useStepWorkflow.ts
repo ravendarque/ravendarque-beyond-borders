@@ -63,12 +63,9 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
   );
   const [bg, setBg] = usePersistedState<string | 'transparent'>('workflow-bg', 'transparent');
 
-  // Computed validation states - use callbacks to get latest values
-  const getCanProceedToStep2 = useCallback(() => imageUrl !== null, [imageUrl]);
-  const getCanProceedToStep3 = useCallback(() => imageUrl !== null && flagId !== '', [imageUrl, flagId]);
-  
-  const canProceedToStep2 = getCanProceedToStep2();
-  const canProceedToStep3 = getCanProceedToStep3();
+  // Computed validation states - direct calculation, no callbacks
+  const canProceedToStep2 = imageUrl !== null;
+  const canProceedToStep3 = imageUrl !== null && flagId !== '';
 
   // Completed steps tracking
   const completedSteps: Step[] = [];
@@ -100,9 +97,9 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
     if (stepParam) {
       const requestedStep = parseInt(stepParam, 10) as Step;
       
-      // Use getter functions to check current state
-      const canGoTo2 = getCanProceedToStep2();
-      const canGoTo3 = getCanProceedToStep3();
+      // Check current state directly
+      const canGoTo2 = imageUrl !== null;
+      const canGoTo3 = imageUrl !== null && flagId !== '';
       
       // Only restore step if we have the required data
       if (requestedStep === 2 && canGoTo2) {
@@ -111,19 +108,17 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
         setCurrentStep(3);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
   /**
    * Navigate to a specific step
    * Validates that prerequisites are met
-   * Note: Uses latest state via getters to handle batched updates
    */
   const goToStep = useCallback(
     (step: Step) => {
-      // Use getter functions to check latest state
-      const canGoTo2 = getCanProceedToStep2();
-      const canGoTo3 = getCanProceedToStep3();
+      // Check current state directly
+      const canGoTo2 = imageUrl !== null;
+      const canGoTo3 = imageUrl !== null && flagId !== '';
       
       // Validate prerequisites
       if (step === 2 && !canGoTo2) {
@@ -140,31 +135,44 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
       const message = `Navigated to step ${step} of 3: ${stepNames[step - 1]}`;
       announceToScreenReader(message);
     },
-    [getCanProceedToStep2, getCanProceedToStep3]
+    [imageUrl, flagId]
   );
 
   /**
    * Go to next step if allowed
    */
   const nextStep = useCallback(() => {
-    const canGoTo2 = getCanProceedToStep2();
-    const canGoTo3 = getCanProceedToStep3();
+    const canGoTo2 = imageUrl !== null;
+    const canGoTo3 = imageUrl !== null && flagId !== '';
     
-    if (currentStep === 1 && canGoTo2) {
-      goToStep(2);
-    } else if (currentStep === 2 && canGoTo3) {
-      goToStep(3);
-    }
-  }, [currentStep, getCanProceedToStep2, getCanProceedToStep3, goToStep]);
+    setCurrentStep((current) => {
+      if (current === 1 && canGoTo2) {
+        // Announce to screen readers
+        announceToScreenReader('Navigated to step 2 of 3: Choose Flag');
+        return 2;
+      } else if (current === 2 && canGoTo3) {
+        // Announce to screen readers
+        announceToScreenReader('Navigated to step 3 of 3: Preview & Customize');
+        return 3;
+      }
+      return current;
+    });
+  }, [imageUrl, flagId]);
 
   /**
    * Go to previous step
    */
   const prevStep = useCallback(() => {
-    if (currentStep > 1) {
-      goToStep((currentStep - 1) as Step);
-    }
-  }, [currentStep, goToStep]);
+    setCurrentStep((current) => {
+      if (current > 1) {
+        const newStep = (current - 1) as Step;
+        const stepNames = ['Choose Image', 'Choose Flag', 'Preview & Customize'];
+        announceToScreenReader(`Navigated to step ${newStep} of 3: ${stepNames[newStep - 1]}`);
+        return newStep;
+      }
+      return current;
+    });
+  }, []);
 
   /**
    * Reset all state and return to step 1
