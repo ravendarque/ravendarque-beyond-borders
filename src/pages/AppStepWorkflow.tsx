@@ -297,10 +297,10 @@ export function AppStepWorkflow() {
           <StepProgressIndicator
             currentStep={currentStep}
             completedSteps={completedSteps}
-            steps={STEP_TITLES.map((label, index) => ({
+            steps={STEP_TITLES.map((title, index) => ({
               number: (index + 1) as Step,
-              label: `Step ${index + 1}`,
-              title: label,
+              label: title,
+              title: title,
             }))}
             onStepClick={goToStep}
           />
@@ -343,6 +343,23 @@ export function AppStepWorkflow() {
               onFileChange={handleImageUpload}
               onError={handleImageError}
             />
+            
+            {/* Show preview of uploaded image */}
+            {imageUrl && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <img
+                  src={imageUrl}
+                  alt="Uploaded preview"
+                  style={{
+                    maxWidth: '300px',
+                    maxHeight: '300px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                  }}
+                />
+              </Box>
+            )}
+            
             <NavigationButtons
               currentStep={currentStep}
               canGoBack={false}
