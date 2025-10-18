@@ -356,14 +356,16 @@ export function AppStepWorkflow() {
             {/* Show preview of uploaded image */}
             {imageUrl && (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <img
+                <Box
+                  component="img"
                   src={imageUrl}
                   alt="Uploaded preview"
-                  style={{
-                    maxWidth: '300px',
-                    maxHeight: '300px',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                  sx={{
+                    width: 300,
+                    height: 300,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    boxShadow: 3,
                   }}
                 />
               </Box>
