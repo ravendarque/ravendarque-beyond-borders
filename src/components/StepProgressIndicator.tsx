@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Step } from '@/hooks/useStepWorkflow';
 import { Check } from '@mui/icons-material';
+import { Box, Typography } from '@mui/material';
 
 export interface StepProgressIndicatorProps {
   /** Current active step (1-3) */
@@ -44,110 +45,152 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
   if (compact) {
     const current = steps.find(s => s.number === currentStep);
     return (
-      <nav
+      <Box
+        component="nav"
         role="navigation"
         aria-label={`Progress: Step ${currentStep} of ${steps.length}`}
-        className="step-progress-compact"
+        sx={{ textAlign: 'center', py: 2 }}
       >
-        <div className="text-center py-2">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Step {currentStep} of {steps.length}
-          </div>
-          <div className="text-base font-medium text-gray-900 dark:text-gray-100">
-            {current?.label}
-          </div>
-        </div>
-      </nav>
+        <Typography variant="body2" color="text.secondary">
+          Step {currentStep} of {steps.length}
+        </Typography>
+        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+          {current?.label}
+        </Typography>
+      </Box>
     );
   }
 
   return (
-    <nav
+    <Box
+      component="nav"
       role="navigation"
       aria-label={`Progress: Step ${currentStep} of ${steps.length}`}
-      className="step-progress"
+      sx={{ mb: 3 }}
     >
-      <ol className="flex items-center justify-between w-full max-w-2xl mx-auto px-4 py-6">
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          maxWidth: '800px',
+          mx: 'auto',
+          px: 2,
+          py: 3,
+        }}
+        component="ol"
+      >
         {steps.map((step, index) => {
           const stepCompleted = isCompleted(step.number);
           const stepCurrent = isCurrent(step.number);
           const stepFuture = isFuture(step.number);
           const clickable = isClickable(step.number);
 
-          const StepElement = clickable ? 'button' : 'div';
-          const stepProps = clickable
-            ? {
-                onClick: () => handleStepClick(step.number),
-                type: 'button' as const,
-                'aria-label': `Go back to step ${step.number}: ${step.label}`,
-                className: 'step-clickable',
-              }
-            : {};
-
           return (
-            <li
+            <Box
               key={step.number}
-              className="flex-1 relative"
+              component="li"
+              sx={{
+                flex: 1,
+                position: 'relative',
+                listStyle: 'none',
+                display: 'flex',
+                alignItems: 'center',
+              }}
               aria-current={stepCurrent ? 'step' : undefined}
             >
-              <div className="flex items-center">
-                <StepElement
-                  {...stepProps}
-                  title={step.title}
-                  className={`
-                    step-indicator
-                    ${clickable ? 'cursor-pointer hover:scale-110 transition-transform' : ''}
-                  `}
-                  data-current={stepCurrent || undefined}
-                  data-completed={stepCompleted || undefined}
-                  data-future={stepFuture || undefined}
+              <Box
+                component={clickable ? 'button' : 'div'}
+                onClick={clickable ? () => handleStepClick(step.number) : undefined}
+                type={clickable ? 'button' : undefined}
+                aria-label={clickable ? `Go back to step ${step.number}: ${step.label}` : undefined}
+                title={step.title}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  cursor: clickable ? 'pointer' : 'default',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  transition: 'transform 0.2s',
+                  '&:hover': clickable ? { transform: 'scale(1.1)' } : {},
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: 2,
+                    transition: 'all 0.3s',
+                    ...(stepCompleted && {
+                      bgcolor: 'success.main',
+                      borderColor: 'success.main',
+                      color: 'white',
+                    }),
+                    ...(stepCurrent && {
+                      bgcolor: 'primary.main',
+                      borderColor: 'primary.main',
+                      color: 'white',
+                      boxShadow: '0 0 0 4px rgba(25, 118, 210, 0.2)',
+                    }),
+                    ...(stepFuture && {
+                      bgcolor: 'grey.200',
+                      borderColor: 'grey.300',
+                      color: 'grey.500',
+                    }),
+                  }}
                 >
-                  <div
-                    className={`
-                      w-10 h-10 rounded-full flex items-center justify-center
-                      border-2 transition-all
-                      ${stepCompleted ? 'bg-green-500 border-green-500 text-white' : ''}
-                      ${stepCurrent ? 'bg-blue-500 border-blue-500 text-white ring-2 ring-blue-300' : ''}
-                      ${stepFuture ? 'bg-gray-200 border-gray-300 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400' : ''}
-                    `}
-                  >
-                    {stepCompleted ? (
-                      <Check className="w-6 h-6" aria-label="Step completed" />
-                    ) : (
-                      <span className="font-semibold">{step.number}</span>
-                    )}
-                  </div>
-                  
-                  <div className="mt-2 text-center">
-                    <span
-                      className={`
-                        text-sm font-medium
-                        ${stepCurrent ? 'text-blue-600 dark:text-blue-400' : ''}
-                        ${stepCompleted ? 'text-green-600 dark:text-green-400' : ''}
-                        ${stepFuture ? 'text-gray-500 dark:text-gray-400' : ''}
-                      `}
-                    >
-                      {step.label}
-                    </span>
-                  </div>
-                </StepElement>
+                  {stepCompleted ? (
+                    <Check sx={{ fontSize: 24 }} aria-label="Step completed" />
+                  ) : (
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {step.number}
+                    </Typography>
+                  )}
+                </Box>
 
-                {/* Connector line between steps */}
-                {index < steps.length - 1 && (
-                  <div
-                    className="flex-1 h-0.5 mx-2 transition-colors"
-                    data-connector
-                    data-completed={stepCompleted || undefined}
-                    style={{
-                      backgroundColor: stepCompleted ? '#22c55e' : '#d1d5db',
-                    }}
-                  />
-                )}
-              </div>
-            </li>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    mt: 1,
+                    textAlign: 'center',
+                    fontWeight: 500,
+                    ...(stepCurrent && {
+                      color: 'primary.main',
+                    }),
+                    ...(stepCompleted && {
+                      color: 'success.main',
+                    }),
+                    ...(stepFuture && {
+                      color: 'text.disabled',
+                    }),
+                  }}
+                >
+                  {step.label}
+                </Typography>
+              </Box>
+
+              {/* Connector line between steps */}
+              {index < steps.length - 1 && (
+                <Box
+                  sx={{
+                    flex: 1,
+                    height: 2,
+                    mx: 1,
+                    bgcolor: stepCompleted ? 'success.main' : 'grey.300',
+                    transition: 'background-color 0.3s',
+                  }}
+                />
+              )}
+            </Box>
           );
         })}
-      </ol>
-    </nav>
+      </Box>
+    </Box>
   );
 };
