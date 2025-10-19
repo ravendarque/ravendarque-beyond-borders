@@ -304,9 +304,9 @@ export function AppStepWorkflow() {
         </IconButton>
 
         {/* Centered Content Column */}
-        <Box sx={{ maxWidth: 600, width: '100%', textAlign: 'center' }}>
+        <Box sx={{ maxWidth: 600, width: '100%', mx: 'auto' }}>
           {/* Header */}
-          <Box component="header" role="banner" sx={{ mb: 4 }}>
+          <Box component="header" role="banner" sx={{ mb: 4, textAlign: 'center' }}>
             <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700, mb: 1 }}>
               Beyond Borders
             </Typography>
