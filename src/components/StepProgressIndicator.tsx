@@ -66,21 +66,18 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
       component="nav"
       role="navigation"
       aria-label={`Progress: Step ${currentStep} of ${steps.length}`}
-      sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}
+      sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}
     >
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          maxWidth: '600px',
-          width: '100%',
-          px: 2,
+          gap: 4,
           py: 3,
         }}
         component="ol"
       >
-        {steps.map((step, index) => {
+        {steps.map((step) => {
           const stepCompleted = isCompleted(step.number);
           const stepCurrent = isCurrent(step.number);
           const stepFuture = isFuture(step.number);
@@ -91,11 +88,11 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
               key={step.number}
               component="li"
               sx={{
-                flex: 1,
-                position: 'relative',
                 listStyle: 'none',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
+                width: '140px',
               }}
               aria-current={stepCurrent ? 'step' : undefined}
             >
@@ -114,7 +111,7 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                   border: 'none',
                   padding: 0,
                   transition: 'transform 0.2s',
-                  '&:hover': clickable ? { transform: 'scale(1.1)' } : {},
+                  '&:hover': clickable ? { transform: 'scale(1.05)' } : {},
                 }}
               >
                 <Box
@@ -174,19 +171,6 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                   {step.label}
                 </Typography>
               </Box>
-
-              {/* Connector line between steps */}
-              {index < steps.length - 1 && (
-                <Box
-                  sx={{
-                    flex: 1,
-                    height: 2,
-                    mx: 1,
-                    bgcolor: stepCompleted ? 'success.main' : 'grey.300',
-                    transition: 'background-color 0.3s',
-                  }}
-                />
-              )}
             </Box>
           );
         })}
