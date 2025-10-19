@@ -73,14 +73,37 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
           width: width,
           height: height,
           borderRadius: 1,
-          bgcolor: 'grey.200',
+          border: 3,
+          borderColor: 'grey.300',
+          borderStyle: 'dashed',
+          bgcolor: 'grey.50',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
+          gap: 1,
         }}
       >
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', px: 2 }}>
-          Select a flag to preview
+        <Box
+          component="svg"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          sx={{ 
+            width: 48, 
+            height: 48, 
+            color: 'grey.400',
+          }}
+        >
+          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+          <line x1="4" y1="22" x2="4" y2="15" />
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', px: 2, fontWeight: 'medium' }}>
+          Choose a flag
         </Typography>
       </Box>
     );
