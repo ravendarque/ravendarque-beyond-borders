@@ -390,7 +390,10 @@ export function AppStepWorkflow() {
                   <Box sx={{ textAlign: 'center', px: 4 }}>
                     <FileUploadIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
                     <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 'medium' }}>
-                      Choose or drag and drop
+                      Choose your profile image
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      or drag and drop it here
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       JPG or PNG • Stays on your device
