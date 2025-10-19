@@ -72,13 +72,18 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   // All buttons should be disabled when loading
   const buttonsDisabled = isLoading;
 
+  // Check if we have buttons on both sides (for layout purposes)
+  const hasLeftButtons = (onBack && canGoBack) || onStartOver;
+  const hasRightButtons = (isLastStep && onFinish) || onNext;
+  const singleButton = !hasLeftButtons && hasRightButtons;
+
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
         gap: 2,
-        justifyContent: 'space-between',
+        justifyContent: singleButton ? 'center' : 'space-between',
         alignItems: 'stretch',
         width: '100%',
       }}
