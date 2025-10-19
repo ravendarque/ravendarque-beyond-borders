@@ -350,7 +350,7 @@ export function AppStepWorkflow() {
               width: '100%',
               maxWidth: 900,
               mx: 'auto',
-              px: { xs: 2, sm: 3 },
+              px: 2,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
