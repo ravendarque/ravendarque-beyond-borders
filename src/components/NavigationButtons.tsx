@@ -81,22 +81,21 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
     <Box
       sx={{
         display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
+        flexDirection: 'column',
         gap: 2,
-        justifyContent: singleButton ? 'center' : 'space-between',
-        alignItems: 'stretch',
+        alignItems: 'center',
         width: '100%',
       }}
       role="navigation"
       aria-label="Step navigation"
     >
-      {/* Left side: Back button and optional Start Over */}
+      {/* Top row: Back and Next/Finish buttons side by side */}
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          gap: 1,
-          flex: { xs: '1 1 auto', sm: '0 0 auto' },
+          gap: 2,
+          justifyContent: singleButton ? 'center' : 'space-between',
+          width: '100%',
         }}
       >
         {/* Back button - only show if we can go back */}
@@ -107,37 +106,13 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
             disabled={!canGoBack || buttonsDisabled}
             aria-disabled={!canGoBack || buttonsDisabled}
             startIcon={isLoading ? undefined : <ArrowBackIcon />}
-            sx={{ flex: { xs: '1 1 auto', sm: '0 0 auto' } }}
+            sx={{ flex: '1 1 0' }}
           >
             {backLabel}
           </Button>
         )}
 
-        {/* Start Over button - optional secondary action */}
-        {onStartOver && (
-          <Button
-            variant="text"
-            onClick={onStartOver}
-            disabled={buttonsDisabled}
-            aria-disabled={buttonsDisabled}
-            startIcon={isLoading ? undefined : <RefreshIcon />}
-            sx={{
-              flex: { xs: '1 1 auto', sm: '0 0 auto' },
-              color: 'text.secondary',
-            }}
-          >
-            Start Over
-          </Button>
-        )}
-      </Box>
-
-      {/* Right side: Next/Finish button */}
-      <Box
-        sx={{
-          display: 'flex',
-          flex: { xs: '1 1 auto', sm: '0 0 auto' },
-        }}
-      >
+        {/* Next/Finish button */}
         {isLastStep && onFinish ? (
           // Finish button on last step
           <Button
@@ -150,7 +125,7 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
                 <CircularProgress size={20} color="inherit" />
               ) : undefined
             }
-            sx={{ flex: '1 1 auto' }}
+            sx={{ flex: '1 1 0' }}
           >
             {isLoading ? 'Processing...' : finishLabel}
           </Button>
@@ -169,13 +144,29 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
                   <ArrowForwardIcon />
                 )
               }
-              sx={{ flex: '1 1 auto' }}
+              sx={{ flex: '1 1 0' }}
             >
               {isLoading ? 'Loading...' : nextLabel}
             </Button>
           )
         )}
       </Box>
+
+      {/* Bottom row: Start Over button centered */}
+      {onStartOver && (
+        <Button
+          variant="text"
+          onClick={onStartOver}
+          disabled={buttonsDisabled}
+          aria-disabled={buttonsDisabled}
+          startIcon={isLoading ? undefined : <RefreshIcon />}
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
+          Start Over
+        </Button>
+      )}
     </Box>
   );
 };

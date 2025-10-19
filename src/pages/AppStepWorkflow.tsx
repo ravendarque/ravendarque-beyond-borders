@@ -311,7 +311,7 @@ export function AppStepWorkflow() {
               Beyond Borders
             </Typography>
             <Typography variant="subtitle1" color="textSecondary" component="p">
-              Add a circular, flag-colored border to your profile picture. Follow the steps below to create your avatar.
+              Add a circular, flag-colored border to your profile picture.
             </Typography>
           </Box>
 
@@ -456,47 +456,55 @@ export function AppStepWorkflow() {
                 )}
               </Box>
               
-              <NavigationButtons
-                currentStep={currentStep}
-                canGoBack={false}
-                canGoNext={canProceedFromStep1}
-                onNext={nextStep}
-                nextLabel="Select Flag"
-              />
+              <Box sx={{ mb: 3 }} />
+              
+              <Box sx={{ width: 300, mx: 'auto' }}>
+                <NavigationButtons
+                  currentStep={currentStep}
+                  canGoBack={false}
+                  canGoNext={canProceedFromStep1}
+                  onNext={nextStep}
+                  nextLabel="Select Flag"
+                />
+              </Box>
             </>
           )}
 
           {currentStep === 2 && (
             <>
               <Stack spacing={3} sx={{ mb: { xs: 1.5, sm: 3 } }}>
-                <FlagDropdown
-                  flags={flagsListRef.current}
-                  selectedFlagId={flagId}
-                  onChange={handleFlagChange}
-                  disabled={flagsLoading}
-                />
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Box sx={{ width: 288 }}>
+                    <FlagDropdown
+                      flags={flagsListRef.current}
+                      selectedFlagId={flagId}
+                      onChange={handleFlagChange}
+                      disabled={flagsLoading}
+                    />
+                  </Box>
+                </Box>
                 
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <FlagPreview
                     flag={selectedFlag}
                     size="large"
                     animate={true}
-                    showDescription={true}
-                    showCategory={true}
                   />
                 </Box>
               </Stack>
 
-              <NavigationButtons
-                currentStep={currentStep}
-                canGoBack={true}
-                canGoNext={canProceedFromStep2}
-                onBack={prevStep}
-                onNext={nextStep}
-                onStartOver={startOver}
-                backLabel="Back to Image"
-                nextLabel="Customize"
-              />
+              <Box sx={{ width: 300, mx: 'auto' }}>
+                <NavigationButtons
+                  currentStep={currentStep}
+                  canGoBack={true}
+                  canGoNext={canProceedFromStep2}
+                  onBack={prevStep}
+                  onNext={nextStep}
+                  onStartOver={startOver}
+                  backLabel="Back"
+                  nextLabel="Adjust"
+                />
+              </Box>
             </>
           )}
 
@@ -523,30 +531,32 @@ export function AppStepWorkflow() {
                     onChange={setPresentation}
                   />
                 </Box>
-
-                {/* Download/Copy Buttons */}
-                <Stack direction="row" spacing={2} sx={{ justifyContent: 'center' }}>
-                  <Button
-                    variant="outlined"
-                    onClick={handleCopy}
-                    disabled={!overlayUrl || isCopying}
-                  >
-                    {isCopying ? 'Copying...' : 'Copy to Clipboard'}
-                  </Button>
-                </Stack>
               </Stack>
 
-              <NavigationButtons
-                currentStep={currentStep}
-                canGoBack={true}
-                canGoNext={false}
-                onBack={prevStep}
-                onFinish={handleDownload}
-                onStartOver={startOver}
-                isLoading={isDownloading}
-                backLabel="Back to Flag Selection"
-                finishLabel="Download Avatar"
-              />
+              <Box sx={{ width: 300, mx: 'auto' }}>
+                <NavigationButtons
+                  currentStep={currentStep}
+                  canGoBack={true}
+                  canGoNext={false}
+                  onBack={prevStep}
+                  onFinish={handleDownload}
+                  onStartOver={startOver}
+                  isLoading={isDownloading}
+                  backLabel="Back"
+                  finishLabel="Download"
+                />
+              </Box>
+
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <Button
+                  variant="text"
+                  onClick={handleCopy}
+                  disabled={!overlayUrl || isCopying}
+                  sx={{ color: 'text.secondary' }}
+                >
+                  {isCopying ? 'Copying...' : 'Copy to Clipboard'}
+                </Button>
+              </Box>
             </>
           )}
         </Box>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, CircularProgress, Chip, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import type { FlagSpec } from '@/flags/schema';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 
@@ -13,12 +13,6 @@ export interface FlagPreviewProps {
   /** Whether to animate the preview on load */
   animate?: boolean;
   
-  /** Whether to show flag description */
-  showDescription?: boolean;
-  
-  /** Whether to show category badge */
-  showCategory?: boolean;
-  
   /** Click handler (makes preview interactive) */
   onClick?: () => void;
 }
@@ -27,8 +21,6 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
   flag,
   size = 'large',
   animate = true,
-  showDescription = false,
-  showCategory = false,
   onClick,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -82,6 +74,7 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           gap: 1,
+          mb: 3,
         }}
       >
         <Box
@@ -124,7 +117,8 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 2,
+        gap: 0,
+        mb: 3,
       }}
       data-size={size}
       data-animate={shouldAnimate}
@@ -144,6 +138,7 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
           '&:hover': onClick ? {
             transform: 'scale(1.05)',
           } : {},
+          mb: 2,
         }}
       >
         {/* Loading spinner */}
@@ -203,30 +198,20 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
 
       {/* Flag name */}
       <Typography
-        variant={size === 'small' ? 'body2' : 'h6'}
-        sx={{ fontWeight: 'medium', textAlign: 'center' }}
+        variant={size === 'small' ? 'body2' : 'body1'}
+        sx={{ fontWeight: 'medium', textAlign: 'center', mb: 0.5 }}
       >
-        {flag.displayName}
+        {flag.name}
       </Typography>
 
-      {/* Category badge */}
-      {showCategory && (
-        <Chip
-          label={flag.category === 'marginalized' ? 'Pride & Marginalized' : 'National'}
-          size="small"
-          color="primary"
-          variant="outlined"
-        />
-      )}
-
-      {/* Description */}
-      {showDescription && flag.sources?.authorNote && (
+      {/* Reason */}
+      {flag.reason && (
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ textAlign: 'center', maxWidth: '28rem' }}
+          sx={{ textAlign: 'center', maxWidth: '28rem', px: 1 }}
         >
-          {flag.sources.authorNote}
+          {flag.reason}
         </Typography>
       )}
     </Box>
