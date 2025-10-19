@@ -591,7 +591,7 @@ export function AppStepWorkflow() {
                 This is an open source project so if you want to look through the code, it's{' '}
                 <Box
                   component="a"
-                  href="https://github.com/nix/beyond-borders"
+                  href="https://github.com/ravendarque/ravendarque-beyond-borders"
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{
