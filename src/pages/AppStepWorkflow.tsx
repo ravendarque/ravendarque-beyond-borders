@@ -468,7 +468,7 @@ export function AppStepWorkflow() {
 
           {currentStep === 2 && (
             <>
-              <Stack spacing={3}>
+              <Stack spacing={3} sx={{ mb: 4 }}>
                 <FlagDropdown
                   flags={flagsListRef.current}
                   selectedFlagId={flagId}
@@ -504,7 +504,7 @@ export function AppStepWorkflow() {
 
           {currentStep === 3 && (
             <>
-              <Stack spacing={3}>
+              <Stack spacing={3} sx={{ mb: 4 }}>
                 {/* Preview Section */}
                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                   <AvatarPreview
@@ -519,10 +519,12 @@ export function AppStepWorkflow() {
                 </Box>
 
                 {/* Customization Controls */}
-                <PresentationControls
-                  value={presentation}
-                  onChange={setPresentation}
-                />
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <PresentationControls
+                    value={presentation}
+                    onChange={setPresentation}
+                  />
+                </Box>
 
                 {/* Download/Copy Buttons */}
                 <Stack direction="row" spacing={2} sx={{ justifyContent: 'center' }}>
