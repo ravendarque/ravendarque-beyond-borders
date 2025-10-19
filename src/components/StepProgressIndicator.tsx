@@ -73,7 +73,7 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          maxWidth: '800px',
+          maxWidth: '900px',
           mx: 'auto',
           px: 2,
           py: 3,
