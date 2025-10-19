@@ -66,15 +66,15 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
       component="nav"
       role="navigation"
       aria-label={`Progress: Step ${currentStep} of ${steps.length}`}
-      sx={{ mb: 3 }}
+      sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}
     >
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          maxWidth: '900px',
-          mx: 'auto',
+          maxWidth: '600px',
+          width: '100%',
           px: 2,
           py: 3,
         }}
