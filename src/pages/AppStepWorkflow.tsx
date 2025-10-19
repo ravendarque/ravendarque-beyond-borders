@@ -289,7 +289,7 @@ export function AppStepWorkflow() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          py: 4,
+          py: { xs: 1.5, sm: 3 },
           px: 2,
         }}
       >
@@ -306,7 +306,7 @@ export function AppStepWorkflow() {
         {/* Centered Content Column */}
         <Box sx={{ maxWidth: 600, width: '100%', mx: 'auto' }}>
           {/* Header */}
-          <Box component="header" role="banner" sx={{ mb: 4, textAlign: 'center' }}>
+          <Box component="header" role="banner" sx={{ mb: { xs: 1.5, sm: 3 }, textAlign: 'center' }}>
             <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700, mb: 1 }}>
               Beyond Borders
             </Typography>
@@ -329,7 +329,7 @@ export function AppStepWorkflow() {
 
           {/* Error Display */}
           {error && (
-            <Box ref={errorFocusRef} tabIndex={-1} sx={{ mb: 3, outline: 'none' }}>
+            <Box ref={errorFocusRef} tabIndex={-1} sx={{ mb: { xs: 1.5, sm: 2 }, outline: 'none' }}>
               <ErrorAlert
                 error={error}
                 onRetry={() => {
@@ -379,7 +379,7 @@ export function AppStepWorkflow() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 mx: 'auto',
-                mb: 4,
+                mb: { xs: 1.5, sm: 3 },
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 ...(imageUrl ? {
@@ -468,7 +468,7 @@ export function AppStepWorkflow() {
 
           {currentStep === 2 && (
             <>
-              <Stack spacing={3} sx={{ mb: 4 }}>
+              <Stack spacing={3} sx={{ mb: { xs: 1.5, sm: 3 } }}>
                 <FlagDropdown
                   flags={flagsListRef.current}
                   selectedFlagId={flagId}
@@ -504,7 +504,7 @@ export function AppStepWorkflow() {
 
           {currentStep === 3 && (
             <>
-              <Stack spacing={3} sx={{ mb: 4 }}>
+              <Stack spacing={3} sx={{ mb: { xs: 1.5, sm: 3 } }}>
                 {/* Preview Section */}
                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                   <AvatarPreview

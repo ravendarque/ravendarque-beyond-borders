@@ -67,8 +67,8 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
       role="navigation"
       aria-label={`Progress: Step ${currentStep} of ${steps.length}`}
       sx={{ 
-        py: 3, 
-        mb: 4,
+        py: { xs: 1, sm: 2 }, 
+        mb: { xs: 2, sm: 3 },
         display: 'flex',
         justifyContent: 'center',
       }}
