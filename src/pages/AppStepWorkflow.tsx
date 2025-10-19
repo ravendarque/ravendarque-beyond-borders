@@ -302,9 +302,8 @@ export function AppStepWorkflow() {
         </Box>
 
         {/* Step Progress Indicator */}
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ maxWidth: 900, width: '100%', px: 2 }}>
-            <StepProgressIndicator
+        <Box sx={{ mb: 4 }}>
+          <StepProgressIndicator
               currentStep={currentStep}
               completedSteps={completedSteps}
               steps={STEP_TITLES.map((title, index) => ({
@@ -314,7 +313,6 @@ export function AppStepWorkflow() {
               }))}
               onStepClick={goToStep}
             />
-          </Box>
         </Box>
 
         {/* Error Display */}
