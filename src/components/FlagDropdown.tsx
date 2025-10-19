@@ -33,6 +33,18 @@ export const FlagDropdown: React.FC<FlagDropdownProps> = ({
   // Find the selected flag object
   const selectedFlag = flags.find(f => f.id === selectedFlagId) || null;
 
+  // Map category codes to human-readable labels
+  const getCategoryLabel = (category: string): string => {
+    switch (category) {
+      case 'marginalized':
+        return 'Oppressed Groups';
+      case 'national':
+        return 'Nations & Territories';
+      default:
+        return 'Other';
+    }
+  };
+
   return (
     <Autocomplete
       options={flags}
@@ -41,9 +53,7 @@ export const FlagDropdown: React.FC<FlagDropdownProps> = ({
         onChange(newValue?.id || null);
       }}
       getOptionLabel={(option) => option.displayName.split(' — ')[0]}
-      groupBy={(option) => 
-        option.category === 'marginalized' ? 'Pride & Marginalized' : 'National'
-      }
+      groupBy={(option) => getCategoryLabel(option.category)}
       disabled={disabled}
       renderInput={(params) => (
         <TextField
