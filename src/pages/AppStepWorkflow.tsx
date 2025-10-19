@@ -302,17 +302,19 @@ export function AppStepWorkflow() {
         </Box>
 
         {/* Step Progress Indicator */}
-        <Box sx={{ mb: 4 }}>
-          <StepProgressIndicator
-            currentStep={currentStep}
-            completedSteps={completedSteps}
-            steps={STEP_TITLES.map((title, index) => ({
-              number: (index + 1) as Step,
-              label: title,
-              title: title,
-            }))}
-            onStepClick={goToStep}
-          />
+        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ maxWidth: 900, width: '100%', px: { xs: 2, sm: 3 } }}>
+            <StepProgressIndicator
+              currentStep={currentStep}
+              completedSteps={completedSteps}
+              steps={STEP_TITLES.map((title, index) => ({
+                number: (index + 1) as Step,
+                label: title,
+                title: title,
+              }))}
+              onStepClick={goToStep}
+            />
+          </Box>
         </Box>
 
         {/* Error Display */}
@@ -344,7 +346,16 @@ export function AppStepWorkflow() {
         {/* Step Content */}
         {currentStep === 1 && (
           <StepContainer maxWidth="md">
-            <Stack spacing={3} alignItems="center">
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '500px',
+                gap: 4,
+              }}
+            >
               {/* Hidden file input */}
               <input
                 ref={inputRef}
@@ -450,7 +461,7 @@ export function AppStepWorkflow() {
                 onNext={nextStep}
                 nextLabel="Select Flag"
               />
-            </Stack>
+            </Box>
           </StepContainer>
         )}
 
