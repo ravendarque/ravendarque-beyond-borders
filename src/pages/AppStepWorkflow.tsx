@@ -13,12 +13,12 @@ import {
   NavigationButtons,
   FlagDropdown,
   FlagPreview,
-  ImageUploader,
   PresentationControls,
   AvatarPreview,
 } from '@/components';
 import { ErrorAlert } from '@/components/ErrorAlert';
 import Container from '@mui/material/Container';
+import FileUploadIcon from '@mui/icons-material/UploadFile';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
@@ -72,6 +72,7 @@ export function AppStepWorkflow() {
   // Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const flagsListRef = useRef<FlagSpec[]>([]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Custom hooks
   const flagImageCache = useFlagImageCache();
@@ -108,13 +109,6 @@ export function AppStepWorkflow() {
     const url = URL.createObjectURL(file);
     setImageUrl(url);
     setStatusMessage('Image uploaded successfully. Ready to select flag.');
-  }
-  
-  /**
-   * Handle image upload error
-   */
-  function handleImageError(err: Error) {
-    setError(normalizeError(err));
   }
   
   /**
@@ -343,41 +337,76 @@ export function AppStepWorkflow() {
 
         {/* Step Content */}
         {currentStep === 1 && (
-          <StepContainer
-            title={STEP_TITLES[0]}
-            description="Choose a profile picture to add a border to"
-            maxWidth="md"
-          >
-            <ImageUploader
-              onFileChange={handleImageUpload}
-              onError={handleImageError}
-            />
-            
-            {/* Show preview of uploaded image */}
-            {imageUrl && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <Box
-                  component="img"
-                  src={imageUrl}
-                  alt="Uploaded preview"
-                  sx={{
-                    width: 300,
-                    height: 300,
-                    borderRadius: '50%',
-                    objectFit: 'cover',
+          <StepContainer maxWidth="md">
+            <Stack spacing={3} alignItems="center">
+              {/* Hidden file input */}
+              <input
+                ref={inputRef}
+                accept="image/jpeg,image/jpg,image/png"
+                style={{ display: 'none' }}
+                id="step1-file-upload"
+                type="file"
+                onChange={handleImageUpload}
+                aria-label="Upload image file (JPG or PNG, max 10 MB)"
+              />
+              
+              {/* Clickable preview area */}
+              <Box
+                component="label"
+                htmlFor="step1-file-upload"
+                sx={{
+                  width: 300,
+                  height: 300,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  ...(imageUrl ? {
+                    // Has image - show preview
+                    backgroundImage: `url(${imageUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
                     boxShadow: 3,
-                  }}
-                />
+                    '&:hover': {
+                      boxShadow: 6,
+                      transform: 'scale(1.02)',
+                    },
+                  } : {
+                    // No image - show upload prompt
+                    border: 3,
+                    borderColor: 'grey.300',
+                    borderStyle: 'dashed',
+                    bgcolor: 'grey.50',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                      bgcolor: 'grey.100',
+                    },
+                  }),
+                }}
+              >
+                {!imageUrl && (
+                  <Box sx={{ textAlign: 'center', px: 4 }}>
+                    <FileUploadIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
+                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 'medium' }}>
+                      Upload or drag and drop
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      JPG or PNG, max 10 MB
+                    </Typography>
+                  </Box>
+                )}
               </Box>
-            )}
-            
-            <NavigationButtons
-              currentStep={currentStep}
-              canGoBack={false}
-              canGoNext={canProceedFromStep1}
-              onNext={nextStep}
-              nextLabel="Select Flag"
-            />
+              
+              <NavigationButtons
+                currentStep={currentStep}
+                canGoBack={false}
+                canGoNext={canProceedFromStep1}
+                onNext={nextStep}
+                nextLabel="Select Flag"
+              />
+            </Stack>
           </StepContainer>
         )}
 
