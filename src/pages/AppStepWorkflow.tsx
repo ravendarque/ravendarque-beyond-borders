@@ -358,20 +358,7 @@ export function AppStepWorkflow() {
 
         {/* Step Content */}
         {currentStep === 1 && (
-          <Box
-            sx={{
-              width: '100%',
-              maxWidth: 900,
-              mx: 'auto',
-              px: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '500px',
-              gap: 4,
-            }}
-          >
+          <>
             {/* Hidden file input */}
             <input
               ref={inputRef}
@@ -394,6 +381,8 @@ export function AppStepWorkflow() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                mx: 'auto',
+                mb: 4,
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 ...(imageUrl ? {
@@ -477,8 +466,10 @@ export function AppStepWorkflow() {
               onNext={nextStep}
               nextLabel="Select Flag"
             />
-          </Box>
-        )}        {currentStep === 2 && (
+          </>
+        )}
+        
+        {currentStep === 2 && (
           <StepContainer
             title={STEP_TITLES[1]}
             description="Choose a flag to add as a border"
