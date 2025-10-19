@@ -79,6 +79,9 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           gap: 4,
+          margin: 0,
+          padding: 0,
+          listStyle: 'none',
         }}
         component="ol"
       >
