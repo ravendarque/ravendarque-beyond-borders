@@ -328,47 +328,47 @@ export function AppStepWorkflow() {
               }))}
               onStepClick={goToStep}
             />
-        </Box>
-
-        {/* Error Display */}
-        {error && (
-          <Box ref={errorFocusRef} tabIndex={-1} sx={{ mb: 3, outline: 'none' }}>
-            <ErrorAlert
-              error={error}
-              onRetry={() => {
-                setError(null);
-                if (flagsListRef.current.length === 0) {
-                  setFlagsLoading(true);
-                  loadFlags().then(loaded => {
-                    flagsListRef.current = (loaded as FlagSpec[]) || [];
-                    setFlagsLoading(false);
-                    setError(null);
-                  }).catch(err => {
-                    setFlagsLoading(false);
-                    setError(normalizeError(err));
-                  });
-                } else if (imageUrl && flagId) {
-                  renderWithImageUrl(imageUrl);
-                }
-              }}
-              onDismiss={() => setError(null)}
-            />
           </Box>
-        )}
 
-        {/* Step Content */}
-        {currentStep === 1 && (
-          <>
-            {/* Hidden file input */}
-            <input
-              ref={inputRef}
-              accept="image/jpeg,image/jpg,image/png"
-              style={{ display: 'none' }}
-              id="step1-file-upload"
-              type="file"
-              onChange={handleImageUpload}
-              aria-label="Choose image file (JPG or PNG, max 10 MB)"
-            />
+          {/* Error Display */}
+          {error && (
+            <Box ref={errorFocusRef} tabIndex={-1} sx={{ mb: 3, outline: 'none' }}>
+              <ErrorAlert
+                error={error}
+                onRetry={() => {
+                  setError(null);
+                  if (flagsListRef.current.length === 0) {
+                    setFlagsLoading(true);
+                    loadFlags().then(loaded => {
+                      flagsListRef.current = (loaded as FlagSpec[]) || [];
+                      setFlagsLoading(false);
+                      setError(null);
+                    }).catch(err => {
+                      setFlagsLoading(false);
+                      setError(normalizeError(err));
+                    });
+                  } else if (imageUrl && flagId) {
+                    renderWithImageUrl(imageUrl);
+                  }
+                }}
+                onDismiss={() => setError(null)}
+              />
+            </Box>
+          )}
+
+          {/* Step Content */}
+          {currentStep === 1 && (
+            <>
+              {/* Hidden file input */}
+              <input
+                ref={inputRef}
+                accept="image/jpeg,image/jpg,image/png"
+                style={{ display: 'none' }}
+                id="step1-file-upload"
+                type="file"
+                onChange={handleImageUpload}
+                aria-label="Choose image file (JPG or PNG, max 10 MB)"
+              />
             
             {/* Clickable preview area */}
             <Box
@@ -459,22 +459,22 @@ export function AppStepWorkflow() {
                 )}
               </Box>
               
-            <NavigationButtons
-              currentStep={currentStep}
-              canGoBack={false}
-              canGoNext={canProceedFromStep1}
-              onNext={nextStep}
-              nextLabel="Select Flag"
-            />
-          </>
-        )}
-        
-        {currentStep === 2 && (
-          <StepContainer
-            title={STEP_TITLES[1]}
-            description="Choose a flag to add as a border"
-            maxWidth="md"
-          >
+              <NavigationButtons
+                currentStep={currentStep}
+                canGoBack={false}
+                canGoNext={canProceedFromStep1}
+                onNext={nextStep}
+                nextLabel="Select Flag"
+              />
+            </>
+          )}
+
+          {currentStep === 2 && (
+            <StepContainer
+              title={STEP_TITLES[1]}
+              description="Choose a flag to add as a border"
+              maxWidth="md"
+            >
             <Stack spacing={3}>
               <FlagDropdown
                 flags={flagsListRef.current}
@@ -506,15 +506,15 @@ export function AppStepWorkflow() {
               backLabel="Back to Image"
               nextLabel="Customize"
             />
-          </StepContainer>
-        )}
+            </StepContainer>
+          )}
 
-        {currentStep === 3 && (
-          <StepContainer
-            title={STEP_TITLES[2]}
-            description="Preview your avatar and customize the border style"
-            maxWidth="lg"
-          >
+          {currentStep === 3 && (
+            <StepContainer
+              title={STEP_TITLES[2]}
+              description="Preview your avatar and customize the border style"
+              maxWidth="lg"
+            >
             <Stack spacing={3}>
               {/* Preview Section */}
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
@@ -558,8 +558,9 @@ export function AppStepWorkflow() {
               backLabel="Back to Flag Selection"
               finishLabel="Download Avatar"
             />
-          </StepContainer>
-        )}
+            </StepContainer>
+          )}
+        </Box>
 
         {/* Privacy Information Modal */}
         <Dialog
@@ -639,7 +640,6 @@ export function AppStepWorkflow() {
             </Button>
           </DialogActions>
         </Dialog>
-        </Box>
       </Box>
     </>
   );
