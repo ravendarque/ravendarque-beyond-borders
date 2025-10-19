@@ -316,18 +316,16 @@ export function AppStepWorkflow() {
           </Box>
 
           {/* Step Progress Indicator */}
-          <Box sx={{ mb: 4 }}>
-            <StepProgressIndicator
-              currentStep={currentStep}
-              completedSteps={completedSteps}
-              steps={STEP_TITLES.map((title, index) => ({
-                number: (index + 1) as Step,
-                label: title,
-                title: title,
-              }))}
-              onStepClick={goToStep}
-            />
-          </Box>
+          <StepProgressIndicator
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+            steps={STEP_TITLES.map((title, index) => ({
+              number: (index + 1) as Step,
+              label: title,
+              title: title,
+            }))}
+            onStepClick={goToStep}
+          />
 
           {/* Error Display */}
           {error && (
