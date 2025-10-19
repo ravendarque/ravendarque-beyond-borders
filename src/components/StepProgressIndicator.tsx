@@ -158,6 +158,11 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                     mt: 1,
                     textAlign: 'center',
                     fontWeight: 500,
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1.2,
                     ...(stepCurrent && {
                       color: 'primary.main',
                     }),
