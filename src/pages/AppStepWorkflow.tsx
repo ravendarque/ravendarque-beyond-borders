@@ -17,7 +17,7 @@ import {
   AvatarPreview,
 } from '@/components';
 import { ErrorAlert } from '@/components/ErrorAlert';
-import Container from '@mui/material/Container';
+
 import FileUploadIcon from '@mui/icons-material/UploadFile';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
@@ -281,28 +281,44 @@ export function AppStepWorkflow() {
       </div>
 
       {/* Main Container */}
-      <Container maxWidth="lg" component="main" id="main-content" aria-labelledby="app-title">
-        {/* Header */}
-        <Box component="header" role="banner" sx={{ py: 3, textAlign: 'center', position: 'relative' }}>
-          <IconButton 
-            size={isMobile ? 'large' : 'medium'}
-            onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
-            aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            sx={{ position: 'absolute', top: 24, right: 16 }}
-          >
-            {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
-          </IconButton>
-          <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700, mb: 1 }}>
-            Beyond Borders
-          </Typography>
-          <Typography variant="subtitle1" color="textSecondary" component="p">
-            Add a circular, flag-colored border to your profile picture. Follow the steps below to create your avatar.
-          </Typography>
-        </Box>
+      <Box
+        component="main"
+        id="main-content"
+        aria-labelledby="app-title"
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          py: 4,
+          px: 2,
+        }}
+      >
+        {/* Dark Mode Toggle - Fixed Position */}
+        <IconButton 
+          size={isMobile ? 'large' : 'medium'}
+          onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
+          aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+          sx={{ position: 'fixed', top: 24, right: 24, zIndex: 1000 }}
+        >
+          {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+        </IconButton>
 
-        {/* Step Progress Indicator */}
-        <Box sx={{ mb: 4 }}>
-          <StepProgressIndicator
+        {/* Centered Content Column */}
+        <Box sx={{ maxWidth: 600, width: '100%', textAlign: 'center' }}>
+          {/* Header */}
+          <Box component="header" role="banner" sx={{ mb: 4 }}>
+            <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700, mb: 1 }}>
+              Beyond Borders
+            </Typography>
+            <Typography variant="subtitle1" color="textSecondary" component="p">
+              Add a circular, flag-colored border to your profile picture. Follow the steps below to create your avatar.
+            </Typography>
+          </Box>
+
+          {/* Step Progress Indicator */}
+          <Box sx={{ mb: 4 }}>
+            <StepProgressIndicator
               currentStep={currentStep}
               completedSteps={completedSteps}
               steps={STEP_TITLES.map((title, index) => ({
@@ -632,7 +648,8 @@ export function AppStepWorkflow() {
             </Button>
           </DialogActions>
         </Dialog>
-      </Container>
+        </Box>
+      </Box>
     </>
   );
 }
