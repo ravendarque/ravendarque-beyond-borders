@@ -152,10 +152,9 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
             height: height,
             borderRadius: 1,
             objectFit: 'cover',
-            border: 2,
-            borderColor: 'grey.300',
             opacity: isLoading ? 0 : 1,
             transition: 'opacity 0.3s',
+            boxShadow: 1,
           }}
         />
 
