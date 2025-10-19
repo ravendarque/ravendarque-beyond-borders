@@ -283,7 +283,7 @@ export function AppStepWorkflow() {
       {/* Main Container */}
       <Container maxWidth="lg" component="main" id="main-content" aria-labelledby="app-title">
         {/* Header */}
-        <Box component="header" role="banner" sx={{ py: 3 }}>
+        <Box component="header" role="banner" sx={{ py: 3, maxWidth: 900, mx: 'auto', px: 2 }}>
           <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
             <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700 }}>
               Beyond Borders
@@ -303,7 +303,7 @@ export function AppStepWorkflow() {
 
         {/* Step Progress Indicator */}
         <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ maxWidth: 900, width: '100%', px: { xs: 2, sm: 3 } }}>
+          <Box sx={{ maxWidth: 900, width: '100%', px: 2 }}>
             <StepProgressIndicator
               currentStep={currentStep}
               completedSteps={completedSteps}
