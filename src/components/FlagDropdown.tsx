@@ -36,10 +36,19 @@ export const FlagDropdown: React.FC<FlagDropdownProps> = ({
   // Map category codes to human-readable labels
   const getCategoryLabel = (category: string): string => {
     switch (category) {
+      case 'authoritarian':
+        return 'Authoritarian States';
+      case 'occupied':
+        return 'Occupied / Disputed Territories';
+      case 'stateless':
+        return 'Stateless Peoples';
+      case 'oppressed':
+        return 'Oppressed Groups';
+      // Legacy support
       case 'marginalized':
         return 'Oppressed Groups';
       case 'national':
-        return 'Nations & Territories';
+        return 'Occupied / Disputed Territories';
       default:
         return 'Other';
     }

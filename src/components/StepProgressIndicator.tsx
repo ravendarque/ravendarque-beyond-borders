@@ -134,15 +134,15 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                     border: 2,
                     transition: 'all 0.3s',
                     ...(stepCompleted && {
-                      bgcolor: 'success.main',
-                      borderColor: 'success.main',
+                      bgcolor: 'primary.light',
+                      borderColor: 'primary.light',
                       color: 'white',
                     }),
                     ...(stepCurrent && {
                       bgcolor: 'primary.main',
                       borderColor: 'primary.main',
                       color: 'white',
-                      boxShadow: '0 0 0 4px rgba(25, 118, 210, 0.2)',
+                      boxShadow: '0 0 0 4px rgba(249, 115, 22, 0.2)',
                     }),
                     ...(stepFuture && {
                       bgcolor: 'grey.200',
@@ -176,7 +176,7 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                       color: 'primary.main',
                     }),
                     ...(stepCompleted && {
-                      color: 'success.main',
+                      color: 'primary.light',
                     }),
                     ...(stepFuture && {
                       color: 'text.disabled',
