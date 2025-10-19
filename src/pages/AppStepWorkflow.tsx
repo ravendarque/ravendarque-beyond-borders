@@ -37,7 +37,7 @@ import type { FlagSpec } from '@/flags/schema';
 import type { AppError } from '@/types/errors';
 import { normalizeError } from '@/types/errors';
 
-const STEP_TITLES = ['Choose Image', 'Select Flag', 'Preview & Customize'];
+const STEP_TITLES = ['Image', 'Flag', 'Adjust'];
 
 export function AppStepWorkflow() {
   const { mode, setMode } = useContext(ThemeModeContext);

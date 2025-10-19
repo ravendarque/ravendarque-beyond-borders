@@ -78,7 +78,7 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 4,
+          gap: { xs: 2, sm: 4 },
           margin: 0,
           padding: 0,
           listStyle: 'none',
@@ -100,7 +100,7 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                width: 120,
+                width: { xs: 80, sm: 120 },
                 flexShrink: 0,
               }}
               aria-current={stepCurrent ? 'step' : undefined}
@@ -125,8 +125,8 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
               >
                 <Box
                   sx={{
-                    width: 40,
-                    height: 40,
+                    width: { xs: 36, sm: 40 },
+                    height: { xs: 36, sm: 40 },
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
@@ -163,10 +163,11 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                 <Typography
                   variant="caption"
                   sx={{
-                    mt: 1,
+                    mt: { xs: 0.5, sm: 1 },
                     textAlign: 'center',
                     fontWeight: 500,
-                    height: 32,
+                    height: { xs: 28, sm: 32 },
+                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
