@@ -40,7 +40,7 @@ export const FlagDropdown: React.FC<FlagDropdownProps> = ({
       onChange={(_event, newValue) => {
         onChange(newValue?.id || null);
       }}
-      getOptionLabel={(option) => option.displayName}
+      getOptionLabel={(option) => option.displayName.split(' — ')[0]}
       groupBy={(option) => 
         option.category === 'marginalized' ? 'Pride & Marginalized' : 'National'
       }
