@@ -33,7 +33,7 @@ import type { FlagSpec } from '@/flags/schema';
 import type { AppError } from '@/types/errors';
 import { normalizeError } from '@/types/errors';
 
-const STEP_TITLES = ['Upload Image', 'Select Flag', 'Preview & Customize'];
+const STEP_TITLES = ['Choose Image', 'Select Flag', 'Preview & Customize'];
 
 export function AppStepWorkflow() {
   const { mode, setMode } = useContext(ThemeModeContext);
@@ -100,7 +100,7 @@ export function AppStepWorkflow() {
   }, []);
 
   /**
-   * Handle image upload
+   * Handle image selection
    */
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -108,7 +108,7 @@ export function AppStepWorkflow() {
 
     const url = URL.createObjectURL(file);
     setImageUrl(url);
-    setStatusMessage('Image uploaded successfully. Ready to select flag.');
+    setStatusMessage('Image selected successfully. Ready to select flag.');
   }
   
   /**
@@ -347,7 +347,7 @@ export function AppStepWorkflow() {
                 id="step1-file-upload"
                 type="file"
                 onChange={handleImageUpload}
-                aria-label="Upload image file (JPG or PNG, max 10 MB)"
+                aria-label="Choose image file (JPG or PNG, max 10 MB)"
               />
               
               {/* Clickable preview area */}
@@ -374,7 +374,7 @@ export function AppStepWorkflow() {
                       transform: 'scale(1.02)',
                     },
                   } : {
-                    // No image - show upload prompt
+                    // No image - show selection prompt
                     border: 3,
                     borderColor: 'grey.300',
                     borderStyle: 'dashed',
@@ -390,10 +390,10 @@ export function AppStepWorkflow() {
                   <Box sx={{ textAlign: 'center', px: 4 }}>
                     <FileUploadIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
                     <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 'medium' }}>
-                      Upload or drag and drop
+                      Choose or drag and drop
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      JPG or PNG, max 10 MB
+                      JPG or PNG • Stays on your device
                     </Typography>
                   </Box>
                 )}
@@ -444,7 +444,7 @@ export function AppStepWorkflow() {
               onBack={prevStep}
               onNext={nextStep}
               onStartOver={startOver}
-              backLabel="Back to Upload"
+              backLabel="Back to Image"
               nextLabel="Customize"
             />
           </StepContainer>
