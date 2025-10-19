@@ -476,17 +476,15 @@ export function AppStepWorkflow() {
                   disabled={flagsLoading}
                 />
                 
-                {selectedFlag && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                    <FlagPreview
-                      flag={selectedFlag}
-                      size="large"
-                      animate={true}
-                      showDescription={true}
-                      showCategory={true}
-                    />
-                  </Box>
-                )}
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <FlagPreview
+                    flag={selectedFlag}
+                    size="large"
+                    animate={true}
+                    showDescription={true}
+                    showCategory={true}
+                  />
+                </Box>
               </Stack>
 
               <NavigationButtons
