@@ -345,54 +345,57 @@ export function AppStepWorkflow() {
 
         {/* Step Content */}
         {currentStep === 1 && (
-          <StepContainer maxWidth="md">
+          <Box
+            sx={{
+              width: '100%',
+              maxWidth: 900,
+              mx: 'auto',
+              px: { xs: 2, sm: 3 },
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '500px',
+              gap: 4,
+            }}
+          >
+            {/* Hidden file input */}
+            <input
+              ref={inputRef}
+              accept="image/jpeg,image/jpg,image/png"
+              style={{ display: 'none' }}
+              id="step1-file-upload"
+              type="file"
+              onChange={handleImageUpload}
+              aria-label="Choose image file (JPG or PNG, max 10 MB)"
+            />
+            
+            {/* Clickable preview area */}
             <Box
+              component="label"
+              htmlFor="step1-file-upload"
               sx={{
+                width: 300,
+                height: 300,
+                borderRadius: '50%',
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: '500px',
-                gap: 4,
-              }}
-            >
-              {/* Hidden file input */}
-              <input
-                ref={inputRef}
-                accept="image/jpeg,image/jpg,image/png"
-                style={{ display: 'none' }}
-                id="step1-file-upload"
-                type="file"
-                onChange={handleImageUpload}
-                aria-label="Choose image file (JPG or PNG, max 10 MB)"
-              />
-              
-              {/* Clickable preview area */}
-              <Box
-                component="label"
-                htmlFor="step1-file-upload"
-                sx={{
-                  width: 300,
-                  height: 300,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  ...(imageUrl ? {
-                    // Has image - show preview
-                    backgroundImage: `url(${imageUrl})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    boxShadow: 3,
-                    '&:hover': {
-                      boxShadow: 6,
-                      transform: 'scale(1.02)',
-                    },
-                  } : {
-                    // No image - show selection prompt
-                    border: 3,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                ...(imageUrl ? {
+                  // Has image - show preview
+                  backgroundImage: `url(${imageUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  boxShadow: 3,
+                  '&:hover': {
+                    boxShadow: 6,
+                    transform: 'scale(1.02)',
+                  },
+                } : {
+                  // No image - show selection prompt
+                  border: 3,
                     borderColor: 'grey.300',
                     borderStyle: 'dashed',
                     bgcolor: 'grey.50',
@@ -454,18 +457,15 @@ export function AppStepWorkflow() {
                 )}
               </Box>
               
-              <NavigationButtons
-                currentStep={currentStep}
-                canGoBack={false}
-                canGoNext={canProceedFromStep1}
-                onNext={nextStep}
-                nextLabel="Select Flag"
-              />
-            </Box>
-          </StepContainer>
-        )}
-
-        {currentStep === 2 && (
+            <NavigationButtons
+              currentStep={currentStep}
+              canGoBack={false}
+              canGoNext={canProceedFromStep1}
+              onNext={nextStep}
+              nextLabel="Select Flag"
+            />
+          </Box>
+        )}        {currentStep === 2 && (
           <StepContainer
             title={STEP_TITLES[1]}
             description="Choose a flag to add as a border"
