@@ -28,6 +28,11 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import toast, { Toaster } from 'react-hot-toast';
 import type { FlagSpec } from '@/flags/schema';
 import type { AppError } from '@/types/errors';
@@ -68,6 +73,7 @@ export function AppStepWorkflow() {
   const [isCopying, setIsCopying] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>('');
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -395,9 +401,44 @@ export function AppStepWorkflow() {
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                       or drag and drop it here
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      JPG or PNG • Stays on your device
+                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+                      JPG or PNG
                     </Typography>
+                    <Box
+                      component="button"
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowPrivacyModal(true);
+                      }}
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        color: 'primary.main',
+                        textDecoration: 'underline',
+                        textDecorationStyle: 'dotted',
+                        fontSize: '0.75rem',
+                        '&:hover': {
+                          color: 'primary.dark',
+                        },
+                        '&:focus-visible': {
+                          outline: '2px solid',
+                          outlineColor: 'primary.main',
+                          outlineOffset: 2,
+                          borderRadius: 0.5,
+                        },
+                      }}
+                      aria-label="Learn about privacy: Your image stays on your device"
+                    >
+                      <InfoOutlinedIcon sx={{ fontSize: 14 }} />
+                      Stays on your device
+                    </Box>
                   </Box>
                 )}
               </Box>
@@ -504,6 +545,59 @@ export function AppStepWorkflow() {
             />
           </StepContainer>
         )}
+
+        {/* Privacy Information Modal */}
+        <Dialog
+          open={showPrivacyModal}
+          onClose={() => setShowPrivacyModal(false)}
+          maxWidth="sm"
+          fullWidth
+          aria-labelledby="privacy-dialog-title"
+          aria-describedby="privacy-dialog-description"
+        >
+          <DialogTitle id="privacy-dialog-title">
+            Your Privacy is Protected
+          </DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ pt: 1 }}>
+              <Typography variant="body1" id="privacy-dialog-description">
+                Beyond Borders processes everything <strong>directly in your browser</strong>. Your images never leave your device.
+              </Typography>
+              
+              <Typography variant="body2">
+                <strong>What this means:</strong>
+              </Typography>
+              
+              <Box component="ul" sx={{ pl: 2, my: 1 }}>
+                <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                  ✓ No uploads to servers
+                </Typography>
+                <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                  ✓ No cloud storage
+                </Typography>
+                <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                  ✓ No tracking or analytics
+                </Typography>
+                <Typography component="li" variant="body2">
+                  ✓ Complete privacy and control
+                </Typography>
+              </Box>
+              
+              <Typography variant="body2" color="text.secondary">
+                All image processing happens using HTML5 Canvas technology in your browser. When you download your avatar, it's created and saved directly on your device. We never see, store, or have access to your images.
+              </Typography>
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button 
+              onClick={() => setShowPrivacyModal(false)} 
+              variant="contained"
+              autoFocus
+            >
+              Got it
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </>
   );
