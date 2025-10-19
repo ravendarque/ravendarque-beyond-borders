@@ -283,19 +283,18 @@ export function AppStepWorkflow() {
       {/* Main Container */}
       <Container maxWidth="lg" component="main" id="main-content" aria-labelledby="app-title">
         {/* Header */}
-        <Box component="header" role="banner" sx={{ py: 3, maxWidth: 900, mx: 'auto', px: 2 }}>
-          <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
-            <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700 }}>
-              Beyond Borders
-            </Typography>
-            <IconButton 
-              size={isMobile ? 'large' : 'medium'}
-              onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
-              aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            >
-              {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
-            </IconButton>
-          </Stack>
+        <Box component="header" role="banner" sx={{ py: 3, textAlign: 'center', position: 'relative' }}>
+          <IconButton 
+            size={isMobile ? 'large' : 'medium'}
+            onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
+            aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            sx={{ position: 'absolute', top: 24, right: 16 }}
+          >
+            {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+          </IconButton>
+          <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700, mb: 1 }}>
+            Beyond Borders
+          </Typography>
           <Typography variant="subtitle1" color="textSecondary" component="p">
             Add a circular, flag-colored border to your profile picture. Follow the steps below to create your avatar.
           </Typography>
