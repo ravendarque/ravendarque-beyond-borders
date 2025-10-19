@@ -70,14 +70,13 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
     >
       <Box
         sx={{
-          display: 'flex',
+          display: 'inline-flex',
           alignItems: 'center',
-          gap: 4,
           py: 3,
         }}
         component="ol"
       >
-        {steps.map((step) => {
+        {steps.map((step, index) => {
           const stepCompleted = isCompleted(step.number);
           const stepCurrent = isCurrent(step.number);
           const stepFuture = isFuture(step.number);
@@ -93,6 +92,7 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 width: '140px',
+                ...(index > 0 && { ml: 4 }),
               }}
               aria-current={stepCurrent ? 'step' : undefined}
             >
