@@ -586,6 +586,32 @@ export function AppStepWorkflow() {
               <Typography variant="body2" color="text.secondary">
                 All image processing happens using HTML5 Canvas technology in your browser. When you download your avatar, it's created and saved directly on your device. We never see, store, or have access to your images.
               </Typography>
+              
+              <Typography variant="body2" color="text.secondary">
+                This is an open source project so if you want to look through the code, it's{' '}
+                <Box
+                  component="a"
+                  href="https://github.com/nix/beyond-borders"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: 'primary.main',
+                    textDecoration: 'underline',
+                    '&:hover': {
+                      color: 'primary.dark',
+                    },
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: 2,
+                      borderRadius: 0.5,
+                    },
+                  }}
+                >
+                  here on GitHub
+                </Box>
+                .
+              </Typography>
             </Stack>
           </DialogContent>
           <DialogActions>
