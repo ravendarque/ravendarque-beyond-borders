@@ -9,7 +9,6 @@ import { useFlagPreloader } from '@/hooks/useFlagPreloader';
 import { useStepWorkflow, Step } from '@/hooks/useStepWorkflow';
 import {
   StepProgressIndicator,
-  StepContainer,
   NavigationButtons,
   FlagDropdown,
   FlagPreview,
@@ -470,95 +469,87 @@ export function AppStepWorkflow() {
           )}
 
           {currentStep === 2 && (
-            <StepContainer
-              title={STEP_TITLES[1]}
-              description="Choose a flag to add as a border"
-              maxWidth="md"
-            >
-            <Stack spacing={3}>
-              <FlagDropdown
-                flags={flagsListRef.current}
-                selectedFlagId={flagId}
-                onChange={handleFlagChange}
-                disabled={flagsLoading}
-              />
-              
-              {selectedFlag && (
-                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <FlagPreview
-                    flag={selectedFlag}
-                    size="large"
-                    animate={true}
-                    showDescription={true}
-                    showCategory={true}
-                  />
-                </Box>
-              )}
-            </Stack>
+            <>
+              <Stack spacing={3}>
+                <FlagDropdown
+                  flags={flagsListRef.current}
+                  selectedFlagId={flagId}
+                  onChange={handleFlagChange}
+                  disabled={flagsLoading}
+                />
+                
+                {selectedFlag && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <FlagPreview
+                      flag={selectedFlag}
+                      size="large"
+                      animate={true}
+                      showDescription={true}
+                      showCategory={true}
+                    />
+                  </Box>
+                )}
+              </Stack>
 
-            <NavigationButtons
-              currentStep={currentStep}
-              canGoBack={true}
-              canGoNext={canProceedFromStep2}
-              onBack={prevStep}
-              onNext={nextStep}
-              onStartOver={startOver}
-              backLabel="Back to Image"
-              nextLabel="Customize"
-            />
-            </StepContainer>
+              <NavigationButtons
+                currentStep={currentStep}
+                canGoBack={true}
+                canGoNext={canProceedFromStep2}
+                onBack={prevStep}
+                onNext={nextStep}
+                onStartOver={startOver}
+                backLabel="Back to Image"
+                nextLabel="Customize"
+              />
+            </>
           )}
 
           {currentStep === 3 && (
-            <StepContainer
-              title={STEP_TITLES[2]}
-              description="Preview your avatar and customize the border style"
-              maxWidth="lg"
-            >
-            <Stack spacing={3}>
-              {/* Preview Section */}
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                <AvatarPreview
-                  size={size}
-                  displaySize={displaySize}
-                  canvasRef={canvasRef}
-                  overlayUrl={overlayUrl}
-                  isRendering={isRendering}
-                  hasImage={!!imageUrl}
-                  hasFlag={!!flagId}
+            <>
+              <Stack spacing={3}>
+                {/* Preview Section */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                  <AvatarPreview
+                    size={size}
+                    displaySize={displaySize}
+                    canvasRef={canvasRef}
+                    overlayUrl={overlayUrl}
+                    isRendering={isRendering}
+                    hasImage={!!imageUrl}
+                    hasFlag={!!flagId}
+                  />
+                </Box>
+
+                {/* Customization Controls */}
+                <PresentationControls
+                  value={presentation}
+                  onChange={setPresentation}
                 />
-              </Box>
 
-              {/* Customization Controls */}
-              <PresentationControls
-                value={presentation}
-                onChange={setPresentation}
-              />
-
-              {/* Download/Copy Buttons */}
-              <Stack direction="row" spacing={2} sx={{ justifyContent: 'center' }}>
-                <Button
-                  variant="outlined"
-                  onClick={handleCopy}
-                  disabled={!overlayUrl || isCopying}
-                >
-                  {isCopying ? 'Copying...' : 'Copy to Clipboard'}
-                </Button>
+                {/* Download/Copy Buttons */}
+                <Stack direction="row" spacing={2} sx={{ justifyContent: 'center' }}>
+                  <Button
+                    variant="outlined"
+                    onClick={handleCopy}
+                    disabled={!overlayUrl || isCopying}
+                  >
+                    {isCopying ? 'Copying...' : 'Copy to Clipboard'}
+                  </Button>
+                </Stack>
               </Stack>
-            </Stack>
 
-            <NavigationButtons
-              currentStep={currentStep}
-              canGoBack={true}
-              canGoNext={false}
-              onBack={prevStep}
-              onFinish={handleDownload}
-              onStartOver={startOver}
-              isLoading={isDownloading}
-              backLabel="Back to Flag Selection"
-              finishLabel="Download Avatar"
-            />
-            </StepContainer>
+              <NavigationButtons
+                currentStep={currentStep}
+                canGoBack={true}
+                canGoNext={false}
+                onBack={prevStep}
+                onFinish={handleDownload}
+                onStartOver={startOver}
+                isLoading={isDownloading}
+                backLabel="Back to Flag Selection"
+                finishLabel="Download Avatar"
+              />
+            </>
           )}
         </Box>
 
