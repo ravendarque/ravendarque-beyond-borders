@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { FlagPreview } from './FlagPreview';
 import type { FlagSpec } from '@/flags/schema';
 
@@ -98,7 +98,9 @@ describe('FlagPreview', () => {
       const img = screen.getByRole('img') as HTMLImageElement;
       
       // Simulate image load
-      img.dispatchEvent(new Event('load'));
+      await act(async () => {
+        img.dispatchEvent(new Event('load'));
+      });
 
       await waitFor(() => {
         // Check that aria-busy is false after load
@@ -194,7 +196,9 @@ describe('FlagPreview', () => {
       const img = screen.getByRole('img') as HTMLImageElement;
       
       // Simulate image load error
-      img.dispatchEvent(new Event('error'));
+      await act(async () => {
+        img.dispatchEvent(new Event('error'));
+      });
 
       await waitFor(() => {
         // Should show error state or fallback
