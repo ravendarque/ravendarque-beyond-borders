@@ -8,10 +8,30 @@ Add a circular, flag-colored border to your profile picture to show support for 
 🌐 **Live App**: [https://ravendarque.github.io/ravendarque-beyond-borders/](https://ravendarque.github.io/ravendarque-beyond-borders/)
 
 ## Overview
-- Upload an image (JPG/PNG)
-- Pick a flag (Pride, Trans, Non-binary, selected national flags, etc.)
-- Adjust border thickness and preview a circular avatar
-- Download as PNG (512/1024)
+
+Beyond Borders uses a simple **three-step workflow** to create your flag-bordered profile picture:
+
+### Step 1: Choose Your Image
+- Upload an image (JPG/PNG, max 10MB)
+- Drag and drop or click to browse
+- See an instant circular preview
+- All processing happens locally in your browser - no uploads!
+
+### Step 2: Choose Your Flag
+- Browse flags organized by category:
+  - **Oppressed Groups** (Pride, Trans, Non-binary, etc.)
+  - **Occupied / Disputed Territories** (Palestine, Tibet, Western Sahara, etc.)
+  - **Stateless Nations** (Kurdistan, Uyghur/Kokbayraq, etc.)
+  - **Authoritarian States** (Eritrea, North Korea, Iran)
+- Search by name or keyword
+- See each flag's context and meaning
+- Preview updates instantly as you select
+
+### Step 3: Preview & Save
+- Adjust border thickness with a slider
+- Fine-tune image and flag positioning
+- Choose export size (512px or 1024px)
+- Download your customized avatar as PNG
 
 ## Status
 **✅ Live and deployed!** The app is built with Vite + React + TypeScript and automatically deployed to GitHub Pages on every push to main.
@@ -64,18 +84,46 @@ The `main` branch is protected. All changes must be made via pull requests:
 
   The GitHub Actions workflow runs the validator before the build so missing SVGs will fail CI with a clear message.
 
-## Project Structure (planned)
-- src/
-  - components/ Uploader, FlagPicker, Controls, Preview
-  - renderer/ canvas renderer + worker
-  - flags/ flags.json + schema
-  - lib/ utils (exif, a11y)
-  - tests/
+## Project Structure
+
+```
+src/
+├── components/         # React components (StepProgressIndicator, FlagDropdown, etc.)
+├── pages/             # Page components (AppStepWorkflow)
+├── hooks/             # Custom React hooks (useStepWorkflow, useAvatarRenderer, etc.)
+├── renderer/          # Canvas rendering engine + flag processing
+├── flags/             # Flag data (flags.ts generated from flags.json)
+├── utils/             # Utilities (EXIF handling, validation, etc.)
+└── types/             # TypeScript type definitions
+
+test/
+├── unit/              # Unit tests (Vitest + React Testing Library)
+├── integration/       # Integration tests
+├── e2e/               # End-to-end tests (Playwright)
+└── fixtures/          # Test fixtures and data
+
+scripts/
+├── fetch-and-extract.cjs  # Fetch and process flag images
+├── validate-flags.cjs     # Validate flag data integrity
+└── sync-flags-ts.cjs      # Generate flags.ts from flags.json
+```
 
 ## Flags Library Governance
-- Primary focus: marginalized-group flags (accurate colors/order/proportions)
-- Selected national flags for specific conflicts (curated)
-- Versioned `flags.json` with sources and status (active/hidden/deprecated)
+
+Our flag collection is carefully curated to support awareness and solidarity:
+
+- **Oppressed groups**: Pride, transgender, non-binary, and other identity flags
+- **Occupied territories**: Flags representing peoples under occupation or disputed governance
+- **Stateless nations**: Flags of peoples without recognized nation-states
+- **Authoritarian states**: Flags highlighting regions under authoritarian rule
+
+Each flag includes:
+- Accurate colors, proportions, and design (validated sources)
+- Context explaining the group or cause
+- Multiple sources for verification
+- Status tracking (active/hidden/deprecated)
+
+All flag data is versioned in `flags.json` with full attribution.
 
 ## Privacy & Accessibility
 - Client-side processing; no images uploaded to servers

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import type { FlagSpec } from '@/flags/schema';
 
@@ -94,13 +94,15 @@ describe('useAvatarRenderer', () => {
   it('should render successfully with valid inputs', async () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    await result.current.render('blob:test-image', 'test', {
-      size: 1024,
-      thickness: 7,
-      insetPct: 0,
-      flagOffsetX: 0,
-      presentation: 'ring',
-      bg: 'transparent',
+    await act(async () => {
+      await result.current.render('blob:test-image', 'test', {
+        size: 1024,
+        thickness: 7,
+        insetPct: 0,
+        flagOffsetX: 0,
+        presentation: 'ring',
+        bg: 'transparent',
+      });
     });
 
     await waitFor(() => {
@@ -111,13 +113,15 @@ describe('useAvatarRenderer', () => {
   it('should fetch and cache flag image for cutout mode', async () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    await result.current.render('blob:test-image', 'test', {
-      size: 1024,
-      thickness: 7,
-      insetPct: 0,
-      flagOffsetX: 0,
-      presentation: 'cutout',
-      bg: 'transparent',
+    await act(async () => {
+      await result.current.render('blob:test-image', 'test', {
+        size: 1024,
+        thickness: 7,
+        insetPct: 0,
+        flagOffsetX: 0,
+        presentation: 'cutout',
+        bg: 'transparent',
+      });
     });
 
     await waitFor(() => {
@@ -136,13 +140,15 @@ describe('useAvatarRenderer', () => {
 
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    await result.current.render('blob:test-image', 'test', {
-      size: 1024,
-      thickness: 7,
-      insetPct: 0,
-      flagOffsetX: 0,
-      presentation: 'cutout',
-      bg: 'transparent',
+    await act(async () => {
+      await result.current.render('blob:test-image', 'test', {
+        size: 1024,
+        thickness: 7,
+        insetPct: 0,
+        flagOffsetX: 0,
+        presentation: 'cutout',
+        bg: 'transparent',
+      });
     });
 
     await waitFor(() => {
@@ -161,16 +167,16 @@ describe('useAvatarRenderer', () => {
     // Should not be rendering initially
     expect(result.current.isRendering).toBe(false);
 
-    const renderPromise = result.current.render('blob:test-image', 'test', {
-      size: 1024,
-      thickness: 7,
-      insetPct: 0,
-      flagOffsetX: 0,
-      presentation: 'cutout',
-      bg: 'transparent',
+    await act(async () => {
+      await result.current.render('blob:test-image', 'test', {
+        size: 1024,
+        thickness: 7,
+        insetPct: 0,
+        flagOffsetX: 0,
+        presentation: 'cutout',
+        bg: 'transparent',
+      });
     });
-
-    await renderPromise;
 
     // After render completes, should not be rendering
     await waitFor(() => {
@@ -182,13 +188,15 @@ describe('useAvatarRenderer', () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
     // First render
-    await result.current.render('blob:test-image', 'test', {
-      size: 1024,
-      thickness: 7,
-      insetPct: 0,
-      flagOffsetX: 0,
-      presentation: 'ring',
-      bg: 'transparent',
+    await act(async () => {
+      await result.current.render('blob:test-image', 'test', {
+        size: 1024,
+        thickness: 7,
+        insetPct: 0,
+        flagOffsetX: 0,
+        presentation: 'ring',
+        bg: 'transparent',
+      });
     });
 
     await waitFor(() => {
@@ -198,13 +206,15 @@ describe('useAvatarRenderer', () => {
     const firstUrl = result.current.overlayUrl;
 
     // Second render
-    await result.current.render('blob:test-image', 'test', {
-      size: 1024,
-      thickness: 7,
-      insetPct: 0,
-      flagOffsetX: 0,
-      presentation: 'segment',
-      bg: 'transparent',
+    await act(async () => {
+      await result.current.render('blob:test-image', 'test', {
+        size: 1024,
+        thickness: 7,
+        insetPct: 0,
+        flagOffsetX: 0,
+        presentation: 'segment',
+        bg: 'transparent',
+      });
     });
 
     await waitFor(() => {
@@ -220,13 +230,15 @@ describe('useAvatarRenderer', () => {
 
     // Expect the error to be thrown (re-thrown as AppError)
     await expect(
-      result.current.render('blob:test-image', 'test', {
-        size: 1024,
-        thickness: 7,
-        insetPct: 0,
-        flagOffsetX: 0,
-        presentation: 'ring',
-        bg: 'transparent',
+      act(async () => {
+        await result.current.render('blob:test-image', 'test', {
+          size: 1024,
+          thickness: 7,
+          insetPct: 0,
+          flagOffsetX: 0,
+          presentation: 'ring',
+          bg: 'transparent',
+        });
       })
     ).rejects.toThrow('Render error');
 
@@ -263,13 +275,15 @@ describe('useAvatarRenderer', () => {
 
     const { result } = renderHook(() => useAvatarRenderer([flagWithLayouts], mockCache));
 
-    await result.current.render('blob:test-image', 'test', {
-      size: 1024,
-      thickness: 7,
-      insetPct: 0,
-      flagOffsetX: 0,
-      presentation: 'ring',
-      bg: 'transparent',
+    await act(async () => {
+      await result.current.render('blob:test-image', 'test', {
+        size: 1024,
+        thickness: 7,
+        insetPct: 0,
+        flagOffsetX: 0,
+        presentation: 'ring',
+        bg: 'transparent',
+      });
     });
 
     await waitFor(() => {
