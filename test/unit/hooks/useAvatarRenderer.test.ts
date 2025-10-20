@@ -11,9 +11,10 @@ vi.mock('@/renderer/render', () => ({
 describe('useAvatarRenderer', () => {
   const mockFlag: FlagSpec = {
     id: 'test',
+    name: 'Test Flag',
     displayName: 'Test Flag',
     png_full: 'test.png',
-    category: 'marginalized',
+    category: 'oppressed',
     status: 'active',
     sources: {},
     pattern: {
