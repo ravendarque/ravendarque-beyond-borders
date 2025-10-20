@@ -8,9 +8,10 @@ describe('FlagSelector', () => {
   const mockFlags: FlagSpec[] = [
     {
       id: 'flag1',
+      name: 'Flag One',
       displayName: 'Flag One',
       png_full: 'flag1.png',
-      category: 'marginalized',
+      category: 'oppressed',
       status: 'active',
       sources: {},
       pattern: {
@@ -21,9 +22,10 @@ describe('FlagSelector', () => {
     },
     {
       id: 'flag2',
+      name: 'Flag Two',
       displayName: 'Flag Two',
       png_full: 'flag2.png',
-      category: 'marginalized',
+      category: 'oppressed',
       status: 'active',
       sources: {},
       pattern: {

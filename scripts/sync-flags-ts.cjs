@@ -53,23 +53,21 @@ const ID_MAPPINGS = {
   'palestine': 'ps',
 };
 
-// Determine category based on the type field from manifest
-function getCategory(type) {
-  const typeToCategory = {
-    'Authoritarian State': 'national',
-    'Nation': 'national',
-    'Occupied / Disputed Territory': 'marginalized',
-    'Stateless People': 'marginalized',
-    'Marginalised Group': 'marginalized',
-    'Indigenous Peoples': 'marginalized',
+// Determine category based on the category field from manifest
+function getCategory(category) {
+  const categoryMapping = {
+    'Authoritarian State': 'authoritarian',
+    'Occupied / Disputed Territory': 'occupied',
+    'Stateless People': 'stateless',
+    'Oppressed Groups': 'oppressed',
   };
-  return typeToCategory[type] || 'marginalized';
+  return categoryMapping[category] || 'oppressed';
 }
 
 // Convert manifest entry to TypeScript flag object
 function manifestToTsEntry(entry) {
   const id = ID_MAPPINGS[entry.id] || entry.id;
-  const category = getCategory(entry.type);
+  const category = getCategory(entry.category);
   
   // Build the stripes array from layouts[0].colors if available
   let stripes = null;
@@ -84,6 +82,7 @@ function manifestToTsEntry(entry) {
 
   const obj = {
     id,
+    name: entry.name,
     displayName: entry.displayName,
     png_full: entry.png_full,
     png_preview: entry.png_preview,
@@ -182,6 +181,7 @@ function generateTypeScriptSource(entries) {
 
     lines.push('  {');
     lines.push(`    id: '${entry.id}',`);
+    lines.push(`    name: '${entry.name.replace(/'/g, "\\'")}',`);
     lines.push(`    displayName: '${entry.displayName.replace(/'/g, "\\'")}',`);
     lines.push(`    png_full: '${entry.png_full}',`);
     lines.push(`    png_preview: '${entry.png_preview}',`);

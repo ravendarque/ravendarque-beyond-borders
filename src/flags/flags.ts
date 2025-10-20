@@ -3,11 +3,12 @@ import { FlagSpec } from './schema';
 export const flags: FlagSpec[] = [
   {
     id: 'trans-pride',
-    displayName: 'Transgender Pride — Transgender flag',
+    name: 'Transgender Flag',
+    displayName: 'Trans Pride',
     png_full: 'transgender-pride.png',
     png_preview: 'transgender-pride.preview.png',
     svgFilename: 'transgender-pride.svg',
-    category: 'marginalized',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Transgender_flag' },
     status: 'active',
     pattern: {
@@ -23,11 +24,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'ua',
-    displayName: 'Ukraine — Flag of Ukraine',
+    name: 'Flag Of Ukraine',
+    displayName: 'Ukraine',
     png_full: 'ukraine.png',
     png_preview: 'ukraine.preview.png',
     svgFilename: 'ukraine.svg',
-    category: 'national',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Ukraine' },
     status: 'active',
     pattern: {
@@ -42,11 +44,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'nk',
-    displayName: 'North Korea — Ramhongsaek Konghwagukgi',
+    name: 'Ramhongsaek Konghwagukgi',
+    displayName: 'North Korea',
     png_full: 'north-korea.png',
     png_preview: 'north-korea.preview.png',
     svgFilename: 'north-korea.svg',
-    category: 'national',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/North_Korea' },
     status: 'active',
     pattern: {
@@ -63,11 +66,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'australian-aboriginal',
-    displayName: 'Australian Aboriginal Peoples — Australian Aboriginal Flag',
+    name: 'Australian Aboriginal Flag',
+    displayName: 'Australian Aboriginal Peoples',
     png_full: 'australian-aboriginal.png',
     png_preview: 'australian-aboriginal.preview.png',
     svgFilename: 'australian-aboriginal.svg',
-    category: 'marginalized',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Aboriginal_flag' },
     status: 'active',
     pattern: {
@@ -84,11 +88,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'er',
-    displayName: 'Eritrea — Flag of Eritrea',
+    name: 'Flag Of Eritrea',
+    displayName: 'Eritrea',
     png_full: 'eritrea.png',
     png_preview: 'eritrea.preview.png',
     svgFilename: 'eritrea.svg',
-    category: 'national',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Eritrea' },
     status: 'active',
     pattern: {
@@ -105,11 +110,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'ir',
-    displayName: 'Iran — Flag of the Islamic Republic of Iran',
+    name: 'Flag Of The Islamic Republic Of Iran',
+    displayName: 'Iran',
     png_full: 'iran.png',
     png_preview: 'iran.preview.png',
     svgFilename: 'iran.svg',
-    category: 'national',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Iran' },
     status: 'active',
     pattern: {
@@ -125,11 +131,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'kurdistan',
-    displayName: 'Kurdistan — Kurdish flag (Roj)',
+    name: 'Kurdish Flag (Roj)',
+    displayName: 'Kurdistan',
     png_full: 'kurdistan.png',
     png_preview: 'kurdistan.preview.png',
     svgFilename: 'kurdistan.svg',
-    category: 'marginalized',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Kurdistan' },
     status: 'active',
     pattern: {
@@ -146,11 +153,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'nonbinary',
-    displayName: 'Non-binary Pride — Non-binary flag',
+    name: 'Non-Binary Flag',
+    displayName: 'Non-Binary Pride',
     png_full: 'nonbinary.png',
     png_preview: 'nonbinary.preview.png',
     svgFilename: 'nonbinary.svg',
-    category: 'marginalized',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Non-binary_gender#Flags' },
     status: 'active',
     pattern: {
@@ -167,11 +175,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'pride',
-    displayName: 'Pride — Rainbow Flag',
+    name: 'Rainbow Flag',
+    displayName: 'Pride',
     png_full: 'gay-pride.png',
     png_preview: 'gay-pride.preview.png',
     svgFilename: 'gay-pride.svg',
-    category: 'marginalized',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rainbow_flag' },
     status: 'active',
     pattern: {
@@ -190,11 +199,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'ps',
-    displayName: 'Palestine — Palestinian flag',
+    name: 'Palestinian Flag',
+    displayName: 'Palestine',
     png_full: 'palestine.png',
     png_preview: 'palestine.preview.png',
     svgFilename: 'palestine.svg',
-    category: 'marginalized',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Palestine' },
     status: 'active',
     pattern: {
@@ -211,11 +221,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'rohingya',
-    displayName: 'Rohingya — Rohingya flag',
+    name: 'Rohingya Flag',
+    displayName: 'Rohingya',
     png_full: 'rohingya.png',
     png_preview: 'rohingya.preview.png',
     svgFilename: 'rohingya.svg',
-    category: 'marginalized',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rohingya' },
     status: 'active',
     pattern: {
@@ -231,11 +242,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'tibet',
-    displayName: 'Tibet — Snow Lion Flag',
+    name: 'Snow Lion Flag',
+    displayName: 'Tibet',
     png_full: 'tibet.png',
     png_preview: 'tibet.preview.png',
     svgFilename: 'tibet.svg',
-    category: 'marginalized',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Tibet' },
     status: 'active',
     pattern: {
@@ -252,11 +264,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'uyghur',
-    displayName: 'Uyghur (East Turkestan) — East Turkestan flag',
+    name: 'East Turkestan Flag',
+    displayName: 'Uyghur (East Turkestan)',
     png_full: 'kokbayraq.png',
     png_preview: 'kokbayraq.preview.png',
     svgFilename: 'kokbayraq.svg',
-    category: 'marginalized',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Uyghurs' },
     status: 'active',
     pattern: {
@@ -271,11 +284,12 @@ export const flags: FlagSpec[] = [
   },
   {
     id: 'ws',
-    displayName: 'Western Sahara — Sahrawi Arab Democratic Republic',
+    name: 'Flag Of The Sahrawi Arab Democratic Republic',
+    displayName: 'Western Sahara',
     png_full: 'the-sahrawi-arab-democratic-republic.png',
     png_preview: 'the-sahrawi-arab-democratic-republic.preview.png',
     svgFilename: 'the-sahrawi-arab-democratic-republic.svg',
-    category: 'marginalized',
+    category: 'oppressed',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Western_Sahara' },
     status: 'active',
     pattern: {
