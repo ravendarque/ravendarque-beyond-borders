@@ -7,9 +7,10 @@ describe('flag-validation', () => {
     it('should validate a correct flag pattern', () => {
       const validFlag: FlagSpec = {
         id: 'test-flag',
+        name: 'Test Flag',
         displayName: 'Test Flag',
         png_full: '/flags/test-flag.png',
-        category: 'marginalized',
+        category: 'oppressed',
         sources: {},
         status: 'active',
         pattern: {

@@ -53,36 +53,29 @@ try {
   playwright = null;
 }
 
-// crude YAML parser for our well-formed input
-function parseFlagsFromYaml(yaml) {
-  // try to use js-yaml if available for robust parsing, otherwise fall back
-  try {
-    const jsyaml = require('js-yaml');
-    const doc = jsyaml.load(yaml);
-    if (Array.isArray(doc)) return doc;
-    // allow manifest as { flags: [...] }
-    if (doc && Array.isArray(doc.flags)) return doc.flags;
-    // fallback: try to coerce object entries into array
-    return Object.keys(doc || {}).map(k => doc[k]).filter(Boolean);
-  } catch (e) {
-    console.warn('js-yaml not available or parse failed; falling back to simple parser (install js-yaml for robust YAML).');
-  }
+// Map category strings from YAML to short codes for JSON
+function mapCategoryToCode(category) {
+  const mapping = {
+    'Authoritarian State': 'authoritarian',
+    'Occupied / Disputed Territory': 'occupied',
+    'Stateless People': 'stateless',
+    'Oppressed Groups': 'oppressed',
+  };
+  return mapping[category] || null;
+}
 
-  const blocks = yaml.split(/\n\s*-\s+/).map(s => s.trim()).filter(Boolean);
-  const flags = [];
-  for (const b of blocks) {
-    // ensure starts with name or contains name:
-    const nameMatch = b.match(/name:\s*"([^"]+)"/);
-    if (!nameMatch) continue;
-    const name = nameMatch[1];
-    const svgMatch = b.match(/svg_url:\s*"([^"]+)"/);
-    const descriptionMatch = b.match(/description:\s*"([^"]+)"/);
-    const typeMatch = b.match(/type:\s*"([^"]+)"/);
-    const reasonMatch = b.match(/reason:\s*"([^"]+)"/);
-    const linkMatch = b.match(/link:\s*"([^"]+)"/);
-    flags.push({ name, svg_url: svgMatch ? svgMatch[1] : null, description: descriptionMatch ? descriptionMatch[1] : null, type: typeMatch ? typeMatch[1] : null, reason: reasonMatch ? reasonMatch[1] : null, link: linkMatch ? linkMatch[1] : null });
-  }
-  return flags;
+// Parse YAML using js-yaml
+function parseFlagsFromYaml(yaml) {
+  const jsyaml = require('js-yaml');
+  const doc = jsyaml.load(yaml);
+  
+  if (Array.isArray(doc)) return doc;
+  // allow manifest as { flags: [...] }
+  if (doc && Array.isArray(doc.flags)) return doc.flags;
+  
+  // Unexpected structure
+  console.error('Error: YAML structure is invalid. Expected { flags: [...] } or an array.');
+  process.exit(1);
 }
 
 const flags = parseFlagsFromYaml(yamlText);
@@ -388,12 +381,13 @@ async function workerForFlag(f) {
       })();
       const metadata = {
         name: f.name,
+        displayName: f.displayName,
         filename,
         source_page: f.svg_url,
         media_url: mediaUrl,
         size,
         description: f.description,
-        type: f.type,
+        category: mapCategoryToCode(f.category),
         reason: f.reason,
         link: f.link,
         colors,
@@ -650,6 +644,10 @@ async function workerForFlag(f) {
         metadata.png_preview = id + '.preview.png';
         // ensure metadata.filename records the canonical svg filename
         metadata.filename = filename;
+        // Store the computed focal point
+        if (computedFocal) {
+          metadata.focalPoint = computedFocal;
+        }
         
         // Extract colors from the rendered PNG for accurate color data
         const pngFullPath = path.join(outDir, pngFull);
@@ -713,14 +711,15 @@ if (pLimit && pLimit.default) pLimit = pLimit.default;
       }
       const entry = {
         id,
-        displayName: m.name || id.replace(/_/g, ' '),
+        name: m.name || id.replace(/_/g, ' '),
+        displayName: m.displayName || m.name || id.replace(/_/g, ' '),
         svgFilename: svg,
         png_full,
         png_preview,
         source_page: m.source_page || null,
         media_url: m.media_url || null,
         description: m.description || null,
-        type: m.type || null,
+        category: m.category || null,
         reason: m.reason || null,
         link: m.link || null,
         layouts,

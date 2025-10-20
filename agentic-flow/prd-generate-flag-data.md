@@ -21,11 +21,11 @@ These following categories will be used to find and classify each flag entry:
    - Regions with partial or no international recognition, under foreign occupation, or secessionist entities.  
    - Examples: Palestine, Tibet, Western Sahara, Chechnya, Kosovo.  
 
-3. **Stateless People**  
+3. **Stateless / Displaced Peoples**  
    - Nations or ethnic groups without recognized statehood, often facing persecution.  
    - Examples: Kurds, Uyghurs, Rohingya, Tamils, Ogaden Somalis, Baloch.  
 
-4. **Oppressed Groups**
+4. **Oppressed / Marginalised Groups**
    - Groups facing systemic discrimination or social exclusion within a state.
    - Examples: LGBTQIA+ communities, Indigenous peoples
 

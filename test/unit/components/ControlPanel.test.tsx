@@ -8,9 +8,10 @@ describe('ControlPanel', () => {
   const mockFlags: FlagSpec[] = [
     {
       id: 'flag1',
+      name: 'Flag One',
       displayName: 'Flag One',
       png_full: 'flag1.png',
-      category: 'marginalized',
+      category: 'oppressed',
       status: 'active',
       sources: {},
       pattern: {

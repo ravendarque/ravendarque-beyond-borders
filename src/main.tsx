@@ -2,7 +2,7 @@ import React, { createContext, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { App } from './pages/App';
+import { AppStepWorkflow } from './pages/AppStepWorkflow';
 import { createAppTheme } from './theme';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -50,7 +50,7 @@ function Root() {
       <ThemeProvider theme={appTheme}>
         <CssBaseline />
         <ErrorBoundary>
-          <App />
+          <AppStepWorkflow />
         </ErrorBoundary>
       </ThemeProvider>
     </ThemeModeContext.Provider>
