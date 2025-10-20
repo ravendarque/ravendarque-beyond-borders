@@ -5,8 +5,9 @@ describe('flags schema', () => {
   it('validates a correct flag spec', () => {
     const specimen = {
       id: 'trans-pride',
+      name: 'Transgender Pride Flag',
       displayName: 'Trans Pride',
-      category: 'marginalized',
+      category: 'oppressed',
       sources: {},
       status: 'active',
       png_full: 'trans-pride.png', // Required field

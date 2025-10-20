@@ -30,11 +30,8 @@ export const FlagDropdown: React.FC<FlagDropdownProps> = ({
   required = false,
   error,
 }) => {
-  // Find the selected flag object
-  const selectedFlag = flags.find(f => f.id === selectedFlagId) || null;
-
   // Map category codes to human-readable labels
-  const getCategoryLabel = (category: string): string => {
+  const getCategoryLabel = React.useCallback((category: string): string => {
     switch (category) {
       case 'authoritarian':
         return 'Authoritarian States';
@@ -44,19 +41,36 @@ export const FlagDropdown: React.FC<FlagDropdownProps> = ({
         return 'Stateless Peoples';
       case 'oppressed':
         return 'Oppressed Groups';
-      // Legacy support
-      case 'marginalized':
-        return 'Oppressed Groups';
-      case 'national':
-        return 'Occupied / Disputed Territories';
       default:
         return 'Other';
     }
-  };
+  }, []);
+
+  // Sort flags by category, then alphabetically within each category
+  const sortedFlags = React.useMemo(() => {
+    return [...flags].sort((a, b) => {
+      const categoryA = getCategoryLabel(a.category);
+      const categoryB = getCategoryLabel(b.category);
+      
+      // First sort by category
+      const categoryComparison = categoryA.localeCompare(categoryB);
+      if (categoryComparison !== 0) {
+        return categoryComparison;
+      }
+      
+      // Then sort alphabetically within category by display name
+      const nameA = a.displayName.split(' — ')[0];
+      const nameB = b.displayName.split(' — ')[0];
+      return nameA.localeCompare(nameB);
+    });
+  }, [flags, getCategoryLabel]);
+
+  // Find the selected flag object
+  const selectedFlag = sortedFlags.find(f => f.id === selectedFlagId) || null;
 
   return (
     <Autocomplete
-      options={flags}
+      options={sortedFlags}
       value={selectedFlag}
       onChange={(_event, newValue) => {
         onChange(newValue?.id || null);
