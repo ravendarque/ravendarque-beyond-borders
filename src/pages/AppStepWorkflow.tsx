@@ -14,6 +14,7 @@ import {
   FlagPreview,
   PresentationControls,
   AvatarPreview,
+  SliderControl,
 } from '@/components';
 import { ErrorAlert } from '@/components/ErrorAlert';
 
@@ -32,6 +33,10 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import toast, { Toaster } from 'react-hot-toast';
 import type { FlagSpec } from '@/flags/schema';
 import type { AppError } from '@/types/errors';
@@ -67,6 +72,10 @@ export function AppStepWorkflow() {
 
   // App state (local to this component)
   const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
+  const [thickness, setThickness] = useState(7);
+  const [insetPct, setInsetPct] = useState(0);
+  const [flagOffsetX, setFlagOffsetX] = useState(0);
+  const [bg, setBg] = useState<string | 'transparent'>('transparent');
   const [flagsLoading, setFlagsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
@@ -131,11 +140,11 @@ export function AppStepWorkflow() {
       setStatusMessage('Rendering avatar...');
       await render(specificImageUrl, flagId, {
         size,
-        thickness: 7,
-        insetPct: 0,
-        flagOffsetX: 0,
+        thickness,
+        insetPct,
+        flagOffsetX,
         presentation,
-        bg: 'transparent',
+        bg,
       });
       setError(null);
       setStatusMessage('Avatar rendered successfully. Ready to download.');
@@ -145,7 +154,7 @@ export function AppStepWorkflow() {
       toast.error(`Render failed: ${normalizedError.message}`);
       setStatusMessage(`Error: ${normalizedError.message}`);
     }
-  }, [render, flagId, size, presentation]);
+  }, [render, flagId, size, thickness, insetPct, flagOffsetX, presentation, bg]);
 
   /**
    * Auto-render when image, flag, or settings change
@@ -298,7 +307,7 @@ export function AppStepWorkflow() {
           size={isMobile ? 'large' : 'medium'}
           onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
           aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          sx={{ position: 'fixed', top: 24, right: 24, zIndex: 1000 }}
+          sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}
         >
           {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
         </IconButton>
@@ -531,7 +540,60 @@ export function AppStepWorkflow() {
                     onChange={setPresentation}
                   />
                 </Box>
+
+                {/* Adjustment Controls */}
+                <Box sx={{ maxWidth: 400, mx: 'auto', width: '100%', px: 2 }}>
+                  <Stack spacing={3}>
+                    <SliderControl
+                      label="Border thickness"
+                      value={thickness}
+                      min={3}
+                      max={20}
+                      step={1}
+                      onChange={setThickness}
+                      unit="%"
+                    />
+
+                    <SliderControl
+                      label="Profile Image Inset/Outset"
+                      value={insetPct}
+                      min={-10}
+                      max={10}
+                      step={1}
+                      onChange={setInsetPct}
+                      unit="%"
+                    />
+
+                    {presentation === 'cutout' && (
+                      <SliderControl
+                        label="Flag Horizontal Offset"
+                        value={flagOffsetX}
+                        min={-200}
+                        max={200}
+                        step={5}
+                        onChange={setFlagOffsetX}
+                        unit="px"
+                      />
+                    )}
+
+                    <FormControl fullWidth>
+                      <InputLabel id="background-select-label">Background</InputLabel>
+                      <Select 
+                        value={bg} 
+                        onChange={(e) => setBg(e.target.value)}
+                        label="Background"
+                        labelId="background-select-label"
+                      >
+                        <MenuItem value="transparent">Transparent</MenuItem>
+                        <MenuItem value="#ffffff">White</MenuItem>
+                        <MenuItem value="#000000">Black</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Stack>
+                </Box>
               </Stack>
+
+              <Box sx={{ mb: 3 }} />
 
               <Box sx={{ width: 300, mx: 'auto' }}>
                 <NavigationButtons

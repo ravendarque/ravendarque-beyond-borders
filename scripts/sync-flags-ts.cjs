@@ -82,6 +82,7 @@ function manifestToTsEntry(entry) {
 
   const obj = {
     id,
+    name: entry.name,
     displayName: entry.displayName,
     png_full: entry.png_full,
     png_preview: entry.png_preview,
@@ -180,6 +181,7 @@ function generateTypeScriptSource(entries) {
 
     lines.push('  {');
     lines.push(`    id: '${entry.id}',`);
+    lines.push(`    name: '${entry.name.replace(/'/g, "\\'")}',`);
     lines.push(`    displayName: '${entry.displayName.replace(/'/g, "\\'")}',`);
     lines.push(`    png_full: '${entry.png_full}',`);
     lines.push(`    png_preview: '${entry.png_preview}',`);

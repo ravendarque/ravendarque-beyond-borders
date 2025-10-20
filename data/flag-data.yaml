@@ -9,7 +9,7 @@ flags:
     reason: "Totalitarian dictatorship under the Kim regime with severe, systemic human rights abuses, political prison camps, and repression of dissent."
     link: "https://en.wikipedia.org/wiki/North_Korea"
 
-  - name: "Flag of Eritrea"
+  - name: "Flag Of Eritrea"
     displayName: "Eritrea"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Eritrea.svg"
     description: "Green, blue and red tricolour with a gold olive wreath emblem."
@@ -17,7 +17,7 @@ flags:
     reason: "Longstanding authoritarian rule, indefinite national service, and widespread human rights concerns documented by international organizations."
     link: "https://en.wikipedia.org/wiki/Eritrea"
 
-  - name: "Flag of the Islamic Republic of Iran"
+  - name: "Flag Of The Islamic Republic Of Iran"
     displayName: "Iran"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Iran.svg"
     description: "Green, white, and red horizontal tricolour with the emblem of Iran at center and takbir script along the borders."
@@ -25,7 +25,7 @@ flags:
     reason: "Theocratic governance with restricted political freedoms, repression of dissent, and violations of women's and minority rights."
     link: "https://en.wikipedia.org/wiki/Iran"
 
-  - name: "Palestinian flag"
+  - name: "Palestinian Flag"
     displayName: "Palestine"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Palestine.svg"
     description: "Black, white, and green horizontal stripes with a red triangle at the hoist."
@@ -41,7 +41,7 @@ flags:
     reason: "Banned in Tibet since Chinese control; symbol of Tibetan cultural and political resistance."
     link: "https://en.wikipedia.org/wiki/Flag_of_Tibet"
 
-  - name: "Flag of the Sahrawi Arab Democratic Republic"
+  - name: "Flag Of The Sahrawi Arab Democratic Republic"
     displayName: "Western Sahara"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_the_Sahrawi_Arab_Democratic_Republic.svg"
     description: "Black, white, and green horizontal stripes with a red triangle and star and crescent."
@@ -49,7 +49,7 @@ flags:
     reason: "Territory with partial recognition; long-running dispute and displacement of Sahrawi people."
     link: "https://en.wikipedia.org/wiki/Western_Sahara"
 
-  - name: "Kurdish flag (Roj)"
+  - name: "Kurdish Flag (Roj)"
     displayName: "Kurdistan"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Kurdistan.svg"
     description: "Red, white, and green tricolor with a golden sun emblem at center."
@@ -57,7 +57,7 @@ flags:
     reason: "Represents Kurdish identity and independence aspirations; Kurds face repression and denial of rights across multiple states."
     link: "https://en.wikipedia.org/wiki/Kurdistan"
 
-  - name: "East Turkestan flag"
+  - name: "East Turkestan Flag"
     displayName: "Uyghur (East Turkestan)"
     svg_url: "https://en.wikipedia.org/wiki/File:Kokbayraq_flag.svg"
     description: "Sky-blue field with a white crescent and star."
@@ -65,7 +65,7 @@ flags:
     reason: "Used by Uyghur activists and diaspora; Uyghurs face mass detention, cultural repression, and rights abuses in Xinjiang."
     link: "https://en.wikipedia.org/wiki/Uyghurs"
 
-  - name: "Rohingya flag"
+  - name: "Rohingya Flag"
     displayName: "Rohingya"
     svg_url: "https://commons.wikimedia.org/wiki/File:Rohingya_flag.svg"
     description: "Green field with a white star and crescent and additional motifs used by Rohingya groups."
@@ -81,15 +81,15 @@ flags:
     reason: "Represents LGBTQ+ communities; in many countries LGBTQ+ people face criminalization, discrimination, and violence."
     link: "https://en.wikipedia.org/wiki/Rainbow_flag"
 
-  - name: "Transgender flag"
-    displayName: "Transgender Pride"
+  - name: "Transgender Flag"
+    displayName: "Trans Pride"
     svg_url: "https://commons.wikimedia.org/wiki/File:Transgender_Pride_flag.svg"
     description: "Light blue, pink, and white horizontal stripes representing transgender community."
     category: "Oppressed Groups"
     reason: "Symbol of transgender visibility; transgender people face discrimination and legal obstacles in many places."
     link: "https://en.wikipedia.org/wiki/Transgender_flag"
 
-  - name: "Flag of Ukraine"
+  - name: "Flag Of Ukraine"
     displayName: "Ukraine"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Ukraine.svg"
     description: "Two horizontal bands of blue (top) and yellow (bottom)."
@@ -105,8 +105,8 @@ flags:
     reason: "Represents Aboriginal peoples of Australia and is used as a symbol of identity, cultural resilience, and political rights."
     link: "https://en.wikipedia.org/wiki/Aboriginal_flag"
 
-  - name: "Non-binary flag"
-    displayName: "Non-binary Pride"
+  - name: "Non-Binary Flag"
+    displayName: "Non-Binary Pride"
     svg_url: "https://commons.wikimedia.org/wiki/File:Nonbinary_flag.svg"
     description: "Four horizontal stripes: yellow, white, purple, and black representing people whose gender is outside the binary."
     category: "Oppressed Groups"

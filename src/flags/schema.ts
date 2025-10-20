@@ -8,11 +8,13 @@ export const Stripe = z.object({
 
 export const FlagSpec = z.object({
   id: z.string(),
+  name: z.string(), // Full official name
   displayName: z.string(),
   svgFilename: z.string().optional(),
   png_full: z.string(), // Required PNG for accurate rendering
   png_preview: z.string().optional(),
-  category: z.enum(['marginalized', 'national']),
+  category: z.enum(['authoritarian', 'occupied', 'stateless', 'oppressed']),
+  reason: z.string().optional(), // Why this flag is included
   sources: z.object({
     referenceUrl: z.string().url().optional(),
     authorNote: z.string().optional(),

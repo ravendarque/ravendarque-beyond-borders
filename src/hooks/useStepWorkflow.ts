@@ -84,7 +84,8 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
       url.searchParams.delete('step');
     }
     
-    window.history.replaceState({}, '', url.toString());
+    // Use pushState to allow browser back/forward navigation
+    window.history.pushState({}, '', url.toString());
   }, [currentStep]);
 
   /**
@@ -108,7 +109,62 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
         setCurrentStep(3);
       }
     }
-  }, []); // Only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount - intentionally reading imageUrl/flagId without including in deps
+
+  /**
+   * Handle browser back/forward navigation
+   */
+  useEffect(() => {
+    const handlePopState = () => {
+      const url = new URL(window.location.href);
+      const stepParam = url.searchParams.get('step');
+      
+      if (!stepParam) {
+        // No step param means go to step 1
+        setCurrentStep(1);
+        announceToScreenReader('Navigated to step 1 of 3: Choose Image');
+      } else {
+        const requestedStep = parseInt(stepParam, 10) as Step;
+        
+        // Validate step is in range
+        if (requestedStep >= 1 && requestedStep <= 3) {
+          // Check current state directly
+          const canGoTo2 = imageUrl !== null;
+          const canGoTo3 = imageUrl !== null && flagId !== '';
+          
+          // Only navigate if we have the required data
+          if (requestedStep === 1) {
+            setCurrentStep(1);
+            announceToScreenReader('Navigated to step 1 of 3: Choose Image');
+          } else if (requestedStep === 2 && canGoTo2) {
+            setCurrentStep(2);
+            announceToScreenReader('Navigated to step 2 of 3: Choose Flag');
+          } else if (requestedStep === 3 && canGoTo3) {
+            setCurrentStep(3);
+            announceToScreenReader('Navigated to step 3 of 3: Preview & Customize');
+          } else {
+            // Can't navigate to requested step, stay on current step
+            // But update URL to reflect actual current step
+            const url = new URL(window.location.href);
+            if (currentStep > 1) {
+              url.searchParams.set('step', currentStep.toString());
+            } else {
+              url.searchParams.delete('step');
+            }
+            window.history.replaceState({}, '', url.toString());
+          }
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [imageUrl, flagId, currentStep]);
+
 
   /**
    * Navigate to a specific step

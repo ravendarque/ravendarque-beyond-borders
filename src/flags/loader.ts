@@ -4,6 +4,7 @@ import { getAssetUrl } from '@/config';
 
 export type FlagMeta = {
   id: string;
+  name?: string;
   displayName: string;
   svgFilename?: string | null;
   png_full?: string | null;
@@ -11,7 +12,7 @@ export type FlagMeta = {
   source_page?: string | null;
   media_url?: string | null;
   description?: string | null;
-  type?: string | null;
+  category?: string | null;
   reason?: string | null;
   link?: string | null;
   colors?: string[] | null;

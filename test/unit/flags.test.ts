@@ -9,7 +9,10 @@ describe('flags data', () => {
     expect(flags.length).toBeGreaterThan(0)
     for (const f of flags) {
       const parsed = FlagSpec.safeParse(f)
-      expect(parsed.success).toBe(true)
+      if (!parsed.success) {
+        console.error(`Flag ${f.id} failed validation:`, parsed.error.errors)
+      }
+      expect(parsed.success, `Flag ${f.id} failed schema validation`).toBe(true)
     }
   })
 
