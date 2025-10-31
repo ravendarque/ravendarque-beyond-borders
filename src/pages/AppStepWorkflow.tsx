@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { ThemeModeContext } from '../main';
-import { loadFlags } from '../flags/loader';
+import { flags } from '@/flags/flags';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFocusManagement } from '@/hooks/useFocusManagement';
@@ -38,7 +38,6 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import toast, { Toaster } from 'react-hot-toast';
-import type { FlagSpec } from '@/flags/schema';
 import type { AppError } from '@/types/errors';
 import { normalizeError } from '@/types/errors';
 
@@ -76,7 +75,6 @@ export function AppStepWorkflow() {
   const [insetPct, setInsetPct] = useState(0);
   const [flagOffsetX, setFlagOffsetX] = useState(0);
   const [bg, setBg] = useState<string | 'transparent'>('transparent');
-  const [flagsLoading, setFlagsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
@@ -85,33 +83,13 @@ export function AppStepWorkflow() {
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const flagsListRef = useRef<FlagSpec[]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Custom hooks
+  // Custom hooks - flags are now statically imported
   const flagImageCache = useFlagImageCache();
-  const { overlayUrl, isRendering, render } = useAvatarRenderer(flagsListRef.current, flagImageCache);
+  const { overlayUrl, isRendering, render } = useAvatarRenderer(flags, flagImageCache);
   const { focusRef: errorFocusRef, setFocus: focusError } = useFocusManagement<HTMLDivElement>();
-  useFlagPreloader(flagsListRef.current, flagImageCache, flagId);
-
-  /**
-   * Load flags on mount
-   */
-  useEffect(() => {
-    (async () => {
-      try {
-        setFlagsLoading(true);
-        const loaded = await loadFlags();
-        flagsListRef.current = (loaded as FlagSpec[]) || [];
-        setFlagsLoading(false);
-        setError(null);
-      } catch (err) {
-        flagsListRef.current = [];
-        setFlagsLoading(false);
-        setError(normalizeError(err));
-      }
-    })();
-  }, []);
+  useFlagPreloader(flags, flagImageCache, flagId);
 
   /**
    * Handle image selection
@@ -260,7 +238,7 @@ export function AppStepWorkflow() {
   ]);
 
   // Find selected flag object for preview
-  const selectedFlag = flagsListRef.current.find(f => f.id === flagId) || null;
+  const selectedFlag = flags.find(f => f.id === flagId) || null;
 
   // Determine if we can proceed to next step
   const canProceedFromStep1 = !!imageUrl;
@@ -343,17 +321,7 @@ export function AppStepWorkflow() {
                 error={error}
                 onRetry={() => {
                   setError(null);
-                  if (flagsListRef.current.length === 0) {
-                    setFlagsLoading(true);
-                    loadFlags().then(loaded => {
-                      flagsListRef.current = (loaded as FlagSpec[]) || [];
-                      setFlagsLoading(false);
-                      setError(null);
-                    }).catch(err => {
-                      setFlagsLoading(false);
-                      setError(normalizeError(err));
-                    });
-                  } else if (imageUrl && flagId) {
+                  if (imageUrl && flagId) {
                     renderWithImageUrl(imageUrl);
                   }
                 }}
@@ -485,10 +453,10 @@ export function AppStepWorkflow() {
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <Box sx={{ width: 288 }}>
                     <FlagDropdown
-                      flags={flagsListRef.current}
+                      flags={flags}
                       selectedFlagId={flagId}
                       onChange={handleFlagChange}
-                      disabled={flagsLoading}
+                      disabled={false}
                     />
                   </Box>
                 </Box>

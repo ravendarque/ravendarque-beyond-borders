@@ -14,7 +14,7 @@ This directory contains utility scripts for managing the Beyond Borders applicat
 - Generates full-size PNGs (standardized height: 1365px)
 - Generates preview PNGs (200×100px for UI thumbnails)
 - Extracts colors from SVG files
-- Creates `public/flags/flags.json` runtime manifest
+- **Generates `src/flags/flags.ts` TypeScript file directly**
 - Cleans up obsolete flag assets
 
 **Usage:**
@@ -33,35 +33,11 @@ node scripts/fetch-and-extract.cjs --ci
 
 ---
 
-### `sync-flags-ts.cjs`
-**Purpose:** Syncs `src/flags/flags.ts` from `public/flags/flags.json`.
-
-**What it does:**
-- Reads the generated `flags.json` manifest
-- Converts manifest entries to TypeScript flag objects
-- Applies ID mappings for human-friendly short names
-- Determines category based on flag type
-- Extracts stripe colors and generates pattern data
-- Writes updated `flags.ts` with proper formatting
-
-**Usage:**
-```bash
-# Preview changes without writing
-node scripts/sync-flags-ts.cjs --dry-run
-
-# Update flags.ts
-node scripts/sync-flags-ts.cjs
-```
-
-**Requirements:** None (pure Node.js)
-
----
-
 ### `validate-flags.cjs`
 **Purpose:** Validates flag data integrity and PNG quality.
 
 **What it does:**
-- Checks that all flags from `flag-data.yaml` exist in `flags.json`
+- Checks that all flags from `flag-data.yaml` exist in `flags.ts`
 - Verifies all referenced PNG files exist in `public/flags/`
 - Validates PNG canvas usage (ensures flags fill their canvas properly)
 - Used in CI pipeline to catch broken flag assets
@@ -171,8 +147,7 @@ node scripts/screenshot.js
 ```
 scripts/
 ├── README.md                    # This file
-├── fetch-and-extract.cjs        # Flag asset generation (CORE)
-├── sync-flags-ts.cjs            # Sync flags.ts from flags.json (CORE)
+├── fetch-and-extract.cjs        # Flag asset + TypeScript generation (CORE)
 ├── validate-flags.cjs           # Flag validation (CORE)
 ├── inspect-flag-raster.cjs      # PNG analysis tool
 ├── capture-cutout.cjs           # Cutout mode testing
@@ -193,12 +168,11 @@ scripts/
 
 1. **Edit source:** Add flag entry to `data/flag-data.yaml`
 2. **Generate assets:** Run `node scripts/fetch-and-extract.cjs --dry-run` to preview
-3. **Commit assets:** Run `node scripts/fetch-and-extract.cjs --push` to generate and commit
-4. **Sync TypeScript:** Run `node scripts/sync-flags-ts.cjs` to update `flags.ts` automatically
-5. **Validate:** Run `node scripts/validate-flags.cjs` to verify
-6. **Test:** Run unit tests with `pnpm test -- flags.test.ts`
+3. **Commit assets:** Run `node scripts/fetch-and-extract.cjs --push` to generate and commit (this also updates `flags.ts`)
+4. **Validate:** Run `node scripts/validate-flags.cjs` to verify
+5. **Test:** Run unit tests with `pnpm test -- flags.test.ts`
 
-**Note:** When using the GitHub Actions workflow, steps 4-6 happen automatically!
+**Note:** When using the GitHub Actions workflow, steps 4-5 happen automatically!
 
 ---
 
