@@ -31,7 +31,9 @@ export const FlagDropdown: React.FC<FlagDropdownProps> = ({
   error,
 }) => {
   // Map category codes to human-readable labels
-  const getCategoryLabel = React.useCallback((category: string): string => {
+  const getCategoryLabel = React.useCallback((category: string | null | undefined): string => {
+    if (!category) return 'Other';
+    
     switch (category) {
       case 'authoritarian':
         return 'Authoritarian States';
