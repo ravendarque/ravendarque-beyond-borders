@@ -18,17 +18,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Split React and React-DOM into separate chunk
+          // Keep React and MUI together in vendor chunk
+          // MUI depends on React and they must share the same React instance
           if (id.includes('node_modules/react') || 
               id.includes('node_modules/react-dom') ||
-              id.includes('node_modules/scheduler')) {
-            return 'react-vendor';
-          }
-          
-          // Split MUI into separate chunk (largest dependency)
-          if (id.includes('node_modules/@mui') || 
+              id.includes('node_modules/scheduler') ||
+              id.includes('node_modules/@mui') || 
               id.includes('node_modules/@emotion')) {
-            return 'mui-vendor';
+            return 'vendor';
           }
           
           // Split renderer utilities (canvas operations)
@@ -43,9 +40,9 @@ export default defineConfig({
         },
       },
     },
-    // Increase chunk size warning limit slightly (default is 500)
-    // We've optimized, but some chunks may still be close to the limit
-    chunkSizeWarningLimit: 600,
+    // Increase chunk size warning limit to accommodate vendor chunk
+    // Vendor chunk includes React + MUI which is larger but necessary
+    chunkSizeWarningLimit: 700,
   },
   test: {
     environment: 'jsdom',
