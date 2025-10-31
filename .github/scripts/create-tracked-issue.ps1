@@ -1,9 +1,9 @@
-# Create and Track GitHub Issue
+# Create and Track GitHub Issue (Refactored)
 # 
-# This script creates a new issue and automatically adds it to the GitHub Project board
-# with appropriate field values (Status, Priority, Size)
+# Single Responsibility: Orchestrate issue creation and project tracking
+# Delegates actual GitHub operations to utility functions
 #
-# Usage: .\create-tracked-issue.ps1 -Title "Task title" -Body "Description" -Priority P1 -Size S
+# Usage: .\create-tracked-issue.ps1 -Title "Task title" -Body "Description" -Priority P1 -Size M
 
 param(
     [Parameter(Mandatory=$true)]
@@ -22,113 +22,75 @@ param(
     
     [Parameter(Mandatory=$false)]
     [ValidateSet("Backlog", "Ready", "InProgress", "InReview", "Done")]
-    [string]$Status = "InProgress",
+    [string]$Status = "Ready",
     
     [Parameter(Mandatory=$false)]
     [string[]]$Labels = @()
 )
 
-# Load configuration
-$configPath = Join-Path $PSScriptRoot "..\project-config.yaml"
-Write-Host "Loading configuration from $configPath..." -ForegroundColor Cyan
+# Import utilities
+. "$PSScriptRoot\lib\config.ps1"
+. "$PSScriptRoot\lib\github-utils.ps1"
 
-# Project configuration (from project-config.yaml)
-$projectNumber = 2
-$owner = "ravendarque"
-$repo = "ravendarque/ravendarque-beyond-borders"
-$projectId = "PVT_kwHOANLCeM4BFNzU"
-
-# Field IDs (from project-fields.json)
-$statusFieldId = "PVTSSF_lAHOANLCeM4BFNzUzg2njwY"
-$priorityFieldId = "PVTSSF_lAHOANLCeM4BFNzUzg2nkBA"
-$sizeFieldId = "PVTSSF_lAHOANLCeM4BFNzUzg2nkBE"
-
-# Status option IDs
-$statusOptions = @{
-    "Backlog" = "f75ad846"
-    "Ready" = "61e4505c"
-    "InProgress" = "47fc9ee4"
-    "InReview" = "df73e18b"
-    "Done" = "98236657"
-}
-
-# Priority option IDs
-$priorityOptions = @{
-    "P0" = "79628723"
-    "P1" = "0a877460"
-    "P2" = "da944a9c"
-}
-
-# Size option IDs
-$sizeOptions = @{
-    "XS" = "6c6483d2"
-    "S" = "f784b110"
-    "M" = "7515a9f1"
-    "L" = "817d0097"
-    "XL" = "db339eb2"
-}
-
-Write-Host "`n📝 Creating issue..." -ForegroundColor Cyan
-
-# Build the gh command
-$ghCmd = "gh issue create --title `"$Title`" --body `"$Body`" --repo $repo"
-if ($Labels.Count -gt 0) {
-    $labelArgs = $Labels -join ","
-    $ghCmd += " --label $labelArgs"
-}
-
-# Create the issue
-$issueUrl = Invoke-Expression $ghCmd
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to create issue" -ForegroundColor Red
+# Verify GitHub CLI
+if (-not (Test-GitHubCLI)) {
     exit 1
 }
 
-Write-Host "✅ Issue created: $issueUrl" -ForegroundColor Green
+Write-Host "`n" -NoNewline
+Write-StatusMessage "Creating GitHub Issue" -Type Info
+Write-StatusMessage "Title: $Title" -Type Info
+Write-StatusMessage "Priority: $Priority | Size: $Size | Status: $Status" -Type Info
+
+# Create issue
+Write-Host "`n" -NoNewline
+Write-StatusMessage "Creating issue..." -Type Info
+
+$issueUrl = New-GitHubIssue -Title $Title -Body $Body -Labels $Labels
+
+if (-not $issueUrl) {
+    Write-StatusMessage "Failed to create issue" -Type Error
+    exit 1
+}
+
+$issueNumber = Get-IssueFromUrl -IssueUrl $issueUrl
+Write-StatusMessage "Issue #$issueNumber created: $issueUrl" -Type Success
 
 # Add to project
-Write-Host "`n📌 Adding to project board..." -ForegroundColor Cyan
-$itemJson = gh project item-add $projectNumber --owner $owner --url $issueUrl --format json | ConvertFrom-Json
-$itemId = $itemJson.id
+Write-Host "`n" -NoNewline
+Write-StatusMessage "Adding to project board..." -Type Info
+
+$itemId = Add-IssueToProject -IssueUrl $issueUrl
 
 if (-not $itemId) {
-    Write-Host "❌ Failed to add item to project" -ForegroundColor Red
+    Write-StatusMessage "Failed to add to project (issue still created)" -Type Error
     exit 1
 }
 
-Write-Host "✅ Added to project (Item ID: $itemId)" -ForegroundColor Green
+Write-StatusMessage "Added to project (Item ID: $itemId)" -Type Success
 
-# Update Status
-Write-Host "`n🔄 Setting Status to '$Status'..." -ForegroundColor Cyan
-$statusOptionId = $statusOptions[$Status]
-gh project item-edit --project-id $projectId --id $itemId --field-id $statusFieldId --single-select-option-id $statusOptionId | Out-Null
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Status set to $Status" -ForegroundColor Green
-} else {
-    Write-Host "⚠️  Failed to set Status" -ForegroundColor Yellow
-}
+# Update fields
+Write-Host "`n" -NoNewline
+Write-StatusMessage "Updating project fields..." -Type Info
 
-# Update Priority
-Write-Host "🎯 Setting Priority to '$Priority'..." -ForegroundColor Cyan
-$priorityOptionId = $priorityOptions[$Priority]
-gh project item-edit --project-id $projectId --id $itemId --field-id $priorityFieldId --single-select-option-id $priorityOptionId | Out-Null
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Priority set to $Priority" -ForegroundColor Green
-} else {
-    Write-Host "⚠️  Failed to set Priority" -ForegroundColor Yellow
-}
+$fieldIds = Get-FieldIds
 
-# Update Size
-Write-Host "📏 Setting Size to '$Size'..." -ForegroundColor Cyan
-$sizeOptionId = $sizeOptions[$Size]
-gh project item-edit --project-id $projectId --id $itemId --field-id $sizeFieldId --single-select-option-id $sizeOptionId | Out-Null
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Size set to $Size" -ForegroundColor Green
-} else {
-    Write-Host "⚠️  Failed to set Size" -ForegroundColor Yellow
-}
+# Set Status
+$statusOptionId = Get-StatusOptionId -Status $Status
+Set-ProjectItemField -ItemId $itemId -FieldId $fieldIds.Status -OptionId $statusOptionId -FieldName "Status ($Status)" | Out-Null
 
-Write-Host "`n✨ Issue successfully created and tracked!" -ForegroundColor Green
-Write-Host "   URL: $issueUrl" -ForegroundColor Cyan
+# Set Priority
+$priorityOptionId = Get-PriorityOptionId -Priority $Priority
+Set-ProjectItemField -ItemId $itemId -FieldId $fieldIds.Priority -OptionId $priorityOptionId -FieldName "Priority ($Priority)" | Out-Null
+
+# Set Size
+$sizeOptionId = Get-SizeOptionId -Size $Size
+Set-ProjectItemField -ItemId $itemId -FieldId $fieldIds.Size -OptionId $sizeOptionId -FieldName "Size ($Size)" | Out-Null
+
+# Summary
+$config = Get-ProjectConfig
+Write-Host "`n" -NoNewline
+Write-StatusMessage "Issue successfully created and tracked!" -Type Success
+Write-Host "   Issue: #$issueNumber - $issueUrl" -ForegroundColor Cyan
 Write-Host "   Status: $Status | Priority: $Priority | Size: $Size" -ForegroundColor Cyan
-Write-Host "   View project: https://github.com/users/$owner/projects/$projectNumber" -ForegroundColor Cyan
+Write-Host "   Project: https://github.com/users/$($config.Owner)/projects/$($config.ProjectNumber)" -ForegroundColor Cyan
