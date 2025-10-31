@@ -14,6 +14,39 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          // Split React and React-DOM into separate chunk
+          if (id.includes('node_modules/react') || 
+              id.includes('node_modules/react-dom') ||
+              id.includes('node_modules/scheduler')) {
+            return 'react-vendor';
+          }
+          
+          // Split MUI into separate chunk (largest dependency)
+          if (id.includes('node_modules/@mui') || 
+              id.includes('node_modules/@emotion')) {
+            return 'mui-vendor';
+          }
+          
+          // Split renderer utilities (canvas operations)
+          if (id.includes('/src/renderer/')) {
+            return 'renderer';
+          }
+          
+          // Split flag data into separate chunk
+          if (id.includes('/src/flags/')) {
+            return 'flags';
+          }
+        },
+      },
+    },
+    // Increase chunk size warning limit slightly (default is 500)
+    // We've optimized, but some chunks may still be close to the limit
+    chunkSizeWarningLimit: 600,
+  },
   test: {
     environment: 'jsdom',
     globals: true,

@@ -293,6 +293,11 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
  * Helper to announce messages to screen readers
  */
 function announceToScreenReader(message: string) {
+  // Guard against non-browser environments (e.g., tests)
+  if (typeof document === 'undefined') {
+    return;
+  }
+
   const announcement = document.createElement('div');
   announcement.setAttribute('role', 'status');
   announcement.setAttribute('aria-live', 'polite');
@@ -302,7 +307,17 @@ function announceToScreenReader(message: string) {
   
   document.body.appendChild(announcement);
   
-  setTimeout(() => {
-    document.body.removeChild(announcement);
+  const timeoutId = setTimeout(() => {
+    if (document.body.contains(announcement)) {
+      document.body.removeChild(announcement);
+    }
   }, 1000);
+  
+  // Store cleanup function for potential test cleanup
+  return () => {
+    clearTimeout(timeoutId);
+    if (document.body.contains(announcement)) {
+      document.body.removeChild(announcement);
+    }
+  };
 }
