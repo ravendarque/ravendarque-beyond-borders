@@ -277,7 +277,7 @@ export function AppStepWorkflow() {
           flexDirection: 'column',
           alignItems: 'center',
           py: { xs: 1.5, sm: 3 },
-          px: 2,
+          px: { xs: 1, sm: 2 },
         }}
       >
         {/* Dark Mode Toggle - Fixed Position */}
