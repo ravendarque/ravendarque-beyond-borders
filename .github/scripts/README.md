@@ -6,7 +6,7 @@ Modular PowerShell scripts for managing GitHub issues, project boards, and pull 
 
 | Script | Purpose |
 |--------|---------|
-| `create-tracked-issue-v2.ps1` | Create issues and add to project board |
+| `create-tracked-issue.ps1` | Create issues and add to project board |
 | `update-issue.ps1` | Update issue Status/Priority/Size fields |
 | `list-issues.ps1` | Query and filter issues with project fields |
 | `create-pr.ps1` | Create pull requests with proper formatting |
@@ -15,7 +15,7 @@ Modular PowerShell scripts for managing GitHub issues, project boards, and pull 
 **Common Workflows:**
 ```powershell
 # Create and track an issue
-.\create-tracked-issue-v2.ps1 -Title "Fix bug" -Body "Description" -Priority P1 -Size S
+.\create-tracked-issue.ps1 -Title "Fix bug" -Body "Description" -Priority P1 -Size S
 
 # Start working on an issue
 .\update-issue.ps1 -IssueNumber 87 -Status InProgress
@@ -64,19 +64,19 @@ $body = Get-Content "pr-body.md" -Raw
 
 ## Scripts
 
-### 1. create-tracked-issue-v2.ps1
+### 1. create-tracked-issue.ps1
 
 **Purpose:** Create a new issue and add it to the project board with fields set.
 
 **Usage:**
 ```powershell
 # Minimal (uses defaults: Priority=P1, Size=M, Status=Ready)
-.\create-tracked-issue-v2.ps1 `
+.\create-tracked-issue.ps1 `
   -Title "Fix the bug" `
   -Body "Description of the issue"
 
 # Full options
-.\create-tracked-issue-v2.ps1 `
+.\create-tracked-issue.ps1 `
   -Title "Implement feature X" `
   -Body "Detailed description with acceptance criteria" `
   -Priority P0 `
@@ -296,7 +296,7 @@ $body = .\get-pr-template.ps1 `
 
 **For a bug:**
 ```powershell
-.\create-tracked-issue-v2.ps1 `
+.\create-tracked-issue.ps1 `
   -Title "Fix: Users can't login on mobile" `
   -Body "Bug description and steps to reproduce" `
   -Priority P1 `
@@ -306,7 +306,7 @@ $body = .\get-pr-template.ps1 `
 
 **For a feature:**
 ```powershell
-.\create-tracked-issue-v2.ps1 `
+.\create-tracked-issue.ps1 `
   -Title "Feature: Add dark mode support" `
   -Body "Feature description and acceptance criteria" `
   -Priority P2 `
@@ -316,7 +316,7 @@ $body = .\get-pr-template.ps1 `
 
 **For a critical hotfix:**
 ```powershell
-.\create-tracked-issue-v2.ps1 `
+.\create-tracked-issue.ps1 `
   -Title "CRITICAL: Production app broken" `
   -Body "Error details and immediate impact" `
   -Priority P0 `
@@ -433,22 +433,19 @@ Run: `gh auth login`
 
 ---
 
-## Migration from Old Script
+## Important Notes
 
-### Old Script (create-tracked-issue.ps1)
+### Status Parameter Format
+Status values must **not** have spaces:
+- ✅ Correct: `InProgress`, `InReview`
+- ❌ Wrong: `"In Progress"`, `"In Review"`
+
+### Label Validation
+Labels are validated against the repository before use. If a label doesn't exist, you'll get a helpful error message with available labels.
+
+### Example: Correct Usage
 ```powershell
 .\create-tracked-issue.ps1 `
-  -Title "Task" `
-  -Body "Description" `
-  -Priority P1 `
-  -Size M `
-  -Status "In Progress" `  # ❌ Will fail!
-  -Labels @("bug")
-```
-
-### New Script (create-tracked-issue-v2.ps1)
-```powershell
-.\create-tracked-issue-v2.ps1 `
   -Title "Task" `
   -Body "Description" `
   -Priority P1 `
@@ -457,19 +454,12 @@ Run: `gh auth login`
   -Labels @("bug")  # Validated first
 ```
 
-**Key Changes:**
-- Status values have no spaces: `InProgress`, `InReview`
-- Labels are validated before attempting to create issue
-- Better error messages and status output
-- Shared utilities mean less code duplication
-- Easy to extend with new scripts
-
 ---
 
 ## Version History
 
-- **v2.0** - Refactored with SOLID/DRY principles, added update and list scripts
-- **v1.0** - Original monolithic create-tracked-issue.ps1 script
+- **v2.0** (October 2025) - Refactored with SOLID/DRY principles, added update/list/PR scripts
+- **v1.0** (Initial) - Original monolithic create-tracked-issue.ps1 script
 
 ---
 
