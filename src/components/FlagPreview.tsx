@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import type { FlagSpec } from '@/flags/schema';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { getAssetUrl } from '@/config';
 
 export interface FlagPreviewProps {
   /** Flag to preview */
@@ -49,7 +50,10 @@ export const FlagPreview: React.FC<FlagPreviewProps> = ({
       ? flag.png_preview 
       : flag.png_full;
     
-    return `/flags/${filename}`;
+    if (!filename) return '';
+    
+    // Use getAssetUrl to ensure proper base path for GitHub Pages deployment
+    return getAssetUrl(`flags/${filename}`);
   };
 
   // Size in pixels - rectangular flag preview
