@@ -1,68 +1,268 @@
 import { FlagSpec } from './schema';
 
+/**
+ * Flag definitions generated from flag-data.yaml
+ * Do not edit manually - run scripts/fetch-and-extract.cjs to regenerate
+ */
 export const flags: FlagSpec[] = [
   {
-    id: 'trans-pride',
+    id: 'north-korea',
+    name: 'Ramhongsaek Konghwagukgi',
+    displayName: 'North Korea',
+    png_full: 'north-korea.png',
+    png_preview: 'north-korea.preview.png',
+    svgFilename: 'north-korea.svg',
+    category: 'authoritarian',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#f02020',
+          '#0050a0',
+          '#ffffff',
+          '#f09090'
+        ],
+      }
+    ],
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/North_Korea' },
+    focalPoint: { x: 0.5, y: 0.5 },
+  },
+  {
+    id: 'eritrea',
+    name: 'Flag Of Eritrea',
+    displayName: 'Eritrea',
+    png_full: 'eritrea.png',
+    png_preview: 'eritrea.preview.png',
+    svgFilename: 'eritrea.svg',
+    category: 'authoritarian',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#e00030',
+          '#4090e0',
+          '#40b030',
+          '#ffd030'
+        ],
+      }
+    ],
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Eritrea' },
+    focalPoint: { x: 0.5, y: 0.5 },
+  },
+  {
+    id: 'iran',
+    name: 'Flag Of The Islamic Republic Of Iran',
+    displayName: 'Iran',
+    png_full: 'iran.png',
+    png_preview: 'iran.preview.png',
+    svgFilename: 'iran.svg',
+    category: 'authoritarian',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#ffffff',
+          '#e00000',
+          '#20a040'
+        ],
+      }
+    ],
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Iran' },
+    focalPoint: { x: 0.5, y: 0.5 },
+  },
+  {
+    id: 'palestine',
+    name: 'Palestinian Flag',
+    displayName: 'Palestine',
+    png_full: 'palestine.png',
+    png_preview: 'palestine.preview.png',
+    svgFilename: 'palestine.svg',
+    category: 'occupied',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#000000',
+          '#009040',
+          '#ffffff',
+          '#f03040'
+        ],
+      }
+    ],
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Palestine' },
+    focalPoint: { x: 0.5, y: 0.5 },
+  },
+  {
+    id: 'tibet',
+    name: 'Snow Lion Flag',
+    displayName: 'Tibet',
+    png_full: 'tibet.png',
+    png_preview: 'tibet.preview.png',
+    svgFilename: 'tibet.svg',
+    category: 'occupied',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#e02020',
+          '#301070',
+          '#ffffff',
+          '#f0e010'
+        ],
+      }
+    ],
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Tibet' },
+    focalPoint: { x: 0.5, y: 0.5 },
+  },
+  {
+    id: 'the-sahrawi-arab-democratic-republic',
+    name: 'Flag Of The Sahrawi Arab Democratic Republic',
+    displayName: 'Western Sahara',
+    png_full: 'the-sahrawi-arab-democratic-republic.png',
+    png_preview: 'the-sahrawi-arab-democratic-republic.preview.png',
+    svgFilename: 'the-sahrawi-arab-democratic-republic.svg',
+    category: 'occupied',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#000000',
+          '#008040',
+          '#ffffff',
+          '#c01020'
+        ],
+      }
+    ],
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Western_Sahara' },
+    focalPoint: { x: 0.5, y: 0.5 },
+  },
+  {
+    id: 'kurdistan',
+    name: 'Kurdish Flag (Roj)',
+    displayName: 'Kurdistan',
+    png_full: 'kurdistan.png',
+    png_preview: 'kurdistan.preview.png',
+    svgFilename: 'kurdistan.svg',
+    category: 'stateless',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#f02020',
+          '#209040',
+          '#ffffff',
+          '#ffc010'
+        ],
+      }
+    ],
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Kurdistan' },
+    focalPoint: { x: 0.5, y: 0.5 },
+  },
+  {
+    id: 'kokbayraq',
+    name: 'East Turkestan Flag',
+    displayName: 'Uyghur (East Turkestan)',
+    png_full: 'kokbayraq.png',
+    png_preview: 'kokbayraq.preview.png',
+    svgFilename: 'kokbayraq.svg',
+    category: 'stateless',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#50a0e0',
+          '#ffffff'
+        ],
+      }
+    ],
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Uyghurs' },
+    focalPoint: { x: 0.5, y: 0.5 },
+  },
+  {
+    id: 'rohingya',
+    name: 'Rohingya Flag',
+    displayName: 'Rohingya',
+    png_full: 'rohingya.png',
+    png_preview: 'rohingya.preview.png',
+    svgFilename: 'rohingya.svg',
+    category: 'stateless',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#106020',
+          '#d0b030',
+          '#ffffff'
+        ],
+      }
+    ],
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rohingya' },
+    focalPoint: { x: 0.5, y: 0.5 },
+  },
+  {
+    id: 'gay-pride',
+    name: 'Rainbow Flag',
+    displayName: 'Pride',
+    png_full: 'gay-pride.png',
+    png_preview: 'gay-pride.preview.png',
+    svgFilename: 'gay-pride.svg',
+    category: 'oppressed',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#e00000',
+          '#0050ff',
+          '#ff9000',
+          '#fff000',
+          '#700090',
+          '#008020'
+        ],
+      }
+    ],
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rainbow_flag' },
+    focalPoint: { x: 0.5, y: 0.5 },
+  },
+  {
+    id: 'transgender-pride',
     name: 'Transgender Flag',
     displayName: 'Trans Pride',
     png_full: 'transgender-pride.png',
     png_preview: 'transgender-pride.preview.png',
     svgFilename: 'transgender-pride.svg',
     category: 'oppressed',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#60d0ff',
+          '#f0b0c0',
+          '#ffffff'
+        ],
+      }
+    ],
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Transgender_flag' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#60D0FF', weight: 1, label: 'blue' },
-        { color: '#F0B0C0', weight: 1, label: 'yellow' },
-        { color: '#FFFFFF', weight: 1, label: 'white' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
+    focalPoint: { x: 0.5, y: 0.5 },
   },
   {
-    id: 'ua',
+    id: 'ukraine',
     name: 'Flag Of Ukraine',
     displayName: 'Ukraine',
     png_full: 'ukraine.png',
     png_preview: 'ukraine.preview.png',
     svgFilename: 'ukraine.svg',
-    category: 'oppressed',
+    category: 'occupied',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#ffd000',
+          '#0050b0'
+        ],
+      }
+    ],
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Ukraine' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#FFD000', weight: 1, label: 'orange' },
-        { color: '#0050B0', weight: 1, label: 'blue' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-  },
-  {
-    id: 'nk',
-    name: 'Ramhongsaek Konghwagukgi',
-    displayName: 'North Korea',
-    png_full: 'north-korea.png',
-    png_preview: 'north-korea.preview.png',
-    svgFilename: 'north-korea.svg',
-    category: 'oppressed',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/North_Korea' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#F02020', weight: 1, label: 'red' },
-        { color: '#0050A0', weight: 1, label: 'blue' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#F09090', weight: 1, label: 'red' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
+    focalPoint: { x: 0.5, y: 0.5 },
   },
   {
     id: 'australian-aboriginal',
@@ -72,84 +272,19 @@ export const flags: FlagSpec[] = [
     png_preview: 'australian-aboriginal.preview.png',
     svgFilename: 'australian-aboriginal.svg',
     category: 'oppressed',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#000000',
+          '#d00000',
+          '#ffff00',
+          '#202000'
+        ],
+      }
+    ],
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Aboriginal_flag' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#000000', weight: 1, label: 'black' },
-        { color: '#D00000', weight: 1, label: 'red' },
-        { color: '#FFFF00', weight: 1, label: 'yellow' },
-        { color: '#202000', weight: 1, label: 'red' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-  },
-  {
-    id: 'er',
-    name: 'Flag Of Eritrea',
-    displayName: 'Eritrea',
-    png_full: 'eritrea.png',
-    png_preview: 'eritrea.preview.png',
-    svgFilename: 'eritrea.svg',
-    category: 'oppressed',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Eritrea' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#E00030', weight: 1, label: 'red' },
-        { color: '#4090E0', weight: 1, label: 'blue' },
-        { color: '#40B030', weight: 1, label: 'green' },
-        { color: '#FFD030', weight: 1, label: 'orange' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-  },
-  {
-    id: 'ir',
-    name: 'Flag Of The Islamic Republic Of Iran',
-    displayName: 'Iran',
-    png_full: 'iran.png',
-    png_preview: 'iran.preview.png',
-    svgFilename: 'iran.svg',
-    category: 'oppressed',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Iran' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#E00000', weight: 1, label: 'red' },
-        { color: '#20A040', weight: 1, label: 'green' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-  },
-  {
-    id: 'kurdistan',
-    name: 'Kurdish Flag (Roj)',
-    displayName: 'Kurdistan',
-    png_full: 'kurdistan.png',
-    png_preview: 'kurdistan.preview.png',
-    svgFilename: 'kurdistan.svg',
-    category: 'oppressed',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Kurdistan' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#F02020', weight: 1, label: 'red' },
-        { color: '#209040', weight: 1, label: 'green' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#FFC010', weight: 1, label: 'orange' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
+    focalPoint: { x: 0.5, y: 0.5 },
   },
   {
     id: 'nonbinary',
@@ -159,149 +294,18 @@ export const flags: FlagSpec[] = [
     png_preview: 'nonbinary.preview.png',
     svgFilename: 'nonbinary.svg',
     category: 'oppressed',
+    layouts: [
+      {
+        type: 'ring',
+        colors: [
+          '#fff030',
+          '#303030',
+          '#ffffff',
+          '#a060d0'
+        ],
+      }
+    ],
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Non-binary_gender#Flags' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#FFF030', weight: 1, label: 'orange' },
-        { color: '#303030', weight: 1, label: 'black' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#A060D0', weight: 1, label: 'purple' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-  },
-  {
-    id: 'pride',
-    name: 'Rainbow Flag',
-    displayName: 'Pride',
-    png_full: 'gay-pride.png',
-    png_preview: 'gay-pride.preview.png',
-    svgFilename: 'gay-pride.svg',
-    category: 'oppressed',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rainbow_flag' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#E00000', weight: 1, label: 'red' },
-        { color: '#0050FF', weight: 1, label: 'blue' },
-        { color: '#FF9000', weight: 1, label: 'orange' },
-        { color: '#FFF000', weight: 1, label: 'orange' },
-        { color: '#700090', weight: 1, label: 'purple' },
-        { color: '#008020', weight: 1, label: 'green' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-  },
-  {
-    id: 'ps',
-    name: 'Palestinian Flag',
-    displayName: 'Palestine',
-    png_full: 'palestine.png',
-    png_preview: 'palestine.preview.png',
-    svgFilename: 'palestine.svg',
-    category: 'oppressed',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Palestine' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#000000', weight: 1, label: 'black' },
-        { color: '#009040', weight: 1, label: 'green' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#F03040', weight: 1, label: 'red' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-  },
-  {
-    id: 'rohingya',
-    name: 'Rohingya Flag',
-    displayName: 'Rohingya',
-    png_full: 'rohingya.png',
-    png_preview: 'rohingya.preview.png',
-    svgFilename: 'rohingya.svg',
-    category: 'oppressed',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rohingya' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#106020', weight: 1, label: 'green' },
-        { color: '#D0B030', weight: 1, label: 'orange' },
-        { color: '#FFFFFF', weight: 1, label: 'white' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-  },
-  {
-    id: 'tibet',
-    name: 'Snow Lion Flag',
-    displayName: 'Tibet',
-    png_full: 'tibet.png',
-    png_preview: 'tibet.preview.png',
-    svgFilename: 'tibet.svg',
-    category: 'oppressed',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Tibet' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#E02020', weight: 1, label: 'red' },
-        { color: '#301070', weight: 1, label: 'blue' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#F0E010', weight: 1, label: 'orange' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-  },
-  {
-    id: 'uyghur',
-    name: 'East Turkestan Flag',
-    displayName: 'Uyghur (East Turkestan)',
-    png_full: 'kokbayraq.png',
-    png_preview: 'kokbayraq.preview.png',
-    svgFilename: 'kokbayraq.svg',
-    category: 'oppressed',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Uyghurs' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#50A0E0', weight: 1, label: 'blue' },
-        { color: '#FFFFFF', weight: 1, label: 'white' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-  },
-  {
-    id: 'ws',
-    name: 'Flag Of The Sahrawi Arab Democratic Republic',
-    displayName: 'Western Sahara',
-    png_full: 'the-sahrawi-arab-democratic-republic.png',
-    png_preview: 'the-sahrawi-arab-democratic-republic.preview.png',
-    svgFilename: 'the-sahrawi-arab-democratic-republic.svg',
-    category: 'oppressed',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Western_Sahara' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#000000', weight: 1, label: 'black' },
-        { color: '#008040', weight: 1, label: 'green' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#C01020', weight: 1, label: 'red' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
+    focalPoint: { x: 0.5, y: 0.5 },
   }
 ];

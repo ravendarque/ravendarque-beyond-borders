@@ -10,11 +10,19 @@ const repoRoot = path.resolve(__dirname, '..');
 const dataYaml = path.join(repoRoot, 'data', 'flag-data.yaml');
 const publicFlagsDir = path.join(repoRoot, 'public', 'flags');
 
-// We validate that runtime manifest exists and that referenced PNGs are present.
-const manifestPath = path.join(publicFlagsDir, 'flags.json');
-if (!fs.existsSync(manifestPath)) { err('Runtime manifest public/flags/flags.json not found — run fetch-and-extract.cjs'); process.exit(2); }
+// We validate that TypeScript manifest exists and that referenced PNGs are present.
+const manifestPath = path.join(repoRoot, 'src', 'flags', 'flags.ts');
+if (!fs.existsSync(manifestPath)) { err('TypeScript manifest src/flags/flags.ts not found — run fetch-and-extract.cjs'); process.exit(2); }
 let manifest = null;
-try { manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch (e) { err('Failed to read flags.json — ' + (e && e.message)); process.exit(2); }
+try {
+  // Parse the TypeScript file to extract the flags array
+  const tsContent = fs.readFileSync(manifestPath, 'utf8');
+  // Extract the flags array from the TypeScript file using a regex
+  const match = tsContent.match(/export const flags: FlagSpec\[\] = (\[[\s\S]*?\n\]);/);
+  if (!match) { err('Failed to parse flags array from flags.ts'); process.exit(2); }
+  // Use eval to parse the JavaScript array literal (safe since this is our own generated code)
+  manifest = eval(match[1]);
+} catch (e) { err('Failed to read flags.ts — ' + (e && e.message)); process.exit(2); }
 
 function canonicalizeId(name) {
   if (!name) return '';
@@ -83,7 +91,7 @@ function canonicalizeId(name) {
   for (const id of expectedIds) if (!manifestIds.has(id)) missingIds.push(id);
 
   if (missingIds.length) {
-    err('Flag manifest validation failed — the following flags from data/flag-data.yaml are missing in public/flags/flags.json:');
+    err('Flag manifest validation failed — the following flags from data/flag-data.yaml are missing in src/flags/flags.ts:');
     for (const n of missingIds) err('  - ' + n);
     err('\nRun scripts/fetch-and-extract.cjs --ci to regenerate the manifest and assets.');
     process.exit(2);
@@ -97,7 +105,7 @@ function canonicalizeId(name) {
   }
 
   if (missingFiles.length) {
-    err('Flag asset validation failed — the following PNGs referenced in flags.json are missing from public/flags:');
+    err('Flag asset validation failed — the following PNGs referenced in flags.ts are missing from public/flags:');
     for (const f of missingFiles) err('  - ' + f);
     process.exit(2);
   }
@@ -189,6 +197,6 @@ function canonicalizeId(name) {
       err('\nRegenerate assets with scripts/fetch-and-extract.cjs --ci and inspect with scripts/inspect-flag-raster.cjs.');
       process.exit(3);
     }
-    console.log('Flag manifest validation passed — flags.json present and referenced PNGs exist, and all png_full images fully use their canvas.');
+    console.log('Flag manifest validation passed — flags.ts present and referenced PNGs exist, and all png_full images fully use their canvas.');
     process.exit(0);
   })();
