@@ -1,6 +1,32 @@
 # GitHub Issue Management Scripts
 
-Modular PowerShell scripts for managing GitHub issues and project boards, following SOLID and DRY principles.
+Modular PowerShell scripts for managing GitHub issues, project boards, and pull requests, following SOLID and DRY principles.
+
+## Quick Reference
+
+| Script | Purpose |
+|--------|---------|
+| `create-tracked-issue-v2.ps1` | Create issues and add to project board |
+| `update-issue.ps1` | Update issue Status/Priority/Size fields |
+| `list-issues.ps1` | Query and filter issues with project fields |
+| `create-pr.ps1` | Create pull requests with proper formatting |
+| `get-pr-template.ps1` | Generate PR body templates |
+
+**Common Workflows:**
+```powershell
+# Create and track an issue
+.\create-tracked-issue-v2.ps1 -Title "Fix bug" -Body "Description" -Priority P1 -Size S
+
+# Start working on an issue
+.\update-issue.ps1 -IssueNumber 87 -Status InProgress
+
+# Create a pull request
+$body = Get-Content "pr-body.md" -Raw
+.\create-pr.ps1 -Title "fix: Bug description" -Body $body -IssueNumber 87
+
+# View in-progress work
+.\list-issues.ps1 -Status InProgress
+```
 
 ## Architecture
 
@@ -131,6 +157,76 @@ Modular PowerShell scripts for managing GitHub issues and project boards, follow
 - `Limit` (optional) - Maximum number of issues to fetch (default: 20)
 
 **Output:** Formatted table showing issue number, title, status, priority, size, and state.
+
+---
+
+### 4. create-pr.ps1
+
+**Purpose:** Create a GitHub Pull Request with proper formatting and validation.
+
+**Usage:**
+```powershell
+# Create PR with inline body
+.\create-pr.ps1 `
+  -Title "Add feature X" `
+  -Body "Description of changes" `
+  -IssueNumber 42
+
+# Create PR from file
+$body = Get-Content "pr-body.md" -Raw
+.\create-pr.ps1 -Title "Fix bug" -Body $body -IssueNumber 50
+
+# Create draft PR
+.\create-pr.ps1 -Title "WIP: New feature" -Body "Description" -Draft
+```
+
+**Parameters:**
+- `Title` (required) - PR title
+- `Body` (required) - PR description (markdown supported)
+- `Base` (optional) - Base branch (default: `main`)
+- `Draft` (optional) - Create as draft PR
+- `IssueNumber` (optional) - Issue to link (adds "Closes #N")
+
+**Key Features:**
+- ✅ Handles multi-line bodies and special characters
+- ✅ Uses temp file to avoid escaping issues
+- ✅ Automatically links issues
+- ✅ Provides clear error messages
+
+---
+
+### 5. get-pr-template.ps1
+
+**Purpose:** Generate PR body template for common PR types.
+
+**Usage:**
+```powershell
+# Generate feature PR template
+$body = .\get-pr-template.ps1 `
+  -Type Feature `
+  -Description "Add dark mode support" `
+  -Changes @("Added theme toggle", "Updated styles") `
+  -Testing @("Tested on Chrome", "Tested on Firefox")
+
+# Use template with create-pr
+.\create-pr.ps1 -Title "feat: Dark mode" -Body $body -IssueNumber 42
+
+# Generate fix template
+$body = .\get-pr-template.ps1 `
+  -Type Fix `
+  -Description "Fix login bug" `
+  -Changes @("Updated auth flow") `
+  -IssueNumber 50
+```
+
+**Parameters:**
+- `Type` (required) - `Feature`, `Fix`, `Refactor`, `Hotfix`, `Chore`, `Docs`, `Test`
+- `Description` (required) - Brief description
+- `Changes` (optional) - Array of changes made
+- `Testing` (optional) - Array of testing steps
+- `IssueNumber` (optional) - Related issue number
+
+**Output:** Returns formatted markdown PR body with type-specific sections.
 
 ---
 
