@@ -87,7 +87,7 @@ try {
       const id = canonicalizeId(base.replace(/\.svg$/i, ''));
       allowed.add(id + '.png');
       allowed.add(id + '.preview.png');
-      allowed.add('flags.json');
+      // No longer generating flags.json - using flags.ts instead
     } catch {}
   }
   const existing = fs.readdirSync(outDir);
@@ -271,6 +271,139 @@ async function retryWithBackoff(fn, attempts = 3, initialDelay = 500) {
     }
   }
   throw lastErr;
+}
+
+// Simple color name guesser for TypeScript generation
+function getColorLabel(hex) {
+  if (!hex || hex === 'none') return '';
+  const h = hex.toLowerCase();
+  
+  const colorMap = {
+    '#ffffff': 'white',
+    '#000000': 'black',
+    '#ff0000': 'red',
+    '#00ff00': 'green',
+    '#0000ff': 'blue',
+    '#ffff00': 'yellow',
+    '#ff00ff': 'magenta',
+    '#00ffff': 'cyan',
+    '#ffa500': 'orange',
+    '#800080': 'purple',
+    '#ffc0cb': 'pink',
+    '#a52a2a': 'brown',
+    '#808080': 'gray',
+    '#ffd700': 'gold',
+  };
+
+  if (colorMap[h]) return colorMap[h];
+
+  const r = parseInt(h.slice(1, 3), 16) || 0;
+  const g = parseInt(h.slice(3, 5), 16) || 0;
+  const b = parseInt(h.slice(5, 7), 16) || 0;
+
+  if (Math.abs(r - g) < 30 && Math.abs(g - b) < 30 && Math.abs(r - b) < 30) {
+    if (r > 200) return 'white';
+    if (r < 50) return 'black';
+    return 'gray';
+  }
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const diff = max - min;
+
+  if (diff < 30) return 'gray';
+
+  if (r === max && g > 100 && b < 100) return 'orange';
+  if (r === max && g > 150) return 'yellow';
+  if (r === max) return 'red';
+  if (g === max && b > 100) return 'cyan';
+  if (g === max) return 'green';
+  if (b === max && r > 100) return 'purple';
+  if (b === max) return 'blue';
+
+  return 'color';
+}
+
+// Generate TypeScript source code for flags.ts
+function generateTypeScriptSource(manifest) {
+  const lines = [
+    "import { FlagSpec } from './schema';",
+    '',
+    '/**',
+    ' * Flag definitions generated from flag-data.yaml',
+    ' * Do not edit manually - run scripts/fetch-and-extract.cjs to regenerate',
+    ' */',
+    'export const flags: FlagSpec[] = [',
+  ];
+
+  for (let i = 0; i < manifest.length; i++) {
+    const entry = manifest[i];
+    const isLast = i === manifest.length - 1;
+
+    lines.push('  {');
+    lines.push(`    id: '${entry.id}',`);
+    lines.push(`    name: '${(entry.name || entry.displayName).replace(/'/g, "\\'")}',`);
+    
+    if (entry.displayName) {
+      lines.push(`    displayName: '${entry.displayName.replace(/'/g, "\\'")}',`);
+    }
+    
+    if (entry.png_full) {
+      lines.push(`    png_full: '${entry.png_full}',`);
+    }
+    
+    if (entry.png_preview) {
+      lines.push(`    png_preview: '${entry.png_preview}',`);
+    }
+    
+    if (entry.svgFilename) {
+      lines.push(`    svgFilename: '${entry.svgFilename}',`);
+    }
+    
+    if (entry.category) {
+      lines.push(`    category: '${entry.category}',`);
+    }
+    
+    // Generate layouts array from colors
+    if (entry.layouts && entry.layouts.length > 0) {
+      lines.push('    layouts: [');
+      for (let j = 0; j < entry.layouts.length; j++) {
+        const layout = entry.layouts[j];
+        const isLastLayout = j === entry.layouts.length - 1;
+        lines.push('      {');
+        lines.push(`        type: '${layout.type}',`);
+        if (layout.colors && layout.colors.length > 0) {
+          lines.push('        colors: [');
+          for (let k = 0; k < layout.colors.length; k++) {
+            const color = layout.colors[k];
+            const isLastColor = k === layout.colors.length - 1;
+            lines.push(`          '${color}'${isLastColor ? '' : ','}`);
+          }
+          lines.push('        ],');
+        } else {
+          lines.push('        colors: [],');
+        }
+        lines.push(`      }${isLastLayout ? '' : ','}`);
+      }
+      lines.push('    ],');
+    }
+    
+    if (entry.source_page || entry.link) {
+      const refUrl = entry.link || entry.source_page || 'https://en.wikipedia.org';
+      lines.push(`    sources: { referenceUrl: '${refUrl.replace(/'/g, "\\'")}' },`);
+    }
+    
+    if (entry.focalPoint) {
+      lines.push(`    focalPoint: { x: ${entry.focalPoint.x}, y: ${entry.focalPoint.y} },`);
+    }
+    
+    lines.push(`  }${isLast ? '' : ','}`);
+  }
+
+  lines.push('];');
+  lines.push('');
+
+  return lines.join('\n');
 }
 
 async function getMediaUrlFromCommons(filePageUrl) {
@@ -652,18 +785,22 @@ async function workerForFlag(f) {
       };
       manifest.push(entry);
     }
-    const manifestPath = path.join(outDir, 'flags.json');
+    // Write TypeScript file instead of JSON
+    const flagsTsPath = path.resolve(__dirname, '..', 'src', 'flags', 'flags.ts');
+    const tsSource = generateTypeScriptSource(manifest);
+    
     if (WANT_DRY) {
-      console.log('Dry-run: would write runtime manifest', manifestPath, 'with', manifest.length, 'entries');
+      console.log('Dry-run: would write flags.ts to', flagsTsPath, 'with', manifest.length, 'entries');
     } else {
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      console.log('Wrote runtime manifest', manifestPath, 'entries=', manifest.length);
+      fs.writeFileSync(flagsTsPath, tsSource, 'utf8');
+      console.log('✅ Successfully updated', flagsTsPath);
+      console.log(`   Generated ${manifest.length} flag entries`);
     }
     
     // Post-run cleanup
     try {
       const allowed = new Set();
-      allowed.add('flags.json');
+      // No longer need flags.json in public/flags/ - now generating flags.ts in src/flags/
       for (const e of manifest) {
         if (e.png_full) allowed.add(e.png_full);
         if (e.png_preview) allowed.add(e.png_preview);

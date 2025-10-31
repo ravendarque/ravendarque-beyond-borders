@@ -10,7 +10,7 @@
 interface AppConfig {
   /**
    * Get the full URL for an asset path
-   * @param path - Relative path to the asset (e.g., 'flags/flags.json')
+   * @param path - Relative path to the asset (e.g., 'flags/palestine.png')
    * @returns Full URL including base path
    */
   getAssetUrl: (path: string) => string;
@@ -80,9 +80,9 @@ export const config = createConfig();
  * 
  * @example
  * ```ts
- * const flagUrl = getAssetUrl('flags/flags.json');
- * // Development: '/flags/flags.json'
- * // Production: '/ravendarque-beyond-borders/flags/flags.json'
+ * const flagUrl = getAssetUrl('flags/palestine.png');
+ * // Development: '/flags/palestine.png'
+ * // Production: '/ravendarque-beyond-borders/flags/palestine.png'
  * ```
  */
 export function getAssetUrl(path: string): string {
