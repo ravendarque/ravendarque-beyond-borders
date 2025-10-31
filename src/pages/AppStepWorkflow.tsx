@@ -542,54 +542,56 @@ export function AppStepWorkflow() {
                 </Box>
 
                 {/* Adjustment Controls */}
-                <Box sx={{ maxWidth: 400, mx: 'auto', width: '100%', px: 2 }}>
-                  <Stack spacing={3}>
-                    <SliderControl
-                      label="Border thickness"
-                      value={thickness}
-                      min={3}
-                      max={20}
-                      step={1}
-                      onChange={setThickness}
-                      unit="%"
-                    />
-
-                    <SliderControl
-                      label="Profile Image Inset/Outset"
-                      value={insetPct}
-                      min={-10}
-                      max={10}
-                      step={1}
-                      onChange={setInsetPct}
-                      unit="%"
-                    />
-
-                    {presentation === 'cutout' && (
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Box sx={{ maxWidth: 400, width: '100%', px: 2 }}>
+                    <Stack spacing={3}>
                       <SliderControl
-                        label="Flag Horizontal Offset"
-                        value={flagOffsetX}
-                        min={-200}
-                        max={200}
-                        step={5}
-                        onChange={setFlagOffsetX}
-                        unit="px"
+                        label="Border thickness"
+                        value={thickness}
+                        min={3}
+                        max={20}
+                        step={1}
+                        onChange={setThickness}
+                        unit="%"
                       />
-                    )}
 
-                    <FormControl fullWidth>
-                      <InputLabel id="background-select-label">Background</InputLabel>
-                      <Select 
-                        value={bg} 
-                        onChange={(e) => setBg(e.target.value)}
-                        label="Background"
-                        labelId="background-select-label"
-                      >
-                        <MenuItem value="transparent">Transparent</MenuItem>
-                        <MenuItem value="#ffffff">White</MenuItem>
-                        <MenuItem value="#000000">Black</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Stack>
+                      <SliderControl
+                        label="Profile Image Inset/Outset"
+                        value={insetPct}
+                        min={-10}
+                        max={10}
+                        step={1}
+                        onChange={setInsetPct}
+                        unit="%"
+                      />
+
+                      {presentation === 'cutout' && (
+                        <SliderControl
+                          label="Flag Horizontal Offset"
+                          value={flagOffsetX}
+                          min={-200}
+                          max={200}
+                          step={5}
+                          onChange={setFlagOffsetX}
+                          unit="px"
+                        />
+                      )}
+
+                      <FormControl fullWidth>
+                        <InputLabel id="background-select-label">Background</InputLabel>
+                        <Select 
+                          value={bg} 
+                          onChange={(e) => setBg(e.target.value)}
+                          label="Background"
+                          labelId="background-select-label"
+                        >
+                          <MenuItem value="transparent">Transparent</MenuItem>
+                          <MenuItem value="#ffffff">White</MenuItem>
+                          <MenuItem value="#000000">Black</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Stack>
+                  </Box>
                 </Box>
               </Stack>
 
