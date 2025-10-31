@@ -13,6 +13,19 @@ export const flags: FlagSpec[] = [
     png_preview: 'north-korea.preview.png',
     svgFilename: 'north-korea.svg',
     category: 'authoritarian',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/North_Korea' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#F02020', weight: 1, label: 'red' },
+        { color: '#0050A0', weight: 1, label: 'blue' },
+        { color: '#FFFFFF', weight: 1, label: 'white' },
+        { color: '#F09090', weight: 1, label: 'red' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -24,7 +37,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/North_Korea' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -35,6 +47,19 @@ export const flags: FlagSpec[] = [
     png_preview: 'eritrea.preview.png',
     svgFilename: 'eritrea.svg',
     category: 'authoritarian',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Eritrea' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#E00030', weight: 1, label: 'red' },
+        { color: '#4090E0', weight: 1, label: 'blue' },
+        { color: '#40B030', weight: 1, label: 'green' },
+        { color: '#FFD030', weight: 1, label: 'orange' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -46,7 +71,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Eritrea' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -57,6 +81,18 @@ export const flags: FlagSpec[] = [
     png_preview: 'iran.preview.png',
     svgFilename: 'iran.svg',
     category: 'authoritarian',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Iran' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#FFFFFF', weight: 1, label: 'white' },
+        { color: '#E00000', weight: 1, label: 'red' },
+        { color: '#20A040', weight: 1, label: 'green' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -67,7 +103,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Iran' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -78,6 +113,19 @@ export const flags: FlagSpec[] = [
     png_preview: 'palestine.preview.png',
     svgFilename: 'palestine.svg',
     category: 'occupied',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Palestine' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#000000', weight: 1, label: 'black' },
+        { color: '#009040', weight: 1, label: 'green' },
+        { color: '#FFFFFF', weight: 1, label: 'white' },
+        { color: '#F03040', weight: 1, label: 'red' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -89,7 +137,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Palestine' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -100,6 +147,19 @@ export const flags: FlagSpec[] = [
     png_preview: 'tibet.preview.png',
     svgFilename: 'tibet.svg',
     category: 'occupied',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Tibet' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#E02020', weight: 1, label: 'red' },
+        { color: '#301070', weight: 1, label: 'blue' },
+        { color: '#FFFFFF', weight: 1, label: 'white' },
+        { color: '#F0E010', weight: 1, label: 'orange' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -111,7 +171,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Tibet' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -122,6 +181,19 @@ export const flags: FlagSpec[] = [
     png_preview: 'the-sahrawi-arab-democratic-republic.preview.png',
     svgFilename: 'the-sahrawi-arab-democratic-republic.svg',
     category: 'occupied',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Western_Sahara' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#000000', weight: 1, label: 'black' },
+        { color: '#008040', weight: 1, label: 'green' },
+        { color: '#FFFFFF', weight: 1, label: 'white' },
+        { color: '#C01020', weight: 1, label: 'red' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -133,7 +205,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Western_Sahara' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -144,6 +215,19 @@ export const flags: FlagSpec[] = [
     png_preview: 'kurdistan.preview.png',
     svgFilename: 'kurdistan.svg',
     category: 'stateless',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Kurdistan' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#F02020', weight: 1, label: 'red' },
+        { color: '#209040', weight: 1, label: 'green' },
+        { color: '#FFFFFF', weight: 1, label: 'white' },
+        { color: '#FFC010', weight: 1, label: 'orange' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -155,7 +239,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Kurdistan' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -166,6 +249,17 @@ export const flags: FlagSpec[] = [
     png_preview: 'kokbayraq.preview.png',
     svgFilename: 'kokbayraq.svg',
     category: 'stateless',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Uyghurs' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#50A0E0', weight: 1, label: 'blue' },
+        { color: '#FFFFFF', weight: 1, label: 'white' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -175,7 +269,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Uyghurs' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -186,6 +279,18 @@ export const flags: FlagSpec[] = [
     png_preview: 'rohingya.preview.png',
     svgFilename: 'rohingya.svg',
     category: 'stateless',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rohingya' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#106020', weight: 1, label: 'green' },
+        { color: '#D0B030', weight: 1, label: 'orange' },
+        { color: '#FFFFFF', weight: 1, label: 'white' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -196,7 +301,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rohingya' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -207,6 +311,21 @@ export const flags: FlagSpec[] = [
     png_preview: 'gay-pride.preview.png',
     svgFilename: 'gay-pride.svg',
     category: 'oppressed',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rainbow_flag' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#E00000', weight: 1, label: 'red' },
+        { color: '#0050FF', weight: 1, label: 'blue' },
+        { color: '#FF9000', weight: 1, label: 'orange' },
+        { color: '#FFF000', weight: 1, label: 'orange' },
+        { color: '#700090', weight: 1, label: 'purple' },
+        { color: '#008020', weight: 1, label: 'green' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -220,7 +339,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rainbow_flag' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -231,6 +349,18 @@ export const flags: FlagSpec[] = [
     png_preview: 'transgender-pride.preview.png',
     svgFilename: 'transgender-pride.svg',
     category: 'oppressed',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Transgender_flag' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#60D0FF', weight: 1, label: 'blue' },
+        { color: '#F0B0C0', weight: 1, label: 'yellow' },
+        { color: '#FFFFFF', weight: 1, label: 'white' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -241,7 +371,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Transgender_flag' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -252,6 +381,17 @@ export const flags: FlagSpec[] = [
     png_preview: 'ukraine.preview.png',
     svgFilename: 'ukraine.svg',
     category: 'occupied',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Ukraine' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#FFD000', weight: 1, label: 'orange' },
+        { color: '#0050B0', weight: 1, label: 'blue' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -261,7 +401,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Ukraine' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -272,6 +411,19 @@ export const flags: FlagSpec[] = [
     png_preview: 'australian-aboriginal.preview.png',
     svgFilename: 'australian-aboriginal.svg',
     category: 'oppressed',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Aboriginal_flag' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#000000', weight: 1, label: 'black' },
+        { color: '#D00000', weight: 1, label: 'red' },
+        { color: '#FFFF00', weight: 1, label: 'yellow' },
+        { color: '#202000', weight: 1, label: 'red' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -283,7 +435,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Aboriginal_flag' },
     focalPoint: { x: 0.5, y: 0.5 },
   },
   {
@@ -294,6 +445,19 @@ export const flags: FlagSpec[] = [
     png_preview: 'nonbinary.preview.png',
     svgFilename: 'nonbinary.svg',
     category: 'oppressed',
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Non-binary_gender#Flags' },
+    status: 'active',
+    pattern: {
+      type: 'stripes',
+      orientation: 'horizontal',
+      stripes: [
+        { color: '#FFF030', weight: 1, label: 'orange' },
+        { color: '#303030', weight: 1, label: 'black' },
+        { color: '#FFFFFF', weight: 1, label: 'white' },
+        { color: '#A060D0', weight: 1, label: 'purple' }
+      ],
+    },
+    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
     layouts: [
       {
         type: 'ring',
@@ -305,7 +469,6 @@ export const flags: FlagSpec[] = [
         ],
       }
     ],
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Non-binary_gender#Flags' },
     focalPoint: { x: 0.5, y: 0.5 },
   }
 ];

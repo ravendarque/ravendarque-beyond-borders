@@ -364,6 +364,36 @@ function generateTypeScriptSource(manifest) {
       lines.push(`    category: '${entry.category}',`);
     }
     
+    // Generate sources field
+    if (entry.source_page || entry.link) {
+      const refUrl = entry.link || entry.source_page || 'https://en.wikipedia.org';
+      lines.push(`    sources: { referenceUrl: '${refUrl.replace(/'/g, "\\'")}' },`);
+    }
+    
+    // Add status field (default to 'active')
+    lines.push(`    status: 'active',`);
+    
+    // Generate pattern field from colors
+    // Most flags are horizontal stripes
+    if (entry.layouts && entry.layouts.length > 0 && entry.layouts[0].colors && entry.layouts[0].colors.length > 0) {
+      const colors = entry.layouts[0].colors;
+      lines.push('    pattern: {');
+      lines.push("      type: 'stripes',");
+      lines.push("      orientation: 'horizontal',");
+      lines.push('      stripes: [');
+      for (let j = 0; j < colors.length; j++) {
+        const color = colors[j];
+        const isLastStripe = j === colors.length - 1;
+        const colorLabel = getColorLabel(color);
+        lines.push(`        { color: '${color.toUpperCase()}', weight: 1, label: '${colorLabel}' }${isLastStripe ? '' : ','}`);
+      }
+      lines.push('      ],');
+      lines.push('    },');
+    }
+    
+    // Add recommended field (default border style)
+    lines.push('    recommended: { borderStyle: \'ring-stripes\', defaultThicknessPct: 12 },');
+    
     // Generate layouts array from colors
     if (entry.layouts && entry.layouts.length > 0) {
       lines.push('    layouts: [');
@@ -386,11 +416,6 @@ function generateTypeScriptSource(manifest) {
         lines.push(`      }${isLastLayout ? '' : ','}`);
       }
       lines.push('    ],');
-    }
-    
-    if (entry.source_page || entry.link) {
-      const refUrl = entry.link || entry.source_page || 'https://en.wikipedia.org';
-      lines.push(`    sources: { referenceUrl: '${refUrl.replace(/'/g, "\\'")}' },`);
     }
     
     if (entry.focalPoint) {
