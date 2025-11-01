@@ -18,10 +18,12 @@ version-based using semantic versioning from `package.json`.
 
 1. Create your feature branch and open a PR to `main`
 2. GitHub Actions will run CI checks (validation, build, and tests)
-3. **After CI passes successfully**, your branch will be automatically deployed to beta
+3. **After CI passes successfully**, your branch will be automatically
+   deployed to beta
 4. A comment will appear on the PR with the deployment URL
 5. Every push to the PR updates the beta deployment (after CI passes)
-6. Beta deployments persist and must be manually cleaned up when no longer needed
+6. Beta deployments persist and must be manually cleaned up when no longer
+   needed
 
 **Important**: Deployment only happens if all CI checks pass successfully.
 This ensures only validated, tested code is deployed to beta.
