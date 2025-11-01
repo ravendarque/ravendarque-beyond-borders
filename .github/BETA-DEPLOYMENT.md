@@ -29,24 +29,38 @@ Example: `https://ravendarque.github.io/ravendarque-beyond-borders/beta/0.1.0/`
 
 ## Version Management
 
-Beta deployments use semantic versioning from `package.json`. Before deploying:
+Beta deployments use **GitVersion-style automatic semantic versioning**:
 
-1. **Update version in `package.json`** for your feature:
-   ```json
-   {
-     "version": "0.2.0"
-   }
-   ```
+- **Major.Minor**: From git tags (e.g., `v0.1`, `v1.0`)
+- **Patch**: Calculated from commit count since tag
+- **Prerelease**: Automatic suffix based on branch name
+  - `feature/*`, `fix/*` → `alpha`
+  - `beta/*` → `beta`
+  - `release/*`, `hotfix/*` → `rc`
+  - `main` → no suffix (stable)
 
-2. **Use semantic versioning**:
-   - Major: Breaking changes (e.g., `1.0.0` → `2.0.0`)
-   - Minor: New features (e.g., `0.1.0` → `0.2.0`)
-   - Patch: Bug fixes (e.g., `0.1.0` → `0.1.1`)
+**Example**: If you have tag `v0.2` and are 3 commits ahead on `feature/auth`:
+- Calculated version: `0.2.3-alpha.3`
+- Beta URL: `/beta/0.2.3-alpha.3/`
 
-3. **Prerelease versions** for testing:
-   - `0.2.0-alpha.1` - Early testing
-   - `0.2.0-beta.1` - Feature complete, testing
-   - `0.2.0-rc.1` - Release candidate
+See [VERSIONING.md](./VERSIONING.md) for complete details.
+
+### Quick Version Check
+
+```bash
+node scripts/get-version.cjs
+```
+
+### Creating Version Tags
+
+To start a new major/minor version:
+
+```bash
+git tag v0.2
+git push origin v0.2
+```
+
+Patch numbers increment automatically with each commit
 
 ## Use Cases
 
