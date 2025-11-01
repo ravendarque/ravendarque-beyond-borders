@@ -250,35 +250,126 @@ if (Test-Command "python") {
 
 # Optional tools (security scanning)
 if (-not $SkipOptional) {
-    # 8. Check TruffleHog
+    # 8. Check/Install TruffleHog
     Write-Step "Checking TruffleHog (optional)..."
     if (Test-Command "trufflehog") {
         Write-Success "TruffleHog already installed"
         $alreadyInstalled++
     } else {
         Write-Warning "TruffleHog not found (optional - for secret scanning)"
-        Write-Host "  Install manually:" -ForegroundColor Gray
-        Write-Host "    Windows: https://github.com/trufflesecurity/trufflehog/releases" -ForegroundColor Gray
-        Write-Host "    Download trufflehog_*_windows_amd64.zip and add to PATH" -ForegroundColor Gray
-        Write-Host "  Or use Docker:" -ForegroundColor Gray
-        Write-Host "    docker pull trufflesecurity/trufflehog:latest" -ForegroundColor Gray
-        $skipped++
+        
+        # Try to install with available package managers
+        $packageMgr = Get-PackageManager
+        $truffleInstalled = $false
+        
+        if (-not $DryRun) {
+            if ($packageMgr -eq "winget") {
+                Write-Info "Attempting to install TruffleHog via winget..."
+                try {
+                    winget install trufflesecurity.trufflehog --accept-source-agreements --accept-package-agreements
+                    Write-Success "TruffleHog installed via winget"
+                    $installed++
+                    $truffleInstalled = $true
+                } catch {
+                    Write-Warning "winget installation failed: $_"
+                }
+            } elseif ($packageMgr -eq "scoop") {
+                Write-Info "Attempting to install TruffleHog via Scoop..."
+                try {
+                    scoop install trufflehog
+                    Write-Success "TruffleHog installed via Scoop"
+                    $installed++
+                    $truffleInstalled = $true
+                } catch {
+                    Write-Warning "Scoop installation failed: $_"
+                }
+            } elseif ($packageMgr -eq "choco") {
+                Write-Info "Attempting to install TruffleHog via Chocolatey..."
+                try {
+                    choco install trufflehog -y
+                    Write-Success "TruffleHog installed via Chocolatey"
+                    $installed++
+                    $truffleInstalled = $true
+                } catch {
+                    Write-Warning "Chocolatey installation failed: $_"
+                }
+            }
+        } else {
+            Write-Info "Would attempt to install TruffleHog via $packageMgr"
+            $skipped++
+        }
+        
+        if (-not $truffleInstalled -and -not $DryRun) {
+            Write-Host "  Install manually:" -ForegroundColor Gray
+            Write-Host "    Windows: https://github.com/trufflesecurity/trufflehog/releases" -ForegroundColor Gray
+            Write-Host "    Download trufflehog_*_windows_amd64.zip and add to PATH" -ForegroundColor Gray
+            Write-Host "  Or install package manager:" -ForegroundColor Gray
+            Write-Host "    Scoop: scoop install trufflehog" -ForegroundColor Gray
+            Write-Host "    Choco: choco install trufflehog" -ForegroundColor Gray
+            Write-Host "  Or use Docker:" -ForegroundColor Gray
+            Write-Host "    docker pull trufflesecurity/trufflehog:latest" -ForegroundColor Gray
+            $skipped++
+        }
     }
 
-    # 9. Check Trivy
+    # 9. Check/Install Trivy
     Write-Step "Checking Trivy (optional)..."
     if (Test-Command "trivy") {
         Write-Success "Trivy already installed"
         $alreadyInstalled++
     } else {
         Write-Warning "Trivy not found (optional - for security scanning)"
-        Write-Host "  Install manually:" -ForegroundColor Gray
-        Write-Host "    Windows: https://aquasecurity.github.io/trivy/latest/getting-started/installation/" -ForegroundColor Gray
-        Write-Host "    Download from releases and add to PATH" -ForegroundColor Gray
-        Write-Host "  Or use package manager:" -ForegroundColor Gray
-        Write-Host "    choco install trivy" -ForegroundColor Gray
-        Write-Host "    scoop install trivy" -ForegroundColor Gray
-        $skipped++
+        
+        # Try to install with available package managers
+        $packageMgr = Get-PackageManager
+        $trivyInstalled = $false
+        
+        if (-not $DryRun) {
+            if ($packageMgr -eq "winget") {
+                Write-Info "Attempting to install Trivy via winget..."
+                try {
+                    winget install Aquasecurity.Trivy --accept-source-agreements --accept-package-agreements
+                    Write-Success "Trivy installed via winget"
+                    $installed++
+                    $trivyInstalled = $true
+                } catch {
+                    Write-Warning "winget installation failed: $_"
+                }
+            } elseif ($packageMgr -eq "scoop") {
+                Write-Info "Attempting to install Trivy via Scoop..."
+                try {
+                    scoop install trivy
+                    Write-Success "Trivy installed via Scoop"
+                    $installed++
+                    $trivyInstalled = $true
+                } catch {
+                    Write-Warning "Scoop installation failed: $_"
+                }
+            } elseif ($packageMgr -eq "choco") {
+                Write-Info "Attempting to install Trivy via Chocolatey..."
+                try {
+                    choco install trivy -y
+                    Write-Success "Trivy installed via Chocolatey"
+                    $installed++
+                    $trivyInstalled = $true
+                } catch {
+                    Write-Warning "Chocolatey installation failed: $_"
+                }
+            }
+        } else {
+            Write-Info "Would attempt to install Trivy via $packageMgr"
+            $skipped++
+        }
+        
+        if (-not $trivyInstalled -and -not $DryRun) {
+            Write-Host "  Install manually:" -ForegroundColor Gray
+            Write-Host "    Windows: https://aquasecurity.github.io/trivy/latest/getting-started/installation/" -ForegroundColor Gray
+            Write-Host "    Download from releases and add to PATH" -ForegroundColor Gray
+            Write-Host "  Or install package manager:" -ForegroundColor Gray
+            Write-Host "    Scoop: scoop install trivy" -ForegroundColor Gray
+            Write-Host "    Choco: choco install trivy" -ForegroundColor Gray
+            $skipped++
+        }
     }
 } else {
     Write-Info "Skipping optional tools (TruffleHog, Trivy)"
