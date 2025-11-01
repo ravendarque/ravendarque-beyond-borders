@@ -191,3 +191,155 @@ jobs:
           name: coverage-${{ matrix.node-version }}
           path: coverage
           if-no-files-found: ignore
+
+  # Deploy to beta after all checks pass
+  deploy-beta:
+    needs: [check-changes, validate, build-and-test]
+    if: |
+      needs.check-changes.outputs.production-code == 'true' &&
+      needs.validate.result == 'success' &&
+      needs.build-and-test.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      deployments: write
+    environment:
+      name: beta
+      url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/beta/${{ steps.version.outputs.semver }}/
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0  # Need full history for version calculation
+
+      - name: Calculate semantic version from git
+        id: version
+        run: |
+          VERSION=$(node scripts/get-version.cjs)
+          echo "semver=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build with beta base path
+        run: pnpm run build
+        env:
+          BASE_URL: /${{ github.event.repository.name }}/beta/${{ steps.version.outputs.semver }}/
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-repo
+
+      - name: Deploy to beta directory
+        run: |
+          mkdir -p gh-pages-repo/beta/${{ steps.version.outputs.semver }}
+          rm -rf gh-pages-repo/beta/${{ steps.version.outputs.semver }}/*
+          cp -r dist/* gh-pages-repo/beta/${{ steps.version.outputs.semver }}/
+          
+          cd gh-pages-repo/beta
+          cat > index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Beta Deployments</title>
+            <style>
+              body { font-family: system-ui; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+              h1 { color: #333; }
+              ul { list-style: none; padding: 0; }
+              li { margin: 10px 0; padding: 15px; background: #f5f5f5; border-radius: 5px; }
+              a { color: #0366d6; text-decoration: none; font-weight: 500; }
+              a:hover { text-decoration: underline; }
+              .version { font-family: 'Monaco', 'Courier New', monospace; }
+            </style>
+          </head>
+          <body>
+            <h1>Beta Deployments</h1>
+            <p>Active beta versions available for testing:</p>
+            <ul>
+          EOF
+          
+          for dir in */; do
+            if [ -d "$dir" ]; then
+              version=${dir%/}
+              echo "<li><a href='$version/' class='version'>v$version</a></li>" >> index.html
+            fi
+          done
+          
+          cat >> index.html << 'EOF'
+            </ul>
+          </body>
+          </html>
+          EOF
+
+      - name: Commit and push to gh-pages
+        run: |
+          cd gh-pages-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Deploy beta v${{ steps.version.outputs.semver }} from ${{ github.head_ref }} ($(date -u +'%Y-%m-%d %H:%M:%S UTC'))" || echo "No changes"
+          git push
+
+      - name: Comment on PR with deployment URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.version.outputs.semver }}';
+            const branch = '${{ github.head_ref }}';
+            const url = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/beta/${version}/`;
+            const body = `🚀 **Beta Deployment Complete!**
+
+            Version **v${version}** from branch \`${branch}\` has been deployed:
+
+            🔗 **Preview URL:** ${url}
+
+            This beta deployment will remain available until manually removed or replaced by a new version.`;
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Beta Deployment Complete')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Deployment summary
+        run: |
+          echo "### ✅ Beta Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`v${{ steps.version.outputs.semver }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.head_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/beta/${{ steps.version.outputs.semver }}/" >> $GITHUB_STEP_SUMMARY
