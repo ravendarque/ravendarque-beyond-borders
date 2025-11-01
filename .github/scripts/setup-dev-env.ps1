@@ -240,33 +240,59 @@ if (Test-Command "yamllint") {
 }
 
 # Optional tools (security scanning)
-# Note: These tools don't have reliable npm/pip packages, so we check if installed
-# and provide clear manual installation instructions if not found.
 if (-not $SkipOptional) {
-    # 8. Check TruffleHog (optional)
+    # 8. Install TruffleHog (optional)
     Write-Step "Checking TruffleHog (optional)..."
     if (Test-Command "trufflehog") {
         Write-Success "TruffleHog already installed"
         $alreadyInstalled++
     } else {
         Write-Warning "TruffleHog not found (optional - for secret scanning)"
-        Write-Host "  This tool must be installed manually:" -ForegroundColor Gray
-        Write-Host "" -ForegroundColor Gray
-        Write-Host "  Option 1 - Manual Binary Installation (Recommended):" -ForegroundColor Yellow
-        Write-Host "    1. Download: https://github.com/trufflesecurity/trufflehog/releases" -ForegroundColor Gray
-        Write-Host "    2. Extract trufflehog_*_windows_amd64.zip" -ForegroundColor Gray
-        Write-Host "    3. Move trufflehog.exe to a directory in your PATH" -ForegroundColor Gray
-        Write-Host "       (e.g., C:\Program Files\TruffleHog\)" -ForegroundColor Gray
-        Write-Host "" -ForegroundColor Gray
-        Write-Host "  Option 2 - Package Manager:" -ForegroundColor Yellow
-        Write-Host "    winget: winget install trufflesecurity.trufflehog" -ForegroundColor Gray
-        Write-Host "    choco:  choco install trufflehog" -ForegroundColor Gray
-        Write-Host "    scoop:  scoop install trufflehog" -ForegroundColor Gray
-        Write-Host "" -ForegroundColor Gray
-        Write-Host "  Option 3 - Docker (No installation needed):" -ForegroundColor Yellow
-        Write-Host "    docker run --rm -v `${PWD}:/scan trufflesecurity/trufflehog:latest git file:///scan" -ForegroundColor Gray
-        Write-Host "" -ForegroundColor Gray
-        $skipped++
+        if (-not $DryRun) {
+            Write-Info "Installing TruffleHog using official installer..."
+            try {
+                # Download and run the official install script
+                $installDir = "$env:LocalAppData\trufflehog"
+                New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+                
+                # Download latest release for Windows
+                $latestRelease = (Invoke-RestMethod -Uri "https://api.github.com/repos/trufflesecurity/trufflehog/releases/latest").tag_name
+                $version = $latestRelease -replace '^v', ''
+                $downloadUrl = "https://github.com/trufflesecurity/trufflehog/releases/download/$latestRelease/trufflehog_${version}_windows_amd64.tar.gz"
+                $tarFile = Join-Path $env:TEMP "trufflehog.tar.gz"
+                
+                Write-Info "Downloading TruffleHog $latestRelease..."
+                Invoke-WebRequest -Uri $downloadUrl -OutFile $tarFile
+                
+                # Extract using tar (built into Windows 10+)
+                Write-Info "Extracting..."
+                tar -xzf $tarFile -C $installDir
+                Remove-Item $tarFile
+                
+                # Add to PATH for current session
+                $env:Path = "$installDir;$env:Path"
+                
+                # Add to user PATH permanently
+                $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+                if ($userPath -notlike "*$installDir*") {
+                    [Environment]::SetEnvironmentVariable("Path", "$userPath;$installDir", "User")
+                }
+                
+                Write-Success "TruffleHog installed to $installDir"
+                Write-Info "Added to PATH - restart terminal to use 'trufflehog' command"
+                $installed++
+            } catch {
+                Write-Warning "Failed to install TruffleHog automatically: $_"
+                Write-Host "  Manual installation options:" -ForegroundColor Gray
+                Write-Host "    1. Download from: https://github.com/trufflesecurity/trufflehog/releases" -ForegroundColor Gray
+                Write-Host "    2. Package manager: winget install trufflesecurity.trufflehog" -ForegroundColor Gray
+                Write-Host "    3. Docker: docker run --rm -v `${PWD}:/scan trufflesecurity/trufflehog:latest git file:///scan" -ForegroundColor Gray
+                $skipped++
+            }
+        } else {
+            Write-Info "Would install: TruffleHog via official installer"
+            $skipped++
+        }
     }
 
     # 9. Check Trivy (optional)
