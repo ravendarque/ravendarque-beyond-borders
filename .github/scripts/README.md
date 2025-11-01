@@ -2,30 +2,67 @@
 
 Modular PowerShell scripts for managing GitHub issues, project boards, and pull requests, following SOLID and DRY principles.
 
+## Directory Structure
+
+```
+.github/scripts/
+  github-helper.ps1           ← Main CLI (error-resistant wrapper) ⭐
+  README.md
+  commands/                   ← Individual command implementations
+    create-tracked-issue.ps1
+    create-pr.ps1
+    get-pr-template.ps1
+    list-issues.ps1
+    update-issue.ps1
+  lib/                        ← Shared utilities
+    config.ps1
+    github-utils.ps1
+    script-runner.ps1
+```
+
 ## Quick Reference
 
 | Script | Purpose |
 |--------|---------|
-| `create-tracked-issue.ps1` | Create issues and add to project board |
-| `update-issue.ps1` | Update issue Status/Priority/Size fields |
-| `list-issues.ps1` | Query and filter issues with project fields |
-| `create-pr.ps1` | Create pull requests with proper formatting |
-| `get-pr-template.ps1` | Generate PR body templates |
+| **`github-helper.ps1`** | **Simple, error-resistant commands (recommended)** ⭐ |
+| `commands/create-tracked-issue.ps1` | Create issues and add to project board |
+| `commands/update-issue.ps1` | Update issue Status/Priority/Size fields |
+| `commands/list-issues.ps1` | Query and filter issues with project fields |
+| `commands/create-pr.ps1` | Create pull requests with proper formatting |
+| `commands/get-pr-template.ps1` | Generate PR body templates |
 
-**Common Workflows:**
+**Common Workflows (Using github-helper.ps1 - Recommended):**
 ```powershell
-# Create and track an issue
-.\create-tracked-issue.ps1 -Title "Fix bug" -Body "Description" -Priority P1 -Size S
+# Create and track an issue from body file
+.\github-helper.ps1 issue-create -Title "Fix bug" -BodyFile ".local/issue.md" -Priority P1 -Size M
+
+# Create issue with inline body
+.\github-helper.ps1 issue-create -Title "Fix bug" -Body "Description here" -Priority P1 -Size S
 
 # Start working on an issue
-.\update-issue.ps1 -IssueNumber 87 -Status InProgress
+.\github-helper.ps1 issue-update -Number 90 -Status InProgress
+
+# Create a pull request
+.\github-helper.ps1 pr-create -Title "fix: Bug description" -BodyFile ".local/pr.md" -Issue 90
+
+# View in-progress work
+.\github-helper.ps1 issue-list -Status InProgress
+```
+
+**Traditional Workflows (Direct script calls):**
+```powershell
+# Create and track an issue
+.\commands\create-tracked-issue.ps1 -Title "Fix bug" -Body "Description" -Priority P1 -Size S
+
+# Start working on an issue
+.\commands\update-issue.ps1 -IssueNumber 87 -Status InProgress
 
 # Create a pull request
 $body = Get-Content "pr-body.md" -Raw
-.\create-pr.ps1 -Title "fix: Bug description" -Body $body -IssueNumber 87
+.\commands\create-pr.ps1 -Title "fix: Bug description" -Body $body -IssueNumber 87
 
 # View in-progress work
-.\list-issues.ps1 -Status InProgress
+.\commands\list-issues.ps1 -Status InProgress
 ```
 
 ## Architecture
@@ -33,11 +70,13 @@ $body = Get-Content "pr-body.md" -Raw
 ### SOLID Principles Applied
 
 1. **Single Responsibility Principle (SRP)**
-   - `create-tracked-issue-v2.ps1` - Orchestrates issue creation
-   - `update-issue.ps1` - Updates existing issue fields
-   - `list-issues.ps1` - Queries and displays issues
+   - `github-helper.ps1` - CLI interface and command routing
+   - `commands/create-tracked-issue.ps1` - Orchestrates issue creation
+   - `commands/update-issue.ps1` - Updates existing issue fields
+   - `commands/list-issues.ps1` - Queries and displays issues
    - `lib/config.ps1` - Configuration management only
    - `lib/github-utils.ps1` - GitHub API interactions only
+   - `lib/script-runner.ps1` - Safe script execution helpers
 
 2. **Open/Closed Principle (OCP)**
    - Core utilities are stable and closed for modification
@@ -63,6 +102,62 @@ $body = Get-Content "pr-body.md" -Raw
 - **No duplication** - Each script imports and uses shared code
 
 ## Scripts
+
+### 0. github-helper.ps1 ⭐ (Recommended)
+
+**Purpose:** Simplified, error-resistant commands for common operations.
+
+**Why use this?**
+- ✅ Works from any directory
+- ✅ Automatic retry on transient network errors
+- ✅ Handles body file loading for you
+- ✅ Clear error messages
+- ✅ No PowerShell parsing issues
+
+**Usage:**
+```powershell
+# Create issue from file
+.\github-helper.ps1 issue-create `
+  -Title "Fix authentication bug" `
+  -BodyFile ".local/issue-90.md" `
+  -Priority P1 `
+  -Size M `
+  -Status InProgress
+
+# Create issue with inline body
+.\github-helper.ps1 issue-create `
+  -Title "Add feature X" `
+  -Body "Feature description here" `
+  -Priority P2 `
+  -Size L
+
+# Update issue
+.\github-helper.ps1 issue-update -Number 90 -Status Done
+
+# List issues
+.\github-helper.ps1 issue-list -Status InProgress -Priority P0
+
+# Create PR
+.\github-helper.ps1 pr-create `
+  -Title "fix: Authentication bug" `
+  -BodyFile ".local/pr-90.md" `
+  -Issue 90
+```
+
+**Commands:**
+- `issue-create` - Create and track new issue
+- `issue-update` - Update existing issue fields
+- `issue-list` - Query and filter issues
+- `pr-create` - Create pull request
+
+**Benefits over direct script calls:**
+- No need to load body files manually (`$body = Get-Content...`)
+- No PowerShell variable assignment errors
+- Auto-retries on network failures (EOF, timeout, 5xx errors)
+- Validates parameters before execution
+- Returns to original directory on error
+
+---
 
 ### 1. create-tracked-issue.ps1
 
@@ -400,6 +495,21 @@ Run: `gh auth login`
 - Check that you have correct permissions on the repository
 - Verify project ID and field IDs in `lib/config.ps1` are current
 - Check GitHub status page for API issues
+
+### "EOF" or "timeout" errors
+- **Now handled automatically!** Scripts retry up to 3 times on transient errors
+- If still failing after retries, check your internet connection
+- Check GitHub API status: https://www.githubstatus.com/
+
+### PowerShell parsing errors with `&&` or `=`
+- **Solution:** Use `github-helper.ps1` instead - it handles path navigation internally
+- Or run commands separately (don't chain with `&&`)
+- Example: Instead of `cd scripts && $body = ...`, use `github-helper.ps1`
+
+### "Could not find project root"
+- Make sure you're inside the repository directory
+- The script looks for `.git` directory to find the root
+- If needed, navigate to the project root first: `cd d:\git\nix\beyond-borders`
 
 ---
 
