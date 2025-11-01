@@ -2,6 +2,23 @@
 
 This directory contains scripts to automate the setup of your development environment for Beyond Borders.
 
+## Package Manager Strategy
+
+The setup scripts use a **consistent, prioritized order** for package managers:
+
+### Windows
+1. **npm/pip** - Language-specific packages (Node.js, Python)
+2. **winget** - Modern Windows package manager (preferred for system tools)
+3. **choco** - Chocolatey (widely available, mature)
+4. **scoop** - Lightweight package manager (fallback)
+
+### Linux/macOS
+1. **npm/pip** - Language-specific packages
+2. **brew** - Homebrew (macOS standard)
+3. **apt** - Ubuntu/Debian package manager
+4. **dnf/yum** - Fedora/RHEL package manager
+5. **Manual** - Direct downloads with clear instructions
+
 ## Quick Start
 
 ### Windows (PowerShell)

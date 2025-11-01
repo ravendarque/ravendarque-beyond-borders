@@ -6,6 +6,12 @@
     - Building and running the app
     - Running tests (unit, integration, e2e)
     - Pre-push validation (security, linting, etc.)
+    
+    Package Manager Preference Order (Windows):
+    1. npm/pip - For Node.js and Python packages (language-specific)
+    2. winget - Modern Windows package manager (preferred for system tools)
+    3. choco - Chocolatey package manager (widely available)
+    4. scoop - Lightweight package manager (fallback)
 .PARAMETER DryRun
     Show what would be installed without actually installing
 .PARAMETER SkipOptional
@@ -263,6 +269,7 @@ if (-not $SkipOptional) {
         $truffleInstalled = $false
         
         if (-not $DryRun) {
+            # Try package managers in order: winget → choco → scoop
             if ($packageMgr -eq "winget") {
                 Write-Info "Attempting to install TruffleHog via winget..."
                 try {
@@ -272,16 +279,6 @@ if (-not $SkipOptional) {
                     $truffleInstalled = $true
                 } catch {
                     Write-Warning "winget installation failed: $_"
-                }
-            } elseif ($packageMgr -eq "scoop") {
-                Write-Info "Attempting to install TruffleHog via Scoop..."
-                try {
-                    scoop install trufflehog
-                    Write-Success "TruffleHog installed via Scoop"
-                    $installed++
-                    $truffleInstalled = $true
-                } catch {
-                    Write-Warning "Scoop installation failed: $_"
                 }
             } elseif ($packageMgr -eq "choco") {
                 Write-Info "Attempting to install TruffleHog via Chocolatey..."
@@ -293,6 +290,16 @@ if (-not $SkipOptional) {
                 } catch {
                     Write-Warning "Chocolatey installation failed: $_"
                 }
+            } elseif ($packageMgr -eq "scoop") {
+                Write-Info "Attempting to install TruffleHog via Scoop..."
+                try {
+                    scoop install trufflehog
+                    Write-Success "TruffleHog installed via Scoop"
+                    $installed++
+                    $truffleInstalled = $true
+                } catch {
+                    Write-Warning "Scoop installation failed: $_"
+                }
             }
         } else {
             Write-Info "Would attempt to install TruffleHog via $packageMgr"
@@ -303,9 +310,10 @@ if (-not $SkipOptional) {
             Write-Host "  Install manually:" -ForegroundColor Gray
             Write-Host "    Windows: https://github.com/trufflesecurity/trufflehog/releases" -ForegroundColor Gray
             Write-Host "    Download trufflehog_*_windows_amd64.zip and add to PATH" -ForegroundColor Gray
-            Write-Host "  Or install package manager:" -ForegroundColor Gray
-            Write-Host "    Scoop: scoop install trufflehog" -ForegroundColor Gray
-            Write-Host "    Choco: choco install trufflehog" -ForegroundColor Gray
+            Write-Host "  Or install package manager (winget → choco → scoop):" -ForegroundColor Gray
+            Write-Host "    winget: winget install trufflesecurity.trufflehog" -ForegroundColor Gray
+            Write-Host "    choco: choco install trufflehog" -ForegroundColor Gray
+            Write-Host "    scoop: scoop install trufflehog" -ForegroundColor Gray
             Write-Host "  Or use Docker:" -ForegroundColor Gray
             Write-Host "    docker pull trufflesecurity/trufflehog:latest" -ForegroundColor Gray
             $skipped++
@@ -325,6 +333,7 @@ if (-not $SkipOptional) {
         $trivyInstalled = $false
         
         if (-not $DryRun) {
+            # Try package managers in order: winget → choco → scoop
             if ($packageMgr -eq "winget") {
                 Write-Info "Attempting to install Trivy via winget..."
                 try {
@@ -334,16 +343,6 @@ if (-not $SkipOptional) {
                     $trivyInstalled = $true
                 } catch {
                     Write-Warning "winget installation failed: $_"
-                }
-            } elseif ($packageMgr -eq "scoop") {
-                Write-Info "Attempting to install Trivy via Scoop..."
-                try {
-                    scoop install trivy
-                    Write-Success "Trivy installed via Scoop"
-                    $installed++
-                    $trivyInstalled = $true
-                } catch {
-                    Write-Warning "Scoop installation failed: $_"
                 }
             } elseif ($packageMgr -eq "choco") {
                 Write-Info "Attempting to install Trivy via Chocolatey..."
@@ -355,6 +354,16 @@ if (-not $SkipOptional) {
                 } catch {
                     Write-Warning "Chocolatey installation failed: $_"
                 }
+            } elseif ($packageMgr -eq "scoop") {
+                Write-Info "Attempting to install Trivy via Scoop..."
+                try {
+                    scoop install trivy
+                    Write-Success "Trivy installed via Scoop"
+                    $installed++
+                    $trivyInstalled = $true
+                } catch {
+                    Write-Warning "Scoop installation failed: $_"
+                }
             }
         } else {
             Write-Info "Would attempt to install Trivy via $packageMgr"
@@ -365,9 +374,10 @@ if (-not $SkipOptional) {
             Write-Host "  Install manually:" -ForegroundColor Gray
             Write-Host "    Windows: https://aquasecurity.github.io/trivy/latest/getting-started/installation/" -ForegroundColor Gray
             Write-Host "    Download from releases and add to PATH" -ForegroundColor Gray
-            Write-Host "  Or install package manager:" -ForegroundColor Gray
-            Write-Host "    Scoop: scoop install trivy" -ForegroundColor Gray
-            Write-Host "    Choco: choco install trivy" -ForegroundColor Gray
+            Write-Host "  Or install package manager (winget → choco → scoop):" -ForegroundColor Gray
+            Write-Host "    winget: winget install Aquasecurity.Trivy" -ForegroundColor Gray
+            Write-Host "    choco: choco install trivy" -ForegroundColor Gray
+            Write-Host "    scoop: scoop install trivy" -ForegroundColor Gray
             $skipped++
         }
     }
