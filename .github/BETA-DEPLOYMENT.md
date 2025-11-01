@@ -17,10 +17,14 @@ version-based using semantic versioning from `package.json`.
 ### Automatic Deployment (Default)
 
 1. Create your feature branch and open a PR to `main`
-2. GitHub Actions will **automatically deploy** your branch to beta
-3. A comment will appear on the PR with the deployment URL
-4. Every push to the PR updates the beta deployment
-5. Beta deployments persist and must be manually cleaned up when no longer needed
+2. GitHub Actions will run CI checks (validation, build, and tests)
+3. **After CI passes successfully**, your branch will be automatically deployed to beta
+4. A comment will appear on the PR with the deployment URL
+5. Every push to the PR updates the beta deployment (after CI passes)
+6. Beta deployments persist and must be manually cleaned up when no longer needed
+
+**Important**: Deployment only happens if all CI checks pass successfully.
+This ensures only validated, tested code is deployed to beta.
 
 ### Manual Workflow Dispatch
 
@@ -118,19 +122,29 @@ Test multiple versions simultaneously:
 **Triggers:**
 
 - Manual: Workflow dispatch from Actions tab
-- Automatic: When `deploy-beta` label is added to a PR
+- Automatic: After CI workflow completes successfully on PRs to `main`
+
+**Prerequisites:**
+
+- CI workflow must complete successfully
+- All validation checks must pass
+- All build and test checks must pass
 
 **Process:**
 
-1. Checks out the specified branch
-2. Extracts version from `package.json`
-3. Installs dependencies
-4. Builds the app with beta base path (includes version)
-5. Deploys to `gh-pages` branch in `beta/<semver>/` directory
-6. Updates beta index page with all versions
-7. Comments on PR with deployment URL (if triggered by label)
+1. Waits for CI workflow to complete successfully
+2. Checks out the specified branch
+3. Calculates semantic version from git history
+4. Installs dependencies
+5. Builds the app with beta base path (includes version)
+6. Deploys to `gh-pages` branch in `beta/<semver>/` directory
+7. Updates beta index page with all versions
+8. Comments on PR with deployment URL
 
 **Environment:** Uses GitHub Environment named `beta` (requires setup)
+
+**Important:** The deployment will **not run** if CI fails. This ensures only
+validated, tested code is deployed to beta.
 
 ### Cleanup Beta Workflow
 
