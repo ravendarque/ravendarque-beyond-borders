@@ -90,17 +90,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install yaml-lint
-        if: steps.changed-yaml.outputs.any_changed == 'true'
-        run: npm install -g yaml-lint
-
       - name: YAML lint
         if: steps.changed-yaml.outputs.any_changed == 'true'
         run: |
           echo "Linting changed YAML files:"
           for file in ${{ steps.changed-yaml.outputs.all_changed_files }}; do
             echo "Checking $file"
-            yaml-lint "$file"
+            npx yaml-lint "$file"
           done
 
       - name: Check for TODO/FIXME comments in production code
