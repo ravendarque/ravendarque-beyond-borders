@@ -1,26 +1,58 @@
-# GitHub Issue Management Scripts
+# GitHub Scripts & Development Tools
 
-Modular PowerShell scripts for managing GitHub issues, project boards, and pull requests, following SOLID and DRY principles.
+Comprehensive scripts for development environment setup, validation, issue management, and workflow automation.
+
+## 🚀 Quick Start for New Developers
+
+**First-time setup (automated):**
+
+```powershell
+# Windows
+.\.github\scripts\setup-dev-env.ps1
+
+# Linux/Mac
+bash .github/scripts/setup-dev-env.sh
+```
+
+📖 **Full Setup Guide**: [SETUP.md](./SETUP.md)
 
 ## Directory Structure
 
 ```
 .github/scripts/
-  github-helper.ps1           ← Main CLI (error-resistant wrapper) ⭐
+  setup-dev-env.ps1          ← Automated environment setup (Windows) 🆕
+  setup-dev-env.sh           ← Automated environment setup (Linux/Mac) 🆕
+  validate-local.ps1         ← Pre-push validation (Windows) 🆕
+  validate-local.sh          ← Pre-push validation (Linux/Mac) 🆕
+  github-helper.ps1          ← Main CLI (error-resistant wrapper) ⭐
+  sync-labels.ps1            ← Label management
+  SETUP.md                   ← Setup documentation 🆕
   README.md
-  commands/                   ← Individual command implementations
+  commands/                  ← Individual command implementations
     create-tracked-issue.ps1
     create-pr.ps1
     get-pr-template.ps1
     list-issues.ps1
     update-issue.ps1
-  lib/                        ← Shared utilities
+  lib/                       ← Shared utilities
     config.ps1
     github-utils.ps1
     script-runner.ps1
 ```
 
 ## Quick Reference
+
+### Development & Validation Scripts
+
+| Script | Purpose |
+|--------|---------|
+| **`setup-dev-env.ps1` / `.sh`** 🆕 | **One-command setup for new developers** |
+| **`validate-local.ps1` / `.sh`** 🆕 | **Pre-push validation (secrets, security, linting)** |
+| `sync-labels.ps1` | Sync standard labels to GitHub repository |
+
+📖 **Setup Guide**: [SETUP.md](./SETUP.md)
+
+### Issue & PR Management Scripts
 
 | Script | Purpose |
 |--------|---------|

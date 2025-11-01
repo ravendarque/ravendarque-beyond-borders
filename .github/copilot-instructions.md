@@ -1,25 +1,33 @@
 # GitHub Copilot Instructions for Beyond Borders
 
-This file contains instructions for GitHub Copilot to follow when working on the Beyond Borders project.
+This file contains instructions for GitHub Copilot to follow when working on
+the Beyond Borders project.
 
 ## Project Overview
 
-Beyond Borders is a web application that allows users to add circular, flag-colored borders to their profile pictures to show support for marginalized groups and selected causes. The app is built with React, TypeScript, Vite, and uses Canvas 2D for rendering.
+Beyond Borders is a web application that allows users to add circular,
+flag-colored borders to their profile pictures to show support for
+marginalized groups and selected causes. The app is built with React,
+TypeScript, Vite, and uses Canvas 2D for rendering.
 
 ## File Organization
 
 ### Local Working Files
 
 Use the `.local/` directory for all temporary and local development files:
+
 - Temporary scripts and PowerShell files
 - Test outputs and screenshots
 - Work-in-progress data files
 - Personal notes and todos
 - Any files that shouldn't be committed
 
-**Example:** `.local/temp-script.ps1`, `.local/screenshots/preview.png`, `.local/notes.md`
+**Example:** `.local/temp-script.ps1`, `.local/screenshots/preview.png`,
+`.local/notes.md`
 
-The entire `.local/` directory is gitignored (except `.local/README.md`), ensuring a clean repository without cluttering .gitignore with specific patterns.
+The entire `.local/` directory is gitignored (except `.local/README.md`),
+ensuring a clean repository without cluttering .gitignore with specific
+patterns.
 
 ## Core Development Workflow
 
@@ -40,11 +48,13 @@ Use the provided script to create tracked issues:
 ```
 
 **Priority Levels:**
+
 - **P0 (Critical)**: Security issues, breaking bugs, WCAG compliance issues
 - **P1 (High)**: Important features, UX improvements, performance issues
 - **P2 (Low)**: Nice-to-have features, refactoring, documentation
 
 **Size Estimates:**
+
 - **XS**: < 1 hour
 - **S**: 1-2 hours
 - **M**: 2-4 hours
@@ -52,6 +62,7 @@ Use the provided script to create tracked issues:
 - **XL**: 8+ hours
 
 **Status Values:**
+
 - **Backlog**: Not yet started
 - **Ready**: Ready to be picked up
 - **InProgress**: Currently being worked on
@@ -85,7 +96,8 @@ When creating issues, use this structure:
 
 ### 3. Progress Tracking and Issue Lifecycle
 
-**IMPORTANT: Never close issues manually. Issues are closed automatically when PRs are merged.**
+**IMPORTANT: Never close issues manually. Issues are closed automatically
+when PRs are merged.**
 
 Update issue status as work progresses:
 
@@ -95,12 +107,14 @@ Update issue status as work progresses:
 4. **Done** - PR has been merged to main (GitHub auto-closes issue)
 
 **Status Workflow:**
+
 - Create issue → Set to "Ready" or "In Progress"
 - Complete work & commit → Set to "In Review"
 - Create PR → Keep in "In Review"
 - PR merged → GitHub auto-closes and sets to "Done"
 
 **Never:**
+
 - Don't manually close issues (let PR merge do it)
 - Don't set status to "Done" manually
 - Don't leave issues in "In Progress" after work is committed
