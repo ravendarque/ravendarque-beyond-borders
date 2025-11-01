@@ -216,170 +216,82 @@ if (Test-Command "markdownlint-cli2") {
     }
 }
 
-# 7. Check Python and yamllint
-Write-Step "Checking Python and yamllint..."
-if (Test-Command "python") {
-    $pythonVersion = python --version
-    Write-Success "Python already installed: $pythonVersion"
+# 7. Install yaml-lint (npm global)
+Write-Step "Checking yaml-lint..."
+if (Test-Command "yamllint") {
+    Write-Success "yaml-lint already installed"
     $alreadyInstalled++
-    
-    # Check yamllint
-    if (Test-Command "yamllint") {
-        Write-Success "yamllint already installed"
-        $alreadyInstalled++
-    } else {
-        Write-Warning "yamllint not found"
-        if (-not $DryRun) {
-            Write-Info "Installing yamllint..."
-            try {
-                python -m pip install yamllint
-                Write-Success "yamllint installed"
-                $installed++
-            } catch {
-                Write-Error "Failed to install yamllint: $_"
-                $failed++
-            }
-        } else {
-            Write-Info "Would install: pip install yamllint"
-            $skipped++
-        }
-    }
 } else {
-    Write-Warning "Python not found"
-    Write-Host "  Install from: https://www.python.org/downloads/" -ForegroundColor Gray
-    Write-Host "  Or use a package manager:" -ForegroundColor Gray
-    Write-Host "    winget install Python.Python.3.12" -ForegroundColor Gray
-    Write-Host "    choco install python" -ForegroundColor Gray
-    Write-Host "    scoop install python" -ForegroundColor Gray
-    $failed++
+    Write-Warning "yaml-lint not found"
+    if (-not $DryRun) {
+        Write-Info "Installing yaml-lint..."
+        try {
+            npm install -g yaml-lint
+            Write-Success "yaml-lint installed"
+            $installed++
+        } catch {
+            Write-Error "Failed to install yaml-lint: $_"
+            $failed++
+        }
+    } else {
+        Write-Info "Would install: npm install -g yaml-lint"
+        $skipped++
+    }
 }
 
 # Optional tools (security scanning)
+# Note: These tools don't have reliable npm/pip packages, so we check if installed
+# and provide clear manual installation instructions if not found.
 if (-not $SkipOptional) {
-    # 8. Check/Install TruffleHog
+    # 8. Check TruffleHog (optional)
     Write-Step "Checking TruffleHog (optional)..."
     if (Test-Command "trufflehog") {
         Write-Success "TruffleHog already installed"
         $alreadyInstalled++
     } else {
         Write-Warning "TruffleHog not found (optional - for secret scanning)"
-        
-        # Try to install with available package managers
-        $packageMgr = Get-PackageManager
-        $truffleInstalled = $false
-        
-        if (-not $DryRun) {
-            # Try package managers in order: winget → choco → scoop
-            if ($packageMgr -eq "winget") {
-                Write-Info "Attempting to install TruffleHog via winget..."
-                try {
-                    winget install trufflesecurity.trufflehog --accept-source-agreements --accept-package-agreements
-                    Write-Success "TruffleHog installed via winget"
-                    $installed++
-                    $truffleInstalled = $true
-                } catch {
-                    Write-Warning "winget installation failed: $_"
-                }
-            } elseif ($packageMgr -eq "choco") {
-                Write-Info "Attempting to install TruffleHog via Chocolatey..."
-                try {
-                    choco install trufflehog -y
-                    Write-Success "TruffleHog installed via Chocolatey"
-                    $installed++
-                    $truffleInstalled = $true
-                } catch {
-                    Write-Warning "Chocolatey installation failed: $_"
-                }
-            } elseif ($packageMgr -eq "scoop") {
-                Write-Info "Attempting to install TruffleHog via Scoop..."
-                try {
-                    scoop install trufflehog
-                    Write-Success "TruffleHog installed via Scoop"
-                    $installed++
-                    $truffleInstalled = $true
-                } catch {
-                    Write-Warning "Scoop installation failed: $_"
-                }
-            }
-        } else {
-            Write-Info "Would attempt to install TruffleHog via $packageMgr"
-            $skipped++
-        }
-        
-        if (-not $truffleInstalled -and -not $DryRun) {
-            Write-Host "  Install manually:" -ForegroundColor Gray
-            Write-Host "    Windows: https://github.com/trufflesecurity/trufflehog/releases" -ForegroundColor Gray
-            Write-Host "    Download trufflehog_*_windows_amd64.zip and add to PATH" -ForegroundColor Gray
-            Write-Host "  Or install package manager (winget → choco → scoop):" -ForegroundColor Gray
-            Write-Host "    winget: winget install trufflesecurity.trufflehog" -ForegroundColor Gray
-            Write-Host "    choco: choco install trufflehog" -ForegroundColor Gray
-            Write-Host "    scoop: scoop install trufflehog" -ForegroundColor Gray
-            Write-Host "  Or use Docker:" -ForegroundColor Gray
-            Write-Host "    docker pull trufflesecurity/trufflehog:latest" -ForegroundColor Gray
-            $skipped++
-        }
+        Write-Host "  This tool must be installed manually:" -ForegroundColor Gray
+        Write-Host "" -ForegroundColor Gray
+        Write-Host "  Option 1 - Manual Binary Installation (Recommended):" -ForegroundColor Yellow
+        Write-Host "    1. Download: https://github.com/trufflesecurity/trufflehog/releases" -ForegroundColor Gray
+        Write-Host "    2. Extract trufflehog_*_windows_amd64.zip" -ForegroundColor Gray
+        Write-Host "    3. Move trufflehog.exe to a directory in your PATH" -ForegroundColor Gray
+        Write-Host "       (e.g., C:\Program Files\TruffleHog\)" -ForegroundColor Gray
+        Write-Host "" -ForegroundColor Gray
+        Write-Host "  Option 2 - Package Manager:" -ForegroundColor Yellow
+        Write-Host "    winget: winget install trufflesecurity.trufflehog" -ForegroundColor Gray
+        Write-Host "    choco:  choco install trufflehog" -ForegroundColor Gray
+        Write-Host "    scoop:  scoop install trufflehog" -ForegroundColor Gray
+        Write-Host "" -ForegroundColor Gray
+        Write-Host "  Option 3 - Docker (No installation needed):" -ForegroundColor Yellow
+        Write-Host "    docker run --rm -v `${PWD}:/scan trufflesecurity/trufflehog:latest git file:///scan" -ForegroundColor Gray
+        Write-Host "" -ForegroundColor Gray
+        $skipped++
     }
 
-    # 9. Check/Install Trivy
+    # 9. Check Trivy (optional)
     Write-Step "Checking Trivy (optional)..."
     if (Test-Command "trivy") {
         Write-Success "Trivy already installed"
         $alreadyInstalled++
     } else {
         Write-Warning "Trivy not found (optional - for security scanning)"
-        
-        # Try to install with available package managers
-        $packageMgr = Get-PackageManager
-        $trivyInstalled = $false
-        
-        if (-not $DryRun) {
-            # Try package managers in order: winget → choco → scoop
-            if ($packageMgr -eq "winget") {
-                Write-Info "Attempting to install Trivy via winget..."
-                try {
-                    winget install Aquasecurity.Trivy --accept-source-agreements --accept-package-agreements
-                    Write-Success "Trivy installed via winget"
-                    $installed++
-                    $trivyInstalled = $true
-                } catch {
-                    Write-Warning "winget installation failed: $_"
-                }
-            } elseif ($packageMgr -eq "choco") {
-                Write-Info "Attempting to install Trivy via Chocolatey..."
-                try {
-                    choco install trivy -y
-                    Write-Success "Trivy installed via Chocolatey"
-                    $installed++
-                    $trivyInstalled = $true
-                } catch {
-                    Write-Warning "Chocolatey installation failed: $_"
-                }
-            } elseif ($packageMgr -eq "scoop") {
-                Write-Info "Attempting to install Trivy via Scoop..."
-                try {
-                    scoop install trivy
-                    Write-Success "Trivy installed via Scoop"
-                    $installed++
-                    $trivyInstalled = $true
-                } catch {
-                    Write-Warning "Scoop installation failed: $_"
-                }
-            }
-        } else {
-            Write-Info "Would attempt to install Trivy via $packageMgr"
-            $skipped++
-        }
-        
-        if (-not $trivyInstalled -and -not $DryRun) {
-            Write-Host "  Install manually:" -ForegroundColor Gray
-            Write-Host "    Windows: https://aquasecurity.github.io/trivy/latest/getting-started/installation/" -ForegroundColor Gray
-            Write-Host "    Download from releases and add to PATH" -ForegroundColor Gray
-            Write-Host "  Or install package manager (winget → choco → scoop):" -ForegroundColor Gray
-            Write-Host "    winget: winget install Aquasecurity.Trivy" -ForegroundColor Gray
-            Write-Host "    choco: choco install trivy" -ForegroundColor Gray
-            Write-Host "    scoop: scoop install trivy" -ForegroundColor Gray
-            $skipped++
-        }
+        Write-Host "  This tool must be installed manually:" -ForegroundColor Gray
+        Write-Host "" -ForegroundColor Gray
+        Write-Host "  Option 1 - Manual Binary Installation (Recommended):" -ForegroundColor Yellow
+        Write-Host "    1. Download: https://github.com/aquasecurity/trivy/releases" -ForegroundColor Gray
+        Write-Host "    2. Extract trivy_*_Windows-64bit.zip" -ForegroundColor Gray
+        Write-Host "    3. Move trivy.exe to a directory in your PATH" -ForegroundColor Gray
+        Write-Host "       (e.g., C:\Program Files\Trivy\)" -ForegroundColor Gray
+        Write-Host "" -ForegroundColor Gray
+        Write-Host "  Option 2 - Package Manager:" -ForegroundColor Yellow
+        Write-Host "    winget: winget install Aquasecurity.Trivy" -ForegroundColor Gray
+        Write-Host "    choco:  choco install trivy" -ForegroundColor Gray
+        Write-Host "" -ForegroundColor Gray
+        Write-Host "  Option 3 - Docker (No installation needed):" -ForegroundColor Yellow
+        Write-Host "    docker run --rm -v `${PWD}:/scan aquasec/trivy:latest fs /scan" -ForegroundColor Gray
+        Write-Host "" -ForegroundColor Gray
+        $skipped++
     }
 } else {
     Write-Info "Skipping optional tools (TruffleHog, Trivy)"
@@ -402,11 +314,27 @@ if ($DryRun) {
 
 if ($failed -eq 0) {
     Write-Host "`n✅ Setup completed successfully!" -ForegroundColor Green
+    
+    # Check if any tools were newly installed
+    if ($installed -gt 0) {
+        Write-Host "`n⚠️  IMPORTANT: Restart PowerShell to refresh PATH" -ForegroundColor Yellow
+        Write-Host "   Some tools were newly installed and may not be in your PATH yet." -ForegroundColor Yellow
+        Write-Host "   Close this terminal and open a new one before running validation." -ForegroundColor Yellow
+    }
+    
     Write-Host "`nNext steps:" -ForegroundColor Cyan
-    Write-Host "  1. Run 'pnpm dev' to start the development server" -ForegroundColor Gray
-    Write-Host "  2. Run 'pnpm test' to run tests" -ForegroundColor Gray
-    Write-Host "  3. Run '.\.github\scripts\validate-local.ps1' to test validation" -ForegroundColor Gray
-    Write-Host "  4. Install git pre-push hook (see .github/hooks/README.md)" -ForegroundColor Gray
+    if ($installed -gt 0) {
+        Write-Host "  1. ⚠️  RESTART THIS TERMINAL (close and reopen PowerShell)" -ForegroundColor Yellow
+        Write-Host "  2. Run 'pnpm dev' to start the development server" -ForegroundColor Gray
+        Write-Host "  3. Run 'pnpm test' to run tests" -ForegroundColor Gray
+        Write-Host "  4. Run '.\.github\scripts\validate-local.ps1' to test validation" -ForegroundColor Gray
+        Write-Host "  5. Install git pre-push hook (see .github/hooks/README.md)" -ForegroundColor Gray
+    } else {
+        Write-Host "  1. Run 'pnpm dev' to start the development server" -ForegroundColor Gray
+        Write-Host "  2. Run 'pnpm test' to run tests" -ForegroundColor Gray
+        Write-Host "  3. Run '.\.github\scripts\validate-local.ps1' to test validation" -ForegroundColor Gray
+        Write-Host "  4. Install git pre-push hook (see .github/hooks/README.md)" -ForegroundColor Gray
+    }
     exit 0
 } else {
     Write-Host "`n⚠️  Setup completed with $failed error(s)" -ForegroundColor Yellow

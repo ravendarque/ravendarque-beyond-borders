@@ -4,20 +4,18 @@ This directory contains scripts to automate the setup of your development enviro
 
 ## Package Manager Strategy
 
-The setup scripts use a **consistent, prioritized order** for package managers:
+The setup scripts use **npm exclusively** for all development tools to ensure consistency and reliability:
 
-### Windows
-1. **npm/pip** - Language-specific packages (Node.js, Python)
-2. **winget** - Modern Windows package manager (preferred for system tools)
-3. **choco** - Chocolatey (widely available, mature)
-4. **scoop** - Lightweight package manager (fallback)
+### All Platforms
+- **npm** - All development tools (pnpm, markdownlint-cli2, yaml-lint)
+- **pnpm** - Project dependencies
+- **Manual installation** - Optional security tools (TruffleHog, Trivy) with clear instructions
 
-### Linux/macOS
-1. **npm/pip** - Language-specific packages
-2. **brew** - Homebrew (macOS standard)
-3. **apt** - Ubuntu/Debian package manager
-4. **dnf/yum** - Fedora/RHEL package manager
-5. **Manual** - Direct downloads with clear instructions
+This approach ensures:
+- ✅ Consistent installation across all platforms
+- ✅ No dependency on Python or other runtimes
+- ✅ Reliable PATH detection after installation
+- ✅ Simple troubleshooting (all tools in npm global directory)
 
 ## Quick Start
 
@@ -33,6 +31,8 @@ The setup scripts use a **consistent, prioritized order** for package managers:
 # Install only essential tools (skip optional security tools)
 .\.github\scripts\setup-dev-env.ps1 -SkipOptional
 ```
+
+**⚠️ IMPORTANT:** After running the setup script, **restart your PowerShell terminal** to refresh the PATH environment variable. Newly installed tools won't be detected until you open a new terminal window.
 
 ### Linux/macOS (Bash)
 
@@ -61,8 +61,7 @@ The setup scripts install all tools needed for building, testing, and validating
 | **Project dependencies** | React, Vite, etc. | `pnpm install` |
 | **Playwright browsers** | E2E testing | `pnpm exec playwright install --with-deps` |
 | **markdownlint-cli2** | Markdown linting | `npm install -g markdownlint-cli2` |
-| **Python 3** | Required for yamllint | Checked (must be pre-installed) |
-| **yamllint** | YAML linting | `pip install yamllint` |
+| **yaml-lint** | YAML linting | `npm install -g yaml-lint` |
 
 ### Optional Tools (Skipped with `--skip-optional`)
 
@@ -77,7 +76,6 @@ Before running the setup scripts, you must have:
 
 1. **Git** - [Download](https://git-scm.com/downloads)
 2. **Node.js 18.x or 20.x** - [Download](https://nodejs.org/)
-3. **Python 3** - [Download](https://www.python.org/downloads/)
 
 The scripts will check for these and provide installation instructions if missing.
 
@@ -160,9 +158,36 @@ If you have a Windows package manager, some tools can be installed automatically
 
 ## Verification
 
-After setup completes, verify your environment:
+After setup completes, **restart your terminal** and verify your environment:
 
+**Windows (PowerShell):**
+```powershell
+# FIRST: Close and reopen PowerShell to refresh PATH
+
+# Check Node.js
+node --version  # Should be v18.x or v20.x
+
+# Check pnpm
+pnpm --version
+
+# Check project dependencies
+pnpm list
+
+# Run tests
+pnpm test
+
+# Start development server
+pnpm dev
+
+# Run validation (this will auto-refresh PATH internally)
+.\.github\scripts\validate-local.ps1
+```
+
+**Linux/macOS (Bash):**
 ```bash
+# Reload shell configuration
+source ~/.bashrc  # or ~/.zshrc for zsh
+
 # Check Node.js
 node --version  # Should be v18.x or v20.x
 
@@ -179,10 +204,21 @@ pnpm test
 pnpm dev
 
 # Run validation
-bash .github/scripts/validate-local.sh  # or .ps1 on Windows
+bash .github/scripts/validate-local.sh
 ```
 
 ## Troubleshooting
+
+### Tools Not Found After Installation (Windows)
+
+If the validation script reports tools as "not installed" even after running setup:
+
+1. **Restart PowerShell** - This is the most common issue. Close and reopen your terminal.
+2. **Check installation** - Run `Get-Command <toolname>` to verify
+3. **Manual PATH check** - Tools may be in non-standard locations
+4. **Re-run setup** - Try running the setup script again
+
+The validation script now automatically refreshes PATH, but some tools may require a full terminal restart.
 
 ### "Permission Denied" Errors (Linux/macOS)
 
