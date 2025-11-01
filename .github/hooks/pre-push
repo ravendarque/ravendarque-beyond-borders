@@ -1,0 +1,14 @@
+#!/bin/bash
+# Git pre-push hook
+# Runs validation checks before allowing push
+
+# Detect OS and run appropriate script
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    # Windows - use PowerShell
+    pwsh.exe -ExecutionPolicy Bypass -File .github/scripts/validate-local.ps1
+else
+    # Unix-like - use bash
+    bash .github/scripts/validate-local.sh
+fi
+
+exit $?
