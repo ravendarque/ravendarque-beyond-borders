@@ -8,28 +8,123 @@ on:
       - "fix/**"
       - "refactor/**"
       - "hotfix/**"
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/**'
-      - '.local/**'
-      - 'LICENSE'
-      - '.gitignore'
   pull_request:
     branches: [ main ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/**'
-      - '.local/**'
-      - 'LICENSE'
-      - '.gitignore'
 
 permissions:
   contents: read
 
 jobs:
+  # Detect which files changed to determine if build/test is needed
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      production-code: ${{ steps.filter.outputs.production-code }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Check file changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            production-code:
+              - 'src/**'
+              - 'public/**'
+              - 'index.html'
+              - 'vite.config.ts'
+              - 'tsconfig.json'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'playwright.config.ts'
+              - 'scripts/**'
+              - '.github/scripts/**'
+
+  # Lightweight validation that always runs (prevents PR blocking)
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better secret scanning
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+          
+      - name: Security audit
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          
+      - name: Markdown lint
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: |
+            **/*.md
+            !node_modules
+            !.local
+          
+      - name: YAML lint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: .github/workflows/
+          config_data: |
+            extends: default
+            rules:
+              line-length: disable
+              comments: disable
+              
+      - name: Check for TODO/FIXME comments in production code
+        run: |
+          if grep -r "TODO\|FIXME" src/ public/ --exclude-dir=node_modules; then
+            echo "⚠️ Warning: Found TODO/FIXME comments in production code"
+            echo "Consider creating issues for these items"
+          else
+            echo "✅ No TODO/FIXME comments in production code"
+          fi
+        continue-on-error: true
+        
+      - name: Validate file permissions
+        run: |
+          # Check for executable files that shouldn't be
+          if find src/ public/ -type f -executable -not -path "*/node_modules/*" | grep -v ".sh$"; then
+            echo "❌ Found executable files in src/public that shouldn't be"
+            exit 1
+          fi
+          echo "✅ File permissions OK"
+          
+      - name: Check for large files
+        run: |
+          # Find files larger than 1MB (except node_modules)
+          large_files=$(find . -type f -size +1M -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.local/*")
+          if [ -n "$large_files" ]; then
+            echo "⚠️ Warning: Large files found:"
+            echo "$large_files"
+            du -h $large_files
+          else
+            echo "✅ No large files found"
+          fi
+        continue-on-error: true
+        
+      - name: Validation summary
+        if: always()
+        run: |
+          echo "✅ PR validation completed"
+          echo "This job ensures required status checks don't block PRs"
+
+  # Full build and test suite - only runs when production code changes
   build-and-test:
+    needs: check-changes
+    if: needs.check-changes.outputs.production-code == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
