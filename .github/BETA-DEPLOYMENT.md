@@ -1,18 +1,26 @@
-# Beta Deployment Process
+# Beta Deploym### Manual Workflow Dispatch (Optional)
+
+If you need to deploy a branch without opening a PR:
+
+1. Go to **Actions** → **Deploy to Beta** workflow
+2. Click **Run workflow**
+3. Select your branch (or leave empty for current branch)
+4. Click **Run workflow**
+5. Your branch will be deployed to betacess
 
 This document explains how to deploy feature branches to the beta environment for manual testing before merging to production. Beta deployments are version-based using semantic versioning from `package.json`.
 
 ## Quick Start
 
-### Option 1: Using PR Labels (Recommended)
+### Automatic Deployment (Default)
 
-1. Create your feature branch and open a PR
-2. Add the `deploy-beta` label to the PR
-3. GitHub Actions will automatically deploy your branch using the version from `package.json`
-4. A comment will appear on the PR with the deployment URL
+1. Create your feature branch and open a PR to `main`
+2. GitHub Actions will **automatically deploy** your branch to beta
+3. A comment will appear on the PR with the deployment URL
+4. Every push to the PR updates the beta deployment
 5. Beta deployments persist and must be manually cleaned up when no longer needed
 
-### Option 2: Manual Workflow Dispatch
+### Manual Workflow Dispatch
 
 1. Go to **Actions** → **Deploy to Beta** workflow
 2. Click **Run workflow**
