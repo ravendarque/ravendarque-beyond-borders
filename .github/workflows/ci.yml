@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Check file changes
         uses: dorny/paths-filter@v3
         id: filter
@@ -49,7 +49,7 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           extra_args: --only-verified
-          
+
       - name: Security audit
         uses: aquasecurity/trivy-action@master
         with:
@@ -59,7 +59,7 @@ jobs:
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
-          
+
       - name: Get changed markdown files
         id: changed-md
         uses: tj-actions/changed-files@v44
@@ -68,13 +68,13 @@ jobs:
             **/*.md
             !node_modules/**
             !.local/**
-      
+
       - name: Markdown lint
         if: steps.changed-md.outputs.any_changed == 'true'
         uses: DavidAnson/markdownlint-cli2-action@v16
         with:
           globs: ${{ steps.changed-md.outputs.all_changed_files }}
-          
+
       - name: YAML lint
         uses: ibiqlik/action-yamllint@v3
         with:
@@ -84,7 +84,7 @@ jobs:
             rules:
               line-length: disable
               comments: disable
-              
+
       - name: Check for TODO/FIXME comments in production code
         run: |
           if grep -r "TODO\|FIXME" src/ public/ --exclude-dir=node_modules; then
@@ -94,7 +94,7 @@ jobs:
             echo "✅ No TODO/FIXME comments in production code"
           fi
         continue-on-error: true
-        
+
       - name: Validate file permissions
         run: |
           # Check for executable files that shouldn't be
@@ -103,7 +103,7 @@ jobs:
             exit 1
           fi
           echo "✅ File permissions OK"
-          
+
       - name: Check for large files
         run: |
           # Find files larger than 1MB (except node_modules)
@@ -116,7 +116,7 @@ jobs:
             echo "✅ No large files found"
           fi
         continue-on-error: true
-        
+
       - name: Validation summary
         if: always()
         run: |
