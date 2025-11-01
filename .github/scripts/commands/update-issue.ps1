@@ -25,8 +25,8 @@ param(
 )
 
 # Import utilities
-. "$PSScriptRoot\lib\config.ps1"
-. "$PSScriptRoot\lib\github-utils.ps1"
+. "$PSScriptRoot\..\lib\config.ps1"
+. "$PSScriptRoot\..\lib\github-utils.ps1"
 
 # Verify at least one field to update
 if (-not $Status -and -not $Priority -and -not $Size) {

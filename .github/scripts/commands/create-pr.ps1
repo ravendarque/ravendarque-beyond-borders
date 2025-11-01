@@ -47,8 +47,8 @@ param(
 )
 
 # Import utilities
-. "$PSScriptRoot\lib\config.ps1"
-. "$PSScriptRoot\lib\github-utils.ps1"
+. "$PSScriptRoot\..\lib\config.ps1"
+. "$PSScriptRoot\..\lib\github-utils.ps1"
 
 # Verify gh CLI
 if (-not (Test-GitHubCLI)) {
