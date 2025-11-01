@@ -63,7 +63,7 @@ jobs:
 
       - name: Get changed markdown files
         id: changed-md
-        uses: tj-actions/changed-files@v44
+        uses: tj-actions/changed-files@v46
         with:
           files: |
             **/*.md
@@ -78,7 +78,7 @@ jobs:
 
       - name: Get changed YAML files
         id: changed-yaml
-        uses: tj-actions/changed-files@v44
+        uses: tj-actions/changed-files@v46
         with:
           files: |
             .github/workflows/**/*.yml
