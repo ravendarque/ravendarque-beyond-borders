@@ -249,7 +249,7 @@ jobs:
           mkdir -p gh-pages-repo/beta/${{ steps.version.outputs.semver }}
           rm -rf gh-pages-repo/beta/${{ steps.version.outputs.semver }}/*
           cp -r dist/* gh-pages-repo/beta/${{ steps.version.outputs.semver }}/
-          
+
           cd gh-pages-repo/beta
           cat > index.html << 'EOF'
           <!DOCTYPE html>
@@ -271,14 +271,14 @@ jobs:
             <p>Active beta versions available for testing:</p>
             <ul>
           EOF
-          
+
           for dir in */; do
             if [ -d "$dir" ]; then
               version=${dir%/}
               echo "<li><a href='$version/' class='version'>v$version</a></li>" >> index.html
             fi
           done
-          
+
           cat >> index.html << 'EOF'
             </ul>
           </body>
