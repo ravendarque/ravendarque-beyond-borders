@@ -33,6 +33,7 @@ jobs:
               - 'playwright.config.ts'
               - 'scripts/**'
               - '.github/scripts/**'
+              - '.github/workflows/**'
 
   # Lightweight validation - runs when production code changes
   validate:
