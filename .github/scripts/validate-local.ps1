@@ -185,12 +185,12 @@ $yamllintPaths = @(
     "$env:AppData\npm",
     "$env:ProgramFiles\nodejs"
 )
-if (Test-CommandExists "yamllint" -CommonPaths $yamllintPaths) {
+if (Test-CommandExists "yaml-lint" -CommonPaths $yamllintPaths) {
     $exitCode = 0
     $yamlFiles = Get-ChildItem -Path .github\workflows\ -Filter *.yml -File -ErrorAction SilentlyContinue
     if ($yamlFiles) {
         foreach ($file in $yamlFiles) {
-            yamllint $file.FullName 2>&1 | Out-Null
+            yaml-lint $file.FullName 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) {
                 $exitCode = 1
                 break
