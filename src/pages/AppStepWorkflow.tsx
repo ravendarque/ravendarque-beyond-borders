@@ -276,8 +276,8 @@ export function AppStepWorkflow() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          py: { xs: 1.5, sm: 3 },
-          px: { xs: 1, sm: 2 },
+          py: { xs: 2, sm: 3 },
+          px: { xs: 2, sm: 3 },
         }}
       >
         {/* Dark Mode Toggle - Fixed Position */}
@@ -349,14 +349,16 @@ export function AppStepWorkflow() {
               component="label"
               htmlFor="step1-file-upload"
               sx={{
-                width: 300,
-                height: 300,
+                width: { xs: '100%', sm: 300 },
+                maxWidth: 300,
+                height: { xs: '100%', sm: 300 },
+                aspectRatio: '1',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mx: 'auto',
-                mb: { xs: 1.5, sm: 3 },
+                mb: { xs: 2, sm: 3 },
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 ...(imageUrl ? {
@@ -435,7 +437,7 @@ export function AppStepWorkflow() {
               
               <Box sx={{ mb: 3 }} />
               
-              <Box sx={{ width: 300, mx: 'auto' }}>
+              <Box sx={{ width: '100%', maxWidth: 300, mx: 'auto' }}>
                 <NavigationButtons
                   currentStep={currentStep}
                   canGoBack={false}
@@ -449,9 +451,9 @@ export function AppStepWorkflow() {
 
           {currentStep === 2 && (
             <>
-              <Stack spacing={3} sx={{ mb: { xs: 1.5, sm: 3 } }}>
+              <Stack spacing={3} sx={{ mb: { xs: 2, sm: 3 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Box sx={{ width: 288 }}>
+                  <Box sx={{ width: '100%', maxWidth: 320 }}>
                     <FlagDropdown
                       flags={flags}
                       selectedFlagId={flagId}
@@ -470,7 +472,7 @@ export function AppStepWorkflow() {
                 </Box>
               </Stack>
 
-              <Box sx={{ width: 300, mx: 'auto' }}>
+              <Box sx={{ width: '100%', maxWidth: 300, mx: 'auto' }}>
                 <NavigationButtons
                   currentStep={currentStep}
                   canGoBack={true}
@@ -487,7 +489,7 @@ export function AppStepWorkflow() {
 
           {currentStep === 3 && (
             <>
-              <Stack spacing={3} sx={{ mb: { xs: 1.5, sm: 3 } }}>
+              <Stack spacing={3} sx={{ mb: { xs: 2, sm: 3 } }}>
                 {/* Preview Section */}
                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                   <AvatarPreview
@@ -503,15 +505,17 @@ export function AppStepWorkflow() {
 
                 {/* Customization Controls */}
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <PresentationControls
-                    value={presentation}
-                    onChange={setPresentation}
-                  />
+                  <Box sx={{ width: '100%', maxWidth: 400 }}>
+                    <PresentationControls
+                      value={presentation}
+                      onChange={setPresentation}
+                    />
+                  </Box>
                 </Box>
 
                 {/* Adjustment Controls */}
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Box sx={{ maxWidth: 400, width: '100%', px: 2 }}>
+                  <Box sx={{ maxWidth: 400, width: '100%' }}>
                     <Stack spacing={3}>
                       <SliderControl
                         label="Border thickness"
@@ -565,7 +569,7 @@ export function AppStepWorkflow() {
 
               <Box sx={{ mb: 3 }} />
 
-              <Box sx={{ width: 300, mx: 'auto' }}>
+              <Box sx={{ width: '100%', maxWidth: 300, mx: 'auto' }}>
                 <NavigationButtons
                   currentStep={currentStep}
                   canGoBack={true}
@@ -584,7 +588,10 @@ export function AppStepWorkflow() {
                   variant="text"
                   onClick={handleCopy}
                   disabled={!overlayUrl || isCopying}
-                  sx={{ color: 'text.secondary' }}
+                  sx={{ 
+                    color: 'text.secondary',
+                    minHeight: 44, // Accessibility: adequate touch target
+                  }}
                 >
                   {isCopying ? 'Copying...' : 'Copy to Clipboard'}
                 </Button>

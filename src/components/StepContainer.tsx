@@ -57,7 +57,7 @@ export const StepContainer: React.FC<StepContainerProps> = ({
         width: '100%',
         maxWidth: maxWidthMap[maxWidth],
         mx: 'auto',
-        px: { xs: 1, sm: 3 },
+        px: { xs: 2, sm: 3 },
         py: { xs: 2, sm: 4 },
       }}
     >
