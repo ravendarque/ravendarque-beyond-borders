@@ -52,6 +52,26 @@ function Test-GitHubCLI {
     return $true
 }
 
+function Get-StandardLabels {
+    <#
+    .SYNOPSIS
+    Returns the standard labels defined for this project
+    #>
+    
+    return @(
+        # Type
+        "bug", "enhancement", "refactor", "hotfix", "chore",
+        # Area
+        "ui", "rendering", "flags", "accessibility", "mobile", "scripts", "testing", "ci-cd", "documentation",
+        # Priority  
+        "priority: critical", "priority: high", "priority: normal",
+        # Size
+        "size: xs", "size: s", "size: m", "size: l", "size: xl",
+        # Status
+        "good first issue", "help wanted", "blocked", "wontfix", "duplicate"
+    )
+}
+
 function Get-RepoLabels {
     <#
     .SYNOPSIS
@@ -67,6 +87,50 @@ function Get-RepoLabels {
     }
     
     return $labels
+}
+
+function Test-ValidLabels {
+    <#
+    .SYNOPSIS
+    Validates labels against standard project labels
+    
+    .PARAMETER Labels
+    Array of label names to validate
+    
+    .PARAMETER Strict
+    If true, only allow standard labels. If false, allow any existing repo label.
+    #>
+    
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]]$Labels,
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$Strict
+    )
+    
+    $standardLabels = Get-StandardLabels
+    $invalidLabels = @()
+    
+    foreach ($label in $Labels) {
+        if ($label -notin $standardLabels) {
+            $invalidLabels += $label
+        }
+    }
+    
+    if ($invalidLabels.Count -gt 0) {
+        Write-StatusMessage "Invalid labels found: $($invalidLabels -join ', ')" -Type Warning
+        Write-Host "`nStandard labels by category:" -ForegroundColor Yellow
+        Write-Host "  Type: bug, enhancement, refactor, hotfix, chore" -ForegroundColor Gray
+        Write-Host "  Area: ui, rendering, flags, accessibility, mobile, scripts, testing, ci-cd, documentation" -ForegroundColor Gray
+        Write-Host "  Priority: priority: critical, priority: high, priority: normal" -ForegroundColor Gray
+        Write-Host "  Size: size: xs, size: s, size: m, size: l, size: xl" -ForegroundColor Gray
+        Write-Host "  Status: good first issue, help wanted, blocked, wontfix, duplicate" -ForegroundColor Gray
+        Write-Host "`nRun .github\scripts\sync-labels.ps1 to create missing labels" -ForegroundColor Yellow
+        return $false
+    }
+    
+    return $true
 }
 
 function New-GitHubIssue {
@@ -105,13 +169,8 @@ function New-GitHubIssue {
     
     # Validate labels if provided
     if ($Labels.Count -gt 0) {
-        $availableLabels = Get-RepoLabels
-        foreach ($label in $Labels) {
-            if ($label -notin $availableLabels) {
-                Write-StatusMessage "Label '$label' does not exist in repository" -Type Warning
-                Write-StatusMessage "Available labels: $($availableLabels -join ', ')" -Type Info
-                return $null
-            }
+        if (-not (Test-ValidLabels -Labels $Labels)) {
+            return $null
         }
     }
     
