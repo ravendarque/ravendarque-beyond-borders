@@ -72,7 +72,7 @@ function Get-RepoLabels {
 function New-GitHubIssue {
     <#
     .SYNOPSIS
-    Creates a new GitHub issue
+    Creates a new GitHub issue with retry logic for transient failures
     
     .PARAMETER Title
     Issue title
@@ -82,6 +82,9 @@ function New-GitHubIssue {
     
     .PARAMETER Labels
     Array of label names (validated against repo labels)
+    
+    .PARAMETER MaxRetries
+    Maximum number of retry attempts for transient failures (default: 3)
     #>
     
     param(
@@ -92,7 +95,10 @@ function New-GitHubIssue {
         [string]$Body,
         
         [Parameter(Mandatory=$false)]
-        [string[]]$Labels = @()
+        [string[]]$Labels = @(),
+        
+        [Parameter(Mandatory=$false)]
+        [int]$MaxRetries = 3
     )
     
     $config = Get-ProjectConfig
@@ -109,23 +115,71 @@ function New-GitHubIssue {
         }
     }
     
-    # Build command
-    $cmd = "gh issue create --title `"$Title`" --body `"$Body`" --repo $($config.Repo)"
-    
-    if ($Labels.Count -gt 0) {
-        $labelArgs = $Labels -join ","
-        $cmd += " --label `"$labelArgs`""
-    }
-    
-    # Execute
-    $issueUrl = Invoke-Expression $cmd
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-StatusMessage "Failed to create issue" -Type Error
+    # Create temp file for body to avoid command-line escaping issues
+    $tempFile = [System.IO.Path]::GetTempFileName()
+    try {
+        # Write body to temp file with UTF-8 encoding (no BOM)
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($tempFile, $Body, $utf8NoBom)
+        
+        # Build gh command args
+        $ghArgs = @(
+            "issue", "create",
+            "--title", $Title,
+            "--body-file", $tempFile,
+            "--repo", $config.Repo
+        )
+        
+        if ($Labels.Count -gt 0) {
+            foreach ($label in $Labels) {
+                $ghArgs += "--label"
+                $ghArgs += $label
+            }
+        }
+        
+        # Execute with retry logic for transient failures
+        $attempt = 0
+        $issueUrl = $null
+        
+        while ($attempt -lt $MaxRetries) {
+            $attempt++
+            
+            if ($attempt -gt 1) {
+                Write-StatusMessage "Retry attempt $attempt of $MaxRetries..." -Type Warning
+                Start-Sleep -Seconds 2
+            }
+            
+            $issueUrl = & gh @ghArgs 2>&1
+            
+            if ($LASTEXITCODE -eq 0) {
+                return $issueUrl
+            }
+            
+            # Check if error is transient (network/API issues)
+            $errorText = $issueUrl -join " "
+            $isTransient = $errorText -match "(EOF|timeout|connection|network|502|503|504)"
+            
+            if (-not $isTransient) {
+                # Not a transient error, fail immediately
+                Write-StatusMessage "Failed to create issue" -Type Error
+                Write-Host "Error: $issueUrl" -ForegroundColor Red
+                return $null
+            }
+            
+            if ($attempt -eq $MaxRetries) {
+                Write-StatusMessage "Failed after $MaxRetries attempts" -Type Error
+                Write-Host "Error: $issueUrl" -ForegroundColor Red
+                return $null
+            }
+        }
+        
         return $null
+    } finally {
+        # Clean up temp file
+        if (Test-Path $tempFile) {
+            Remove-Item $tempFile -Force
+        }
     }
-    
-    return $issueUrl
 }
 
 function Add-IssueToProject {
