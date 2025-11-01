@@ -272,37 +272,90 @@ fi
 
 # Optional tools (security scanning)
 if [ "$SKIP_OPTIONAL" = false ]; then
-    # 8. Check TruffleHog
+    # 8. Check/Install TruffleHog
     print_step "Checking TruffleHog (optional)..."
     if command_exists trufflehog; then
         print_success "TruffleHog already installed"
         ((already_installed++))
     else
         print_warning "TruffleHog not found (optional - for secret scanning)"
-        echo -e "${GRAY}  Install manually:${NC}"
-        if [ "$OS" = "mac" ]; then
-            echo -e "${GRAY}    brew install trufflehog${NC}"
+        
+        truffle_installed=false
+        if [ "$DRY_RUN" = false ]; then
+            if [ "$OS" = "mac" ] && [ "$PKG_MGR" = "brew" ]; then
+                print_info "Attempting to install TruffleHog via Homebrew..."
+                if brew install trufflehog; then
+                    print_success "TruffleHog installed via Homebrew"
+                    ((installed++))
+                    truffle_installed=true
+                else
+                    print_warning "Homebrew installation failed"
+                fi
+            fi
         else
-            echo -e "${GRAY}    Download from: https://github.com/trufflesecurity/trufflehog/releases${NC}"
-            echo -e "${GRAY}    Or use Docker: docker pull trufflesecurity/trufflehog:latest${NC}"
+            print_info "Would attempt to install TruffleHog"
+            ((skipped++))
         fi
-        ((skipped++))
+        
+        if [ "$truffle_installed" = false ] && [ "$DRY_RUN" = false ]; then
+            echo -e "${GRAY}  Install manually:${NC}"
+            if [ "$OS" = "mac" ]; then
+                echo -e "${GRAY}    brew install trufflehog${NC}"
+            else
+                echo -e "${GRAY}    Download from: https://github.com/trufflesecurity/trufflehog/releases${NC}"
+                echo -e "${GRAY}    Or use Docker: docker pull trufflesecurity/trufflehog:latest${NC}"
+            fi
+            ((skipped++))
+        fi
     fi
 
-    # 9. Check Trivy
+    # 9. Check/Install Trivy
     print_step "Checking Trivy (optional)..."
     if command_exists trivy; then
         print_success "Trivy already installed"
         ((already_installed++))
     else
         print_warning "Trivy not found (optional - for security scanning)"
-        echo -e "${GRAY}  Install manually:${NC}"
-        if [ "$OS" = "mac" ]; then
-            echo -e "${GRAY}    brew install trivy${NC}"
+        
+        trivy_installed=false
+        if [ "$DRY_RUN" = false ]; then
+            if [ "$OS" = "mac" ] && [ "$PKG_MGR" = "brew" ]; then
+                print_info "Attempting to install Trivy via Homebrew..."
+                if brew install trivy; then
+                    print_success "Trivy installed via Homebrew"
+                    ((installed++))
+                    trivy_installed=true
+                else
+                    print_warning "Homebrew installation failed"
+                fi
+            elif [ "$PKG_MGR" = "apt" ]; then
+                print_info "Attempting to install Trivy via apt..."
+                if sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg lsb-release; then
+                    wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+                    echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+                    if sudo apt-get update && sudo apt-get install -y trivy; then
+                        print_success "Trivy installed via apt"
+                        ((installed++))
+                        trivy_installed=true
+                    else
+                        print_warning "apt installation failed"
+                    fi
+                fi
+            fi
         else
-            echo -e "${GRAY}    See: https://aquasecurity.github.io/trivy/latest/getting-started/installation/${NC}"
+            print_info "Would attempt to install Trivy"
+            ((skipped++))
         fi
-        ((skipped++))
+        
+        if [ "$trivy_installed" = false ] && [ "$DRY_RUN" = false ]; then
+            echo -e "${GRAY}  Install manually:${NC}"
+            if [ "$OS" = "mac" ]; then
+                echo -e "${GRAY}    brew install trivy${NC}"
+            else
+                echo -e "${GRAY}    See: https://aquasecurity.github.io/trivy/latest/getting-started/installation/${NC}"
+            fi
+            ((skipped++))
+        fi
     fi
 else
     print_info "Skipping optional tools (TruffleHog, Trivy)"
