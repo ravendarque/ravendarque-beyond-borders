@@ -60,13 +60,20 @@ jobs:
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
           
+      - name: Get changed markdown files
+        id: changed-md
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            **/*.md
+            !node_modules/**
+            !.local/**
+      
       - name: Markdown lint
+        if: steps.changed-md.outputs.any_changed == 'true'
         uses: DavidAnson/markdownlint-cli2-action@v16
         with:
-          globs: |
-            **/*.md
-            !node_modules
-            !.local
+          globs: ${{ steps.changed-md.outputs.all_changed_files }}
           
       - name: YAML lint
         uses: ibiqlik/action-yamllint@v3
