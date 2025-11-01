@@ -8,7 +8,9 @@ If you need to deploy a branch without opening a PR:
 4. Click **Run workflow**
 5. Your branch will be deployed to betacess
 
-This document explains how to deploy feature branches to the beta environment for manual testing before merging to production. Beta deployments are version-based using semantic versioning from `package.json`.
+This document explains how to deploy feature branches to the beta environment
+for manual testing before merging to production. Beta deployments are
+version-based using semantic versioning from `package.json`.
 
 ## Quick Start
 
@@ -48,6 +50,7 @@ Beta deployments use **GitVersion-style automatic semantic versioning**:
   - `main` → no suffix (stable)
 
 **Example**: If you have tag `v0.2` and are 3 commits ahead on `feature/auth`:
+
 - Calculated version: `0.2.3-alpha.3`
 - Beta URL: `/beta/0.2.3-alpha.3/`
 
@@ -73,7 +76,9 @@ Patch numbers increment automatically with each commit
 ## Use Cases
 
 ### 1. Manual Testing Before Merge
+
 Deploy your feature branch to beta to test in a production-like environment:
+
 ```bash
 # Update version in package.json, then create PR
 gh pr create --title "New feature" --body "Description"
@@ -81,21 +86,27 @@ gh pr edit <PR_NUMBER> --add-label deploy-beta
 ```
 
 ### 2. Stakeholder Review
+
 Share the versioned beta URL with stakeholders for feedback:
+
 - Non-technical reviewers can test the feature
 - Design review in production-like environment
 - Cross-browser/device testing without local setup
 - Stable URL that persists across iterations
 
 ### 3. Complex Feature Validation
+
 Test features that require:
+
 - Real deployment environment
 - Service worker behavior
 - PWA installation
 - Production build optimizations
 
 ### 4. Multiple Version Testing
+
 Test multiple versions simultaneously:
+
 - Deploy `0.2.0-alpha.1` for early testing
 - Deploy `0.2.0-beta.1` for feature testing
 - Compare side-by-side before promoting to production
@@ -105,10 +116,12 @@ Test multiple versions simultaneously:
 ### Deploy to Beta Workflow
 
 **Triggers:**
+
 - Manual: Workflow dispatch from Actions tab
 - Automatic: When `deploy-beta` label is added to a PR
 
 **Process:**
+
 1. Checks out the specified branch
 2. Extracts version from `package.json`
 3. Installs dependencies
@@ -122,14 +135,18 @@ Test multiple versions simultaneously:
 ### Cleanup Beta Workflow
 
 **Triggers:**
+
 - Manual: Workflow dispatch from Actions tab (requires version input)
 
 **Process:**
+
 1. Removes the specified version directory from beta
 2. Updates beta index page
 3. Provides cleanup summary
 
-**Note:** Beta deployments are NOT automatically cleaned up when PRs close. This allows versions to persist for ongoing testing. Clean up manually when no longer needed.
+**Note:** Beta deployments are NOT automatically cleaned up when PRs close.
+This allows versions to persist for ongoing testing. Clean up manually when
+no longer needed.
 
 ## Configuration
 
@@ -143,12 +160,14 @@ Test multiple versions simultaneously:
 
 ### Vite Configuration
 
-The build uses the `BASE_URL` environment variable to set the base path with version. The configuration in `vite.config.ts`:
+The build uses the `BASE_URL` environment variable to set the base path with
+version. The configuration in `vite.config.ts`:
 
 ```typescript
 export default defineConfig({
-  base: process.env.BASE_URL || 
-        (process.env.NODE_ENV === 'production' ? '/ravendarque-beyond-borders/' : '/'),
+  base: process.env.BASE_URL ||
+        (process.env.NODE_ENV === 'production' ?
+          '/ravendarque-beyond-borders/' : '/'),
   // ... rest of config
 });
 ```
@@ -180,6 +199,7 @@ The workflow sets `BASE_URL=/ravendarque-beyond-borders/beta/<semver>/` during b
 ### Deployment Failed
 
 **Check:**
+
 1. Build logs in Actions tab
 2. Version in `package.json` is valid semver
 3. Vite configuration (base path)
@@ -189,6 +209,7 @@ The workflow sets `BASE_URL=/ravendarque-beyond-borders/beta/<semver>/` during b
 ### Beta URL Returns 404
 
 **Possible causes:**
+
 1. Deployment still in progress (check Actions)
 2. GitHub Pages needs 1-2 minutes to update
 3. Version was not deployed (check `beta/` index)
@@ -197,12 +218,14 @@ The workflow sets `BASE_URL=/ravendarque-beyond-borders/beta/<semver>/` during b
 ### Version Collision
 
 If deploying overwrites an existing version:
+
 - Update version in `package.json` to a new value
 - Use prerelease suffixes (`-alpha.1`, `-beta.2`, etc.)
 
 ### Deployment Not Triggering
 
 **Check:**
+
 1. `deploy-beta` label is correctly spelled
 2. Workflow permissions are set correctly
 3. GitHub Actions are enabled for the repository
@@ -222,6 +245,7 @@ To remove a beta deployment:
 ### No Automatic Cleanup
 
 Beta deployments persist until manually removed. This is by design:
+
 - Allows long-term testing of specific versions
 - Stakeholders can revisit URLs
 - Multiple versions can coexist
@@ -234,6 +258,7 @@ Beta deployments persist until manually removed. This is by design:
 - **Storage**: GitHub Pages has 1GB soft limit
 
 Beta deployments consume:
+
 - ~50-100MB per version (depends on build size)
 - ~2-5 minutes of Actions time per deployment
 - Multiple versions accumulate (clean up old ones)
@@ -241,29 +266,34 @@ Beta deployments consume:
 ## Examples
 
 ### Deploy Current Branch to Beta
+
 ```bash
 # From any branch (uses version from package.json)
 gh workflow run deploy-beta.yml
 ```
 
 ### Deploy Specific Branch to Beta
+
 ```bash
 gh workflow run deploy-beta.yml -f branch=feature/new-feature
 ```
 
 ### Deploy PR to Beta with Label
+
 ```bash
 # First update version in package.json, commit, then:
 gh pr edit 123 --add-label deploy-beta
 ```
 
 ### Remove Beta Deployment
+
 ```bash
 # Manually remove a specific version
 gh workflow run cleanup-beta.yml -f version=0.1.0
 ```
 
 ### View All Beta Deployments
+
 Visit: `https://ravendarque.github.io/ravendarque-beyond-borders/beta/`
 
 ## Related Documentation
