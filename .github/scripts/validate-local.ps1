@@ -159,66 +159,30 @@ Write-Host ""
 
 # 3. Markdown linting
 Write-Host "3️⃣  Linting Markdown files..." -ForegroundColor White
-# Check if markdownlint-cli2 is available (try direct command first, then npx)
-$mdLintAvailable = $false
-$mdLintCommand = "markdownlint-cli2"
-if (Get-Command markdownlint-cli2 -ErrorAction SilentlyContinue) {
-    $mdLintAvailable = $true
-} elseif (Get-Command npx -ErrorAction SilentlyContinue) {
-    # Check if markdownlint-cli2 is installed globally via npm
-    $npmList = npm list -g markdownlint-cli2 2>&1 | Out-String
-    if ($npmList -match "markdownlint-cli2@") {
-        $mdLintAvailable = $true
-        $mdLintCommand = "npx markdownlint-cli2"
-    }
-}
-
-if ($mdLintAvailable) {
+if (Get-Command npx -ErrorAction SilentlyContinue) {
     $mdFiles = Get-ChildItem -Recurse -Include *.md -Exclude node_modules,.local | Select-Object -ExpandProperty FullName
     if ($mdFiles) {
         $exitCode = 0
-        if ($mdLintCommand -eq "markdownlint-cli2") {
-            markdownlint-cli2 $mdFiles 2>&1 | Out-Null
-        } else {
-            npx markdownlint-cli2 $mdFiles 2>&1 | Out-Null
-        }
+        npx markdownlint-cli2 $mdFiles 2>&1 | Out-Null
         $exitCode = $LASTEXITCODE
         Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Markdown files are valid" } else { "Markdown linting failed" })
     } else {
         Print-Status $true "No markdown files to check"
     }
 } else {
-    Print-Warning "markdownlint-cli2 not installed - skipping markdown lint"
+    Print-Warning "npx not found - ensure Node.js is installed"
     Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
 }
 Write-Host ""
 
 # 4. YAML linting
 Write-Host "4️⃣  Linting YAML files..." -ForegroundColor White
-# Check if yaml-lint is available (try direct command first, then npx)
-$yamlLintAvailable = $false
-$yamlLintCommand = "yaml-lint"
-if (Get-Command yaml-lint -ErrorAction SilentlyContinue) {
-    $yamlLintAvailable = $true
-} elseif (Get-Command npx -ErrorAction SilentlyContinue) {
-    # Check if yaml-lint is installed globally via npm
-    $npmList = npm list -g yaml-lint 2>&1 | Out-String
-    if ($npmList -match "yaml-lint@") {
-        $yamlLintAvailable = $true
-        $yamlLintCommand = "npx yaml-lint"
-    }
-}
-
-if ($yamlLintAvailable) {
+if (Get-Command npx -ErrorAction SilentlyContinue) {
     $exitCode = 0
     $yamlFiles = Get-ChildItem -Path .github\workflows\ -Filter *.yml -File -ErrorAction SilentlyContinue
     if ($yamlFiles) {
         foreach ($file in $yamlFiles) {
-            if ($yamlLintCommand -eq "yaml-lint") {
-                yaml-lint $file.FullName 2>&1 | Out-Null
-            } else {
-                npx yaml-lint $file.FullName 2>&1 | Out-Null
-            }
+            npx yaml-lint $file.FullName 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) {
                 $exitCode = 1
                 break
@@ -227,7 +191,7 @@ if ($yamlLintAvailable) {
     }
     Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "YAML files are valid" } else { "YAML linting failed" })
 } else {
-    Print-Warning "yaml-lint not installed - skipping YAML lint"
+    Print-Warning "npx not found - ensure Node.js is installed"
     Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
 }
 Write-Host ""
