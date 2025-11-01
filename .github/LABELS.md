@@ -5,6 +5,7 @@ This file defines the standard labels for the Beyond Borders project.
 ## Label Categories
 
 ### Type (What kind of change)
+
 - `bug` - Something isn't working (existing)
 - `enhancement` - New feature or request (existing)
 - `refactor` - Code refactoring (no functional changes)
@@ -12,6 +13,7 @@ This file defines the standard labels for the Beyond Borders project.
 - `chore` - Maintenance tasks (dependencies, CI/CD, etc.)
 
 ### Area (Which part of the codebase)
+
 - `ui` - User interface and components
 - `rendering` - Canvas rendering and image processing
 - `flags` - Flag data and management
@@ -23,11 +25,13 @@ This file defines the standard labels for the Beyond Borders project.
 - `documentation` - Documentation improvements (existing)
 
 ### Priority (How urgent)
+
 - `priority: critical` - P0 - Security, breaking bugs
 - `priority: high` - P1 - Important features, UX issues
 - `priority: normal` - P2 - Nice-to-have features
 
 ### Size (Effort estimate)
+
 - `size: xs` - < 1 hour
 - `size: s` - 1-2 hours
 - `size: m` - 2-4 hours
@@ -35,6 +39,7 @@ This file defines the standard labels for the Beyond Borders project.
 - `size: xl` - 8+ hours
 
 ### Status (Special states)
+
 - `good first issue` - Good for newcomers (existing)
 - `help wanted` - Extra attention needed (existing)
 - `blocked` - Blocked by another issue
@@ -44,11 +49,13 @@ This file defines the standard labels for the Beyond Borders project.
 ## Usage Guidelines
 
 ### Always Use
+
 - One **type** label (bug, enhancement, refactor, hotfix, chore)
 - One **priority** label (critical, high, normal)
 - One **size** label (xs, s, m, l, xl)
 
 ### Use When Relevant
+
 - One or more **area** labels (ui, rendering, flags, etc.)
 - **Status** labels as needed (blocked, good first issue, etc.)
 
@@ -72,6 +79,7 @@ chore, testing, priority: normal, size: xl
 ```
 
 ## Labels to Remove (Not Project-Relevant)
+
 - `invalid` - Use comment to explain instead
 - `question` - Use discussions instead
 - `javascript` - Too specific, use `area` labels instead
