@@ -33,18 +33,26 @@ patterns.
 
 ### 1. Issue-First Development
 
-**ALWAYS create an issue on the GitHub Project board BEFORE starting any work.**
+**CRITICAL: When user mentions an existing issue number (e.g., "pick up issue 103", "work on #42"), NEVER create a new issue. Instead:**
+1. Fetch the existing issue details using `gh issue view <number>`
+2. Update its status to "InProgress" if starting work
+3. Use the github-helper.ps1 script for ALL GitHub operations
 
-Use the provided script to create tracked issues:
-
+**ALWAYS use the github-helper.ps1 script for GitHub operations:**
 ```powershell
-.\.github\scripts\create-tracked-issue.ps1 `
+# View an issue
+gh issue view <number>
+
+# Update issue status
+.\.github\scripts\github-helper.ps1 issue-update -Number <number> -Status InProgress
+
+# Create NEW issue (only when explicitly asked to create one)
+.\.github\scripts\github-helper.ps1 issue-create `
   -Title "Your task title" `
-  -Body "Detailed description with acceptance criteria" `
+  -BodyFile ".local/issue.md" `
   -Priority P0|P1|P2 `
   -Size XS|S|M|L|XL `
-  -Status Backlog|Ready|InProgress|InReview|Done `
-  -Labels @("label1", "label2")
+  -Status InProgress
 ```
 
 **Priority Levels:**

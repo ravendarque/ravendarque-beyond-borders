@@ -5,6 +5,10 @@
 .DESCRIPTION
     Runs the same validation checks that CI runs, catching issues before push.
     
+    This script automatically refreshes the environment PATH to detect newly
+    installed tools. If tools are still not found, try restarting PowerShell
+    or running the setup script: .\.github\scripts\setup-dev-env.ps1
+    
 .PARAMETER SkipBuild
     Skip build/test checks even if production code changed
 
@@ -43,37 +47,123 @@ function Print-Warning {
     $script:Warnings++
 }
 
+function Refresh-EnvironmentPath {
+    <#
+    .SYNOPSIS
+        Refreshes the PATH environment variable from registry
+    .DESCRIPTION
+        Updates the current session's PATH to include newly installed tools.
+        Combines User and Machine PATH variables from registry.
+    #>
+    $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    $env:Path = "$userPath;$machinePath"
+}
+
+function Test-CommandExists {
+    <#
+    .SYNOPSIS
+        Tests if a command exists, checking PATH and common installation locations
+    .PARAMETER Command
+        The command name to check
+    .PARAMETER CommonPaths
+        Optional array of common installation paths to check (supports wildcards)
+    #>
+    param(
+        [string]$Command,
+        [string[]]$CommonPaths = @()
+    )
+    
+    # First try Get-Command
+    if (Get-Command $Command -ErrorAction SilentlyContinue) {
+        return $true
+    }
+    
+    # Try common installation paths (expand wildcards)
+    foreach ($pathPattern in $CommonPaths) {
+        # Resolve wildcards in path
+        $resolvedPaths = @()
+        if ($pathPattern -match '\*') {
+            # Get parent directory and pattern
+            $parentDir = Split-Path $pathPattern -Parent
+            $pattern = Split-Path $pathPattern -Leaf
+            
+            if (Test-Path $parentDir) {
+                $resolvedPaths = Get-ChildItem -Path $parentDir -Directory -Filter $pattern -ErrorAction SilentlyContinue |
+                    Select-Object -ExpandProperty FullName
+            }
+        } else {
+            $resolvedPaths = @($pathPattern)
+        }
+        
+        # Check each resolved path
+        foreach ($path in $resolvedPaths) {
+            if (-not (Test-Path $path)) { continue }
+            
+            $fullPath = Join-Path $path "$Command.exe"
+            if (Test-Path $fullPath) {
+                # Add to PATH for this session
+                if ($env:Path -notlike "*$path*") {
+                    $env:Path = "$env:Path;$path"
+                }
+                return $true
+            }
+        }
+    }
+    
+    return $false
+}
+
+# Refresh PATH at start to pick up newly installed tools
+Refresh-EnvironmentPath
+
 # 1. Check for secrets
 Write-Host "1️⃣  Checking for secrets..." -ForegroundColor White
-if (Get-Command trufflehog -ErrorAction SilentlyContinue) {
-    $output = trufflehog git file://. --only-verified --fail 2>&1 | Out-String
-    if ($output -match "🐷🔑") {
+$trufflehogPaths = @(
+    "$env:LocalAppData\trufflehog",
+    "$env:LocalAppData\Microsoft\WinGet\Packages\trufflesecurity.trufflehog*\",
+    "$env:ProgramData\chocolatey\bin",
+    "$env:UserProfile\scoop\shims"
+)
+if (Test-CommandExists "trufflehog" -CommonPaths $trufflehogPaths) {
+    # Use filesystem scan which works better on Windows than git file:// protocol
+    $output = trufflehog filesystem . --only-verified --fail --json 2>&1 | Out-String
+    if ($LASTEXITCODE -ne 0 -and $output -match '"verified":true') {
         Print-Status $false "Secret scanning failed - verified secrets found!"
     } else {
         Print-Status $true "No verified secrets found"
     }
 } else {
     Print-Warning "trufflehog not installed - skipping secret scan"
-    Write-Host "  Install: https://github.com/trufflesecurity/trufflehog" -ForegroundColor Gray
+    Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
 }
 Write-Host ""
 
 # 2. Security audit with trivy
 Write-Host "2️⃣  Running security audit..." -ForegroundColor White
-if (Get-Command trivy -ErrorAction SilentlyContinue) {
+$trivyPaths = @(
+    "$env:LocalAppData\Microsoft\WinGet\Packages\Aquasecurity.Trivy*\",
+    "$env:ProgramData\chocolatey\bin",
+    "$env:UserProfile\scoop\shims"
+)
+if (Test-CommandExists "trivy" -CommonPaths $trivyPaths) {
     $exitCode = 0
     trivy fs . --severity CRITICAL,HIGH --exit-code 1 --quiet 2>&1 | Out-Null
     $exitCode = $LASTEXITCODE
     Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "No critical/high vulnerabilities found" } else { "Security vulnerabilities found" })
 } else {
     Print-Warning "trivy not installed - skipping security scan"
-    Write-Host "  Install: https://aquasecurity.github.io/trivy/" -ForegroundColor Gray
+    Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
 }
 Write-Host ""
 
 # 3. Markdown linting
 Write-Host "3️⃣  Linting Markdown files..." -ForegroundColor White
-if (Get-Command markdownlint-cli2 -ErrorAction SilentlyContinue) {
+$markdownlintPaths = @(
+    "$env:AppData\npm",
+    "$env:ProgramFiles\nodejs"
+)
+if (Test-CommandExists "markdownlint-cli2" -CommonPaths $markdownlintPaths) {
     $mdFiles = Get-ChildItem -Recurse -Include *.md -Exclude node_modules,.local | Select-Object -ExpandProperty FullName
     if ($mdFiles) {
         $exitCode = 0
@@ -85,20 +175,32 @@ if (Get-Command markdownlint-cli2 -ErrorAction SilentlyContinue) {
     }
 } else {
     Print-Warning "markdownlint-cli2 not installed - skipping markdown lint"
-    Write-Host "  Install: npm install -g markdownlint-cli2" -ForegroundColor Gray
+    Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
 }
 Write-Host ""
 
 # 4. YAML linting
 Write-Host "4️⃣  Linting YAML files..." -ForegroundColor White
-if (Get-Command yamllint -ErrorAction SilentlyContinue) {
+$yamllintPaths = @(
+    "$env:AppData\npm",
+    "$env:ProgramFiles\nodejs"
+)
+if (Test-CommandExists "yamllint" -CommonPaths $yamllintPaths) {
     $exitCode = 0
-    yamllint -d "{extends: default, rules: {line-length: disable, comments: disable}}" .github/workflows/ 2>&1 | Out-Null
-    $exitCode = $LASTEXITCODE
+    $yamlFiles = Get-ChildItem -Path .github\workflows\ -Filter *.yml -File -ErrorAction SilentlyContinue
+    if ($yamlFiles) {
+        foreach ($file in $yamlFiles) {
+            yamllint $file.FullName 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                $exitCode = 1
+                break
+            }
+        }
+    }
     Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "YAML files are valid" } else { "YAML linting failed" })
 } else {
-    Print-Warning "yamllint not installed - skipping YAML lint"
-    Write-Host "  Install: pip install yamllint" -ForegroundColor Gray
+    Print-Warning "yaml-lint not installed - skipping YAML lint"
+    Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
 }
 Write-Host ""
 
