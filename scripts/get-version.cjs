@@ -9,9 +9,9 @@
  * 
  * Examples:
  * - main branch, tag v0.1, 5 commits after: 0.1.5
- * - feature/auth, tag v0.1, 3 commits after: 0.1.3-alpha.3
- * - beta/new-ui, tag v0.2, 2 commits after: 0.2.2-beta.2
- * - release/v1.0, tag v0.9, 1 commit after: 0.9.1-rc.1
+ * - feature/auth, tag v0.1, 3 commits after: 0.1.3-pr
+ * - beta/new-ui, tag v0.2, 2 commits after: 0.2.2-beta
+ * - release/v1.0, tag v0.9, 1 commit after: 0.9.1-rc
  */
 
 const { execSync } = require('child_process');
@@ -98,7 +98,7 @@ function getTotalCommitCount() {
 /**
  * Determine prerelease suffix based on branch name
  * @param {string} branch - Branch name
- * @returns {string} - Prerelease suffix (e.g., "alpha", "beta", "rc") or empty string
+ * @returns {string} - Prerelease suffix (e.g., "pr", "beta", "rc") or empty string
  */
 function getPrereleaseSuffix(branch) {
   // Main/master branches: no suffix (stable)
@@ -116,13 +116,13 @@ function getPrereleaseSuffix(branch) {
     return 'beta';
   }
   
-  // Feature/bugfix branches: alpha
+  // Feature/bugfix branches: pr (pull request)
   if (/^(feature|feat|fix|bugfix)\//.test(branch)) {
-    return 'alpha';
+    return 'pr';
   }
   
-  // Default: alpha for any other branch
-  return 'alpha';
+  // Default: pr for any other branch
+  return 'pr';
 }
 
 /**
@@ -152,7 +152,7 @@ function calculateVersion() {
   // Add prerelease suffix if not on main/master
   const prerelease = getPrereleaseSuffix(branch);
   if (prerelease) {
-    version += `-${prerelease}.${patch}`;
+    version += `-${prerelease}`;
   }
   
   return version;
