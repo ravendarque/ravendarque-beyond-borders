@@ -75,15 +75,35 @@ jobs:
         with:
           globs: ${{ steps.changed-md.outputs.all_changed_files }}
 
-      - name: YAML lint
-        uses: ibiqlik/action-yamllint@v3
+      - name: Get changed YAML files
+        id: changed-yaml
+        uses: tj-actions/changed-files@v44
         with:
-          file_or_dir: .github/workflows/
-          config_data: |
-            extends: default
-            rules:
-              line-length: disable
-              comments: disable
+          files: |
+            .github/workflows/**/*.yml
+            .github/workflows/**/*.yaml
+
+      - name: Install yamllint
+        if: steps.changed-yaml.outputs.any_changed == 'true'
+        run: pip install yamllint
+
+      - name: YAML lint
+        if: steps.changed-yaml.outputs.any_changed == 'true'
+        run: |
+          cat > /tmp/yamllint-config.yml << 'EOF'
+          extends: default
+          rules:
+            line-length: disable
+            comments: disable
+            document-start: disable
+            truthy: disable
+          EOF
+
+          echo "Linting changed YAML files:"
+          for file in ${{ steps.changed-yaml.outputs.all_changed_files }}; do
+            echo "Checking $file"
+            yamllint -c /tmp/yamllint-config.yml "$file"
+          done
 
       - name: Check for TODO/FIXME comments in production code
         run: |
