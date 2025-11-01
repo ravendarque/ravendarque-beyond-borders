@@ -1,13 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: 
-      - "feat/**"
-      - "feature/**"
-      - "fix/**"
-      - "refactor/**"
-      - "hotfix/**"
   pull_request:
     branches: [ main ]
 
@@ -41,8 +34,10 @@ jobs:
               - 'scripts/**'
               - '.github/scripts/**'
 
-  # Lightweight validation that always runs (prevents PR blocking)
+  # Lightweight validation - runs when production code changes
   validate:
+    needs: check-changes
+    if: needs.check-changes.outputs.production-code == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -121,9 +116,9 @@ jobs:
           echo "✅ PR validation completed"
           echo "This job ensures required status checks don't block PRs"
 
-  # Full build and test suite - only runs when production code changes
+  # Full build and test suite - runs after validation passes
   build-and-test:
-    needs: check-changes
+    needs: [check-changes, validate]
     if: needs.check-changes.outputs.production-code == 'true'
     runs-on: ubuntu-latest
     strategy:
