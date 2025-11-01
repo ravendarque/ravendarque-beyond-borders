@@ -47,12 +47,40 @@ PRD is defined in `beyond-borders-prd-0.1.md`.
 - Vitest/RTL + Playwright for tests
 
 ## Local Development
-- **Requirements**: Node 18+ (or 20+), pnpm or npm
+
+### Quick Setup (Automated)
+
+We provide setup scripts that automatically install all required tools and dependencies:
+
+**Windows (PowerShell):**
+```powershell
+.\.github\scripts\setup-dev-env.ps1
+```
+
+**Linux/macOS (Bash):**
+```bash
+bash .github/scripts/setup-dev-env.sh
+```
+
+See [.github/scripts/SETUP.md](.github/scripts/SETUP.md) for detailed setup instructions and troubleshooting.
+
+### Manual Setup
+
+- **Requirements**: Node 18+ (or 20+), pnpm, Python 3
 - **Install dependencies**: `pnpm install`
+- **Install Playwright browsers**: `pnpm exec playwright install --with-deps`
 - **Start dev server**: `pnpm dev`
 - **Build**: `pnpm build`
 - **Preview**: `pnpm preview`
 - **Run tests**: `pnpm test`
+
+### Validation Tools (Optional)
+
+For pre-push validation, you may also want to install:
+- **markdownlint-cli2**: `npm install -g markdownlint-cli2`
+- **yamllint**: `pip install yamllint`
+- **TruffleHog**: Secret scanning ([installation](https://github.com/trufflesecurity/trufflehog))
+- **Trivy**: Security scanning ([installation](https://aquasecurity.github.io/trivy/latest/getting-started/installation/))
 
 ### Contributing
 
