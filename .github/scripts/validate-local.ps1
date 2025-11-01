@@ -120,13 +120,15 @@ Refresh-EnvironmentPath
 # 1. Check for secrets
 Write-Host "1️⃣  Checking for secrets..." -ForegroundColor White
 $trufflehogPaths = @(
+    "$env:LocalAppData\trufflehog",
     "$env:LocalAppData\Microsoft\WinGet\Packages\trufflesecurity.trufflehog*\",
     "$env:ProgramData\chocolatey\bin",
     "$env:UserProfile\scoop\shims"
 )
 if (Test-CommandExists "trufflehog" -CommonPaths $trufflehogPaths) {
-    $output = trufflehog git file://. --only-verified --fail 2>&1 | Out-String
-    if ($output -match "🐷🔑") {
+    # Use filesystem scan which works better on Windows than git file:// protocol
+    $output = trufflehog filesystem . --only-verified --fail --json 2>&1 | Out-String
+    if ($LASTEXITCODE -ne 0 -and $output -match '"verified":true') {
         Print-Status $false "Secret scanning failed - verified secrets found!"
     } else {
         Print-Status $true "No verified secrets found"
