@@ -1,6 +1,13 @@
 #!/bin/bash
 # Setup development environment for Beyond Borders
 # Installs all tools and dependencies needed for building, testing, and validation
+#
+# Package Manager Preference Order:
+# - npm/pip: For Node.js and Python packages (language-specific)
+# - macOS: brew (Homebrew)
+# - Ubuntu/Debian: apt
+# - Fedora/RHEL: dnf/yum
+# - Fallback: Manual installation with instructions
 
 set -e
 
