@@ -78,14 +78,22 @@ echo ""
 # 4. YAML linting
 echo "4️⃣  Linting YAML files..."
 if command -v yamllint &> /dev/null; then
-    if yamllint -d "{extends: default, rules: {line-length: disable, comments: disable}}" .github/workflows/ 2>&1; then
+    error_found=0
+    for file in .github/workflows/*.yml; do
+        if [ -f "$file" ]; then
+            if ! yamllint "$file" 2>&1; then
+                error_found=1
+            fi
+        fi
+    done
+    if [ $error_found -eq 0 ]; then
         print_status 0 "YAML files are valid"
     else
         print_status 1 "YAML linting failed"
     fi
 else
-    print_warning "yamllint not installed - skipping YAML lint"
-    echo "  Install: pip install yamllint"
+    print_warning "yaml-lint not installed - skipping YAML lint"
+    echo "  Install: npm install -g yaml-lint"
 fi
 echo ""
 
