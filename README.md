@@ -60,10 +60,61 @@ The `main` branch is protected. All changes must be made via pull requests:
 
 1. **Create a feature branch**: `git checkout -b feature/your-feature`
 2. **Make changes and commit**: Follow [conventional commits](https://www.conventionalcommits.org/)
-3. **Push and create PR**: `git push -u origin feature/your-feature`
-4. **Wait for CI checks** to pass (build, tests, flag validation)
-5. **Request review**: At least 1 approval required
-6. **Merge** after approval and passing checks
+3. **Run local validation** (optional but recommended):
+   - Windows: `.\.github\scripts\validate-local.ps1`
+   - Linux/Mac: `bash .github/scripts/validate-local.sh`
+   - Or install the pre-push git hook (see [.github/hooks/README.md](.github/hooks/README.md))
+4. **Push and create PR**: `git push -u origin feature/your-feature`
+5. **Wait for CI checks** to pass (validation, build, tests)
+6. **Request review**: At least 1 approval required
+7. **Merge** after approval and passing checks
+
+#### Validation Workflow
+
+We use a three-tier validation approach to catch issues early:
+
+1. **Local validation** (optional): Run validation scripts before pushing
+   - Secret scanning (TruffleHog)
+   - Security audit (Trivy)
+   - Markdown/YAML linting
+   - TODO/FIXME detection
+   - File validation and large file detection
+   - Conditional build/test (only if production code changed)
+
+2. **PR validation** (always runs): Lightweight checks on every PR
+   - Same checks as local validation
+   - Prevents PR blocking when full CI doesn't run
+
+3. **Full CI** (conditional): Complete build and test suite
+   - Only runs when production code changes (src/, config files, etc.)
+   - Full linting, type checking, unit and E2E tests
+   - Node.js 18.x and 20.x matrix
+
+**Running validation locally:**
+
+Windows (PowerShell):
+```powershell
+# Full validation
+.\.github\scripts\validate-local.ps1
+
+# Skip build/test for faster feedback
+.\.github\scripts\validate-local.ps1 -SkipBuild
+```
+
+Linux/Mac (Bash):
+```bash
+# Full validation
+bash .github/scripts/validate-local.sh
+```
+
+**Installing the git pre-push hook:**
+
+This automatically runs validation before every push. See [.github/hooks/README.md](.github/hooks/README.md) for setup instructions.
+
+**Bypass validation** (not recommended):
+```bash
+git push --no-verify
+```
 
   ## Flag validation & fetching
 
