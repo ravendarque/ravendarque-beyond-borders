@@ -7,15 +7,17 @@ This directory contains scripts to automate the setup of your development enviro
 The setup scripts use **npm exclusively** for all development tools to ensure consistency and reliability:
 
 ### All Platforms
-- **npm** - All development tools (pnpm, markdownlint-cli2, yaml-lint)
+- **npm** - Package manager for pnpm installation only
+- **npx** - On-demand execution for linting tools (markdownlint-cli2, yaml-lint)
 - **pnpm** - Project dependencies
 - **Manual installation** - Optional security tools (TruffleHog, Trivy) with clear instructions
 
 This approach ensures:
 - ✅ Consistent installation across all platforms
 - ✅ No dependency on Python or other runtimes
-- ✅ Reliable PATH detection after installation
-- ✅ Simple troubleshooting (all tools in npm global directory)
+- ✅ No global package installation issues (uses npx)
+- ✅ Always uses latest tool versions via npx
+- ✅ Simple troubleshooting (minimal global dependencies)
 
 ## Quick Start
 
@@ -60,8 +62,9 @@ The setup scripts install all tools needed for building, testing, and validating
 | **pnpm** | Package manager | `npm install -g pnpm` |
 | **Project dependencies** | React, Vite, etc. | `pnpm install` |
 | **Playwright browsers** | E2E testing | `pnpm exec playwright install --with-deps` |
-| **markdownlint-cli2** | Markdown linting | `npm install -g markdownlint-cli2` |
-| **yaml-lint** | YAML linting | `npm install -g yaml-lint` |
+| **npx** | On-demand tool execution | Built into Node.js (no install needed) |
+| **markdownlint-cli2** | Markdown linting | Via `npx` (downloaded on first use) |
+| **yaml-lint** | YAML linting | Via `npx` (downloaded on first use) |
 
 ### Optional Tools (Skipped with `--skip-optional`)
 

@@ -193,50 +193,15 @@ if (-not $DryRun) {
     $skipped++
 }
 
-# 6. Install markdownlint-cli2 (npm global)
-Write-Step "Checking markdownlint-cli2..."
-if (Test-Command "markdownlint-cli2") {
-    Write-Success "markdownlint-cli2 already installed"
+# 6. Verify npx availability for linting tools
+Write-Step "Checking npx for on-demand linting tools..."
+if (Test-Command "npx") {
+    Write-Success "npx available (will use for markdownlint-cli2 and yaml-lint)"
+    Write-Info "  Linting tools will be downloaded on first use via npx"
     $alreadyInstalled++
 } else {
-    Write-Warning "markdownlint-cli2 not found"
-    if (-not $DryRun) {
-        Write-Info "Installing markdownlint-cli2..."
-        try {
-            npm install -g markdownlint-cli2
-            Write-Success "markdownlint-cli2 installed"
-            $installed++
-        } catch {
-            Write-Error "Failed to install markdownlint-cli2: $_"
-            $failed++
-        }
-    } else {
-        Write-Info "Would install: npm install -g markdownlint-cli2"
-        $skipped++
-    }
-}
-
-# 7. Install yaml-lint (npm global)
-Write-Step "Checking yaml-lint..."
-if (Test-Command "yamllint") {
-    Write-Success "yaml-lint already installed"
-    $alreadyInstalled++
-} else {
-    Write-Warning "yaml-lint not found"
-    if (-not $DryRun) {
-        Write-Info "Installing yaml-lint..."
-        try {
-            npm install -g yaml-lint
-            Write-Success "yaml-lint installed"
-            $installed++
-        } catch {
-            Write-Error "Failed to install yaml-lint: $_"
-            $failed++
-        }
-    } else {
-        Write-Info "Would install: npm install -g yaml-lint"
-        $skipped++
-    }
+    Write-Warning "npx not found - ensure Node.js is installed"
+    $failed++
 }
 
 # Optional tools (security scanning)
