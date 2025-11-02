@@ -84,26 +84,19 @@ jobs:
             .github/workflows/**/*.yml
             .github/workflows/**/*.yaml
 
-      - name: Install yamllint
+      - name: Setup Node.js for yaml-lint
         if: steps.changed-yaml.outputs.any_changed == 'true'
-        run: pip install yamllint
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: YAML lint
         if: steps.changed-yaml.outputs.any_changed == 'true'
         run: |
-          cat > /tmp/yamllint-config.yml << 'EOF'
-          extends: default
-          rules:
-            line-length: disable
-            comments: disable
-            document-start: disable
-            truthy: disable
-          EOF
-
           echo "Linting changed YAML files:"
           for file in ${{ steps.changed-yaml.outputs.all_changed_files }}; do
             echo "Checking $file"
-            yamllint -c /tmp/yamllint-config.yml "$file"
+            npx yaml-lint "$file"
           done
 
       - name: Check for TODO/FIXME comments in production code
@@ -288,6 +281,8 @@ jobs:
       - name: Commit and push to gh-pages
         run: |
           cd gh-pages-repo
+          # Ensure .nojekyll exists (prevents Jekyll processing)
+          touch .nojekyll
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .

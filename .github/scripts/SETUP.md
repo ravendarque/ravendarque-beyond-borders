@@ -1,21 +1,27 @@
+<!-- markdownlint-disable MD013 -->
 # Development Environment Setup
 
-This directory contains scripts to automate the setup of your development environment for Beyond Borders.
+This directory contains scripts to automate the setup of your development
+environment for Beyond Borders.
 
 ## Package Manager Strategy
 
 The setup scripts use **npm exclusively** for all development tools to ensure consistency and reliability:
 
 ### All Platforms
-- **npm** - All development tools (pnpm, markdownlint-cli2, yaml-lint)
+
+- **npm** - Package manager for pnpm installation only
+- **npx** - On-demand execution for linting tools (markdownlint-cli2, yaml-lint)
 - **pnpm** - Project dependencies
 - **Manual installation** - Optional security tools (TruffleHog, Trivy) with clear instructions
 
 This approach ensures:
+
 - ✅ Consistent installation across all platforms
 - ✅ No dependency on Python or other runtimes
-- ✅ Reliable PATH detection after installation
-- ✅ Simple troubleshooting (all tools in npm global directory)
+- ✅ No global package installation issues (uses npx)
+- ✅ Always uses latest tool versions via npx
+- ✅ Simple troubleshooting (minimal global dependencies)
 
 ## Quick Start
 
@@ -60,8 +66,9 @@ The setup scripts install all tools needed for building, testing, and validating
 | **pnpm** | Package manager | `npm install -g pnpm` |
 | **Project dependencies** | React, Vite, etc. | `pnpm install` |
 | **Playwright browsers** | E2E testing | `pnpm exec playwright install --with-deps` |
-| **markdownlint-cli2** | Markdown linting | `npm install -g markdownlint-cli2` |
-| **yaml-lint** | YAML linting | `npm install -g yaml-lint` |
+| **npx** | On-demand tool execution | Built into Node.js (no install needed) |
+| **markdownlint-cli2** | Markdown linting | Via `npx` (downloaded on first use) |
+| **yaml-lint** | YAML linting | Via `npx` (downloaded on first use) |
 
 ### Optional Tools (Skipped with `--skip-optional`)
 
@@ -86,12 +93,14 @@ The scripts will check for these and provide installation instructions if missin
 #### Using PowerShell (Recommended)
 
 1. Clone the repository:
+
    ```powershell
    git clone <repository-url>
    cd beyond-borders
    ```
 
 2. Run the setup script:
+
    ```powershell
    .\.github\scripts\setup-dev-env.ps1
    ```
@@ -111,12 +120,14 @@ If you have a Windows package manager, some tools can be installed automatically
 #### Ubuntu/Debian
 
 1. Install prerequisites:
+
    ```bash
    sudo apt-get update
    sudo apt-get install git curl python3 python3-pip
    ```
 
 2. Install Node.js via nvm (recommended):
+
    ```bash
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
    source ~/.bashrc
@@ -124,6 +135,7 @@ If you have a Windows package manager, some tools can be installed automatically
    ```
 
 3. Run the setup script:
+
    ```bash
    bash .github/scripts/setup-dev-env.sh
    ```
@@ -131,6 +143,7 @@ If you have a Windows package manager, some tools can be installed automatically
 #### Fedora/RHEL
 
 1. Install prerequisites:
+
    ```bash
    sudo dnf install git curl python3 python3-pip
    ```
@@ -142,16 +155,19 @@ If you have a Windows package manager, some tools can be installed automatically
 #### Using Homebrew (Recommended)
 
 1. Install Homebrew if not already installed:
+
    ```bash
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
 
 2. Install prerequisites:
+
    ```bash
    brew install git node@20 python
    ```
 
 3. Run the setup script:
+
    ```bash
    bash .github/scripts/setup-dev-env.sh
    ```
@@ -161,6 +177,7 @@ If you have a Windows package manager, some tools can be installed automatically
 After setup completes, **restart your terminal** and verify your environment:
 
 **Windows (PowerShell):**
+
 ```powershell
 # FIRST: Close and reopen PowerShell to refresh PATH
 
@@ -184,6 +201,7 @@ pnpm dev
 ```
 
 **Linux/macOS (Bash):**
+
 ```bash
 # Reload shell configuration
 source ~/.bashrc  # or ~/.zshrc for zsh
@@ -258,12 +276,14 @@ pnpm exec playwright install-deps
 Update Node.js:
 
 **Using nvm (recommended):**
+
 ```bash
 nvm install --lts
 nvm use --lts
 ```
 
 **Manual installation:**
+
 - Download from [nodejs.org](https://nodejs.org/)
 - Or use your package manager to upgrade
 
@@ -272,6 +292,7 @@ nvm use --lts
 ### TruffleHog (Secret Scanning)
 
 **Windows:**
+
 ```powershell
 # Download from releases
 # https://github.com/trufflesecurity/trufflehog/releases
@@ -279,17 +300,20 @@ nvm use --lts
 ```
 
 **macOS:**
+
 ```bash
 brew install trufflehog
 ```
 
 **Linux:**
+
 ```bash
 # Download binary from releases
 curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
 ```
 
 **Using Docker (all platforms):**
+
 ```bash
 docker pull trufflesecurity/trufflehog:latest
 ```
@@ -297,6 +321,7 @@ docker pull trufflesecurity/trufflehog:latest
 ### Trivy (Security Scanning)
 
 **Windows:**
+
 ```powershell
 # Using Chocolatey
 choco install trivy
@@ -306,11 +331,13 @@ choco install trivy
 ```
 
 **macOS:**
+
 ```bash
 brew install trivy
 ```
 
 **Linux:**
+
 ```bash
 # Ubuntu/Debian
 wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
@@ -320,6 +347,7 @@ sudo apt-get install trivy
 ```
 
 **Using Docker (all platforms):**
+
 ```bash
 docker pull aquasec/trivy:latest
 ```
