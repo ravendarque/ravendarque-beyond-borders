@@ -58,6 +58,14 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+          # GitHub Pages artifact (pages build) retention is managed by Pages; we also keep a secondary build artifact for provenance.
+
+      - name: Upload build provenance artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-dist
+          path: dist
+          retention-days: 30
 
   deploy:
     environment:
