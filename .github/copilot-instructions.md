@@ -104,28 +104,31 @@ When creating issues, use this structure:
 
 ### 3. Progress Tracking and Issue Lifecycle
 
-**IMPORTANT: Never close issues manually. Issues are closed automatically
-when PRs are merged.**
+**IMPORTANT: Never close issues manually. Issues are closed automatically when PRs are merged.**
 
 Update issue status as work progresses:
 
-1. **Ready** - Issue is ready to be worked on
-2. **In Progress** - Work has started on the feature branch
-3. **In Review** - Work is complete, committed, ready for PR review
-4. **Done** - PR has been merged to main (GitHub auto-closes issue)
+1. **Ready** – Issue is prepared and can be picked up.
+2. **InProgress** – Active development on a feature branch.
+3. **InReview** – A pull request has been created and is under review/testing.
+4. **Done** – Pull request merged into `main` (GitHub auto-closes issue).
+
+**CRITICAL RULE:** Do **NOT** move an issue to `InReview` until after the PR is created. Finishing local commits without a PR still counts as `InProgress`.
 
 **Status Workflow:**
 
-- Create issue → Set to "Ready" or "In Progress"
-- Complete work & commit → Set to "In Review"
-- Create PR → Keep in "In Review"
-- PR merged → GitHub auto-closes and sets to "Done"
+- Create issue → Set to `Ready` or `InProgress` when starting.
+- Develop on feature branch → Keep status `InProgress`.
+- Create PR → Immediately update status to `InReview`.
+- Review / test → Remain `InReview` until merge.
+- Merge PR → Status becomes `Done` automatically.
 
 **Never:**
 
-- Don't manually close issues (let PR merge do it)
-- Don't set status to "Done" manually
-- Don't leave issues in "In Progress" after work is committed
+- Don't manually close issues (let PR merge do it).
+- Don't set status to `Done` manually.
+- Don't set `InReview` before a PR exists.
+- Don't leave issues in `InProgress` once PR is open.
 
 ### 4. GitHub Project Configuration
 
@@ -442,5 +445,5 @@ If you encounter issues or have questions about these instructions:
 
 ---
 
-**Last Updated**: October 10, 2025
+**Last Updated**: November 2, 2025
 **Maintained By**: Development Team
