@@ -35,7 +35,9 @@ Beyond Borders uses a simple **three-step workflow** to create your flag-bordere
 - Download your customized avatar as PNG
 
 ## Status
-**✅ Live and deployed!** The app is built with Vite + React + TypeScript and automatically deployed to GitHub Pages on every push to main.
+**✅ Live and deployed!** Production uses GitHub Pages **workflow mode** (artifact deployment) on every push to `main`. Versioned **beta previews** are committed under `gh-pages/beta/<semver>/` and managed by dedicated workflows.
+
+See `DEPLOYMENT.md` for full details on production vs beta infrastructure.
 
 PRD is defined in `beyond-borders-prd-0.1.md`.
 
