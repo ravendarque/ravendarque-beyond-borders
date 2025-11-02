@@ -3,6 +3,8 @@
 ![CI](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/ci.yml/badge.svg)
 [![Fetch flags and generate metadata](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/fetch-flags.yml/badge.svg)](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/fetch-flags.yml)
 ![Deploy](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/deploy-pages.yml/badge.svg)
+![Beta Deploy](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/deploy-beta.yml/badge.svg)
+![Beta Cleanup](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/cleanup-beta.yml/badge.svg)
 
 Add a circular, flag-colored border to your profile picture to show support for marginalized groups and selected causes.
 
@@ -35,7 +37,9 @@ Beyond Borders uses a simple **three-step workflow** to create your flag-bordere
 - Download your customized avatar as PNG
 
 ## Status
-**✅ Live and deployed!** The app is built with Vite + React + TypeScript and automatically deployed to GitHub Pages on every push to main.
+**✅ Live and deployed!** Production uses GitHub Pages **workflow mode** (artifact deployment) on every push to `main`. Versioned **beta previews** are committed under `gh-pages/beta/<semver>/` and managed by dedicated workflows.
+
+See `DEPLOYMENT.md` for full details on production vs beta infrastructure.
 
 PRD is defined in `beyond-borders-prd-0.1.md`.
 

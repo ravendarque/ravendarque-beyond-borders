@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages (Workflow Mode)
 
 on:
   push:
@@ -6,29 +6,27 @@ on:
     paths-ignore:
       - '**.md'
       - 'docs/**'
-      - '.github/**'
       - '.local/**'
       - 'LICENSE'
       - '.gitignore'
   workflow_dispatch:
 
+# Permissions required for Pages deployment: contents read for checkout, pages write for deployment, id-token for provenance
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Allow only one concurrent deployment; do not cancel in-progress production deployments
 concurrency:
-  group: "pages"
+  group: "pages-production"
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
     steps:
-      - name: Checkout main branch
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: main
@@ -46,42 +44,42 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build for production
+      - name: Build
         run: pnpm build
         env:
           NODE_ENV: production
           BASE_URL: /${{ github.event.repository.name }}/
 
-      - name: Checkout gh-pages branch
-        uses: actions/checkout@v4
+      - name: Prepare artifact (.nojekyll)
+        run: |
+          touch dist/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          ref: gh-pages
-          path: gh-pages-repo
+          path: dist
+          # GitHub Pages artifact (pages build) retention is managed by Pages; we also keep a secondary build artifact for provenance.
 
-      - name: Deploy to root (preserve beta directory)
-        run: |
-          # Remove old production files from root (but keep beta/ directory)
-          cd gh-pages-repo
-          find . -maxdepth 1 -type f -delete
-          find . -maxdepth 1 -type d ! -name '.' ! -name '..' ! -name '.git' ! -name 'beta' -exec rm -rf {} +
+      - name: Upload build provenance artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-dist
+          path: dist
+          retention-days: 30
 
-          # Copy new production build to root
-          cp -r ../dist/* .
-
-          # Ensure .nojekyll exists (prevents Jekyll processing)
-          touch .nojekyll
-
-      - name: Commit and push to gh-pages
-        run: |
-          cd gh-pages-repo
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Deploy production from main ($(date -u +'%Y-%m-%d %H:%M:%S UTC'))" || echo "No changes to commit"
-          git push
+  deploy:
+    environment:
+      name: production
+      url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
       - name: Deployment summary
         run: |
-          echo "### ✅ Production Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Production Deployment Successful (Workflow Mode)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**URL:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY
