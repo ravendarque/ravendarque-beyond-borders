@@ -159,47 +159,57 @@ Write-Host ""
 
 # 3. Markdown linting
 Write-Host "3️⃣  Linting Markdown files..." -ForegroundColor White
-$markdownlintPaths = @(
-    "$env:AppData\npm",
-    "$env:ProgramFiles\nodejs"
-)
-if (Test-CommandExists "markdownlint-cli2" -CommonPaths $markdownlintPaths) {
-    $mdFiles = Get-ChildItem -Recurse -Include *.md -Exclude node_modules,.local | Select-Object -ExpandProperty FullName
-    if ($mdFiles) {
+if (Get-Command npx -ErrorAction SilentlyContinue) {
+    # Get staged markdown files (matching CI behavior of checking changed files)
+    $stagedMdFiles = git diff --cached --name-only --diff-filter=ACM | Where-Object { $_ -match '\.md$' -and $_ -notmatch 'node_modules' -and $_ -notmatch '\.local' }
+    if ($stagedMdFiles) {
         $exitCode = 0
-        & markdownlint-cli2 $mdFiles 2>&1 | Out-Null
+        # Show output if there are errors, hide if successful
+        $output = npx markdownlint-cli2 $stagedMdFiles 2>&1
         $exitCode = $LASTEXITCODE
+        if ($exitCode -ne 0) {
+            Write-Host ""
+            Write-Output $output
+            Write-Host ""
+        }
         Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Markdown files are valid" } else { "Markdown linting failed" })
     } else {
-        Print-Status $true "No markdown files to check"
+        Print-Status $true "No staged markdown files to check"
     }
 } else {
-    Print-Warning "markdownlint-cli2 not installed - skipping markdown lint"
+    Print-Warning "npx not found - ensure Node.js is installed"
     Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
 }
 Write-Host ""
 
 # 4. YAML linting
 Write-Host "4️⃣  Linting YAML files..." -ForegroundColor White
-$yamllintPaths = @(
-    "$env:AppData\npm",
-    "$env:ProgramFiles\nodejs"
-)
-if (Test-CommandExists "yamllint" -CommonPaths $yamllintPaths) {
-    $exitCode = 0
-    $yamlFiles = Get-ChildItem -Path .github\workflows\ -Filter *.yml -File -ErrorAction SilentlyContinue
-    if ($yamlFiles) {
-        foreach ($file in $yamlFiles) {
-            yamllint $file.FullName 2>&1 | Out-Null
+if (Get-Command npx -ErrorAction SilentlyContinue) {
+    # Get staged YAML workflow files (matching CI behavior)
+    $stagedYamlFiles = git diff --cached --name-only --diff-filter=ACM | Where-Object { $_ -match '\.github/workflows/.*\.ya?ml$' }
+    if ($stagedYamlFiles) {
+        $exitCode = 0
+        $hasErrors = $false
+        foreach ($file in $stagedYamlFiles) {
+            $output = npx yaml-lint $file 2>&1
             if ($LASTEXITCODE -ne 0) {
+                if (-not $hasErrors) {
+                    Write-Host ""
+                    $hasErrors = $true
+                }
+                Write-Output $output
                 $exitCode = 1
-                break
             }
         }
+        if ($hasErrors) {
+            Write-Host ""
+        }
+        Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "YAML files are valid" } else { "YAML linting failed" })
+    } else {
+        Print-Status $true "No staged YAML files to check"
     }
-    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "YAML files are valid" } else { "YAML linting failed" })
 } else {
-    Print-Warning "yaml-lint not installed - skipping YAML lint"
+    Print-Warning "npx not found - ensure Node.js is installed"
     Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
 }
 Write-Host ""
