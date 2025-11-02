@@ -18,12 +18,14 @@ Key steps:
 - Add `.nojekyll` to prevent Jekyll processing.
 - Upload build output (`dist/`) as a Pages artifact.
 - Deploy artifact using `actions/deploy-pages@v4`.
+ - Upload a secondary provenance artifact (`actions/upload-artifact@v4`) retained for 30 days.
 
 Benefits:
 - Clear deployment status surfaced in the workflow run.
 - No direct writes to `gh-pages` for production (immutability & provenance).
 - Automatic rebuilds without manual API trigger.
 - Uses OIDC (`id-token: write`) for provenance.
+ - Separate short-term retained artifact enables post-deployment inspection & diffing.
 
 Permissions configured:
 ```yaml
@@ -81,6 +83,7 @@ For additional staged environments (e.g., `staging/`), prefer artifact-based wor
 - Missing assets: Verify `BASE_URL` matches production root (`/<repo>/`).
 - Beta version collision: Re-run beta deploy; directory is fully replaced each time.
 - Cache issues: Append a query string (e.g., `?v=<semver>`) when sharing fresh builds.
+ - Artifact retention: The Pages deployment artifact is managed by GitHub. The additional `production-build-dist` artifact is retained for 30 days (adjust via `retention-days`). Consider increasing retention near releases.
 
 ### Acceptance Criteria Mapping (Issue #111)
 - Uses `actions/deploy-pages@v4` – DONE.
