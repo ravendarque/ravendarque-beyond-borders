@@ -275,7 +275,7 @@ export function AppStepWorkflow() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          py: { xs: 2, sm: 3 },
+          pt: 0, // No padding top - header starts at top
           px: { xs: 2, sm: 3 },
           bgcolor: '#D9D3CD',
           pb: 12, // Extra padding for footer
@@ -308,7 +308,7 @@ export function AppStepWorkflow() {
             component="header" 
             role="banner" 
             sx={{ 
-              mb: 2,
+              mb: 8,
               textAlign: 'center', 
               position: 'relative',
               mx: 'auto',
@@ -338,11 +338,11 @@ export function AppStepWorkflow() {
               id="app-title" 
               sx={{ 
                 fontWeight: 400,
-                fontSize: '2rem',
+                fontSize: '1.75rem',
                 color: '#FFFFFF',
                 letterSpacing: '0.02em',
                 position: 'absolute',
-                top: 16,
+                top: 8,
                 left: '50%',
                 transform: 'translateX(-50%)',
                 zIndex: 1,
@@ -360,7 +360,7 @@ export function AppStepWorkflow() {
                 fontWeight: 400,
                 lineHeight: 1,
                 position: 'absolute',
-                top: 56,
+                top: 42,
                 left: '50%',
                 transform: 'translateX(-50%)',
                 zIndex: 1,
@@ -390,17 +390,17 @@ export function AppStepWorkflow() {
                 aria-label={completedSteps.includes(1) ? `Go back to step 1: ${STEP_TITLES[0]}` : undefined}
                 sx={{
                   position: 'absolute',
-                  left: 63.5 - 19.5, // x position minus radius
-                  width: 39,
-                  height: 39,
+                  left: 63.5 - 19.5 - (currentStep === 1 ? 5 : 0), // adjust for border
+                  top: currentStep === 1 ? -5 : 0, // adjust vertical position for border
+                  width: currentStep === 1 ? 49 : 39, // 39 + 5px border on each side
+                  height: currentStep === 1 ? 49 : 39,
                   borderRadius: '50%',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   bgcolor: currentStep === 1 ? 'primary.main' : 'primary.light',
-                  border: currentStep === 1 ? '5px solid' : 'none',
-                  borderColor: currentStep === 1 ? 'primary.light' : 'transparent',
+                  border: currentStep === 1 ? '5px solid #FDB585' : 'none',
                   color: 'white',
                   cursor: completedSteps.includes(1) ? 'pointer' : 'default',
                   padding: 0,
@@ -411,7 +411,7 @@ export function AppStepWorkflow() {
                   },
                 }}
               >
-                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem' }}>
+                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem', fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif' }}>
                   1
                 </Typography>
               </Box>
@@ -425,17 +425,17 @@ export function AppStepWorkflow() {
                 aria-label={completedSteps.includes(2) ? `Go back to step 2: ${STEP_TITLES[1]}` : undefined}
                 sx={{
                   position: 'absolute',
-                  left: 152.5 - 19.5,
-                  width: 39,
-                  height: 39,
+                  left: 152.5 - 19.5 - (currentStep === 2 ? 5 : 0),
+                  top: currentStep === 2 ? -5 : 0,
+                  width: currentStep === 2 ? 49 : 39,
+                  height: currentStep === 2 ? 49 : 39,
                   borderRadius: '50%',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   bgcolor: currentStep === 2 ? 'primary.main' : 'primary.light',
-                  border: currentStep === 2 ? '5px solid' : 'none',
-                  borderColor: currentStep === 2 ? 'primary.light' : 'transparent',
+                  border: currentStep === 2 ? '5px solid #FDB585' : 'none',
                   color: 'white',
                   cursor: completedSteps.includes(2) ? 'pointer' : 'default',
                   padding: 0,
@@ -446,7 +446,7 @@ export function AppStepWorkflow() {
                   },
                 }}
               >
-                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem' }}>
+                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem', fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif' }}>
                   2
                 </Typography>
               </Box>
@@ -460,17 +460,17 @@ export function AppStepWorkflow() {
                 aria-label={completedSteps.includes(3) ? `Go back to step 3: ${STEP_TITLES[2]}` : undefined}
                 sx={{
                   position: 'absolute',
-                  left: 241.5 - 19.5,
-                  width: 39,
-                  height: 39,
+                  left: 241.5 - 19.5 - (currentStep === 3 ? 5 : 0),
+                  top: currentStep === 3 ? -5 : 0,
+                  width: currentStep === 3 ? 49 : 39,
+                  height: currentStep === 3 ? 49 : 39,
                   borderRadius: '50%',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   bgcolor: currentStep === 3 ? 'primary.main' : 'primary.light',
-                  border: currentStep === 3 ? '5px solid' : 'none',
-                  borderColor: currentStep === 3 ? 'primary.light' : 'transparent',
+                  border: currentStep === 3 ? '5px solid #FDB585' : 'none',
                   color: 'white',
                   cursor: completedSteps.includes(3) ? 'pointer' : 'default',
                   padding: 0,
@@ -481,7 +481,7 @@ export function AppStepWorkflow() {
                   },
                 }}
               >
-                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem' }}>
+                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem', fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif' }}>
                   3
                 </Typography>
               </Box>
@@ -505,6 +505,8 @@ export function AppStepWorkflow() {
                   width: 30,
                   textAlign: 'center',
                   fontSize: '0.625rem',
+                  fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
+                  fontWeight: 400,
                   color: currentStep === 1 ? 'primary.main' : 'primary.light',
                 }}
               >
@@ -518,6 +520,8 @@ export function AppStepWorkflow() {
                   width: 21,
                   textAlign: 'center',
                   fontSize: '0.625rem',
+                  fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
+                  fontWeight: 400,
                   color: currentStep === 2 ? 'primary.main' : 'primary.light',
                 }}
               >
@@ -531,6 +535,8 @@ export function AppStepWorkflow() {
                   width: 31,
                   textAlign: 'center',
                   fontSize: '0.625rem',
+                  fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
+                  fontWeight: 400,
                   color: currentStep === 3 ? 'primary.main' : 'primary.light',
                 }}
               >
@@ -583,8 +589,8 @@ export function AppStepWorkflow() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 mx: 'auto',
-                mb: { xs: 2, sm: 3 },
-                mt: { xs: 1, sm: 2 },
+                mb: 3,
+                mt: 0,
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 ...(imageUrl ? {
@@ -612,14 +618,15 @@ export function AppStepWorkflow() {
               >
                 {!imageUrl && (
                   <Box sx={{ textAlign: 'center', px: 3 }}>
-                    <FileUploadIcon sx={{ fontSize: 57, color: '#DADADA', mb: 1.5 }} />
+                    <FileUploadIcon sx={{ fontSize: 57, color: '#DADADA', mb: 2 }} />
                     <Typography 
                       variant="body1" 
                       sx={{ 
                         fontWeight: 400,
                         color: '#FFFFFF',
-                        mb: 1,
+                        mb: 1.5,
                         fontSize: '0.9375rem',
+                        lineHeight: '15px',
                       }}
                     >
                       Choose your profile picture
@@ -628,9 +635,10 @@ export function AppStepWorkflow() {
                       variant="body2" 
                       display="block" 
                       sx={{ 
-                        mb: 2,
+                        mb: 2.5,
                         color: '#FFFFFF',
                         fontSize: '0.8125rem',
+                        lineHeight: '13px',
                       }}
                     >
                       JPG or PNG
@@ -673,8 +681,6 @@ export function AppStepWorkflow() {
                   </Box>
                 )}
               </Box>
-              
-              <Box sx={{ mb: 3 }} />
               
               <Box sx={{ width: '100%', maxWidth: 279, mx: 'auto' }}>
                 <NavigationButtons
@@ -927,7 +933,7 @@ export function AppStepWorkflow() {
             left: 0,
             right: 0,
             bgcolor: '#1B1F22',
-            py: 1.5,
+            py: 2,
             textAlign: 'center',
             zIndex: 999,
           }}
@@ -938,8 +944,9 @@ export function AppStepWorkflow() {
               color: '#F97316',
               fontSize: '0.6875rem',
               fontWeight: 300,
+              lineHeight: '15px',
               display: 'block',
-              mb: 0.5,
+              mb: 0.25,
             }}
           >
             Ethics and Sustainability | GitHub Open Source
@@ -950,6 +957,7 @@ export function AppStepWorkflow() {
               color: '#FFFFFF',
               fontSize: '0.6875rem',
               fontWeight: 300,
+              lineHeight: '15px',
             }}
           >
             © Nix Crabtree, 2005

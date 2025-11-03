@@ -173,17 +173,20 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
                 fontWeight: 400,
                 textTransform: 'uppercase',
                 letterSpacing: '0.02em',
-                bgcolor: 'primary.light',
                 color: 'white',
                 justifyContent: 'center',
                 px: 3,
-                '&:hover': {
+                bgcolor: 'primary.light',
+                '&:not(:disabled)': {
+                  bgcolor: 'primary.main',
+                },
+                '&:hover:not(:disabled)': {
                   bgcolor: 'primary.main',
                 },
                 '&:disabled': {
                   bgcolor: 'primary.light',
-                  opacity: 0.5,
                   color: 'white',
+                  opacity: 1,
                 }
               }}
             >

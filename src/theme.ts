@@ -29,7 +29,20 @@ export function createAppTheme(mode: 'light' | 'dark') {
     shape: { borderRadius: 10 },
     typography: {
       fontFamily:
-        'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
+        '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif',
+      h1: {
+        fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
+      },
+      h2: {
+        fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
+      },
+      h3: {
+        fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
+      },
+      button: {
+        fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
+        textTransform: 'uppercase',
+      },
     },
     components: {
       MuiCssBaseline: {
@@ -48,7 +61,7 @@ export function createAppTheme(mode: 'light' | 'dark') {
             margin: 0,
             color: mode === 'light' ? '#0f172a' : '#e6eef3',
             fontFamily:
-              'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
+              '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif',
           },
           // focus ring for form controls
           'select:focus, input[type=range]:focus, input[type=color]:focus, input[type=file]:focus, button:focus': {
