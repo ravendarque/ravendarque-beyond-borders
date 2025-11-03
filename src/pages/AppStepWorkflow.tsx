@@ -17,7 +17,7 @@ import {
 } from '@/components';
 import { ErrorAlert } from '@/components/ErrorAlert';
 
-import FileUploadIcon from '@mui/icons-material/UploadFile';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -581,25 +581,32 @@ export function AppStepWorkflow() {
                     transform: 'scale(1.02)',
                   },
                 } : {
-                  // No image - show selection prompt with dark background
-                  border: '2.5px dashed',
-                  borderColor: 'rgba(255, 255, 255, 0.3)',
-                  bgcolor: '#3D4449',
+                  // No image - show selection prompt with checkered background
+                  border: '2.5px solid',
+                  borderColor: '#FDB585',
+                  backgroundImage: `
+                    linear-gradient(45deg, #F5F5F5 25%, transparent 25%),
+                    linear-gradient(-45deg, #F5F5F5 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #F5F5F5 75%),
+                    linear-gradient(-45deg, transparent 75%, #F5F5F5 75%)
+                  `,
+                  backgroundSize: '20px 20px',
+                  backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                  bgcolor: '#FFFFFF',
                   '&:hover': {
-                    borderColor: 'rgba(255, 255, 255, 0.5)',
-                    bgcolor: '#4A5156',
+                    borderColor: '#F97316',
                   },
                 }),
               }}
               >
                 {!imageUrl && (
                   <Box sx={{ textAlign: 'center', px: 3 }}>
-                    <FileUploadIcon sx={{ fontSize: 57, color: '#DADADA', mb: 2 }} />
+                    <AccountCircleIcon sx={{ fontSize: 57, color: '#666666', mb: 2 }} />
                     <Typography 
                       variant="body1" 
                       sx={{ 
                         fontWeight: 400,
-                        color: '#FFFFFF',
+                        color: '#1F2937',
                         mb: 1.5,
                         fontSize: '0.9375rem',
                         lineHeight: '15px',
@@ -612,7 +619,7 @@ export function AppStepWorkflow() {
                       display="block" 
                       sx={{ 
                         mb: 2.5,
-                        color: '#FFFFFF',
+                        color: '#4B5563',
                         fontSize: '0.8125rem',
                         lineHeight: '13px',
                       }}
