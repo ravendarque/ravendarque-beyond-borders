@@ -322,7 +322,7 @@ export function AppStepWorkflow() {
                 top: 8,
                 left: '50%',
                 transform: 'translateX(-50%)',
-                zIndex: 1,
+                zIndex: 2,
                 width: '100%',
               }}
             >
@@ -340,7 +340,7 @@ export function AppStepWorkflow() {
                 top: 42,
                 left: '50%',
                 transform: 'translateX(-50%)',
-                zIndex: 1,
+                zIndex: 2,
                 width: 279,
                 textAlign: 'center',
               }}
@@ -356,6 +356,7 @@ export function AppStepWorkflow() {
                 left: 0,
                 width: '100%',
                 height: 39,
+                zIndex: 2,
               }}
             >
               {/* Step 1 */}
