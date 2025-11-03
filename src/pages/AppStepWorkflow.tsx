@@ -18,10 +18,7 @@ import {
 import { ErrorAlert } from '@/components/ErrorAlert';
 
 import FileUploadIcon from '@mui/icons-material/UploadFile';
-import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -43,7 +40,7 @@ import { normalizeError } from '@/types/errors';
 const STEP_TITLES = ['Image', 'Flag', 'Adjust'];
 
 export function AppStepWorkflow() {
-  const { mode, setMode } = useContext(ThemeModeContext);
+  const { mode } = useContext(ThemeModeContext);
   const theme = useTheme();
 
   // Responsive breakpoints
@@ -281,26 +278,6 @@ export function AppStepWorkflow() {
           pb: 12, // Extra padding for footer
         }}
       >
-        {/* Settings Icon - Fixed Position (bottom-right) */}
-        <IconButton 
-          size={isMobile ? 'large' : 'medium'}
-          onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
-          aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          sx={{ 
-            position: 'fixed', 
-            bottom: 24, 
-            right: 24, 
-            zIndex: 1000,
-            bgcolor: 'white',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
-            '&:hover': {
-              bgcolor: 'grey.100',
-            }
-          }}
-        >
-          {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
-        </IconButton>
-
         {/* Centered Content Column */}
         <Box sx={{ maxWidth: 600, width: '100%', mx: 'auto' }}>
           {/* Header with SVG shape and step indicators positioned in cutouts */}
