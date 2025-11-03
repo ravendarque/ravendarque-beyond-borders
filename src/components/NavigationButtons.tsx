@@ -125,7 +125,24 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
                 <CircularProgress size={20} color="inherit" />
               ) : undefined
             }
-            sx={{ flex: '1 1 0' }}
+            sx={{ 
+              flex: '1 1 0',
+              height: 56,
+              borderRadius: 28,
+              fontSize: '1.125rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              bgcolor: 'primary.light',
+              color: 'white',
+              '&:hover': {
+                bgcolor: 'primary.main',
+              },
+              '&:disabled': {
+                bgcolor: '#2A2A2A',
+                color: '#757575',
+              }
+            }}
           >
             {isLoading ? 'Processing...' : finishLabel}
           </Button>
@@ -141,10 +158,29 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
                 isLoading ? (
                   <CircularProgress size={20} color="inherit" />
                 ) : (
-                  <ArrowForwardIcon />
+                  <ArrowForwardIcon sx={{ fontSize: 28 }} />
                 )
               }
-              sx={{ flex: '1 1 0' }}
+              sx={{ 
+                flex: '1 1 0',
+                height: 56,
+                borderRadius: 28,
+                fontSize: '1.125rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                bgcolor: 'primary.light',
+                color: 'white',
+                justifyContent: 'space-between',
+                px: 4,
+                '&:hover': {
+                  bgcolor: 'primary.main',
+                },
+                '&:disabled': {
+                  bgcolor: '#2A2A2A',
+                  color: '#757575',
+                }
+              }}
             >
               {isLoading ? 'Loading...' : nextLabel}
             </Button>

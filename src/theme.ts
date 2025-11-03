@@ -2,18 +2,31 @@ import { createTheme, ThemeOptions } from '@mui/material/styles';
 import { grey } from '@mui/material/colors';
 
 export function createAppTheme(mode: 'light' | 'dark') {
-  const lightBg = '#f8fafc';
+  // New design tokens from design-03.svg
+  const lightBg = '#D9D3CD'; // Beige/tan background
   const darkBg = '#121212'; // closer to MUI dark background
-  const primary = '#f97316'; // soft orange
+  const primary = '#F97316'; // Orange accent
+  const primaryLight = '#FDB585'; // Peach/light orange for inactive states
+  const darkCircle = '#1B1F22'; // Dark circle for upload area
 
   const options: ThemeOptions = {
     palette: {
       mode,
-      primary: { main: primary },
-      background: { default: mode === 'light' ? lightBg : darkBg, paper: mode === 'light' ? '#ffffff' : grey[900] },
-      text: { primary: mode === 'light' ? '#0f172a' : grey[100], secondary: mode === 'light' ? '#6b7280' : grey[400] },
+      primary: { 
+        main: primary,
+        light: primaryLight,
+        dark: '#ea580c', // Darker orange for hover states
+      },
+      background: { 
+        default: mode === 'light' ? lightBg : darkBg, 
+        paper: mode === 'light' ? darkCircle : grey[900] 
+      },
+      text: { 
+        primary: mode === 'light' ? '#FFFFFF' : grey[100], 
+        secondary: mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : grey[400] 
+      },
     },
-    shape: { borderRadius: 12 },
+    shape: { borderRadius: 10 },
     typography: {
       fontFamily:
         'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',

@@ -278,14 +278,25 @@ export function AppStepWorkflow() {
           alignItems: 'center',
           py: { xs: 2, sm: 3 },
           px: { xs: 2, sm: 3 },
+          bgcolor: 'background.default',
         }}
       >
-        {/* Dark Mode Toggle - Fixed Position */}
+        {/* Settings Icon - Fixed Position (bottom-right) */}
         <IconButton 
           size={isMobile ? 'large' : 'medium'}
           onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
           aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}
+          sx={{ 
+            position: 'fixed', 
+            bottom: 24, 
+            right: 24, 
+            zIndex: 1000,
+            bgcolor: 'white',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+            '&:hover': {
+              bgcolor: 'grey.100',
+            }
+          }}
         >
           {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
         </IconButton>
@@ -294,11 +305,32 @@ export function AppStepWorkflow() {
         <Box sx={{ maxWidth: 600, width: '100%', mx: 'auto' }}>
           {/* Header */}
           <Box component="header" role="banner" sx={{ mb: { xs: 1.5, sm: 3 }, textAlign: 'center' }}>
-            <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700, mb: 1 }}>
+            <Typography 
+              variant="h3" 
+              component="h1" 
+              id="app-title" 
+              sx={{ 
+                fontWeight: 700, 
+                mb: 1.5,
+                fontSize: { xs: '2rem', sm: '3rem' },
+                color: '#FFFFFF',
+                letterSpacing: '-0.02em',
+              }}
+            >
               Beyond Borders
             </Typography>
-            <Typography variant="subtitle1" color="textSecondary" component="p">
-              Add a circular, flag-colored border to your profile picture.
+            <Typography 
+              variant="h6" 
+              component="p"
+              sx={{
+                color: 'rgba(184, 184, 184, 1)',
+                fontSize: { xs: '1rem', sm: '1.375rem' },
+                fontWeight: 400,
+                lineHeight: 1.5,
+                px: 2,
+              }}
+            >
+              Add a circular, flag-colored border to<br />your profile picture.
             </Typography>
           </Box>
 
@@ -349,9 +381,9 @@ export function AppStepWorkflow() {
               component="label"
               htmlFor="step1-file-upload"
               sx={{
-                width: { xs: '100%', sm: 300 },
-                maxWidth: 300,
-                height: { xs: '100%', sm: 300 },
+                width: { xs: 320, sm: 400 },
+                maxWidth: 400,
+                height: { xs: 320, sm: 400 },
                 aspectRatio: '1',
                 borderRadius: '50%',
                 display: 'flex',
@@ -359,6 +391,7 @@ export function AppStepWorkflow() {
                 justifyContent: 'center',
                 mx: 'auto',
                 mb: { xs: 2, sm: 3 },
+                mt: { xs: 2, sm: 4 },
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 ...(imageUrl ? {
@@ -372,28 +405,51 @@ export function AppStepWorkflow() {
                     transform: 'scale(1.02)',
                   },
                 } : {
-                  // No image - show selection prompt
-                  border: 3,
-                    borderColor: 'grey.300',
+                  // No image - show selection prompt with dark background
+                  border: '2.5px dashed rgba(255, 255, 255, 0.2)',
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
                     borderStyle: 'dashed',
-                    bgcolor: 'grey.50',
+                    bgcolor: '#1B1F22',
                     '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'grey.100',
+                      borderColor: 'rgba(255, 255, 255, 0.4)',
+                      bgcolor: '#252A2E',
                     },
                   }),
                 }}
               >
                 {!imageUrl && (
                   <Box sx={{ textAlign: 'center', px: 4 }}>
-                    <FileUploadIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
-                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 'medium' }}>
+                    <FileUploadIcon sx={{ fontSize: 64, color: '#CCCCCC', mb: 2 }} />
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontWeight: 400,
+                        color: '#CCCCCC',
+                        mb: 0.5,
+                        fontSize: { xs: '1.125rem', sm: '1.5rem' }
+                      }}
+                    >
                       Choose your profile image
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        mb: 1, 
+                        color: '#DADADA',
+                        fontSize: { xs: '0.875rem', sm: '1.25rem' }
+                      }}
+                    >
                       or drag and drop it here
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+                    <Typography 
+                      variant="body2" 
+                      display="block" 
+                      sx={{ 
+                        mb: 2,
+                        color: '#DADADA',
+                        fontSize: { xs: '0.8125rem', sm: '1.125rem' }
+                      }}
+                    >
                       JPG or PNG
                     </Typography>
                     <Box

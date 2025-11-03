@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Step } from '@/hooks/useStepWorkflow';
-import { Check } from '@mui/icons-material';
 import { Box, Typography } from '@mui/material';
 
 export interface StepProgressIndicatorProps {
@@ -67,8 +66,8 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
       role="navigation"
       aria-label={`Progress: Step ${currentStep} of ${steps.length}`}
       sx={{ 
-        py: { xs: 1, sm: 2 }, 
-        mb: { xs: 2, sm: 3 },
+        py: { xs: 2, sm: 3 }, 
+        mb: { xs: 2, sm: 4 },
         display: 'flex',
         justifyContent: 'center',
       }}
@@ -78,7 +77,7 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: { xs: 2, sm: 4 },
+          gap: { xs: 6, sm: 10 },
           margin: 0,
           padding: 0,
           listStyle: 'none',
@@ -123,51 +122,49 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                   '&:hover': clickable ? { transform: 'scale(1.05)' } : {},
                 }}
               >
+                {/* Active step has orange fill + shadow, inactive has peach fill */}
                 <Box
                   sx={{
-                    width: { xs: 36, sm: 40 },
-                    height: { xs: 36, sm: 40 },
+                    width: { xs: 44, sm: 44 },
+                    height: { xs: 44, sm: 44 },
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    border: 2,
+                    border: 5,
                     transition: 'all 0.3s',
-                    ...(stepCompleted && {
-                      bgcolor: 'primary.light',
-                      borderColor: 'primary.light',
-                      color: 'white',
-                    }),
+                    position: 'relative',
                     ...(stepCurrent && {
                       bgcolor: 'primary.main',
-                      borderColor: 'primary.main',
+                      borderColor: 'primary.light',
                       color: 'white',
-                      boxShadow: '0 0 0 4px rgba(249, 115, 22, 0.2)',
+                      boxShadow: '0 4px 0 rgba(204, 106, 41, 1)',
                     }),
-                    ...(stepFuture && {
-                      bgcolor: 'grey.200',
-                      borderColor: 'grey.300',
-                      color: 'grey.500',
+                    ...((stepCompleted || stepFuture) && {
+                      bgcolor: 'primary.light',
+                      borderColor: 'transparent',
+                      color: stepFuture ? '#9A9A9A' : 'white',
                     }),
                   }}
                 >
-                  {stepCompleted ? (
-                    <Check sx={{ fontSize: 24 }} aria-label="Step completed" />
-                  ) : (
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      {step.number}
-                    </Typography>
-                  )}
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontWeight: 700,
+                      fontSize: { xs: '1.5rem', sm: '1.5rem' },
+                    }}
+                  >
+                    {step.number}
+                  </Typography>
                 </Box>
 
                 <Typography
-                  variant="caption"
+                  variant="body2"
                   sx={{
-                    mt: { xs: 0.5, sm: 1 },
+                    mt: { xs: 1.5, sm: 2 },
                     textAlign: 'center',
                     fontWeight: 500,
-                    height: { xs: 28, sm: 32 },
-                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                    fontSize: { xs: '0.875rem', sm: '1.25rem' },
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -175,11 +172,8 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                     ...(stepCurrent && {
                       color: 'primary.main',
                     }),
-                    ...(stepCompleted && {
-                      color: 'primary.light',
-                    }),
-                    ...(stepFuture && {
-                      color: 'text.disabled',
+                    ...((stepCompleted || stepFuture) && {
+                      color: stepFuture ? '#9A9A9A' : 'primary.main',
                     }),
                   }}
                 >
