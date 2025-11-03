@@ -303,34 +303,49 @@ export function AppStepWorkflow() {
 
         {/* Centered Content Column */}
         <Box sx={{ maxWidth: 600, width: '100%', mx: 'auto' }}>
-          {/* Header */}
-          <Box component="header" role="banner" sx={{ mb: { xs: 1.5, sm: 3 }, textAlign: 'center' }}>
+          {/* Header with dark curved background */}
+          <Box component="header" role="banner" sx={{ mb: { xs: 2, sm: 3 }, textAlign: 'center', position: 'relative' }}>
+            {/* Dark curved shape background */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: { xs: -24, sm: -32 },
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '100vw',
+                height: { xs: 120, sm: 140 },
+                bgcolor: '#1B1F22',
+                borderRadius: '0 0 50% 50% / 0 0 30% 30%',
+                zIndex: -1,
+              }}
+            />
             <Typography 
               variant="h3" 
               component="h1" 
               id="app-title" 
               sx={{ 
-                fontWeight: 700, 
-                mb: 1.5,
-                fontSize: { xs: '2rem', sm: '3rem' },
-                color: 'text.primary',
-                letterSpacing: '-0.02em',
+                fontWeight: 400, 
+                mb: 1,
+                fontSize: { xs: '2rem', sm: '2rem' },
+                color: '#FFFFFF',
+                letterSpacing: '0.02em',
+                pt: { xs: 1, sm: 2 },
               }}
             >
-              Beyond Borders
+              BEYOND BORDERS
             </Typography>
             <Typography 
-              variant="h6" 
+              variant="body1" 
               component="p"
               sx={{
-                color: 'text.secondary',
-                fontSize: { xs: '1rem', sm: '1.375rem' },
+                color: '#FFFFFF',
+                fontSize: { xs: '0.875rem', sm: '0.875rem' },
                 fontWeight: 400,
-                lineHeight: 1.5,
+                lineHeight: 1.2,
                 px: 2,
               }}
             >
-              Add a circular, flag-colored border to<br />your profile picture.
+              Add a flag border to your profile picture
             </Typography>
           </Box>
 
@@ -381,9 +396,9 @@ export function AppStepWorkflow() {
               component="label"
               htmlFor="step1-file-upload"
               sx={{
-                width: { xs: 320, sm: 400 },
-                maxWidth: 400,
-                height: { xs: 320, sm: 400 },
+                width: 279,
+                maxWidth: 279,
+                height: 279,
                 aspectRatio: '1',
                 borderRadius: '50%',
                 display: 'flex',
@@ -391,7 +406,7 @@ export function AppStepWorkflow() {
                 justifyContent: 'center',
                 mx: 'auto',
                 mb: { xs: 2, sm: 3 },
-                mt: { xs: 2, sm: 4 },
+                mt: { xs: 1, sm: 2 },
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 ...(imageUrl ? {
@@ -418,36 +433,26 @@ export function AppStepWorkflow() {
                 }}
               >
                 {!imageUrl && (
-                  <Box sx={{ textAlign: 'center', px: 4 }}>
-                    <FileUploadIcon sx={{ fontSize: 64, color: '#CCCCCC', mb: 2 }} />
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        fontWeight: 400,
-                        color: '#CCCCCC',
-                        mb: 0.5,
-                        fontSize: { xs: '1.125rem', sm: '1.5rem' }
-                      }}
-                    >
-                      Choose your profile image
-                    </Typography>
+                  <Box sx={{ textAlign: 'center', px: 3 }}>
+                    <FileUploadIcon sx={{ fontSize: 57, color: '#DADADA', mb: 1.5 }} />
                     <Typography 
                       variant="body1" 
                       sx={{ 
-                        mb: 1, 
-                        color: '#DADADA',
-                        fontSize: { xs: '0.875rem', sm: '1.25rem' }
+                        fontWeight: 400,
+                        color: '#FFFFFF',
+                        mb: 1,
+                        fontSize: '0.9375rem',
                       }}
                     >
-                      or drag and drop it here
+                      Choose your profile picture
                     </Typography>
                     <Typography 
                       variant="body2" 
                       display="block" 
                       sx={{ 
                         mb: 2,
-                        color: '#DADADA',
-                        fontSize: { xs: '0.8125rem', sm: '1.125rem' }
+                        color: '#FFFFFF',
+                        fontSize: '0.8125rem',
                       }}
                     >
                       JPG or PNG
@@ -499,7 +504,7 @@ export function AppStepWorkflow() {
                   canGoBack={false}
                   canGoNext={canProceedFromStep1}
                   onNext={nextStep}
-                  nextLabel="Select Flag"
+                  nextLabel="SELECT FLAG"
                 />
               </Box>
             </>

@@ -156,23 +156,23 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
               aria-disabled={!canGoNext || buttonsDisabled}
               endIcon={
                 isLoading ? (
-                  <CircularProgress size={20} color="inherit" />
+                  <CircularProgress size={16} color="inherit" />
                 ) : (
-                  <ArrowForwardIcon sx={{ fontSize: 28 }} />
+                  <ArrowForwardIcon sx={{ fontSize: 16 }} />
                 )
               }
               sx={{ 
                 flex: '1 1 0',
-                height: 56,
-                borderRadius: 28,
-                fontSize: '1.125rem',
-                fontWeight: 700,
+                height: 37,
+                borderRadius: '10px',
+                fontSize: '0.9375rem',
+                fontWeight: 400,
                 textTransform: 'uppercase',
-                letterSpacing: '0.04em',
+                letterSpacing: '0.02em',
                 bgcolor: 'primary.light',
                 color: 'white',
-                justifyContent: 'space-between',
-                px: 4,
+                justifyContent: 'center',
+                px: 3,
                 '&:hover': {
                   bgcolor: 'primary.main',
                 },
