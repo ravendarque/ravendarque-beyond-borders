@@ -584,10 +584,10 @@ export function AppStepWorkflow() {
                   // No image - show selection prompt with dark background
                   border: '2.5px dashed',
                   borderColor: 'rgba(255, 255, 255, 0.3)',
-                  bgcolor: '#2A2F33',
+                  bgcolor: '#3D4449',
                   '&:hover': {
                     borderColor: 'rgba(255, 255, 255, 0.5)',
-                    bgcolor: '#343A3F',
+                    bgcolor: '#4A5156',
                   },
                 }),
               }}
