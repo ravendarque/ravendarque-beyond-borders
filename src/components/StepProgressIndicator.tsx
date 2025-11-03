@@ -122,36 +122,35 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                   '&:hover': clickable ? { transform: 'scale(1.05)' } : {},
                 }}
               >
-                {/* Active step has orange fill + shadow, inactive has peach fill */}
+                {/* Active step has orange fill + peach border, inactive has peach fill only */}
                 <Box
                   sx={{
-                    width: { xs: 44, sm: 44 },
-                    height: { xs: 44, sm: 44 },
+                    width: 39,
+                    height: 39,
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    border: 5,
                     transition: 'all 0.3s',
                     position: 'relative',
                     ...(stepCurrent && {
                       bgcolor: 'primary.main',
+                      border: '5px solid',
                       borderColor: 'primary.light',
                       color: 'white',
-                      boxShadow: '0 4px 0 rgba(204, 106, 41, 1)',
                     }),
                     ...((stepCompleted || stepFuture) && {
                       bgcolor: 'primary.light',
-                      borderColor: 'transparent',
-                      color: stepFuture ? '#9A9A9A' : 'white',
+                      border: 'none',
+                      color: 'white',
                     }),
                   }}
                 >
                   <Typography 
-                    variant="h6" 
+                    variant="body1" 
                     sx={{ 
-                      fontWeight: 700,
-                      fontSize: { xs: '1.5rem', sm: '1.5rem' },
+                      fontWeight: 400,
+                      fontSize: '0.9375rem',
                     }}
                   >
                     {step.number}
@@ -159,21 +158,21 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
                 </Box>
 
                 <Typography
-                  variant="body2"
+                  variant="caption"
                   sx={{
-                    mt: { xs: 1.5, sm: 2 },
+                    mt: 1,
                     textAlign: 'center',
-                    fontWeight: 500,
-                    fontSize: { xs: '0.875rem', sm: '1.25rem' },
+                    fontWeight: 400,
+                    fontSize: '0.625rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    lineHeight: 1.2,
+                    lineHeight: 1.3,
                     ...(stepCurrent && {
                       color: 'primary.main',
                     }),
                     ...((stepCompleted || stepFuture) && {
-                      color: stepFuture ? '#9A9A9A' : 'primary.main',
+                      color: 'primary.light',
                     }),
                   }}
                 >
