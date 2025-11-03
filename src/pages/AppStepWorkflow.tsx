@@ -582,16 +582,15 @@ export function AppStepWorkflow() {
                   },
                 } : {
                   // No image - show selection prompt with dark background
-                  border: '2.5px dashed rgba(255, 255, 255, 0.2)',
-                    borderColor: 'rgba(255, 255, 255, 0.2)',
-                    borderStyle: 'dashed',
-                    bgcolor: '#1B1F22',
-                    '&:hover': {
-                      borderColor: 'rgba(255, 255, 255, 0.4)',
-                      bgcolor: '#252A2E',
-                    },
-                  }),
-                }}
+                  border: '2.5px dashed',
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  bgcolor: '#2A2F33',
+                  '&:hover': {
+                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                    bgcolor: '#343A3F',
+                  },
+                }),
+              }}
               >
                 {!imageUrl && (
                   <Box sx={{ textAlign: 'center', px: 3 }}>
