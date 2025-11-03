@@ -122,25 +122,29 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
             aria-disabled={buttonsDisabled}
             startIcon={
               isLoading ? (
-                <CircularProgress size={20} color="inherit" />
+                <CircularProgress size={16} color="inherit" />
               ) : undefined
             }
             sx={{ 
               flex: '1 1 0',
-              height: 56,
-              borderRadius: 28,
-              fontSize: '1.125rem',
-              fontWeight: 700,
+              height: 37,
+              borderRadius: '10px',
+              fontSize: '0.9375rem',
+              fontWeight: 400,
               textTransform: 'uppercase',
-              letterSpacing: '0.04em',
+              letterSpacing: '0.02em',
               bgcolor: 'primary.light',
               color: 'white',
-              '&:hover': {
+              '&:hover:not(:disabled)': {
                 bgcolor: 'primary.main',
               },
               '&:disabled': {
-                bgcolor: '#2A2A2A',
-                color: '#757575',
+                bgcolor: 'primary.light',
+                color: 'white',
+                opacity: 1,
+              },
+              '&:not(:disabled)': {
+                bgcolor: 'primary.main',
               }
             }}
           >
@@ -177,8 +181,9 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
                   bgcolor: 'primary.main',
                 },
                 '&:disabled': {
-                  bgcolor: '#2A2A2A',
-                  color: '#757575',
+                  bgcolor: 'primary.light',
+                  opacity: 0.5,
+                  color: 'white',
                 }
               }}
             >

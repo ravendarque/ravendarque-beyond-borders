@@ -6,9 +6,8 @@ import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFocusManagement } from '@/hooks/useFocusManagement';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useFlagPreloader } from '@/hooks/useFlagPreloader';
-import { useStepWorkflow, Step } from '@/hooks/useStepWorkflow';
+import { useStepWorkflow } from '@/hooks/useStepWorkflow';
 import {
-  StepProgressIndicator,
   NavigationButtons,
   FlagDropdown,
   FlagPreview,
@@ -278,7 +277,8 @@ export function AppStepWorkflow() {
           alignItems: 'center',
           py: { xs: 2, sm: 3 },
           px: { xs: 2, sm: 3 },
-          bgcolor: 'background.default',
+          bgcolor: '#D9D3CD',
+          pb: 12, // Extra padding for footer
         }}
       >
         {/* Settings Icon - Fixed Position (bottom-right) */}
@@ -303,33 +303,50 @@ export function AppStepWorkflow() {
 
         {/* Centered Content Column */}
         <Box sx={{ maxWidth: 600, width: '100%', mx: 'auto' }}>
-          {/* Header with dark curved background */}
-          <Box component="header" role="banner" sx={{ mb: { xs: 2, sm: 3 }, textAlign: 'center', position: 'relative' }}>
-            {/* Dark curved shape background */}
+          {/* Header with SVG shape and step indicators positioned in cutouts */}
+          <Box 
+            component="header" 
+            role="banner" 
+            sx={{ 
+              mb: 2,
+              textAlign: 'center', 
+              position: 'relative',
+              mx: 'auto',
+              width: 306,
+              height: 102,
+            }}
+          >
+            {/* SVG Header with circular cutouts */}
             <Box
-              sx={{
-                position: 'absolute',
-                top: { xs: -24, sm: -32 },
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '100vw',
-                height: { xs: 120, sm: 140 },
-                bgcolor: '#1B1F22',
-                borderRadius: '0 0 50% 50% / 0 0 30% 30%',
-                zIndex: -1,
-              }}
-            />
+              component="svg"
+              width="306"
+              height="102.13"
+              viewBox="0 0 306 102.13"
+              xmlns="http://www.w3.org/2000/svg"
+              sx={{ position: 'absolute', top: 0, left: 0 }}
+            >
+              <path 
+                d="M152.521 -334.5C294.459 -334.5 409.521 -219.437 409.521 -77.5C409.521 23.8251 350.883 72.2109 265.69 91.6064C263.825 79.926 253.706 71 241.5 71C227.969 71 217 81.969 217 95.5C217 96.8278 217.106 98.1308 217.31 99.4014C203.961 100.788 190.19 101.675 176.091 102.129C176.682 100.02 177 97.7974 177 95.5C177 81.969 166.031 71 152.5 71C138.969 71 128 81.969 128 95.5C128 97.7966 128.317 100.019 128.908 102.127C114.809 101.672 101.038 100.785 87.6895 99.3965C87.8923 98.1274 88 96.8262 88 95.5C88 81.969 77.031 71 63.5 71C51.2975 71 41.1799 79.921 39.3105 91.5967C-45.8593 72.1948 -104.479 23.8086 -104.479 -77.5C-104.479 -219.437 10.5843 -334.5 152.521 -334.5Z"
+                fill="#1B1F22"
+              />
+            </Box>
+
+            {/* Header Text */}
             <Typography 
               variant="h3" 
               component="h1" 
               id="app-title" 
               sx={{ 
-                fontWeight: 400, 
-                mb: 1,
-                fontSize: { xs: '2rem', sm: '2rem' },
+                fontWeight: 400,
+                fontSize: '2rem',
                 color: '#FFFFFF',
                 letterSpacing: '0.02em',
-                pt: { xs: 1, sm: 2 },
+                position: 'absolute',
+                top: 16,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 1,
+                width: '100%',
               }}
             >
               BEYOND BORDERS
@@ -339,27 +356,188 @@ export function AppStepWorkflow() {
               component="p"
               sx={{
                 color: '#FFFFFF',
-                fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                fontSize: '0.875rem',
                 fontWeight: 400,
-                lineHeight: 1.2,
-                px: 2,
+                lineHeight: 1,
+                position: 'absolute',
+                top: 56,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 1,
+                width: 279,
+                textAlign: 'center',
               }}
             >
               Add a flag border to your profile picture
             </Typography>
-          </Box>
 
-          {/* Step Progress Indicator */}
-          <StepProgressIndicator
-            currentStep={currentStep}
-            completedSteps={completedSteps}
-            steps={STEP_TITLES.map((title, index) => ({
-              number: (index + 1) as Step,
-              label: title,
-              title: title,
-            }))}
-            onStepClick={goToStep}
-          />
+            {/* Step Indicators - positioned absolutely to fit in SVG cutouts */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 95.5 - 19.5, // y position minus radius to center
+                left: 0,
+                width: '100%',
+                height: 39,
+              }}
+            >
+              {/* Step 1 */}
+              <Box
+                component="button"
+                onClick={() => completedSteps.includes(1) && goToStep(1)}
+                disabled={!completedSteps.includes(1)}
+                type="button"
+                aria-label={completedSteps.includes(1) ? `Go back to step 1: ${STEP_TITLES[0]}` : undefined}
+                sx={{
+                  position: 'absolute',
+                  left: 63.5 - 19.5, // x position minus radius
+                  width: 39,
+                  height: 39,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: currentStep === 1 ? 'primary.main' : 'primary.light',
+                  border: currentStep === 1 ? '5px solid' : 'none',
+                  borderColor: currentStep === 1 ? 'primary.light' : 'transparent',
+                  color: 'white',
+                  cursor: completedSteps.includes(1) ? 'pointer' : 'default',
+                  padding: 0,
+                  transition: 'transform 0.2s',
+                  '&:hover': completedSteps.includes(1) ? { transform: 'scale(1.05)' } : {},
+                  '&:disabled': {
+                    cursor: 'default',
+                  },
+                }}
+              >
+                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem' }}>
+                  1
+                </Typography>
+              </Box>
+
+              {/* Step 2 */}
+              <Box
+                component="button"
+                onClick={() => completedSteps.includes(2) && goToStep(2)}
+                disabled={!completedSteps.includes(2)}
+                type="button"
+                aria-label={completedSteps.includes(2) ? `Go back to step 2: ${STEP_TITLES[1]}` : undefined}
+                sx={{
+                  position: 'absolute',
+                  left: 152.5 - 19.5,
+                  width: 39,
+                  height: 39,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: currentStep === 2 ? 'primary.main' : 'primary.light',
+                  border: currentStep === 2 ? '5px solid' : 'none',
+                  borderColor: currentStep === 2 ? 'primary.light' : 'transparent',
+                  color: 'white',
+                  cursor: completedSteps.includes(2) ? 'pointer' : 'default',
+                  padding: 0,
+                  transition: 'transform 0.2s',
+                  '&:hover': completedSteps.includes(2) ? { transform: 'scale(1.05)' } : {},
+                  '&:disabled': {
+                    cursor: 'default',
+                  },
+                }}
+              >
+                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem' }}>
+                  2
+                </Typography>
+              </Box>
+
+              {/* Step 3 */}
+              <Box
+                component="button"
+                onClick={() => completedSteps.includes(3) && goToStep(3)}
+                disabled={!completedSteps.includes(3)}
+                type="button"
+                aria-label={completedSteps.includes(3) ? `Go back to step 3: ${STEP_TITLES[2]}` : undefined}
+                sx={{
+                  position: 'absolute',
+                  left: 241.5 - 19.5,
+                  width: 39,
+                  height: 39,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: currentStep === 3 ? 'primary.main' : 'primary.light',
+                  border: currentStep === 3 ? '5px solid' : 'none',
+                  borderColor: currentStep === 3 ? 'primary.light' : 'transparent',
+                  color: 'white',
+                  cursor: completedSteps.includes(3) ? 'pointer' : 'default',
+                  padding: 0,
+                  transition: 'transform 0.2s',
+                  '&:hover': completedSteps.includes(3) ? { transform: 'scale(1.05)' } : {},
+                  '&:disabled': {
+                    cursor: 'default',
+                  },
+                }}
+              >
+                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem' }}>
+                  3
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Step Labels below the circles */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 95.5 + 19.5 + 8, // below circles with 8px gap
+                left: 0,
+                width: '100%',
+                height: 13,
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  position: 'absolute',
+                  left: 63.5 - 15, // centered under step 1
+                  width: 30,
+                  textAlign: 'center',
+                  fontSize: '0.625rem',
+                  color: currentStep === 1 ? 'primary.main' : 'primary.light',
+                }}
+              >
+                {STEP_TITLES[0]}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  position: 'absolute',
+                  left: 152.5 - 10.5, // centered under step 2
+                  width: 21,
+                  textAlign: 'center',
+                  fontSize: '0.625rem',
+                  color: currentStep === 2 ? 'primary.main' : 'primary.light',
+                }}
+              >
+                {STEP_TITLES[1]}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  position: 'absolute',
+                  left: 241.5 - 15.5, // centered under step 3
+                  width: 31,
+                  textAlign: 'center',
+                  fontSize: '0.625rem',
+                  color: currentStep === 3 ? 'primary.main' : 'primary.light',
+                }}
+              >
+                {STEP_TITLES[2]}
+              </Typography>
+            </Box>
+          </Box>
 
           {/* Error Display */}
           {error && (
@@ -498,7 +676,7 @@ export function AppStepWorkflow() {
               
               <Box sx={{ mb: 3 }} />
               
-              <Box sx={{ width: '100%', maxWidth: 300, mx: 'auto' }}>
+              <Box sx={{ width: '100%', maxWidth: 279, mx: 'auto' }}>
                 <NavigationButtons
                   currentStep={currentStep}
                   canGoBack={false}
@@ -739,6 +917,44 @@ export function AppStepWorkflow() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Footer with dark background */}
+        <Box
+          component="footer"
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            bgcolor: '#1B1F22',
+            py: 1.5,
+            textAlign: 'center',
+            zIndex: 999,
+          }}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              color: '#F97316',
+              fontSize: '0.6875rem',
+              fontWeight: 300,
+              display: 'block',
+              mb: 0.5,
+            }}
+          >
+            Ethics and Sustainability | GitHub Open Source
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              color: '#FFFFFF',
+              fontSize: '0.6875rem',
+              fontWeight: 300,
+            }}
+          >
+            © Nix Crabtree, 2005
+          </Typography>
+        </Box>
       </Box>
     </>
   );
