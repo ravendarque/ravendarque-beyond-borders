@@ -313,7 +313,7 @@ export function AppStepWorkflow() {
                 fontWeight: 700, 
                 mb: 1.5,
                 fontSize: { xs: '2rem', sm: '3rem' },
-                color: '#FFFFFF',
+                color: 'text.primary',
                 letterSpacing: '-0.02em',
               }}
             >
@@ -323,7 +323,7 @@ export function AppStepWorkflow() {
               variant="h6" 
               component="p"
               sx={{
-                color: 'rgba(184, 184, 184, 1)',
+                color: 'text.secondary',
                 fontSize: { xs: '1rem', sm: '1.375rem' },
                 fontWeight: 400,
                 lineHeight: 1.5,

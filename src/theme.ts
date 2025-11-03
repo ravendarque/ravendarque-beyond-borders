@@ -22,8 +22,8 @@ export function createAppTheme(mode: 'light' | 'dark') {
         paper: mode === 'light' ? darkCircle : grey[900] 
       },
       text: { 
-        primary: mode === 'light' ? '#FFFFFF' : grey[100], 
-        secondary: mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : grey[400] 
+        primary: mode === 'light' ? '#1F2937' : grey[100], 
+        secondary: mode === 'light' ? '#6B7280' : grey[400] 
       },
     },
     shape: { borderRadius: 10 },
