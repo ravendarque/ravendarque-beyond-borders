@@ -1,44 +1,53 @@
 ## Deployment Architecture
 
-This project uses two distinct GitHub Pages deployment strategies:
+This project uses a **unified GitHub Pages deployment strategy** where both production and beta deployments push to the `gh-pages` branch:
 
-1. **Production (Workflow Mode)** – artifact-based deployment via `actions/upload-pages-artifact` and `actions/deploy-pages`.
-2. **Beta (Legacy Commit Mode)** – versioned static builds committed directly into the `gh-pages` branch under `beta/<semver>/`.
+1. **Production** – deploys to the root of `gh-pages` branch
+2. **Beta** – deploys versioned builds to `gh-pages/beta/<semver>/`
 
-### 1. Production Deployment (Workflow Mode)
+Both strategies use the same deployment method for consistency and reliability.
+
+### GitHub Pages Configuration
+
+**CRITICAL:** GitHub Pages must be configured to deploy from the `gh-pages` branch:
+
+1. Go to: **Settings → Pages**
+2. Under "Build and deployment" → "Source"
+3. Select: **"Deploy from a branch"**
+4. Branch: **`gh-pages`**
+5. Folder: **`/ (root)`**
+
+### 1. Production Deployment
 
 Workflow: `.github/workflows/deploy-pages.yml`
 
 Triggers:
-- Push to `main`
+- Push to `main` (ignores docs, markdown, and local files)
 - Manual `workflow_dispatch`
 
-Key steps:
-- Install & build (`pnpm build`) with `BASE_URL=/<repo>/`.
-- Add `.nojekyll` to prevent Jekyll processing.
-- Upload build output (`dist/`) as a Pages artifact.
-- Deploy artifact using `actions/deploy-pages@v4`.
- - Upload a secondary provenance artifact (`actions/upload-artifact@v4`) retained for 30 days.
+Process:
+1. Build app with `BASE_URL=/` (for custom domain)
+2. Checkout `gh-pages` branch
+3. Preserve existing `beta/*` directories
+4. Deploy build to root of `gh-pages`
+5. Include `CNAME` file automatically (from `public/CNAME`)
+6. Commit and push to `gh-pages`
 
-Benefits:
-- Clear deployment status surfaced in the workflow run.
-- No direct writes to `gh-pages` for production (immutability & provenance).
-- Automatic rebuilds without manual API trigger.
-- Uses OIDC (`id-token: write`) for provenance.
- - Separate short-term retained artifact enables post-deployment inspection & diffing.
+Key features:
+- Preserves beta deployments during production updates
+- Supports custom domain via `CNAME` file
+- Creates provenance artifact retained for 30 days
+- Single source of truth (`gh-pages` branch)
 
 Permissions configured:
 ```yaml
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 ```
 
-Environment URL:
-```
-https://<owner>.github.io/<repo>/
-```
+URLs:
+- **Custom Domain:** `https://wearebeyondborders.com`
+- **GitHub Pages:** `https://<owner>.github.io/<repo>/`
 
 ### 2. Beta Deployments (Versioned Previews)
 
@@ -59,39 +68,117 @@ Beta URL pattern:
 https://<owner>.github.io/<repo>/beta/<semver>/
 ```
 
+Beta index page:
+```
+https://<owner>.github.io/<repo>/beta/
+```
+
 Cleanup Workflow: `.github/workflows/cleanup-beta.yml` – removes a specific version directory and regenerates the beta index.
 
-Rationale for keeping commit-based beta:
-- Multiple parallel preview versions preserved simultaneously.
-- Simple static hosting without artifact retention limits.
-- Enables testers to compare versions side-by-side.
+Benefits:
+- Multiple parallel preview versions preserved simultaneously
+- Simple static hosting coexisting with production
+- Enables testers to compare versions side-by-side
+- Consistent deployment method with production
 
-### Manual Beta Deployment (Example)
-You can trigger a manual beta deployment of your current branch:
+### Manual Beta Deployment
+
+Trigger a manual beta deployment of your current branch:
 ```bash
 gh workflow run deploy-beta.yml -f branch=$(git rev-parse --abbrev-ref HEAD)
 ```
 
-### Switching Pages to Workflow Mode
-The repository's GitHub Pages setting must be set to "Workflow" (not "Deploy from branch"). This is a one-time change performed in **Settings → Pages**.
+### Custom Domain Setup
+
+To use a custom domain (e.g., `wearebeyondborders.com`):
+
+1. **Add CNAME file:** Create `public/CNAME` with your domain:
+   ```
+   wearebeyondborders.com
+   ```
+
+2. **Configure DNS:** Add DNS records with your domain provider:
+   - **A records** pointing to GitHub Pages IPs:
+     - `185.199.108.153`
+     - `185.199.109.153`
+     - `185.199.110.153`
+     - `185.199.111.153`
+   - Or **CNAME record** pointing to `<owner>.github.io`
+
+3. **GitHub Pages settings:** The custom domain will be automatically configured from the `CNAME` file after deployment
+
+4. **Update production workflow:** The `BASE_URL` is set to `/` for custom domains (already configured)
 
 ### Adding a New Deployment Type
-For additional staged environments (e.g., `staging/`), prefer artifact-based workflow mode unless you need multiple concurrent versions. Follow production pattern, adjusting `BASE_URL`.
+
+For additional environments (e.g., `staging/`):
+1. Create a new workflow based on `deploy-beta.yml`
+2. Push to a different subdirectory in `gh-pages` (e.g., `staging/`)
+3. Adjust `BASE_URL` to match the subdirectory path
+4. Follow the same `gh-pages` branch deployment pattern
 
 ### Common Issues & Troubleshooting
-- 404 after deploy: Ensure Pages setting is workflow mode and artifact step ran successfully.
-- Missing assets: Verify `BASE_URL` matches production root (`/<repo>/`).
-- Beta version collision: Re-run beta deploy; directory is fully replaced each time.
-- Cache issues: Append a query string (e.g., `?v=<semver>`) when sharing fresh builds.
- - Artifact retention: The Pages deployment artifact is managed by GitHub. The additional `production-build-dist` artifact is retained for 30 days (adjust via `retention-days`). Consider increasing retention near releases.
 
-### Acceptance Criteria Mapping (Issue #111)
-- Uses `actions/deploy-pages@v4` – DONE.
-- Deployment status visible – Provided by deploy job & environment.
-- No manual POST trigger – Artifact workflow handles build & deploy automatically.
-- Beta strategy unchanged – Workflows untouched.
-- Automatic rebuild on `main` push – Push trigger configured.
+**404 after deploy:**
+- Verify GitHub Pages is set to "Deploy from a branch" (gh-pages)
+- Check workflow completed successfully
+- Wait 2-3 minutes for GitHub Pages to rebuild
 
-### Next Steps
-- Monitor initial production deploy under workflow mode.
-- Optionally migrate beta deployments to artifact model when single-version previews become acceptable.
+**Custom domain not working:**
+- Verify `CNAME` file exists in `public/` directory
+- Check DNS records are configured correctly
+- Wait for DNS propagation (up to 24 hours)
+- Verify custom domain shows in Settings → Pages
+
+**Missing assets:**
+- For custom domain: Verify `BASE_URL=/` in production workflow
+- For GitHub Pages URL: Verify `BASE_URL=/<repo>/` in production workflow
+- Check assets loaded from correct path in browser DevTools
+
+**Beta version collision:**
+- Re-run beta deploy; directory is fully replaced each time
+- No action needed - newer version overwrites older
+
+**Production overwrites beta:**
+- Check production workflow preserves `beta/*` directories
+- Review workflow logs for "Preserve beta directory" step
+
+**Cache issues:**
+- Hard refresh in browser (Ctrl+Shift+R)
+- Append query string when sharing (e.g., `?v=<semver>`)
+
+**Artifact retention:**
+- Production provenance artifact retained for 30 days
+- Adjust via `retention-days` in workflow if needed
+
+### Deployment Checklist
+
+**Initial Setup:**
+- [ ] GitHub Pages set to "Deploy from a branch" (gh-pages)
+- [ ] `public/CNAME` file contains custom domain
+- [ ] DNS records configured for custom domain
+- [ ] Production workflow `BASE_URL` set to `/`
+- [ ] Beta workflow unchanged from defaults
+
+**Per Deployment:**
+- [ ] Workflow completes successfully
+- [ ] Production preserves beta directories
+- [ ] Custom domain resolves correctly
+- [ ] All assets load properly
+- [ ] Beta deployments accessible
+
+### Architecture Decision
+
+**Why both use `gh-pages` branch?**
+
+Previously attempted using GitHub Actions deployment (`actions/deploy-pages`) for production while beta used `gh-pages` branch. This failed because:
+- GitHub Pages can only use ONE deployment method
+- Actions deployment ignores `gh-pages` branch entirely
+- Beta deployments became inaccessible
+
+Current unified approach:
+- ✅ Both production and beta accessible
+- ✅ Consistent deployment method
+- ✅ Production preserves beta versions
+- ✅ Single Pages configuration
+- ✅ Custom domain works correctly
