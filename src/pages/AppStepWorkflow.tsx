@@ -6,9 +6,8 @@ import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFocusManagement } from '@/hooks/useFocusManagement';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useFlagPreloader } from '@/hooks/useFlagPreloader';
-import { useStepWorkflow, Step } from '@/hooks/useStepWorkflow';
+import { useStepWorkflow } from '@/hooks/useStepWorkflow';
 import {
-  StepProgressIndicator,
   NavigationButtons,
   FlagDropdown,
   FlagPreview,
@@ -18,11 +17,8 @@ import {
 } from '@/components';
 import { ErrorAlert } from '@/components/ErrorAlert';
 
-import FileUploadIcon from '@mui/icons-material/UploadFile';
-import IconButton from '@mui/material/IconButton';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Button from '@mui/material/Button';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -44,7 +40,7 @@ import { normalizeError } from '@/types/errors';
 const STEP_TITLES = ['Image', 'Flag', 'Adjust'];
 
 export function AppStepWorkflow() {
-  const { mode, setMode } = useContext(ThemeModeContext);
+  const { mode } = useContext(ThemeModeContext);
   const theme = useTheme();
 
   // Responsive breakpoints
@@ -276,43 +272,256 @@ export function AppStepWorkflow() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          py: { xs: 2, sm: 3 },
+          pt: 0, // No padding top - header starts at top
           px: { xs: 2, sm: 3 },
+          bgcolor: '#D9D3CD',
+          pb: 12, // Extra padding for footer
         }}
       >
-        {/* Dark Mode Toggle - Fixed Position */}
-        <IconButton 
-          size={isMobile ? 'large' : 'medium'}
-          onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
-          aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}
-        >
-          {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
-        </IconButton>
-
         {/* Centered Content Column */}
         <Box sx={{ maxWidth: 600, width: '100%', mx: 'auto' }}>
-          {/* Header */}
-          <Box component="header" role="banner" sx={{ mb: { xs: 1.5, sm: 3 }, textAlign: 'center' }}>
-            <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700, mb: 1 }}>
-              Beyond Borders
-            </Typography>
-            <Typography variant="subtitle1" color="textSecondary" component="p">
-              Add a circular, flag-colored border to your profile picture.
-            </Typography>
-          </Box>
+          {/* Header with SVG shape and step indicators positioned in cutouts */}
+          <Box 
+            component="header" 
+            role="banner" 
+            sx={{ 
+              mb: 8,
+              textAlign: 'center', 
+              position: 'relative',
+              mx: 'auto',
+              width: 306,
+              height: 102,
+            }}
+          >
+            {/* SVG Header with circular cutouts */}
+            <Box
+              component="svg"
+              width="306"
+              height="102.13"
+              viewBox="0 0 306 102.13"
+              xmlns="http://www.w3.org/2000/svg"
+              sx={{ position: 'absolute', top: 0, left: 0 }}
+            >
+              <path 
+                d="M152.521 -334.5C294.459 -334.5 409.521 -219.437 409.521 -77.5C409.521 23.8251 350.883 72.2109 265.69 91.6064C263.825 79.926 253.706 71 241.5 71C227.969 71 217 81.969 217 95.5C217 96.8278 217.106 98.1308 217.31 99.4014C203.961 100.788 190.19 101.675 176.091 102.129C176.682 100.02 177 97.7974 177 95.5C177 81.969 166.031 71 152.5 71C138.969 71 128 81.969 128 95.5C128 97.7966 128.317 100.019 128.908 102.127C114.809 101.672 101.038 100.785 87.6895 99.3965C87.8923 98.1274 88 96.8262 88 95.5C88 81.969 77.031 71 63.5 71C51.2975 71 41.1799 79.921 39.3105 91.5967C-45.8593 72.1948 -104.479 23.8086 -104.479 -77.5C-104.479 -219.437 10.5843 -334.5 152.521 -334.5Z"
+                fill="#1B1F22"
+              />
+            </Box>
 
-          {/* Step Progress Indicator */}
-          <StepProgressIndicator
-            currentStep={currentStep}
-            completedSteps={completedSteps}
-            steps={STEP_TITLES.map((title, index) => ({
-              number: (index + 1) as Step,
-              label: title,
-              title: title,
-            }))}
-            onStepClick={goToStep}
-          />
+            {/* Header Text */}
+            <Typography 
+              variant="h3" 
+              component="h1" 
+              id="app-title" 
+              sx={{ 
+                fontWeight: 400,
+                fontSize: '1.75rem',
+                color: '#FFFFFF',
+                letterSpacing: '0.02em',
+                position: 'absolute',
+                top: 8,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 2,
+                width: '100%',
+              }}
+            >
+              BEYOND BORDERS
+            </Typography>
+            <Typography 
+              variant="body1" 
+              component="p"
+              sx={{
+                color: '#FFFFFF',
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                lineHeight: 1,
+                position: 'absolute',
+                top: 42,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 2,
+                width: 279,
+                textAlign: 'center',
+              }}
+            >
+              Add a flag border to your profile picture
+            </Typography>
+
+            {/* Step Indicators - positioned absolutely to fit in SVG cutouts */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 95.5 - 19.5, // y position minus radius to center
+                left: 0,
+                width: '100%',
+                height: 39,
+                zIndex: 2,
+              }}
+            >
+              {/* Step 1 */}
+              <Box
+                component="button"
+                onClick={() => completedSteps.includes(1) && goToStep(1)}
+                disabled={!completedSteps.includes(1)}
+                type="button"
+                aria-label={completedSteps.includes(1) ? `Go back to step 1: ${STEP_TITLES[0]}` : undefined}
+                sx={{
+                  position: 'absolute',
+                  left: 63.5 - 19.5 - (currentStep === 1 ? 5 : 0), // adjust for border
+                  top: currentStep === 1 ? -5 : 0, // adjust vertical position for border
+                  width: currentStep === 1 ? 49 : 39, // 39 + 5px border on each side
+                  height: currentStep === 1 ? 49 : 39,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: currentStep === 1 ? 'primary.main' : 'primary.light',
+                  border: currentStep === 1 ? '5px solid #FDB585' : 'none',
+                  color: 'white',
+                  cursor: completedSteps.includes(1) ? 'pointer' : 'default',
+                  padding: 0,
+                  transition: 'transform 0.2s',
+                  '&:hover': completedSteps.includes(1) ? { transform: 'scale(1.05)' } : {},
+                  '&:disabled': {
+                    cursor: 'default',
+                  },
+                }}
+              >
+                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem', fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif' }}>
+                  1
+                </Typography>
+              </Box>
+
+              {/* Step 2 */}
+              <Box
+                component="button"
+                onClick={() => completedSteps.includes(2) && goToStep(2)}
+                disabled={!completedSteps.includes(2)}
+                type="button"
+                aria-label={completedSteps.includes(2) ? `Go back to step 2: ${STEP_TITLES[1]}` : undefined}
+                sx={{
+                  position: 'absolute',
+                  left: 152.5 - 19.5 - (currentStep === 2 ? 5 : 0),
+                  top: currentStep === 2 ? -5 : 0,
+                  width: currentStep === 2 ? 49 : 39,
+                  height: currentStep === 2 ? 49 : 39,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: currentStep === 2 ? 'primary.main' : 'primary.light',
+                  border: currentStep === 2 ? '5px solid #FDB585' : 'none',
+                  color: 'white',
+                  cursor: completedSteps.includes(2) ? 'pointer' : 'default',
+                  padding: 0,
+                  transition: 'transform 0.2s',
+                  '&:hover': completedSteps.includes(2) ? { transform: 'scale(1.05)' } : {},
+                  '&:disabled': {
+                    cursor: 'default',
+                  },
+                }}
+              >
+                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem', fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif' }}>
+                  2
+                </Typography>
+              </Box>
+
+              {/* Step 3 */}
+              <Box
+                component="button"
+                onClick={() => completedSteps.includes(3) && goToStep(3)}
+                disabled={!completedSteps.includes(3)}
+                type="button"
+                aria-label={completedSteps.includes(3) ? `Go back to step 3: ${STEP_TITLES[2]}` : undefined}
+                sx={{
+                  position: 'absolute',
+                  left: 241.5 - 19.5 - (currentStep === 3 ? 5 : 0),
+                  top: currentStep === 3 ? -5 : 0,
+                  width: currentStep === 3 ? 49 : 39,
+                  height: currentStep === 3 ? 49 : 39,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: currentStep === 3 ? 'primary.main' : 'primary.light',
+                  border: currentStep === 3 ? '5px solid #FDB585' : 'none',
+                  color: 'white',
+                  cursor: completedSteps.includes(3) ? 'pointer' : 'default',
+                  padding: 0,
+                  transition: 'transform 0.2s',
+                  '&:hover': completedSteps.includes(3) ? { transform: 'scale(1.05)' } : {},
+                  '&:disabled': {
+                    cursor: 'default',
+                  },
+                }}
+              >
+                <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.9375rem', fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif' }}>
+                  3
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Step Labels below the circles */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 95.5 + 19.5 + 8, // below circles with 8px gap
+                left: 0,
+                width: '100%',
+                height: 13,
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  position: 'absolute',
+                  left: 63.5 - 15, // centered under step 1
+                  width: 30,
+                  textAlign: 'center',
+                  fontSize: '0.625rem',
+                  fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
+                  fontWeight: 400,
+                  color: currentStep === 1 ? 'primary.main' : 'primary.light',
+                }}
+              >
+                {STEP_TITLES[0]}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  position: 'absolute',
+                  left: 152.5 - 10.5, // centered under step 2
+                  width: 21,
+                  textAlign: 'center',
+                  fontSize: '0.625rem',
+                  fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
+                  fontWeight: 400,
+                  color: currentStep === 2 ? 'primary.main' : 'primary.light',
+                }}
+              >
+                {STEP_TITLES[1]}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  position: 'absolute',
+                  left: 241.5 - 15.5, // centered under step 3
+                  width: 31,
+                  textAlign: 'center',
+                  fontSize: '0.625rem',
+                  fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
+                  fontWeight: 400,
+                  color: currentStep === 3 ? 'primary.main' : 'primary.light',
+                }}
+              >
+                {STEP_TITLES[2]}
+              </Typography>
+            </Box>
+          </Box>
 
           {/* Error Display */}
           {error && (
@@ -349,16 +558,17 @@ export function AppStepWorkflow() {
               component="label"
               htmlFor="step1-file-upload"
               sx={{
-                width: { xs: '100%', sm: 300 },
-                maxWidth: 300,
-                height: { xs: '100%', sm: 300 },
+                width: 279,
+                maxWidth: 279,
+                height: 279,
                 aspectRatio: '1',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mx: 'auto',
-                mb: { xs: 2, sm: 3 },
+                mb: 3,
+                mt: 0,
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 ...(imageUrl ? {
@@ -372,28 +582,49 @@ export function AppStepWorkflow() {
                     transform: 'scale(1.02)',
                   },
                 } : {
-                  // No image - show selection prompt
-                  border: 3,
-                    borderColor: 'grey.300',
-                    borderStyle: 'dashed',
-                    bgcolor: 'grey.50',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'grey.100',
-                    },
-                  }),
-                }}
+                  // No image - show selection prompt with checkered background
+                  border: '2.5px solid',
+                  borderColor: '#FDB585',
+                  backgroundImage: `
+                    linear-gradient(45deg, #F5F5F5 25%, transparent 25%),
+                    linear-gradient(-45deg, #F5F5F5 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #F5F5F5 75%),
+                    linear-gradient(-45deg, transparent 75%, #F5F5F5 75%)
+                  `,
+                  backgroundSize: '20px 20px',
+                  backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                  bgcolor: '#FFFFFF',
+                  '&:hover': {
+                    borderColor: '#F97316',
+                  },
+                }),
+              }}
               >
                 {!imageUrl && (
-                  <Box sx={{ textAlign: 'center', px: 4 }}>
-                    <FileUploadIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
-                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 'medium' }}>
-                      Choose your profile image
+                  <Box sx={{ textAlign: 'center', px: 3 }}>
+                    <AccountCircleIcon sx={{ fontSize: 57, color: '#666666', mb: 2 }} />
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        fontWeight: 400,
+                        color: '#1F2937',
+                        mb: 1.5,
+                        fontSize: '0.9375rem',
+                        lineHeight: '15px',
+                      }}
+                    >
+                      Choose your profile picture
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      or drag and drop it here
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+                    <Typography 
+                      variant="body2" 
+                      display="block" 
+                      sx={{ 
+                        mb: 2.5,
+                        color: '#4B5563',
+                        fontSize: '0.8125rem',
+                        lineHeight: '13px',
+                      }}
+                    >
                       JPG or PNG
                     </Typography>
                     <Box
@@ -435,15 +666,13 @@ export function AppStepWorkflow() {
                 )}
               </Box>
               
-              <Box sx={{ mb: 3 }} />
-              
-              <Box sx={{ width: '100%', maxWidth: 300, mx: 'auto' }}>
+              <Box sx={{ width: '100%', maxWidth: 279, mx: 'auto' }}>
                 <NavigationButtons
                   currentStep={currentStep}
                   canGoBack={false}
                   canGoNext={canProceedFromStep1}
                   onNext={nextStep}
-                  nextLabel="Select Flag"
+                  nextLabel="SELECT FLAG"
                 />
               </Box>
             </>
@@ -678,6 +907,46 @@ export function AppStepWorkflow() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Footer with dark background */}
+        <Box
+          component="footer"
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            bgcolor: '#1B1F22',
+            py: 2,
+            textAlign: 'center',
+            zIndex: 999,
+          }}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              color: '#F97316',
+              fontSize: '0.6875rem',
+              fontWeight: 300,
+              lineHeight: '15px',
+              display: 'block',
+              mb: 0.25,
+            }}
+          >
+            Ethics and Sustainability | GitHub Open Source
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              color: '#FFFFFF',
+              fontSize: '0.6875rem',
+              fontWeight: 300,
+              lineHeight: '15px',
+            }}
+          >
+            © Nix Crabtree, 2005
+          </Typography>
+        </Box>
       </Box>
     </>
   );

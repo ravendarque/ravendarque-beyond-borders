@@ -1,0 +1,14 @@
+/**
+ * Self-hosted fonts for Beyond Borders
+ * 
+ * Tilt Warp - SIL Open Font License (OFL)
+ * https://fonts.google.com/specimen/Tilt+Warp
+ */
+
+@font-face {
+  font-family: 'Tilt Warp';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./tilt-warp.ttf') format('truetype');
+}
