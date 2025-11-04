@@ -1,11 +1,15 @@
-## Deployment Architecture
+<!-- markdownlint-disable MD013 MD031 MD032 MD040 MD041 -->
 
-This project uses a **unified GitHub Pages deployment strategy** where both production and beta deployments push to the `gh-pages` branch:
+# Deployment Architecture
+
+This project uses a **unified GitHub Pages deployment strategy** where both
+production and beta deployments push to the `gh-pages` branch:
 
 1. **Production** – deploys to the root of `gh-pages` branch
 2. **Beta** – deploys versioned builds to `gh-pages/beta/<semver>/`
 
-Both strategies use the same deployment method for consistency and reliability.
+Both strategies use the same deployment method for consistency and
+reliability.
 
 ### GitHub Pages Configuration
 
