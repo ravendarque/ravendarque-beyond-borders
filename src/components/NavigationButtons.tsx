@@ -122,31 +122,10 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
             aria-disabled={buttonsDisabled}
             startIcon={
               isLoading ? (
-                <CircularProgress size={16} color="inherit" />
+                <CircularProgress size={20} color="inherit" />
               ) : undefined
             }
-            sx={{ 
-              flex: '1 1 0',
-              height: 37,
-              borderRadius: '10px',
-              fontSize: '0.9375rem',
-              fontWeight: 400,
-              textTransform: 'uppercase',
-              letterSpacing: '0.02em',
-              bgcolor: 'primary.light',
-              color: 'white',
-              '&:hover:not(:disabled)': {
-                bgcolor: 'primary.main',
-              },
-              '&:disabled': {
-                bgcolor: 'primary.light',
-                color: 'white',
-                opacity: 1,
-              },
-              '&:not(:disabled)': {
-                bgcolor: 'primary.main',
-              }
-            }}
+            sx={{ flex: '1 1 0' }}
           >
             {isLoading ? 'Processing...' : finishLabel}
           </Button>
@@ -160,35 +139,12 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
               aria-disabled={!canGoNext || buttonsDisabled}
               endIcon={
                 isLoading ? (
-                  <CircularProgress size={16} color="inherit" />
+                  <CircularProgress size={20} color="inherit" />
                 ) : (
-                  <ArrowForwardIcon sx={{ fontSize: 16 }} />
+                  <ArrowForwardIcon />
                 )
               }
-              sx={{ 
-                flex: '1 1 0',
-                height: 37,
-                borderRadius: '10px',
-                fontSize: '0.9375rem',
-                fontWeight: 400,
-                textTransform: 'uppercase',
-                letterSpacing: '0.02em',
-                color: 'white',
-                justifyContent: 'center',
-                px: 3,
-                bgcolor: 'primary.light',
-                '&:not(:disabled)': {
-                  bgcolor: 'primary.main',
-                },
-                '&:hover:not(:disabled)': {
-                  bgcolor: 'primary.main',
-                },
-                '&:disabled': {
-                  bgcolor: 'primary.light',
-                  color: 'white',
-                  opacity: 1,
-                }
-              }}
+              sx={{ flex: '1 1 0' }}
             >
               {isLoading ? 'Loading...' : nextLabel}
             </Button>
