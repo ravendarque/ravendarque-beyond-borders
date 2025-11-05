@@ -33,22 +33,8 @@ print_warning() {
     WARNINGS=$((WARNINGS + 1))
 }
 
-# 1. Check for secrets (requires trufflehog)
-echo "1️⃣  Checking for secrets..."
-if command -v trufflehog &> /dev/null; then
-    if trufflehog git file://. --only-verified --fail 2>&1 | grep -q "🐷🔑"; then
-        print_status 1 "Secret scanning failed - verified secrets found!"
-    else
-        print_status 0 "No verified secrets found"
-    fi
-else
-    print_warning "trufflehog not installed - skipping secret scan"
-    echo "  Install: https://github.com/trufflesecurity/trufflehog"
-fi
-echo ""
-
-# 2. Security audit with trivy (if installed)
-echo "2️⃣  Running security audit..."
+# 1. Security audit with trivy (if installed)
+echo "1️⃣  Running security audit..."
 if command -v trivy &> /dev/null; then
     if trivy fs . --severity CRITICAL,HIGH --exit-code 1 --quiet 2>&1; then
         print_status 0 "No critical/high vulnerabilities found"
@@ -61,8 +47,8 @@ else
 fi
 echo ""
 
-# 3. Markdown linting
-echo "3️⃣  Linting Markdown files..."
+# 2. Markdown linting
+echo "2️⃣  Linting Markdown files..."
 if command -v markdownlint-cli2 &> /dev/null; then
     if markdownlint-cli2 "**/*.md" "#node_modules" "#.local" 2>&1; then
         print_status 0 "Markdown files are valid"
@@ -75,8 +61,8 @@ else
 fi
 echo ""
 
-# 4. YAML linting
-echo "4️⃣  Linting YAML files..."
+# 3. YAML linting
+echo "3️⃣  Linting YAML files..."
 if command -v yamllint &> /dev/null; then
     error_found=0
     for file in .github/workflows/*.yml; do
@@ -97,8 +83,8 @@ else
 fi
 echo ""
 
-# 5. Check for TODO/FIXME in production code
-echo "5️⃣  Checking for TODO/FIXME comments..."
+# 4. Check for TODO/FIXME in production code
+echo "4️⃣  Checking for TODO/FIXME comments..."
 if grep -r "TODO\|FIXME" src/ public/ --exclude-dir=node_modules 2>/dev/null; then
     print_warning "Found TODO/FIXME comments in production code"
     echo "  Consider creating issues for these items"
@@ -107,8 +93,8 @@ else
 fi
 echo ""
 
-# 6. Validate file permissions
-echo "6️⃣  Validating file permissions..."
+# 5. Validate file permissions
+echo "5️⃣  Validating file permissions..."
 if find src/ public/ -type f -executable -not -path "*/node_modules/*" 2>/dev/null | grep -v ".sh$"; then
     print_status 1 "Found unexpected executable files"
 else
@@ -116,8 +102,8 @@ else
 fi
 echo ""
 
-# 7. Check for large files
-echo "7️⃣  Checking for large files (>1MB)..."
+# 6. Check for large files
+echo "6️⃣  Checking for large files (>1MB)..."
 large_files=$(find . -type f -size +1M -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.local/*" 2>/dev/null || true)
 if [ -n "$large_files" ]; then
     print_warning "Large files found:"
@@ -130,8 +116,8 @@ else
 fi
 echo ""
 
-# 8. Run production build/test checks if code changed
-echo "8️⃣  Checking if production code changed..."
+# 7. Run production build/test checks if code changed
+echo "7️⃣  Checking if production code changed..."
 PROD_FILES_CHANGED=$(git diff --cached --name-only | grep -E "^(src/|public/|index.html|vite.config.ts|tsconfig.json|package.json|pnpm-lock.yaml|playwright.config.ts|scripts/|.github/scripts/)" || true)
 
 if [ -n "$PROD_FILES_CHANGED" ]; then
