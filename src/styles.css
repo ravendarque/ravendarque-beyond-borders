@@ -1,17 +1,15 @@
 :root {
-  --bg: #D9D3CD;
-  --muted: rgba(255, 255, 255, 0.7);
-  --accent: #F97316;
-  --accent-light: #FDB585;
-  --dark-circle: #1B1F22;
-  --muted-border: rgba(255, 255, 255, 0.2);
+  --bg: #ffffff;
+  --muted: #6b7280;
+  --accent: #f97316;
+  --muted-border: #e6edf3;
   --muted-check: #e9eef3;
   /* Checkerboard colors (light theme) */
-  --checker-1: #D9D3CD;
-  --checker-2: #c9c3bd;
-  --surface: #D9D3CD;
-  --card: #1B1F22;
-  --radius: 10px;
+  --checker-1: #ffffff;
+  --checker-2: #e6e6e6;
+  --surface: #f8fafc;
+  --card: #ffffff;
+  --radius: 12px;
 }
 
 /* dark theme overrides (set by data-theme="dark" on documentElement) */
