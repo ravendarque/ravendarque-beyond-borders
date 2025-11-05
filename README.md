@@ -81,10 +81,9 @@ See [.github/scripts/SETUP.md](.github/scripts/SETUP.md) for detailed setup inst
 ### Validation Tools (Optional)
 
 For pre-push validation, you may also want to install:
-- **markdownlint-cli2**: `npm install -g markdownlint-cli2`
-- **yamllint**: `pip install yamllint`
-- **TruffleHog**: Secret scanning ([installation](https://github.com/trufflesecurity/trufflehog))
 - **Trivy**: Security scanning ([installation](https://aquasecurity.github.io/trivy/latest/getting-started/installation/))
+
+**Note**: TruffleHog secret scanning is used in CI but not in local validation to keep pre-push checks fast.
 
 ### Contributing
 
@@ -106,7 +105,6 @@ The `main` branch is protected. All changes must be made via pull requests:
 We use a three-tier validation approach to catch issues early:
 
 1. **Local validation** (optional): Run validation scripts before pushing
-   - Secret scanning (TruffleHog)
    - Security audit (Trivy)
    - Markdown/YAML linting
    - TODO/FIXME detection
@@ -119,6 +117,7 @@ We use a three-tier validation approach to catch issues early:
 
 3. **Full CI** (conditional): Complete build and test suite
    - Only runs when production code changes (src/, config files, etc.)
+   - Secret scanning (TruffleHog) - runs in CI only for speed
    - Full linting, type checking, unit and E2E tests
    - Node.js 18.x and 20.x matrix
 
