@@ -2,47 +2,21 @@ import { createTheme, ThemeOptions } from '@mui/material/styles';
 import { grey } from '@mui/material/colors';
 
 export function createAppTheme(mode: 'light' | 'dark') {
-  // New design tokens from design-03.svg
-  const lightBg = '#D9D3CD'; // Beige/tan background
+  const lightBg = '#f8fafc';
   const darkBg = '#121212'; // closer to MUI dark background
-  const primary = '#F97316'; // Orange accent
-  const primaryLight = '#FDB585'; // Peach/light orange for inactive states
-  const darkCircle = '#1B1F22'; // Dark circle for upload area
+  const primary = '#f97316'; // soft orange
 
   const options: ThemeOptions = {
     palette: {
       mode,
-      primary: { 
-        main: primary,
-        light: primaryLight,
-        dark: '#ea580c', // Darker orange for hover states
-      },
-      background: { 
-        default: mode === 'light' ? lightBg : darkBg, 
-        paper: mode === 'light' ? darkCircle : grey[900] 
-      },
-      text: { 
-        primary: mode === 'light' ? '#1F2937' : grey[100], 
-        secondary: mode === 'light' ? '#6B7280' : grey[400] 
-      },
+      primary: { main: primary },
+      background: { default: mode === 'light' ? lightBg : darkBg, paper: mode === 'light' ? '#ffffff' : grey[900] },
+      text: { primary: mode === 'light' ? '#0f172a' : grey[100], secondary: mode === 'light' ? '#6b7280' : grey[400] },
     },
-    shape: { borderRadius: 10 },
+    shape: { borderRadius: 12 },
     typography: {
       fontFamily:
-        '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif',
-      h1: {
-        fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
-      },
-      h2: {
-        fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
-      },
-      h3: {
-        fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
-      },
-      button: {
-        fontFamily: '"Tilt Warp", "Segoe UI", system-ui, sans-serif',
-        textTransform: 'uppercase',
-      },
+        'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
     },
     components: {
       MuiCssBaseline: {
@@ -61,7 +35,7 @@ export function createAppTheme(mode: 'light' | 'dark') {
             margin: 0,
             color: mode === 'light' ? '#0f172a' : '#e6eef3',
             fontFamily:
-              '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif',
+              'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
           },
           // focus ring for form controls
           'select:focus, input[type=range]:focus, input[type=color]:focus, input[type=file]:focus, button:focus': {
