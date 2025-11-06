@@ -37,8 +37,8 @@ import toast, { Toaster } from 'react-hot-toast';
 import type { AppError } from '@/types/errors';
 import { normalizeError } from '@/types/errors';
 // Icons for slider controls
-import LineWeightIcon from '@mui/icons-material/LineWeight';
-import CropFreeIcon from '@mui/icons-material/CropFree';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import CircleIcon from '@mui/icons-material/Circle';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
@@ -761,8 +761,8 @@ export function AppStepWorkflow() {
                         step={1}
                         onChange={setThickness}
                         unit="%"
-                        startIcon={<LineWeightIcon fontSize="small" sx={{ transform: 'scale(0.7)' }} />}
-                        endIcon={<LineWeightIcon fontSize="small" sx={{ transform: 'scale(1.3)' }} />}
+                        startIcon={<RadioButtonUncheckedIcon fontSize="small" sx={{ fontSize: '16px' }} />}
+                        endIcon={<CircleIcon fontSize="small" sx={{ fontSize: '24px' }} />}
                         startIconLabel="Thinner border"
                         endIconLabel="Thicker border"
                       />
