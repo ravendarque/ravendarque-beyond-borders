@@ -38,7 +38,6 @@ import type { AppError } from '@/types/errors';
 import { normalizeError } from '@/types/errors';
 // Icons for slider controls
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PanoramaFishEyeIcon from '@mui/icons-material/PanoramaFishEye';
 
 const STEP_TITLES = ['Image', 'Flag', 'Adjust'];
