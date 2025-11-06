@@ -74,7 +74,7 @@ The setup scripts install all tools needed for building, testing, and validating
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| **TruffleHog** | Secret scanning | Manual install or Docker |
+| **TruffleHog** | Secret scanning | CI-only (not used in local validation for speed) |
 | **Trivy** | Security vulnerability scanning | Manual install or Docker |
 
 ## Prerequisites
@@ -290,6 +290,8 @@ nvm use --lts
 ## Optional Tools Setup
 
 ### TruffleHog (Secret Scanning)
+
+**Note:** TruffleHog is used in CI workflows only. Local validation does not run secret scanning to keep pre-push checks fast. If you still want to install it for manual use:
 
 **Windows:**
 
