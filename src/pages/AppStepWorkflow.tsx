@@ -36,6 +36,13 @@ import MenuItem from '@mui/material/MenuItem';
 import toast, { Toaster } from 'react-hot-toast';
 import type { AppError } from '@/types/errors';
 import { normalizeError } from '@/types/errors';
+// Icons for slider controls
+import LineWeightIcon from '@mui/icons-material/LineWeight';
+import CropFreeIcon from '@mui/icons-material/CropFree';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import ZoomOutIcon from '@mui/icons-material/ZoomOut';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
 const STEP_TITLES = ['Image', 'Flag', 'Adjust'];
 
@@ -754,6 +761,10 @@ export function AppStepWorkflow() {
                         step={1}
                         onChange={setThickness}
                         unit="%"
+                        startIcon={<LineWeightIcon fontSize="small" sx={{ transform: 'scale(0.7)' }} />}
+                        endIcon={<LineWeightIcon fontSize="small" sx={{ transform: 'scale(1.3)' }} />}
+                        startIconLabel="Thinner border"
+                        endIconLabel="Thicker border"
                       />
 
                       <SliderControl
@@ -764,6 +775,10 @@ export function AppStepWorkflow() {
                         step={1}
                         onChange={setInsetPct}
                         unit="%"
+                        startIcon={<ZoomOutIcon fontSize="small" />}
+                        endIcon={<ZoomInIcon fontSize="small" />}
+                        startIconLabel="Outset (shrink image)"
+                        endIconLabel="Inset (enlarge image)"
                       />
 
                       {presentation === 'cutout' && (
@@ -775,6 +790,10 @@ export function AppStepWorkflow() {
                           step={5}
                           onChange={setFlagOffsetX}
                           unit="px"
+                          startIcon={<KeyboardArrowLeftIcon fontSize="small" />}
+                          endIcon={<KeyboardArrowRightIcon fontSize="small" />}
+                          startIconLabel="Move flag left"
+                          endIconLabel="Move flag right"
                         />
                       )}
 
