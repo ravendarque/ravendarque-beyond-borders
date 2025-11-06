@@ -38,10 +38,8 @@ import type { AppError } from '@/types/errors';
 import { normalizeError } from '@/types/errors';
 // Icons for slider controls
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import ZoomInIcon from '@mui/icons-material/ZoomIn';
-import ZoomOutIcon from '@mui/icons-material/ZoomOut';
-import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import PanoramaFishEyeIcon from '@mui/icons-material/PanoramaFishEye';
 
 const STEP_TITLES = ['Image', 'Flag', 'Adjust'];
 
@@ -790,10 +788,15 @@ export function AppStepWorkflow() {
                         step={1}
                         onChange={setInsetPct}
                         unit="%"
-                        startIcon={<ZoomOutIcon fontSize="small" />}
-                        endIcon={<ZoomInIcon fontSize="small" />}
-                        startIconLabel="Outset (shrink image)"
-                        endIconLabel="Inset (enlarge image)"
+                        startIcon={<AccountCircleIcon fontSize="small" sx={{ fontSize: '20px' }} />}
+                        endIcon={
+                          <Box sx={{ position: 'relative', width: '20px', height: '20px', display: 'inline-flex' }}>
+                            <PanoramaFishEyeIcon sx={{ fontSize: '20px', position: 'absolute', top: 0, left: 0 }} />
+                            <AccountCircleIcon sx={{ fontSize: '10px', position: 'absolute', top: '5px', left: '5px' }} />
+                          </Box>
+                        }
+                        startIconLabel="Outset (more visible)"
+                        endIconLabel="Inset (inside frame)"
                       />
 
                       {presentation === 'cutout' && (
@@ -805,10 +808,42 @@ export function AppStepWorkflow() {
                           step={5}
                           onChange={setFlagOffsetX}
                           unit="px"
-                          startIcon={<KeyboardArrowLeftIcon fontSize="small" />}
-                          endIcon={<KeyboardArrowRightIcon fontSize="small" />}
-                          startIconLabel="Move flag left"
-                          endIconLabel="Move flag right"
+                          startIcon={
+                            <Box sx={{ position: 'relative', width: '30px', height: '20px', display: 'inline-flex' }}>
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  width: '26px',
+                                  height: '16px',
+                                  border: '2px dashed',
+                                  borderColor: 'text.secondary',
+                                  boxSizing: 'content-box',
+                                }}
+                              />
+                              <RadioButtonUncheckedIcon sx={{ fontSize: '20px', position: 'absolute', top: 0, left: 0 }} />
+                            </Box>
+                          }
+                          endIcon={
+                            <Box sx={{ position: 'relative', width: '30px', height: '20px', display: 'inline-flex' }}>
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  width: '26px',
+                                  height: '16px',
+                                  border: '2px dashed',
+                                  borderColor: 'text.secondary',
+                                  boxSizing: 'content-box',
+                                }}
+                              />
+                              <RadioButtonUncheckedIcon sx={{ fontSize: '20px', position: 'absolute', top: 0, right: 0 }} />
+                            </Box>
+                          }
+                          startIconLabel="Flag on left"
+                          endIconLabel="Flag on right"
                         />
                       )}
 
