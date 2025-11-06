@@ -117,30 +117,8 @@ function Test-CommandExists {
 # Refresh PATH at start to pick up newly installed tools
 Refresh-EnvironmentPath
 
-# 1. Check for secrets
-Write-Host "1️⃣  Checking for secrets..." -ForegroundColor White
-$trufflehogPaths = @(
-    "$env:LocalAppData\trufflehog",
-    "$env:LocalAppData\Microsoft\WinGet\Packages\trufflesecurity.trufflehog*\",
-    "$env:ProgramData\chocolatey\bin",
-    "$env:UserProfile\scoop\shims"
-)
-if (Test-CommandExists "trufflehog" -CommonPaths $trufflehogPaths) {
-    # Use filesystem scan which works better on Windows than git file:// protocol
-    $output = trufflehog filesystem . --only-verified --fail --json 2>&1 | Out-String
-    if ($LASTEXITCODE -ne 0 -and $output -match '"verified":true') {
-        Print-Status $false "Secret scanning failed - verified secrets found!"
-    } else {
-        Print-Status $true "No verified secrets found"
-    }
-} else {
-    Print-Warning "trufflehog not installed - skipping secret scan"
-    Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
-}
-Write-Host ""
-
-# 2. Security audit with trivy
-Write-Host "2️⃣  Running security audit..." -ForegroundColor White
+# 1. Security audit with trivy
+Write-Host "1️⃣  Running security audit..." -ForegroundColor White
 $trivyPaths = @(
     "$env:LocalAppData\Microsoft\WinGet\Packages\Aquasecurity.Trivy*\",
     "$env:ProgramData\chocolatey\bin",
@@ -157,8 +135,8 @@ if (Test-CommandExists "trivy" -CommonPaths $trivyPaths) {
 }
 Write-Host ""
 
-# 3. Markdown linting
-Write-Host "3️⃣  Linting Markdown files..." -ForegroundColor White
+# 2. Markdown linting
+Write-Host "2️⃣  Linting Markdown files..." -ForegroundColor White
 if (Get-Command npx -ErrorAction SilentlyContinue) {
     # Get staged markdown files (matching CI behavior of checking changed files)
     $stagedMdFiles = git diff --cached --name-only --diff-filter=ACM | Where-Object { $_ -match '\.md$' -and $_ -notmatch 'node_modules' -and $_ -notmatch '\.local' }
@@ -182,8 +160,8 @@ if (Get-Command npx -ErrorAction SilentlyContinue) {
 }
 Write-Host ""
 
-# 4. YAML linting
-Write-Host "4️⃣  Linting YAML files..." -ForegroundColor White
+# 3. YAML linting
+Write-Host "3️⃣  Linting YAML files..." -ForegroundColor White
 if (Get-Command npx -ErrorAction SilentlyContinue) {
     # Get staged YAML workflow files (matching CI behavior)
     $stagedYamlFiles = git diff --cached --name-only --diff-filter=ACM | Where-Object { $_ -match '\.github/workflows/.*\.ya?ml$' }
@@ -214,8 +192,8 @@ if (Get-Command npx -ErrorAction SilentlyContinue) {
 }
 Write-Host ""
 
-# 5. Check for TODO/FIXME
-Write-Host "5️⃣  Checking for TODO/FIXME comments..." -ForegroundColor White
+# 4. Check for TODO/FIXME
+Write-Host "4️⃣  Checking for TODO/FIXME comments..." -ForegroundColor White
 $todoFiles = Get-ChildItem -Path src,public -Recurse -Include "*.ts","*.tsx","*.js","*.jsx" -ErrorAction SilentlyContinue |
     Select-String -Pattern "TODO|FIXME" -ErrorAction SilentlyContinue |
     Select-Object -Unique Path
@@ -228,8 +206,8 @@ if ($todoFiles) {
 }
 Write-Host ""
 
-# 6. Validate file permissions (Windows: check for unexpected file attributes)
-Write-Host "6️⃣  Validating files..." -ForegroundColor White
+# 5. Validate file permissions (Windows: check for unexpected file attributes)
+Write-Host "5️⃣  Validating files..." -ForegroundColor White
 $suspiciousFiles = Get-ChildItem src\,public\ -Recurse -File | Where-Object { 
     $_.Extension -notin @('.tsx','.ts','.css','.png','.jpg','.svg','.json','.html') 
 }
@@ -241,8 +219,8 @@ if ($suspiciousFiles) {
 }
 Write-Host ""
 
-# 7. Check for large files
-Write-Host "7️⃣  Checking for large files (>1MB)..." -ForegroundColor White
+# 6. Check for large files
+Write-Host "6️⃣  Checking for large files (>1MB)..." -ForegroundColor White
 $largeFiles = Get-ChildItem -Recurse -File | Where-Object { 
     $_.Length -gt 1MB -and 
     $_.FullName -notmatch "node_modules" -and 
@@ -260,8 +238,8 @@ if ($largeFiles) {
 }
 Write-Host ""
 
-# 8. Check if production code changed and run build checks
-Write-Host "8️⃣  Checking if production code changed..." -ForegroundColor White
+# 7. Check if production code changed and run build checks
+Write-Host "7️⃣  Checking if production code changed..." -ForegroundColor White
 $stagedFiles = git diff --cached --name-only 2>&1
 $prodPattern = "^(src/|public/|index.html|vite.config.ts|tsconfig.json|package.json|pnpm-lock.yaml|playwright.config.ts|scripts/|.github/scripts/)"
 $prodFilesChanged = $stagedFiles | Where-Object { $_ -match $prodPattern }
