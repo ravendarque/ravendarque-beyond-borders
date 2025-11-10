@@ -1,5 +1,4 @@
-import React, { useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { ThemeModeContext } from '../main';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { flags } from '@/flags/flags';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
@@ -19,10 +18,7 @@ import {
 import { ErrorAlert } from '@/components/ErrorAlert';
 
 import FileUploadIcon from '@mui/icons-material/UploadFile';
-import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -48,7 +44,6 @@ import PanoramaFishEyeIcon from '@mui/icons-material/PanoramaFishEye';
 const STEP_TITLES = ['Image', 'Flag', 'Adjust'];
 
 export function AppStepWorkflow() {
-  const { mode, setMode } = useContext(ThemeModeContext);
   const theme = useTheme();
 
   // Responsive breakpoints
@@ -255,10 +250,6 @@ export function AppStepWorkflow() {
         position="bottom-right"
         toastOptions={{
           duration: 4000,
-          style: {
-            background: mode === 'dark' ? '#333' : '#fff',
-            color: mode === 'dark' ? '#fff' : '#333',
-          },
         }}
       />
 
@@ -284,16 +275,6 @@ export function AppStepWorkflow() {
           px: { xs: 2, sm: 3 },
         }}
       >
-        {/* Dark Mode Toggle - Fixed Position */}
-        <IconButton 
-          size={isMobile ? 'large' : 'medium'}
-          onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
-          aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}
-        >
-          {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
-        </IconButton>
-
         {/* Centered Content Column */}
         <Box sx={{ maxWidth: 600, width: '100%', mx: 'auto' }}>
           {/* Header */}
