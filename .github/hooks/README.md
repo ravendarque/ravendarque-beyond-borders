@@ -16,6 +16,7 @@ Runs validation checks before allowing a push to proceed. This helps catch issue
 - TODO/FIXME detection (warning only)
 - File permission validation
 - Large file detection (>1MB warning)
+- Privacy check (Google Fonts, tracking scripts, external CDNs)
 - Conditional build/test (if production code changed)
 
 ## Installation

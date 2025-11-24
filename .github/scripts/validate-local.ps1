@@ -238,8 +238,55 @@ if ($largeFiles) {
 }
 Write-Host ""
 
-# 7. Check if production code changed and run build checks
-Write-Host "7️⃣  Checking if production code changed..." -ForegroundColor White
+# 7. Privacy check - detect tracking, Google Fonts, etc.
+Write-Host "7️⃣  Checking for privacy concerns..." -ForegroundColor White
+$privacyIssues = 0
+
+# Check for Google Fonts
+$googleFonts = Get-ChildItem -Path src,public -Recurse -Include "*.ts","*.tsx","*.js","*.jsx","*.css","*.html" -ErrorAction SilentlyContinue |
+    Select-String -Pattern "fonts\.googleapis|fonts\.gstatic" -ErrorAction SilentlyContinue
+if ($googleFonts) {
+    Print-Status $false "Google Fonts detected (privacy concern)"
+    $googleFonts | ForEach-Object {
+        Write-Host "    $($_.Path):$($_.LineNumber) - $($_.Line.Trim())" -ForegroundColor Gray
+    }
+    Write-Host "  Consider using self-hosted fonts instead" -ForegroundColor Gray
+    $privacyIssues++
+}
+
+# Check for tracking scripts and analytics (exclude internal performance tracking)
+$trackingPatterns = "google.*analytics|gtag|ga\(|googletagmanager|facebook.*pixel|fbq\(|analytics\.js|doubleclick|adservice|googlesyndication|advertising|adserver"
+$trackingFound = Get-ChildItem -Path src,public -Recurse -Include "*.ts","*.tsx","*.js","*.jsx","*.html" -ErrorAction SilentlyContinue |
+    Select-String -Pattern $trackingPatterns -ErrorAction SilentlyContinue |
+    Where-Object { $_.Line -notmatch "enablePerformanceTracking|performance.*tracking|tracking.*performance" }
+if ($trackingFound) {
+    Print-Status $false "Tracking/analytics scripts detected"
+    $trackingFound | ForEach-Object {
+        Write-Host "    $($_.Path):$($_.LineNumber) - $($_.Line.Trim())" -ForegroundColor Gray
+    }
+    Write-Host "  Remove tracking scripts to protect user privacy" -ForegroundColor Gray
+    $privacyIssues++
+}
+
+# Check for external CDN resources that could track users
+$cdnPatterns = "cdn\.jsdelivr|cdnjs\.cloudflare|unpkg\.com|cdn\.bootcdn|stackpath\.bootstrapcdn"
+$cdnFound = Get-ChildItem -Path src,public -Recurse -Include "*.ts","*.tsx","*.js","*.jsx","*.html","*.css" -ErrorAction SilentlyContinue |
+    Select-String -Pattern $cdnPatterns -ErrorAction SilentlyContinue
+if ($cdnFound) {
+    Print-Warning "External CDN resources detected (may have privacy implications)"
+    $cdnFound | ForEach-Object {
+        Write-Host "    $($_.Path):$($_.LineNumber) - $($_.Line.Trim())" -ForegroundColor Gray
+    }
+    Write-Host "  Consider self-hosting resources for better privacy" -ForegroundColor Gray
+}
+
+if ($privacyIssues -eq 0) {
+    Print-Status $true "No privacy concerns detected"
+}
+Write-Host ""
+
+# 8. Check if production code changed and run build checks
+Write-Host "8️⃣  Checking if production code changed..." -ForegroundColor White
 $stagedFiles = git diff --cached --name-only 2>&1
 $prodPattern = "^(src/|public/|index.html|vite.config.ts|tsconfig.json|package.json|pnpm-lock.yaml|playwright.config.ts|scripts/|.github/scripts/)"
 $prodFilesChanged = $stagedFiles | Where-Object { $_ -match $prodPattern }

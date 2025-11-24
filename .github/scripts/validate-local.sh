@@ -116,8 +116,51 @@ else
 fi
 echo ""
 
-# 7. Run production build/test checks if code changed
-echo "7️⃣  Checking if production code changed..."
+# 7. Privacy check - detect tracking, Google Fonts, etc.
+echo "7️⃣  Checking for privacy concerns..."
+privacy_issues=0
+
+# Check for Google Fonts
+google_fonts=$(grep -r "fonts\.googleapis\|fonts\.gstatic" src/ public/ index.html --exclude-dir=node_modules 2>/dev/null || true)
+if [ -n "$google_fonts" ]; then
+    print_status 1 "Google Fonts detected (privacy concern)"
+    echo "$google_fonts" | while read -r line; do
+        echo "    $line"
+    done
+    echo "  Consider using self-hosted fonts instead"
+    privacy_issues=$((privacy_issues + 1))
+fi
+
+# Check for tracking scripts and analytics (exclude internal performance tracking)
+tracking_patterns="google.*analytics|gtag|ga\(|googletagmanager|facebook.*pixel|fbq\(|analytics\.js|doubleclick|adservice|googlesyndication|advertising|adserver"
+tracking_found=$(grep -riE "$tracking_patterns" src/ public/ index.html --exclude-dir=node_modules 2>/dev/null | grep -v "enablePerformanceTracking\|performance.*tracking\|tracking.*performance" || true)
+if [ -n "$tracking_found" ]; then
+    print_status 1 "Tracking/analytics scripts detected"
+    echo "$tracking_found" | while read -r line; do
+        echo "    $line"
+    done
+    echo "  Remove tracking scripts to protect user privacy"
+    privacy_issues=$((privacy_issues + 1))
+fi
+
+# Check for external CDN resources that could track users
+cdn_patterns="cdn\.jsdelivr|cdnjs\.cloudflare|unpkg\.com|cdn\.bootcdn|stackpath\.bootstrapcdn"
+cdn_found=$(grep -riE "$cdn_patterns" src/ public/ index.html --exclude-dir=node_modules 2>/dev/null || true)
+if [ -n "$cdn_found" ]; then
+    print_warning "External CDN resources detected (may have privacy implications)"
+    echo "$cdn_found" | while read -r line; do
+        echo "    $line"
+    done
+    echo "  Consider self-hosting resources for better privacy"
+fi
+
+if [ $privacy_issues -eq 0 ]; then
+    echo -e "${GREEN}✅ No privacy concerns detected${NC}"
+fi
+echo ""
+
+# 8. Run production build/test checks if code changed
+echo "8️⃣  Checking if production code changed..."
 PROD_FILES_CHANGED=$(git diff --cached --name-only | grep -E "^(src/|public/|index.html|vite.config.ts|tsconfig.json|package.json|pnpm-lock.yaml|playwright.config.ts|scripts/|.github/scripts/)" || true)
 
 if [ -n "$PROD_FILES_CHANGED" ]; then
