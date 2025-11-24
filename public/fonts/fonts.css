@@ -4,8 +4,7 @@
  * Tilt Warp - SIL Open Font License (OFL)
  * https://fonts.google.com/specimen/Tilt+Warp
  * 
- * Tilt Neon - SIL Open Font License (OFL)
- * https://fonts.google.com/specimen/Tilt+Neon
+ * Embolism Spark - Handwriting font for progress indicators
  */
 
 @font-face {
@@ -17,9 +16,9 @@
 }
 
 @font-face {
-  font-family: 'Tilt Neon';
+  font-family: 'Embolism Spark';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('./tilt-neon.ttf') format('truetype');
+  src: url('./embolism-spark.regular.ttf') format('truetype');
 }
