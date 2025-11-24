@@ -238,40 +238,54 @@ export function AppStepWorkflowClean() {
                   )}
                 </div>
 
-                {/* Presentation Mode Radio Buttons */}
+                {/* Presentation Mode Toggle Buttons */}
                 <div className="presentation-controls">
-                  <label className="presentation-label">Presentation Style</label>
-                  <div className="radio-group" role="radiogroup" aria-label="Presentation style">
-                    <label className="radio-option">
-                      <input 
-                        type="radio" 
-                        name="presentation" 
-                        value="ring" 
-                        checked={presentation === 'ring'}
-                        onChange={(e) => setPresentation(e.target.value as 'ring')}
-                      />
+                  <div className="presentation-toggle-group" role="radiogroup" aria-label="Presentation style">
+                    <button
+                      type="button"
+                      className={`presentation-toggle ${presentation === 'ring' ? 'selected' : ''}`}
+                      onClick={() => setPresentation('ring')}
+                      aria-pressed={presentation === 'ring'}
+                      aria-label="Ring - Full circular border around the entire avatar"
+                    >
+                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                        <circle cx="16" cy="16" r="9" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                        <circle cx="16" cy="16" r="6" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                      </svg>
                       <span>Ring</span>
-                    </label>
-                    <label className="radio-option">
-                      <input 
-                        type="radio" 
-                        name="presentation" 
-                        value="segment" 
-                        checked={presentation === 'segment'}
-                        onChange={(e) => setPresentation(e.target.value as 'segment')}
-                      />
+                    </button>
+                    <button
+                      type="button"
+                      className={`presentation-toggle ${presentation === 'segment' ? 'selected' : ''}`}
+                      onClick={() => setPresentation('segment')}
+                      aria-pressed={presentation === 'segment'}
+                      aria-label="Segment - Partial arc border on one side of the avatar"
+                    >
+                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                        <line x1="16" y1="4" x2="16" y2="10" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="16" y1="22" x2="16" y2="28" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="4" y1="16" x2="10" y2="16" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="22" y1="16" x2="28" y2="16" stroke="currentColor" strokeWidth="1.5"/>
+                        <circle cx="16" cy="16" r="6" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                      </svg>
                       <span>Segment</span>
-                    </label>
-                    <label className="radio-option">
-                      <input 
-                        type="radio" 
-                        name="presentation" 
-                        value="cutout" 
-                        checked={presentation === 'cutout'}
-                        onChange={(e) => setPresentation(e.target.value as 'cutout')}
-                      />
+                    </button>
+                    <button
+                      type="button"
+                      className={`presentation-toggle ${presentation === 'cutout' ? 'selected' : ''}`}
+                      onClick={() => setPresentation('cutout')}
+                      aria-pressed={presentation === 'cutout'}
+                      aria-label="Cutout - Flag pattern fills the border area completely"
+                    >
+                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="4" width="30" height="24" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 2" fill="none"/>
+                        <circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                        <circle cx="16" cy="16" r="6" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                      </svg>
                       <span>Cutout</span>
-                    </label>
+                    </button>
                   </div>
                 </div>
 
@@ -279,66 +293,115 @@ export function AppStepWorkflowClean() {
                 <div className="adjust-controls">
                   {/* Thickness Slider */}
                   <div className="control-group">
-                    <label className="control-label">
-                      <span>Thickness</span>
-                      <span className="control-value">{thickness}%</span>
-                    </label>
-                    <Slider.Root
-                      className="slider-root"
-                      value={[thickness]}
-                      onValueChange={([value]) => setThickness(value)}
-                      min={5}
-                      max={20}
-                      step={1}
-                    >
-                      <Slider.Track className="slider-track">
-                        <Slider.Range className="slider-range" />
-                      </Slider.Track>
-                      <Slider.Thumb className="slider-thumb" />
-                    </Slider.Root>
+                    <div className="slider-container">
+                      <div className="slider-labels-row">
+                        <span className="slider-end-label">Thinner</span>
+                        <span className="slider-value">{thickness}%</span>
+                        <span className="slider-end-label">Thicker</span>
+                      </div>
+                      <div className="slider-with-icons">
+                        <span className="slider-icon" aria-label="Thinner border">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1" fill="none"/>
+                          </svg>
+                        </span>
+                        <Slider.Root
+                          className="slider-root"
+                          value={[thickness]}
+                          onValueChange={([value]) => setThickness(value)}
+                          min={5}
+                          max={20}
+                          step={1}
+                        >
+                          <Slider.Track className="slider-track">
+                            <Slider.Range className="slider-range" />
+                          </Slider.Track>
+                        <Slider.Thumb className="slider-thumb" />
+                      </Slider.Root>
+                      <span className="slider-icon" aria-label="Thicker border">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
                   </div>
 
                   {/* Inset Slider */}
                   <div className="control-group">
-                    <label className="control-label">
-                      <span>Inset</span>
-                      <span className="control-value">{insetPct}%</span>
-                    </label>
-                    <Slider.Root
-                      className="slider-root"
-                      value={[insetPct]}
-                      onValueChange={([value]) => setInsetPct(value)}
-                      min={-10}
-                      max={10}
-                      step={1}
-                    >
-                      <Slider.Track className="slider-track">
-                        <Slider.Range className="slider-range" />
-                      </Slider.Track>
-                      <Slider.Thumb className="slider-thumb" />
-                    </Slider.Root>
+                    <div className="slider-container">
+                      <div className="slider-labels-row">
+                        <span className="slider-end-label">Inset</span>
+                        <span className="slider-value">{insetPct}%</span>
+                        <span className="slider-end-label">Outset</span>
+                      </div>
+                      <div className="slider-with-icons">
+                        <span className="slider-icon" aria-label="Inset (inside frame)">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none"/>
+                            <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                          </svg>
+                        </span>
+                        <Slider.Root
+                          className="slider-root"
+                          value={[insetPct]}
+                          onValueChange={([value]) => setInsetPct(value)}
+                          min={-10}
+                          max={10}
+                          step={1}
+                        >
+                          <Slider.Track className="slider-track">
+                            <Slider.Range className="slider-range" />
+                          </Slider.Track>
+                        <Slider.Thumb className="slider-thumb" />
+                      </Slider.Root>
+                      <span className="slider-icon" aria-label="Outset (more visible)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="1" fill="none"/>
+                          <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="3" fill="none"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
                   </div>
 
                   {/* Offset Slider - Only for Cutout Mode */}
                   {presentation === 'cutout' && (
                     <div className="control-group">
-                      <label className="control-label">
-                        <span>Offset</span>
-                        <span className="control-value">{flagOffsetX}px</span>
-                      </label>
-                      <Slider.Root
-                        className="slider-root"
-                        value={[flagOffsetX]}
-                        onValueChange={([value]) => setFlagOffsetX(value)}
-                        min={-50}
-                        max={50}
-                        step={1}
-                      >
-                        <Slider.Track className="slider-track">
-                          <Slider.Range className="slider-range" />
-                        </Slider.Track>
-                        <Slider.Thumb className="slider-thumb" />
-                      </Slider.Root>
+                      <div className="slider-container">
+                        <div className="slider-labels-row">
+                          <span className="slider-end-label">Flag L</span>
+                          <span className="slider-value">{flagOffsetX}px</span>
+                          <span className="slider-end-label">Flag R</span>
+                        </div>
+                        <div className="slider-with-icons">
+                          <span className="slider-icon" aria-label="Left offset">
+                            <svg width="26" height="20" viewBox="0 0 26 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="1" y="2" width="24" height="16" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 2" fill="none"/>
+                              <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="3" fill="none"/>
+                            </svg>
+                          </span>
+                          <Slider.Root
+                            className="slider-root"
+                            value={[flagOffsetX]}
+                            onValueChange={([value]) => setFlagOffsetX(value)}
+                            min={-50}
+                            max={50}
+                            step={1}
+                          >
+                            <Slider.Track className="slider-track">
+                              <Slider.Range className="slider-range" />
+                            </Slider.Track>
+                            <Slider.Thumb className="slider-thumb" />
+                          </Slider.Root>
+                          <span className="slider-icon" aria-label="Right offset">
+                            <svg width="26" height="20" viewBox="0 0 26 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="1" y="2" width="24" height="16" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 2" fill="none"/>
+                              <circle cx="16" cy="10" r="8" stroke="currentColor" strokeWidth="3" fill="none"/>
+                            </svg>
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

@@ -738,13 +738,12 @@ body {
   text-align: center;
 }
 
-/* Presentation Mode Radio Buttons */
+/* Presentation Mode Toggle Buttons */
 .presentation-controls {
   width: 100%;
   max-width: 320px;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  justify-content: center;
 }
 
 .presentation-label {
@@ -754,70 +753,72 @@ body {
   color: #f97316;
 }
 
-.radio-group {
+.presentation-toggle-group {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
-.radio-option {
+.presentation-toggle {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 2px solid #be1a1a;
+  background: #fff;
   cursor: pointer;
   font-family: 'Segoe UI', sans-serif;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 500;
   color: #f97316;
+  border-radius: 8px;
+  transition: all 0.2s ease;
   position: relative;
+  min-width: 70px;
 }
 
-/* Custom radio button styling - 16px size */
-.radio-option input[type="radio"] {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  width: 16px;
-  height: 16px;
-  border: 2px solid #be1a1a;
-  border-radius: 50%;
-  cursor: pointer;
-  margin: 0;
-  padding: 0;
-  background: #fff;
-  flex-shrink: 0;
-  position: relative;
-  display: block;
+.presentation-toggle:hover {
+  border-color: #f97316;
+  background: #fff5f0;
+  color: #ff8c3a;
+  transform: translateY(-1px);
 }
 
-.radio-option input[type="radio"]:checked {
-  background: #f97316;
-  border-color: #be1a1a;
-}
-
-.radio-option input[type="radio"]:checked::after {
-  content: '';
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  background: #fff;
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.radio-option input[type="radio"]:focus {
+.presentation-toggle:focus {
   outline: 2px solid #f97316;
   outline-offset: 2px;
 }
 
-.radio-option:hover {
-  color: #ff8c3a;
-}
-
-.radio-option:has(input:checked) {
+.presentation-toggle.selected {
+  background: #f97316;
+  border-color: #f97316;
   color: #fff;
   font-weight: 600;
+  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.3);
+}
+
+.presentation-toggle.selected:hover {
+  background: #ff8c3a;
+  border-color: #ff8c3a;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(249, 115, 22, 0.4);
+}
+
+.presentation-toggle svg {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.presentation-toggle.selected svg {
+  filter: brightness(0) invert(1);
+}
+
+.presentation-toggle span {
+  line-height: 1.2;
+  text-align: center;
 }
 
 .adjust-controls {
@@ -850,13 +851,57 @@ body {
 }
 
 /* Radix Slider Styles */
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.slider-labels-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.slider-end-label {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color: #f97316;
+  flex-shrink: 0;
+}
+
+.slider-value {
+  text-align: center;
+  font-family: 'Tilt Neon', cursive;
+  font-size: 13px;
+  color: #f97316;
+  flex: 1;
+}
+
+.slider-with-icons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.slider-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f97316;
+  flex-shrink: 0;
+}
+
 .slider-root {
   position: relative;
   display: flex;
   align-items: center;
   user-select: none;
   touch-action: none;
-  width: 100%;
+  flex: 1;
   height: 20px;
 }
 
