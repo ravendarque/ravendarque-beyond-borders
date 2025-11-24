@@ -3,6 +3,9 @@
  * 
  * Tilt Warp - SIL Open Font License (OFL)
  * https://fonts.google.com/specimen/Tilt+Warp
+ * 
+ * Tilt Neon - SIL Open Font License (OFL)
+ * https://fonts.google.com/specimen/Tilt+Neon
  */
 
 @font-face {
@@ -11,4 +14,12 @@
   font-weight: 400;
   font-display: swap;
   src: url('./tilt-warp.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Tilt Neon';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./tilt-neon.ttf') format('truetype');
 }

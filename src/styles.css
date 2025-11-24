@@ -1,9 +1,6 @@
 /* Import self-hosted fonts */
 @import url('/fonts/fonts.css');
 
-/* Import Tilt Neon from Google Fonts (temporary - should be self-hosted) */
-@import url('https://fonts.googleapis.com/css2?family=Tilt+Neon&display=swap');
-
 :root {
   /* Legacy colors */
   --bg: #ffffff;
