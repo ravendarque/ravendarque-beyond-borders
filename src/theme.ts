@@ -31,11 +31,21 @@ export function createAppTheme(mode: 'light' | 'dark') {
             height: '100%',
           },
           body: {
-            backgroundColor: mode === 'light' ? lightBg : darkBg,
+            backgroundColor: '#000000 !important',
             margin: 0,
-            color: mode === 'light' ? '#0f172a' : '#e6eef3',
+            color: '#ffffff !important',
             fontFamily:
-              'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
+              'monospace, ui-monospace, "Cascadia Code", "Courier New", Courier !important',
+            display: 'flex !important',
+            alignItems: 'center !important',
+            justifyContent: 'center !important',
+            minHeight: '100vh !important',
+            padding: '20px !important',
+          },
+          '@media (max-width: 350px)': {
+            body: {
+              padding: '10px !important',
+            },
           },
           // focus ring for form controls
           'select:focus, input[type=range]:focus, input[type=color]:focus, input[type=file]:focus, button:focus': {

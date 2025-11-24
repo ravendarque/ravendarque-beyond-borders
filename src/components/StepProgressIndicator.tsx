@@ -1,7 +1,5 @@
 import React from 'react';
 import type { Step } from '@/hooks/useStepWorkflow';
-import { Check } from '@mui/icons-material';
-import { Box, Typography } from '@mui/material';
 
 export interface StepProgressIndicatorProps {
   /** Current active step (1-3) */
@@ -29,11 +27,9 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
   completedSteps,
   steps,
   onStepClick,
-  compact = false,
 }) => {
   const isCompleted = (stepNum: Step) => completedSteps.includes(stepNum);
-  const isCurrent = (stepNum: Step) => currentStep === stepNum;
-  const isFuture = (stepNum: Step) => stepNum > currentStep;
+  const isActive = (stepNum: Step) => stepNum <= currentStep;
   const isClickable = (stepNum: Step) => isCompleted(stepNum) && onStepClick !== undefined;
 
   const handleStepClick = (stepNum: Step) => {
@@ -42,154 +38,28 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
     }
   };
 
-  if (compact) {
-    const current = steps.find(s => s.number === currentStep);
-    return (
-      <Box
-        component="nav"
-        role="navigation"
-        aria-label={`Progress: Step ${currentStep} of ${steps.length}`}
-        sx={{ textAlign: 'center', py: 2 }}
-      >
-        <Typography variant="body2" color="text.secondary">
-          Step {currentStep} of {steps.length}
-        </Typography>
-        <Typography variant="body1" sx={{ fontWeight: 500 }}>
-          {current?.label}
-        </Typography>
-      </Box>
-    );
-  }
-
   return (
-    <Box
-      component="nav"
-      role="navigation"
-      aria-label={`Progress: Step ${currentStep} of ${steps.length}`}
-      sx={{ 
-        py: { xs: 1, sm: 2 }, 
-        mb: { xs: 2, sm: 3 },
-        display: 'flex',
-        justifyContent: 'center',
-      }}
-    >
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: { xs: 2, sm: 4 },
-          margin: 0,
-          padding: 0,
-          listStyle: 'none',
-        }}
-        component="ol"
-      >
-        {steps.map((step) => {
-          const stepCompleted = isCompleted(step.number);
-          const stepCurrent = isCurrent(step.number);
-          const stepFuture = isFuture(step.number);
-          const clickable = isClickable(step.number);
+    <div className="progress-row">
+      {steps.map((step) => {
+        const active = isActive(step.number);
+        const clickable = isClickable(step.number);
+        const className = active ? 'progress' : 'progress disabled';
 
-          return (
-            <Box
-              key={step.number}
-              component="li"
-              sx={{
-                listStyle: 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                width: { xs: 80, sm: 120 },
-                flexShrink: 0,
-              }}
-              aria-current={stepCurrent ? 'step' : undefined}
-            >
-              <Box
-                component={clickable ? 'button' : 'div'}
-                onClick={clickable ? () => handleStepClick(step.number) : undefined}
-                type={clickable ? 'button' : undefined}
-                aria-label={clickable ? `Go back to step ${step.number}: ${step.label}` : undefined}
-                title={step.title}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  cursor: clickable ? 'pointer' : 'default',
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  transition: 'transform 0.2s',
-                  '&:hover': clickable ? { transform: 'scale(1.05)' } : {},
-                }}
-              >
-                <Box
-                  sx={{
-                    width: { xs: 36, sm: 40 },
-                    height: { xs: 36, sm: 40 },
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: 2,
-                    transition: 'all 0.3s',
-                    ...(stepCompleted && {
-                      bgcolor: 'primary.light',
-                      borderColor: 'primary.light',
-                      color: 'white',
-                    }),
-                    ...(stepCurrent && {
-                      bgcolor: 'primary.main',
-                      borderColor: 'primary.main',
-                      color: 'white',
-                      boxShadow: '0 0 0 4px rgba(249, 115, 22, 0.2)',
-                    }),
-                    ...(stepFuture && {
-                      bgcolor: 'grey.200',
-                      borderColor: 'grey.300',
-                      color: 'grey.500',
-                    }),
-                  }}
-                >
-                  {stepCompleted ? (
-                    <Check sx={{ fontSize: 24 }} aria-label="Step completed" />
-                  ) : (
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      {step.number}
-                    </Typography>
-                  )}
-                </Box>
-
-                <Typography
-                  variant="caption"
-                  sx={{
-                    mt: { xs: 0.5, sm: 1 },
-                    textAlign: 'center',
-                    fontWeight: 500,
-                    height: { xs: 28, sm: 32 },
-                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    lineHeight: 1.2,
-                    ...(stepCurrent && {
-                      color: 'primary.main',
-                    }),
-                    ...(stepCompleted && {
-                      color: 'primary.light',
-                    }),
-                    ...(stepFuture && {
-                      color: 'text.disabled',
-                    }),
-                  }}
-                >
-                  {step.label}
-                </Typography>
-              </Box>
-            </Box>
-          );
-        })}
-      </Box>
-    </Box>
+        return clickable ? (
+          <button
+            key={step.number}
+            type="button"
+            className={className}
+            onClick={() => handleStepClick(step.number)}
+          >
+            <span>{step.number}.{step.label.toUpperCase()}</span>
+          </button>
+        ) : (
+          <div key={step.number} className={className}>
+            <span>{step.number}.{step.label.toUpperCase()}</span>
+          </div>
+        );
+      })}
+    </div>
   );
 };

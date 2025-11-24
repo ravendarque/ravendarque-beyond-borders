@@ -1,8 +1,4 @@
 import React from 'react';
-import { Button, Box, CircularProgress } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import RefreshIcon from '@mui/icons-material/Refresh';
 
 export interface NavigationButtonsProps {
   /** Current step number (1-indexed) */
@@ -62,111 +58,61 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   onFinish,
   onStartOver,
   isLoading = false,
-  nextLabel = 'Next',
-  backLabel = 'Back',
-  finishLabel = 'Download',
+  nextLabel = 'NEXT',
+  backLabel = 'BACK',
+  finishLabel = 'DOWNLOAD',
 }) => {
-  // Determine if we're on the last step (finish instead of next)
   const isLastStep = currentStep === 3;
-  
-  // All buttons should be disabled when loading
   const buttonsDisabled = isLoading;
 
-  // Check if we have buttons on both sides (for layout purposes)
-  const hasLeftButtons = (onBack && canGoBack) || onStartOver;
-  const hasRightButtons = (isLastStep && onFinish) || onNext;
-  const singleButton = !hasLeftButtons && hasRightButtons;
-
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        alignItems: 'center',
-        width: '100%',
-      }}
-      role="navigation"
-      aria-label="Step navigation"
-    >
-      {/* Top row: Back and Next/Finish buttons side by side */}
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 2,
-          justifyContent: singleButton ? 'center' : 'space-between',
-          width: '100%',
-        }}
-      >
-        {/* Back button - only show if we can go back */}
-        {onBack && (
-          <Button
-            variant="outlined"
-            onClick={onBack}
-            disabled={!canGoBack || buttonsDisabled}
-            aria-disabled={!canGoBack || buttonsDisabled}
-            startIcon={isLoading ? undefined : <ArrowBackIcon />}
-            sx={{ flex: '1 1 0' }}
-          >
-            {backLabel}
-          </Button>
-        )}
+    <>
+      {/* Back button */}
+      {onBack && canGoBack && (
+        <button
+          type="button"
+          className="nav-btn"
+          onClick={onBack}
+          disabled={buttonsDisabled}
+        >
+          <span>← {backLabel}</span>
+        </button>
+      )}
 
-        {/* Next/Finish button */}
-        {isLastStep && onFinish ? (
-          // Finish button on last step
-          <Button
-            variant="contained"
-            onClick={onFinish}
-            disabled={buttonsDisabled}
-            aria-disabled={buttonsDisabled}
-            startIcon={
-              isLoading ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : undefined
-            }
-            sx={{ flex: '1 1 0' }}
+      {/* Next/Finish button */}
+      {isLastStep && onFinish ? (
+        <button
+          type="button"
+          className="nav-btn"
+          onClick={onFinish}
+          disabled={buttonsDisabled}
+        >
+          <span>{isLoading ? 'PROCESSING...' : finishLabel}</span>
+        </button>
+      ) : (
+        onNext && (
+          <button
+            type="button"
+            className="nav-btn"
+            onClick={onNext}
+            disabled={!canGoNext || buttonsDisabled}
           >
-            {isLoading ? 'Processing...' : finishLabel}
-          </Button>
-        ) : (
-          // Next button on intermediate steps
-          onNext && (
-            <Button
-              variant="contained"
-              onClick={onNext}
-              disabled={!canGoNext || buttonsDisabled}
-              aria-disabled={!canGoNext || buttonsDisabled}
-              endIcon={
-                isLoading ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  <ArrowForwardIcon />
-                )
-              }
-              sx={{ flex: '1 1 0' }}
-            >
-              {isLoading ? 'Loading...' : nextLabel}
-            </Button>
-          )
-        )}
-      </Box>
+            <span>{isLoading ? 'LOADING...' : `${nextLabel} →`}</span>
+          </button>
+        )
+      )}
 
-      {/* Bottom row: Start Over button centered */}
+      {/* Start Over button */}
       {onStartOver && (
-        <Button
-          variant="text"
+        <button
+          type="button"
+          className="start-over-btn"
           onClick={onStartOver}
           disabled={buttonsDisabled}
-          aria-disabled={buttonsDisabled}
-          startIcon={isLoading ? undefined : <RefreshIcon />}
-          sx={{
-            color: 'text.secondary',
-          }}
         >
           Start Over
-        </Button>
+        </button>
       )}
-    </Box>
+    </>
   );
 };
