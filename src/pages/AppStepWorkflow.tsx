@@ -17,7 +17,6 @@ import {
 } from '@/components';
 import { ErrorAlert } from '@/components/ErrorAlert';
 
-import FileUploadIcon from '@mui/icons-material/UploadFile';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -28,7 +27,6 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
@@ -261,31 +259,22 @@ export function AppStepWorkflow() {
         {error ? `Error: ${error.message}` : ''}
       </div>
 
-      {/* Main Container */}
-      <Box
-        component="main"
-        id="main-content"
-        aria-labelledby="app-title"
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          py: { xs: 2, sm: 3 },
-          px: { xs: 2, sm: 3 },
-        }}
-      >
-        {/* Centered Content Column */}
-        <Box sx={{ maxWidth: 600, width: '100%', mx: 'auto' }}>
-          {/* Header */}
-          <Box component="header" role="banner" sx={{ mb: { xs: 1.5, sm: 3 }, textAlign: 'center' }}>
-            <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700, mb: 1 }}>
-              Beyond Borders
-            </Typography>
-            <Typography variant="subtitle1" color="textSecondary" component="p">
-              Add a circular, flag-colored border to your profile picture.
-            </Typography>
-          </Box>
+      {/* Main Canvas Container */}
+      <main className="canvas" id="main-content" aria-labelledby="app-title">
+        {/* Header - outside content-wrapper */}
+        <header className="app-header">
+          <h1 className="app-title" id="app-title">
+            Beyond Borders
+          </h1>
+          <p className="app-subtitle">
+            Add a flag border to your profile picture
+          </p>
+        </header>
+
+        {/* Content Wrapper - contains bg + progress + content + nav */}
+        <div className="content-wrapper">
+          {/* Background */}
+          <div className="content-bg" aria-hidden="true"></div>
 
           {/* Step Progress Indicator */}
           <StepProgressIndicator
@@ -301,7 +290,7 @@ export function AppStepWorkflow() {
 
           {/* Error Display */}
           {error && (
-            <Box ref={errorFocusRef} tabIndex={-1} sx={{ mb: { xs: 1.5, sm: 2 }, outline: 'none' }}>
+            <div ref={errorFocusRef} tabIndex={-1} className="error-container">
               <ErrorAlert
                 error={error}
                 onRetry={() => {
@@ -312,10 +301,12 @@ export function AppStepWorkflow() {
                 }}
                 onDismiss={() => setError(null)}
               />
-            </Box>
+            </div>
           )}
 
-          {/* Step Content */}
+          {/* Content Area */}
+          <div className="content-area">
+            {/* Step Content */}
           {currentStep === 1 && (
             <>
               {/* Hidden file input */}
@@ -329,110 +320,54 @@ export function AppStepWorkflow() {
                 aria-label="Choose image file (JPG or PNG, max 10 MB)"
               />
             
-            {/* Clickable preview area */}
-            <Box
-              component="label"
-              htmlFor="step1-file-upload"
-              sx={{
-                width: { xs: '100%', sm: 300 },
-                maxWidth: 300,
-                height: { xs: '100%', sm: 300 },
-                aspectRatio: '1',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: { xs: 2, sm: 3 },
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                ...(imageUrl ? {
-                  // Has image - show preview
-                  backgroundImage: `url(${imageUrl})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  boxShadow: 3,
-                  '&:hover': {
-                    boxShadow: 6,
-                    transform: 'scale(1.02)',
-                  },
-                } : {
-                  // No image - show selection prompt
-                  border: 3,
-                    borderColor: 'grey.300',
-                    borderStyle: 'dashed',
-                    bgcolor: 'grey.50',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'grey.100',
-                    },
-                  }),
-                }}
-              >
-                {!imageUrl && (
-                  <Box sx={{ textAlign: 'center', px: 4 }}>
-                    <FileUploadIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
-                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 'medium' }}>
-                      Choose your profile image
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      or drag and drop it here
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
-                      JPG or PNG
-                    </Typography>
-                    <Box
-                      component="button"
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowPrivacyModal(true);
-                      }}
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        color: 'primary.main',
-                        textDecoration: 'underline',
-                        textDecorationStyle: 'dotted',
-                        fontSize: '0.75rem',
-                        '&:hover': {
-                          color: 'primary.dark',
-                        },
-                        '&:focus-visible': {
-                          outline: '2px solid',
-                          outlineColor: 'primary.main',
-                          outlineOffset: 2,
-                          borderRadius: 0.5,
-                        },
-                      }}
-                      aria-label="Learn about privacy: Your image stays on your device"
-                    >
-                      <InfoOutlinedIcon sx={{ fontSize: 14 }} />
-                      Stays on your device
-                    </Box>
-                  </Box>
-                )}
-              </Box>
-              
-              <Box sx={{ mb: 3 }} />
-              
-              <Box sx={{ width: '100%', maxWidth: 300, mx: 'auto' }}>
-                <NavigationButtons
-                  currentStep={currentStep}
-                  canGoBack={false}
-                  canGoNext={canProceedFromStep1}
-                  onNext={nextStep}
-                  nextLabel="Select Flag"
-                />
-              </Box>
+              {/* Clickable preview area */}
+              <div className="choose-wrapper">
+                <label
+                  htmlFor="step1-file-upload"
+                  className={imageUrl ? "choose-circle has-image" : "choose-circle"}
+                  style={imageUrl ? {
+                    backgroundImage: `url(${imageUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  } : undefined}
+                >
+                  {!imageUrl && (
+                    <>
+                      <div className="icon" aria-hidden="true">IMG</div>
+                      <div className="prompt">Choose your profile picture</div>
+                      <div className="formats">JPG or PNG</div>
+                      <button
+                        type="button"
+                        className="privacy"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShowPrivacyModal(true);
+                        }}
+                        aria-label="Learn about privacy: Stays on your device"
+                      >
+                        <span className="info" aria-hidden="true">i</span>
+                        Stays on your device
+                      </button>
+                    </>
+                  )}
+                </label>
+              </div>
             </>
           )}
+          </div>
+
+          {/* Navigation Section */}
+          <div className="nav-section">
+            {currentStep === 1 && (
+              <NavigationButtons
+                currentStep={currentStep}
+                canGoBack={false}
+                canGoNext={canProceedFromStep1}
+                onNext={nextStep}
+                nextLabel="Select Flag"
+              />
+            )}
 
           {currentStep === 2 && (
             <>
@@ -648,7 +583,8 @@ export function AppStepWorkflow() {
               </Box>
             </>
           )}
-        </Box>
+          </div>
+        </div>
 
         {/* Privacy Information Modal */}
         <Dialog
@@ -728,7 +664,13 @@ export function AppStepWorkflow() {
             </Button>
           </DialogActions>
         </Dialog>
-      </Box>
+
+        {/* Footer */}
+        <footer className="footer">
+          <div className="footer-line1">Ethics and Sustainability | GitHub Open Source</div>
+          <div className="footer-line2">© Nix Crabtree, 2025</div>
+        </footer>
+      </main>
     </>
   );
 }
