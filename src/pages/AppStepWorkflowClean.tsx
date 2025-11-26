@@ -80,13 +80,13 @@ export function AppStepWorkflowClean() {
 
           {/* Progress indicators */}
           <div className="progress-row">
-            <div className={currentStep >= 1 ? "progress" : "progress disabled"}>
+            <div className={`progress ${currentStep > 1 ? 'completed' : currentStep === 1 ? 'active' : 'upcoming'}`}>
               <span><span className="progress-number">1/</span>IMAGE</span>
             </div>
-            <div className={currentStep >= 2 ? "progress" : "progress disabled"}>
+            <div className={`progress ${currentStep > 2 ? 'completed' : currentStep === 2 ? 'active' : 'upcoming'}`}>
               <span><span className="progress-number">2/</span>FLAG</span>
             </div>
-            <div className={currentStep >= 3 ? "progress" : "progress disabled"}>
+            <div className={`progress ${currentStep > 3 ? 'completed' : currentStep === 3 ? 'active' : 'upcoming'}`}>
               <span><span className="progress-number">3/</span>ADJUST</span>
             </div>
           </div>
