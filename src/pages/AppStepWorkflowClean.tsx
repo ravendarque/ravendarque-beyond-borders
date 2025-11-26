@@ -81,13 +81,13 @@ export function AppStepWorkflowClean() {
           {/* Progress indicators */}
           <div className="progress-row">
             <div className={currentStep >= 1 ? "progress" : "progress disabled"}>
-              <span>1.IMAGE</span>
+              <span><span className="progress-number">1/</span>IMAGE</span>
             </div>
             <div className={currentStep >= 2 ? "progress" : "progress disabled"}>
-              <span>2.FLAG</span>
+              <span><span className="progress-number">2/</span>FLAG</span>
             </div>
             <div className={currentStep >= 3 ? "progress" : "progress disabled"}>
-              <span>3.ADJUST</span>
+              <span><span className="progress-number">3/</span>ADJUST</span>
             </div>
           </div>
 
@@ -460,9 +460,14 @@ export function AppStepWorkflowClean() {
                   className="nav-btn"
                   onClick={handleDownload}
                   disabled={!overlayUrl || isRendering}
-                  aria-label="Download avatar"
+                  aria-label="Save avatar"
                 >
-                  <span>DOWNLOAD</span>
+                  <span>SAVE</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ marginLeft: '6px', position: 'relative', zIndex: 1 }}>
+                    <path d="M8 2L8 10M8 10L5 7M8 10L11 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 12L2 13C2 13.5523 2.44772 14 3 14L13 14C13.5523 14 14 13.5523 14 13L14 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M3 10L3 12L13 12L13 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
                 </button>
               </>
             )}
@@ -492,6 +497,14 @@ export function AppStepWorkflowClean() {
               }
             }}
           >
+            <Dialog.Close asChild>
+              <button 
+                className="dialog-close-button"
+                aria-label="Close dialog"
+              >
+                ×
+              </button>
+            </Dialog.Close>
             <Dialog.Title className="dialog-title">Your Privacy is Protected</Dialog.Title>
             
             <div className="dialog-body">
