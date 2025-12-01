@@ -181,7 +181,7 @@ body {
   align-items: center;
   position: relative;
   z-index: 2;
-  background: #fbbf24;
+  background: #fde047;
   padding: 6px 0;
   width: 100%;
 }
@@ -292,7 +292,7 @@ body {
 .choose-circle {
   position: absolute;
   inset: 0;
-  border: 2px dashed rgba(180, 83, 9, 0.4);
+  border: 2px dashed rgba(190, 26, 26, 0.3);
   background: #fff;
   border-radius: 50%;
   display: flex;
@@ -310,7 +310,8 @@ body {
 .choose-wrapper:hover .choose-circle,
 label.choose-circle:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 16px rgba(190, 26, 26, 0.3);
+  border-color: #be1a1a;
 }
 
 .choose-circle:active {
@@ -320,12 +321,12 @@ label.choose-circle:hover {
 }
 
 .choose-circle.has-image {
-  border: none;
+  border: 2px solid rgba(190, 26, 26, 0.3);
 }
 
 .choose-circle.has-image:hover {
   transform: scale(1.03);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(190, 26, 26, 0.25);
 }
 
 .choose-circle.has-image:active {
@@ -426,8 +427,8 @@ label.choose-circle:hover {
   width: var(--nav-btn-width);
   min-width: 100px;
   height: 40px;
-  background: url('/bg2.png') bottom center / cover no-repeat;
-  border: 1px solid rgba(180, 83, 9, 0.4);
+  background: #be1a1a;
+  border: 1px solid #be1a1a;
   box-shadow: 
     0 2px 4px rgba(0, 0, 0, 0.1),
     0 1px 2px rgba(0, 0, 0, 0.06);
@@ -442,33 +443,27 @@ label.choose-circle:hover {
 }
 
 .nav-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.4) 0%, rgba(217, 119, 6, 0.3) 50%, rgba(180, 83, 9, 0.25) 100%);
-  filter: sepia(60%) saturate(100%);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 .nav-btn:disabled {
   cursor: not-allowed;
-  background: url('/bg2.png') bottom center / cover no-repeat;
-  border-color: rgba(180, 83, 9, 0.25);
+  background: rgba(190, 26, 26, 0.5);
+  border-color: rgba(190, 26, 26, 0.5);
   box-shadow: none;
-  filter: sepia(20%) saturate(60%) brightness(0.8);
 }
 
 .nav-btn:disabled::before {
-  background: rgba(0, 0, 0, 0.4);
+  display: none;
 }
 
 .nav-btn:not(:disabled):hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 
-    0 6px 12px rgba(190, 26, 26, 0.25),
+    0 6px 12px rgba(190, 26, 26, 0.35),
     0 3px 6px rgba(0, 0, 0, 0.15);
   border-color: #be1a1a;
+  border-width: 2px;
 }
 
 .nav-btn:not(:disabled):hover::before {
@@ -487,7 +482,7 @@ label.choose-circle:hover {
   font-size: var(--nav-btn-font);
   font-weight: 600;
   line-height: 16px;
-  color: #1f2937;
+  color: #fff;
   letter-spacing: 1px;
   text-transform: uppercase;
   position: relative;
@@ -748,7 +743,7 @@ label.choose-circle:hover {
   padding: 12px 16px;
   background: #fff;
   border: 2px solid rgba(180, 83, 9, 0.4);
-  color: #000;
+  color: #be1a1a;
   font-family: 'Segoe UI', sans-serif;
   font-size: 16px;
   display: flex;
@@ -756,6 +751,7 @@ label.choose-circle:hover {
   justify-content: space-between;
   cursor: pointer;
   gap: 8px;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
@@ -780,6 +776,7 @@ label.choose-circle:hover {
 .flag-select-content {
   background: #fff;
   border: 2px solid rgba(180, 83, 9, 0.4);
+  border-radius: 8px;
   max-height: 300px;
   overflow-y: auto;
   box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
@@ -825,9 +822,9 @@ label.choose-circle:hover {
 .flag-preview {
   width: 100%;
   max-width: 320px;
-  height: 160px;
+  aspect-ratio: 2 / 1;
   border: 2px solid rgba(180, 83, 9, 0.4);
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
   overflow: hidden;
   background: #fff;
   display: flex;
@@ -835,17 +832,44 @@ label.choose-circle:hover {
   justify-content: center;
 }
 
+.flag-preview-empty {
+  border: 2px dashed rgba(190, 26, 26, 0.3);
+  flex-direction: column;
+  padding: 12px 6px;
+}
+
 .flag-preview-image {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+  height: auto;
+  max-width: 100%;
+  display: block;
 }
 
 .flag-preview-placeholder {
   color: #666;
   font-family: 'Segoe UI', sans-serif;
   font-size: 14px;
+  text-align: center;
+}
+
+.flag-preview-empty .icon {
+  width: 40px;
+  height: 40px;
+  background: #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  color: #666;
+}
+
+.flag-preview-empty .prompt {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 13px;
+  color: #1e1e1e;
+  font-weight: 400;
   text-align: center;
 }
 

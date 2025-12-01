@@ -13,6 +13,7 @@ export const FlagSpec = z.object({
   svgFilename: z.string().optional().nullable(),
   png_full: z.string().nullable(), // PNG for rendering
   png_preview: z.string().optional().nullable(),
+  aspectRatio: z.number().optional().nullable(), // width:height ratio (e.g., 2.0 for 2:1, 1.5 for 3:2)
   source_page: z.string().optional().nullable(),
   media_url: z.string().optional().nullable(),
   description: z.string().optional().nullable(),

@@ -356,6 +356,10 @@ function generateTypeScriptSource(manifest) {
       lines.push(`    png_preview: '${entry.png_preview}',`);
     }
     
+    if (entry.aspectRatio !== null && entry.aspectRatio !== undefined) {
+      lines.push(`    aspectRatio: ${entry.aspectRatio},`);
+    }
+    
     if (entry.svgFilename) {
       lines.push(`    svgFilename: '${entry.svgFilename}',`);
     }
@@ -543,11 +547,11 @@ async function workerForFlag(f) {
 
         const FULL_HEIGHT = 1365;
         const PREVIEW_WIDTH = 200;
-        const PREVIEW_HEIGHT = 100;
         const fullWidth = Math.max(64, Math.round(FULL_HEIGHT * aspect));
+        const previewHeight = Math.max(64, Math.round(PREVIEW_WIDTH / aspect));
         const targets = [
           { name: pngFull, width: fullWidth, height: FULL_HEIGHT, mode: 'slice' },
-          { name: pngPreview, width: PREVIEW_WIDTH, height: PREVIEW_HEIGHT, mode: 'slice' }
+          { name: pngPreview, width: PREVIEW_WIDTH, height: previewHeight, mode: 'contain' }
         ];
 
         const MIN_PCT_PREVIEW = 1.0;
@@ -723,6 +727,7 @@ async function workerForFlag(f) {
         try { fs.unlinkSync(tmpHtml); } catch (e) {}
         metadata.png_full = id + '.png';
         metadata.png_preview = id + '.preview.png';
+        metadata.aspectRatio = aspect;
         metadata.filename = filename;
         if (computedFocal) {
           metadata.focalPoint = computedFocal;
@@ -798,6 +803,7 @@ async function workerForFlag(f) {
         svgFilename: svg,
         png_full,
         png_preview,
+        aspectRatio: m.aspectRatio || null,
         source_page: m.source_page || null,
         media_url: m.media_url || null,
         description: m.description || null,
