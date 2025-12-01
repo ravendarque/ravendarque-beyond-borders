@@ -276,6 +276,14 @@ body {
   aspect-ratio: 1;
   position: relative;
   z-index: 2;
+  /* White background with halftone effect */
+  background: 
+    radial-gradient(circle, rgba(0, 0, 0, 0.08) 0.8px, transparent 0.8px),
+    radial-gradient(circle, rgba(0, 0, 0, 0.08) 0.8px, transparent 0.8px),
+    #fff;
+  background-size: 7px 7px, 7px 7px, 100%;
+  background-position: 0 0, 3.5px 3.5px, 0 0;
+  border-radius: 50%;
 }
 
 .choose-wrapper:hover .choose-circle {
@@ -291,8 +299,9 @@ body {
 /* Image upload circle */
 .choose-circle {
   position: absolute;
-  inset: 0;
-  border: 2px dashed rgba(190, 26, 26, 0.3);
+  /* Create a gap around the circle for the halftone border */
+  inset: calc(var(--content-size) * 0.10);
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
   background: #fff;
   border-radius: 50%;
   display: flex;
@@ -307,11 +316,24 @@ body {
   z-index: 1;
 }
 
+.choose-circle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  /* Removed SVG dashed circle */
+}
+
+.choose-circle.has-image::before {
+  display: none;
+}
+
 .choose-wrapper:hover .choose-circle,
 label.choose-circle:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(190, 26, 26, 0.3);
-  border-color: #be1a1a;
+  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.5);
+  border-color: #ffffff;
 }
 
 .choose-circle:active {
@@ -321,12 +343,12 @@ label.choose-circle:hover {
 }
 
 .choose-circle.has-image {
-  border: 2px solid rgba(190, 26, 26, 0.3);
+  border: calc(var(--content-size) * 0.10) solid #ffffff;
 }
 
 .choose-circle.has-image:hover {
   transform: scale(1.03);
-  box-shadow: 0 4px 12px rgba(190, 26, 26, 0.25);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
 }
 
 .choose-circle.has-image:active {
