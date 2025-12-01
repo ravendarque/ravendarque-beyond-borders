@@ -278,12 +278,14 @@ body {
   z-index: 2;
   /* White background with halftone effect */
   background: 
-    radial-gradient(circle, rgba(0, 0, 0, 0.08) 0.8px, transparent 0.8px),
-    radial-gradient(circle, rgba(0, 0, 0, 0.08) 0.8px, transparent 0.8px),
+    radial-gradient(circle, rgba(0, 0, 0, 0.10) 0.8px, transparent 0.8px),
+    radial-gradient(circle, rgba(0, 0, 0, 0.10) 0.8px, transparent 0.8px),
     #fff;
   background-size: 7px 7px, 7px 7px, 100%;
   background-position: 0 0, 3.5px 3.5px, 0 0;
   border-radius: 50%;
+  /* Very slight blur to soften the dots */
+  filter: blur(0.3px);
 }
 
 .choose-wrapper:hover .choose-circle {
@@ -301,7 +303,7 @@ body {
   position: absolute;
   /* Create a gap around the circle for the halftone border */
   inset: calc(var(--content-size) * 0.10);
-  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   background: #fff;
   border-radius: 50%;
   display: flex;
@@ -314,6 +316,8 @@ body {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   pointer-events: auto;
   z-index: 1;
+  /* Very subtle glow - higher opacity on first layer to compensate for blur spreading */
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.08), 0 0 12px rgba(0, 0, 0, 0.03), 0 0 20px rgba(0, 0, 0, 0.01);
 }
 
 .choose-circle::before {
@@ -343,7 +347,7 @@ label.choose-circle:hover {
 }
 
 .choose-circle.has-image {
-  border: calc(var(--content-size) * 0.10) solid #ffffff;
+  border: none;
 }
 
 .choose-circle.has-image:hover {
