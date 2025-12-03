@@ -1,11 +1,18 @@
 # Flag data source for Beyond Borders
 # This file is the source of truth for all flags in the application
+
+# Category definitions - reference these by key in flags
+categories:
+  occupied: "Occupied / Disputed Territory"
+  stateless: "Stateless People"
+  oppressed: "Oppressed Groups"
+
 flags:
   - name: "Palestinian Flag"
     displayName: "Palestine"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Palestine.svg"
     description: "Black, white, and green horizontal stripes with a red triangle at the hoist."
-    category: "Occupied / Disputed Territory"
+    category: occupied
     reason: "Territorial dispute and prolonged occupation affecting the rights, movement, and livelihoods of Palestinians."
     link: "https://en.wikipedia.org/wiki/Palestine"
 
@@ -13,7 +20,7 @@ flags:
     displayName: "Tibet"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Tibet.svg"
     description: "A pair of snow lions standing in front of a mountain with a rising sun and Buddhist symbols."
-    category: "Occupied / Disputed Territory"
+    category: occupied
     reason: "Banned in Tibet since Chinese control; symbol of Tibetan cultural and political resistance."
     link: "https://en.wikipedia.org/wiki/Flag_of_Tibet"
 
@@ -21,7 +28,7 @@ flags:
     displayName: "Western Sahara"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_the_Sahrawi_Arab_Democratic_Republic.svg"
     description: "Black, white, and green horizontal stripes with a red triangle and star and crescent."
-    category: "Occupied / Disputed Territory"
+    category: occupied
     reason: "Territory with partial recognition; long-running dispute and displacement of Sahrawi people."
     link: "https://en.wikipedia.org/wiki/Western_Sahara"
 
@@ -29,7 +36,7 @@ flags:
     displayName: "Kurdistan"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Kurdistan.svg"
     description: "Red, white, and green tricolor with a golden sun emblem at center."
-    category: "Stateless People"
+    category: stateless
     reason: "Represents Kurdish identity and independence aspirations; Kurds face repression and denial of rights across multiple states."
     link: "https://en.wikipedia.org/wiki/Kurdistan"
 
@@ -37,7 +44,7 @@ flags:
     displayName: "Uyghur (East Turkestan)"
     svg_url: "https://en.wikipedia.org/wiki/File:Kokbayraq_flag.svg"
     description: "Sky-blue field with a white crescent and star."
-    category: "Stateless People"
+    category: stateless
     reason: "Used by Uyghur activists and diaspora; Uyghurs face mass detention, cultural repression, and rights abuses in Xinjiang."
     link: "https://en.wikipedia.org/wiki/Uyghurs"
 
@@ -45,7 +52,7 @@ flags:
     displayName: "Rohingya"
     svg_url: "https://commons.wikimedia.org/wiki/File:Rohingya_flag.svg"
     description: "Green field with a white star and crescent and additional motifs used by Rohingya groups."
-    category: "Stateless People"
+    category: stateless
     reason: "Rohingya have faced ethnic cleansing, statelessness, and severe persecution in Myanmar."
     link: "https://en.wikipedia.org/wiki/Rohingya"
 
@@ -53,7 +60,7 @@ flags:
     displayName: "Pride"
     svg_url: "https://en.wikipedia.org/wiki/Rainbow_flag_(LGBTQ)#/media/File:Gay_Pride_Flag.svg"
     description: "Six horizontal colored stripes representing LGBTQ+ pride and diversity."
-    category: "Oppressed Groups"
+    category: oppressed
     reason: "Represents LGBTQ+ communities; in many countries LGBTQ+ people face criminalization, discrimination, and violence."
     link: "https://en.wikipedia.org/wiki/Rainbow_flag"
 
@@ -61,7 +68,7 @@ flags:
     displayName: "Trans Pride"
     svg_url: "https://commons.wikimedia.org/wiki/File:Transgender_Pride_flag.svg"
     description: "Light blue, pink, and white horizontal stripes representing transgender community."
-    category: "Oppressed Groups"
+    category: oppressed
     reason: "Symbol of transgender visibility; transgender people face discrimination and legal obstacles in many places."
     link: "https://en.wikipedia.org/wiki/Transgender_flag"
 
@@ -69,7 +76,7 @@ flags:
     displayName: "Ukraine"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Ukraine.svg"
     description: "Two horizontal bands of blue (top) and yellow (bottom)."
-    category: "Occupied / Disputed Territory"
+    category: occupied
     reason: "Ongoing military occupation and territorial aggression since 2014; symbol of sovereignty and resistance."
     link: "https://en.wikipedia.org/wiki/Flag_of_Ukraine"
 
@@ -77,7 +84,7 @@ flags:
     displayName: "Australian Aboriginal Peoples"
     svg_url: "https://commons.wikimedia.org/wiki/File:Australian_Aboriginal_Flag.svg"
     description: "Black top half, red bottom half, with a central yellow circle representing the Sun."
-    category: "Oppressed Groups"
+    category: oppressed
     reason: "Represents Aboriginal peoples of Australia and is used as a symbol of identity, cultural resilience, and political rights."
     link: "https://en.wikipedia.org/wiki/Aboriginal_flag"
 
@@ -85,7 +92,7 @@ flags:
     displayName: "Non-Binary Pride"
     svg_url: "https://commons.wikimedia.org/wiki/File:Nonbinary_flag.svg"
     description: "Four horizontal stripes: yellow, white, purple, and black representing people whose gender is outside the binary."
-    category: "Oppressed Groups"
+    category: oppressed
     reason: "Represents non-binary people and their visibility; used in LGBTQ+ contexts to acknowledge gender diversity."
     link: "https://en.wikipedia.org/wiki/Non-binary_gender#Flags"
 

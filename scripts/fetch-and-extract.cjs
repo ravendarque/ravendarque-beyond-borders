@@ -55,12 +55,52 @@ function mapCategoryToCode(category) {
   return mapping[category] || null;
 }
 
+// Reverse mapping: code to display name (from source of truth)
+const CATEGORY_DISPLAY_NAMES = {
+  'authoritarian': 'Authoritarian State',
+  'occupied': 'Occupied / Disputed Territory',
+  'stateless': 'Stateless People',
+  'oppressed': 'Oppressed Groups',
+};
+
 function parseFlagsFromYaml(yaml) {
   const jsyaml = require('js-yaml');
   const doc = jsyaml.load(yaml);
   
+  // Handle new structure with categories lookup
+  if (doc && doc.categories && Array.isArray(doc.flags)) {
+    // Resolve category references to display names
+    const categories = doc.categories;
+    return doc.flags.map(flag => {
+      if (flag.category && categories[flag.category]) {
+        const displayName = categories[flag.category];
+        return {
+          ...flag,
+          categoryDisplayName: displayName,
+          category: mapCategoryToCode(displayName)
+        };
+      }
+      // If category is already a display name (legacy), use it directly
+      if (flag.category) {
+        return {
+          ...flag,
+          categoryDisplayName: flag.category,
+          category: mapCategoryToCode(flag.category)
+        };
+      }
+      return flag;
+    });
+  }
+  
+  // Legacy structure support
   if (Array.isArray(doc)) return doc;
-  if (doc && Array.isArray(doc.flags)) return doc.flags;
+  if (doc && Array.isArray(doc.flags)) {
+    return doc.flags.map(flag => ({
+      ...flag,
+      categoryDisplayName: flag.category || null,
+      category: mapCategoryToCode(flag.category)
+    }));
+  }
   
   console.error('Error: YAML structure is invalid. Expected { flags: [...] } or an array.');
   process.exit(1);
@@ -368,6 +408,10 @@ function generateTypeScriptSource(manifest) {
       lines.push(`    category: '${entry.category}',`);
     }
     
+    if (entry.categoryDisplayName) {
+      lines.push(`    categoryDisplayName: '${entry.categoryDisplayName.replace(/'/g, "\\'")}',`);
+    }
+    
     // Generate sources field
     if (entry.source_page || entry.link) {
       const refUrl = entry.link || entry.source_page || 'https://en.wikipedia.org';
@@ -500,6 +544,7 @@ async function workerForFlag(f) {
       size,
       description: f.description,
       category: mapCategoryToCode(f.category),
+      categoryDisplayName: f.category || null, // Preserve original display name from source of truth
       reason: f.reason,
       link: f.link,
       colors,
@@ -808,6 +853,7 @@ async function workerForFlag(f) {
         media_url: m.media_url || null,
         description: m.description || null,
         category: m.category || null,
+        categoryDisplayName: m.categoryDisplayName || null,
         reason: m.reason || null,
         link: m.link || null,
         layouts,

@@ -17,6 +17,29 @@ export interface FlagSelectorProps {
  * Single Responsibility: Flag selection UI with Radix Select primitive
  */
 export function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelectorProps) {
+  // Group flags by category and only include categories that have flags
+  const flagsByCategory = flags.reduce((acc, flag) => {
+    if (!flag.category) return acc;
+    if (!acc[flag.category]) {
+      acc[flag.category] = [];
+    }
+    acc[flag.category].push(flag);
+    return acc;
+  }, {} as Record<string, typeof flags>);
+
+  // Get unique categories that have flags, sorted for consistent display
+  const categories = Object.keys(flagsByCategory).sort();
+
+  // Get display name for a category from the first flag that has it (from source of truth)
+  const getCategoryDisplayName = (category: string): string => {
+    const flagsInCategory = flagsByCategory[category];
+    if (flagsInCategory && flagsInCategory.length > 0) {
+      const firstFlag = flagsInCategory[0];
+      // Use categoryDisplayName from source of truth if available, otherwise fall back to category code
+      return firstFlag.categoryDisplayName || category;
+    }
+    return category;
+  };
 
   return (
     <div className="flag-selector">
@@ -32,45 +55,18 @@ export function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelect
         <Select.Portal>
           <Select.Content className="flag-select-content" position="popper">
             <Select.Viewport>
-              {/* Authoritarian Regimes */}
-              <Select.Group>
-                <Select.Label className="flag-select-label">Authoritarian Regimes</Select.Label>
-                {flags.filter(f => f.category === 'authoritarian').map((flag) => (
-                  <Select.Item key={flag.id} value={flag.id} className="flag-select-item">
-                    <Select.ItemText>{flag.displayName}</Select.ItemText>
-                  </Select.Item>
-                ))}
-              </Select.Group>
-
-              {/* Occupied Territories */}
-              <Select.Group>
-                <Select.Label className="flag-select-label">Occupied Territories</Select.Label>
-                {flags.filter(f => f.category === 'occupied').map((flag) => (
-                  <Select.Item key={flag.id} value={flag.id} className="flag-select-item">
-                    <Select.ItemText>{flag.displayName}</Select.ItemText>
-                  </Select.Item>
-                ))}
-              </Select.Group>
-
-              {/* Stateless Peoples */}
-              <Select.Group>
-                <Select.Label className="flag-select-label">Stateless Peoples</Select.Label>
-                {flags.filter(f => f.category === 'stateless').map((flag) => (
-                  <Select.Item key={flag.id} value={flag.id} className="flag-select-item">
-                    <Select.ItemText>{flag.displayName}</Select.ItemText>
-                  </Select.Item>
-                ))}
-              </Select.Group>
-
-              {/* Oppressed Groups */}
-              <Select.Group>
-                <Select.Label className="flag-select-label">Oppressed Groups</Select.Label>
-                {flags.filter(f => f.category === 'oppressed').map((flag) => (
-                  <Select.Item key={flag.id} value={flag.id} className="flag-select-item">
-                    <Select.ItemText>{flag.displayName}</Select.ItemText>
-                  </Select.Item>
-                ))}
-              </Select.Group>
+              {categories.map((category) => (
+                <Select.Group key={category}>
+                  <Select.Label className="flag-select-label">
+                    {getCategoryDisplayName(category)}
+                  </Select.Label>
+                  {flagsByCategory[category].map((flag) => (
+                    <Select.Item key={flag.id} value={flag.id} className="flag-select-item">
+                      <Select.ItemText>{flag.displayName}</Select.ItemText>
+                    </Select.Item>
+                  ))}
+                </Select.Group>
+              ))}
             </Select.Viewport>
           </Select.Content>
         </Select.Portal>
