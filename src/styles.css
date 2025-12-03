@@ -289,16 +289,6 @@ body {
   border-radius: 50%;
 }
 
-.choose-wrapper:hover .choose-circle {
-  transform: scale(1.05) !important;
-  box-shadow: 0 6px 16px rgba(180, 160, 100, 0.3) !important;
-}
-
-.choose-wrapper:hover .choose-circle.has-image {
-  transform: scale(1.05) !important;
-  box-shadow: 0 6px 16px rgba(180, 160, 100, 0.3) !important;
-}
-
 /* Image upload circle */
 .choose-circle {
   position: absolute;
@@ -327,7 +317,6 @@ body {
   inset: 0;
   border-radius: 50%;
   pointer-events: none;
-  /* Removed SVG dashed circle */
 }
 
 .choose-circle.has-image::before {
@@ -337,8 +326,12 @@ body {
 .choose-wrapper:hover .choose-circle,
 label.choose-circle:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.5);
-  border-color: #ffffff;
+  box-shadow: 0 6px 16px rgba(180, 160, 100, 0.3);
+}
+
+.choose-wrapper:hover .choose-circle.has-image {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(180, 160, 100, 0.3);
 }
 
 .choose-circle:active {

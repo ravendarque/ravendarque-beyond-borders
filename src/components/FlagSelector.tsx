@@ -19,7 +19,10 @@ export interface FlagSelectorProps {
 export function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelectorProps) {
   return (
     <div className="flag-selector">
-      <Select.Root value={selectedFlagId || undefined} onValueChange={onFlagChange}>
+      <Select.Root 
+        value={selectedFlagId ?? ''} 
+        onValueChange={(value) => onFlagChange(value || null)}
+      >
         <Select.Trigger className="flag-select-trigger" aria-label="Choose a flag">
           <Select.Value placeholder="Choose a flag" />
           <Select.Icon className="flag-select-icon">▼</Select.Icon>

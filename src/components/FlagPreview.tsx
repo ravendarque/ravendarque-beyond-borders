@@ -1,5 +1,6 @@
 import React from 'react';
 import type { FlagSpec } from '@/flags/schema';
+import { getAssetUrl } from '@/config';
 
 export interface FlagPreviewProps {
   /** Selected flag to display */
@@ -42,7 +43,7 @@ export function FlagPreview({ flag, size = 'large' }: FlagPreviewProps) {
   return (
     <div className="flag-preview">
       <img 
-        src={`/flags/${imageSrc}`}
+        src={getAssetUrl(`flags/${imageSrc}`)}
         alt={flag.displayName}
         className="flag-preview-image"
       />
