@@ -6,109 +6,6 @@ import { FlagSpec } from './schema';
  */
 export const flags: FlagSpec[] = [
   {
-    id: 'north-korea',
-    name: 'Ramhongsaek Konghwagukgi',
-    displayName: 'North Korea',
-    png_full: 'north-korea.png',
-    png_preview: 'north-korea.preview.png',
-    aspectRatio: 2,
-    svgFilename: 'north-korea.svg',
-    category: 'authoritarian',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/North_Korea' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#F02020', weight: 1, label: 'red' },
-        { color: '#0050A0', weight: 1, label: 'blue' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#F09090', weight: 1, label: 'red' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
-        colors: [
-          '#f02020',
-          '#0050a0',
-          '#ffffff',
-          '#f09090'
-        ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
-  },
-  {
-    id: 'eritrea',
-    name: 'Flag Of Eritrea',
-    displayName: 'Eritrea',
-    png_full: 'eritrea.png',
-    png_preview: 'eritrea.preview.png',
-    aspectRatio: 2,
-    svgFilename: 'eritrea.svg',
-    category: 'authoritarian',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Eritrea' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#E00030', weight: 1, label: 'red' },
-        { color: '#4090E0', weight: 1, label: 'blue' },
-        { color: '#40B030', weight: 1, label: 'green' },
-        { color: '#FFD030', weight: 1, label: 'orange' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
-        colors: [
-          '#e00030',
-          '#4090e0',
-          '#40b030',
-          '#ffd030'
-        ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
-  },
-  {
-    id: 'iran',
-    name: 'Flag Of The Islamic Republic Of Iran',
-    displayName: 'Iran',
-    png_full: 'iran.png',
-    png_preview: 'iran.preview.png',
-    aspectRatio: 1.5,
-    svgFilename: 'iran.svg',
-    category: 'authoritarian',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Iran' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#E00000', weight: 1, label: 'red' },
-        { color: '#20A040', weight: 1, label: 'green' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
-        colors: [
-          '#ffffff',
-          '#e00000',
-          '#20a040'
-        ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
-  },
-  {
     id: 'palestine',
     name: 'Palestinian Flag',
     displayName: 'Palestine',
@@ -117,6 +14,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 2,
     svgFilename: 'palestine.svg',
     category: 'occupied',
+    categoryDisplayName: 'Occupied / Disputed Territory',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Palestine' },
     status: 'active',
     pattern: {
@@ -152,6 +50,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 1.5,
     svgFilename: 'tibet.svg',
     category: 'occupied',
+    categoryDisplayName: 'Occupied / Disputed Territory',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Tibet' },
     status: 'active',
     pattern: {
@@ -187,6 +86,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 1.5,
     svgFilename: 'the-sahrawi-arab-democratic-republic.svg',
     category: 'occupied',
+    categoryDisplayName: 'Occupied / Disputed Territory',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Western_Sahara' },
     status: 'active',
     pattern: {
@@ -222,6 +122,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 1.5,
     svgFilename: 'kurdistan.svg',
     category: 'stateless',
+    categoryDisplayName: 'Stateless People',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Kurdistan' },
     status: 'active',
     pattern: {
@@ -257,6 +158,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 1.5,
     svgFilename: 'kokbayraq.svg',
     category: 'stateless',
+    categoryDisplayName: 'Stateless People',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Uyghurs' },
     status: 'active',
     pattern: {
@@ -288,6 +190,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 1.5,
     svgFilename: 'rohingya.svg',
     category: 'stateless',
+    categoryDisplayName: 'Stateless People',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rohingya' },
     status: 'active',
     pattern: {
@@ -321,6 +224,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 1.61875,
     svgFilename: 'gay-pride.svg',
     category: 'oppressed',
+    categoryDisplayName: 'Oppressed Groups',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rainbow_flag' },
     status: 'active',
     pattern: {
@@ -360,6 +264,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 1.6666666666666667,
     svgFilename: 'transgender-pride.svg',
     category: 'oppressed',
+    categoryDisplayName: 'Oppressed Groups',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Transgender_flag' },
     status: 'active',
     pattern: {
@@ -393,6 +298,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 1.5,
     svgFilename: 'ukraine.svg',
     category: 'occupied',
+    categoryDisplayName: 'Occupied / Disputed Territory',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Ukraine' },
     status: 'active',
     pattern: {
@@ -424,6 +330,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 1.6666666666666667,
     svgFilename: 'australian-aboriginal.svg',
     category: 'oppressed',
+    categoryDisplayName: 'Oppressed Groups',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Aboriginal_flag' },
     status: 'active',
     pattern: {
@@ -459,6 +366,7 @@ export const flags: FlagSpec[] = [
     aspectRatio: 1.5,
     svgFilename: 'nonbinary.svg',
     category: 'oppressed',
+    categoryDisplayName: 'Oppressed Groups',
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Non-binary_gender#Flags' },
     status: 'active',
     pattern: {
