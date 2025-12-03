@@ -4,6 +4,7 @@ import * as Slider from '@radix-ui/react-slider';
 import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
+import { getAssetUrl } from '@/config';
 import { FlagSelector } from '@/components/FlagSelector';
 import { FlagPreview } from '@/components/FlagPreview';
 import { ImageUploadZone } from '@/components/ImageUploadZone';
@@ -39,6 +40,35 @@ export function AppStepWorkflow() {
   const selectedFlag = useMemo(() => {
     return flagId ? flags.find(f => f.id === flagId) || null : null;
   }, [flagId]);
+
+  // Preload full flag image when flag is selected (needed for cutout mode)
+  useEffect(() => {
+    if (!selectedFlag?.png_full) return;
+
+    const cacheKey = selectedFlag.png_full;
+    
+    // Skip if already cached
+    if (flagImageCache.has(cacheKey)) return;
+
+    // Preload the full flag image asynchronously
+    const preloadFlag = async () => {
+      try {
+        const response = await fetch(getAssetUrl(`flags/${selectedFlag.png_full}`));
+        if (!response.ok) return;
+        
+        const blob = await response.blob();
+        const bitmap = await createImageBitmap(blob);
+        flagImageCache.set(cacheKey, bitmap);
+      } catch (error) {
+        // Silent fail - preloading is best-effort
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[Preload] Failed to preload flag image:', error);
+        }
+      }
+    };
+
+    void preloadFlag();
+  }, [selectedFlag?.png_full, flagImageCache]);
   
   // Sync currentStep to URL
   useEffect(() => {
