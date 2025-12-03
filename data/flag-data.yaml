@@ -1,30 +1,6 @@
 # Flag data source for Beyond Borders
 # This file is the source of truth for all flags in the application
 flags:
-  - name: "Ramhongsaek Konghwagukgi"
-    displayName: "North Korea"
-    svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_North_Korea.svg"
-    description: "Red central band with blue edges and a red star in a white circle."
-    category: "Authoritarian State"
-    reason: "Totalitarian dictatorship under the Kim regime with severe, systemic human rights abuses, political prison camps, and repression of dissent."
-    link: "https://en.wikipedia.org/wiki/North_Korea"
-
-  - name: "Flag Of Eritrea"
-    displayName: "Eritrea"
-    svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Eritrea.svg"
-    description: "Green, blue and red tricolour with a gold olive wreath emblem."
-    category: "Authoritarian State"
-    reason: "Longstanding authoritarian rule, indefinite national service, and widespread human rights concerns documented by international organizations."
-    link: "https://en.wikipedia.org/wiki/Eritrea"
-
-  - name: "Flag Of The Islamic Republic Of Iran"
-    displayName: "Iran"
-    svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Iran.svg"
-    description: "Green, white, and red horizontal tricolour with the emblem of Iran at center and takbir script along the borders."
-    category: "Authoritarian State"
-    reason: "Theocratic governance with restricted political freedoms, repression of dissent, and violations of women's and minority rights."
-    link: "https://en.wikipedia.org/wiki/Iran"
-
   - name: "Palestinian Flag"
     displayName: "Palestine"
     svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Palestine.svg"
