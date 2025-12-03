@@ -543,8 +543,8 @@ async function workerForFlag(f) {
       media_url: mediaUrl,
       size,
       description: f.description,
-      category: mapCategoryToCode(f.category),
-      categoryDisplayName: f.category || null, // Preserve original display name from source of truth
+      category: f.category || null, // Already resolved by parseFlagsFromYaml
+      categoryDisplayName: f.categoryDisplayName || null, // Already resolved by parseFlagsFromYaml
       reason: f.reason,
       link: f.link,
       colors,
@@ -874,25 +874,23 @@ async function workerForFlag(f) {
       console.log(`   Generated ${manifest.length} flag entries`);
     }
     
-    // Post-run cleanup
-    try {
-      const allowed = new Set();
-      // No longer need flags.json in public/flags/ - now generating flags.ts in src/flags/
-      for (const e of manifest) {
-        if (e.png_full) allowed.add(e.png_full);
-        if (e.png_preview) allowed.add(e.png_preview);
-      }
-      const existingFiles = fs.readdirSync(outDir);
-      for (const fn of existingFiles) {
-        const full = path.join(outDir, fn);
-        try {
-          const st = fs.statSync(full);
-          if (st.isDirectory()) continue;
-        } catch (e) { continue; }
-        if (!allowed.has(fn)) {
-          if (WANT_DRY) {
-            console.log('Dry-run: would remove stray flag asset', full);
-          } else {
+    // Post-run cleanup - only run if we have a valid manifest and not in dry-run
+    if (!WANT_DRY && manifest.length > 0) {
+      try {
+        const allowed = new Set();
+        // No longer need flags.json in public/flags/ - now generating flags.ts in src/flags/
+        for (const e of manifest) {
+          if (e.png_full) allowed.add(e.png_full);
+          if (e.png_preview) allowed.add(e.png_preview);
+        }
+        const existingFiles = fs.readdirSync(outDir);
+        for (const fn of existingFiles) {
+          const full = path.join(outDir, fn);
+          try {
+            const st = fs.statSync(full);
+            if (st.isDirectory()) continue;
+          } catch (e) { continue; }
+          if (!allowed.has(fn)) {
             try {
               fs.unlinkSync(full);
               console.log('Removed stray flag asset', full);
@@ -901,9 +899,11 @@ async function workerForFlag(f) {
             }
           }
         }
+      } catch (e) {
+        console.warn('Post-run cleanup failed', e && e.message);
       }
-    } catch (e) {
-      console.warn('Post-run cleanup failed', e && e.message);
+    } else if (WANT_DRY) {
+      console.log('Dry-run: skipping cleanup (would only run with valid manifest)');
     }
     
     // Report failures
