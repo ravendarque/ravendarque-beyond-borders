@@ -18,6 +18,7 @@ export const FlagSpec = z.object({
   media_url: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
   category: z.string().optional().nullable(), // Changed from enum to string for flexibility
+  categoryDisplayName: z.string().optional().nullable(), // Original display name from source of truth
   reason: z.string().optional().nullable(), // Why this flag is included
   link: z.string().optional().nullable(),
   colors: z.array(z.string()).optional().nullable(),

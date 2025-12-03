@@ -43,7 +43,7 @@ export function FlagPreview({ flag, size = 'large' }: FlagPreviewProps) {
     );
   }
 
-  const aspectRatio = flag.aspectRatio || 2; // Default to 2:1 if not specified
+  const aspectRatio = flag.aspectRatio ?? 2; // Default to 2:1 if not specified
 
   return (
     <div 

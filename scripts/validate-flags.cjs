@@ -52,9 +52,13 @@ function canonicalizeId(name) {
   } catch (e) { err('Failed to read data/flag-data.yaml'); process.exit(1); }
 
   let expected = [];
+  let categories = {};
   try {
     const jsyaml = require('js-yaml');
     const doc = jsyaml.load(yaml);
+    if (doc && doc.categories) {
+      categories = doc.categories;
+    }
     if (doc && Array.isArray(doc.flags)) expected = doc.flags;
     else expected = [];
   } catch (e) {
@@ -65,6 +69,25 @@ function canonicalizeId(name) {
       const url = m[1];
       const parts = url.split('/');
       expected.push({ svg: parts[parts.length - 1] });
+    }
+  }
+
+  // Validate category keys
+  if (Object.keys(categories).length > 0) {
+    const categoryKeys = new Set(Object.keys(categories));
+    const invalidCategories = [];
+    for (const flag of expected) {
+      if (flag.category && !categoryKeys.has(flag.category)) {
+        invalidCategories.push({ flag: flag.name || flag.displayName || 'unknown', category: flag.category });
+      }
+    }
+    if (invalidCategories.length) {
+      err('Category validation failed — the following flags have invalid category keys:');
+      for (const x of invalidCategories) {
+        err(`  - ${x.flag}: category "${x.category}" is not a valid key in categories lookup`);
+      }
+      err('\nValid category keys are: ' + Array.from(categoryKeys).join(', '));
+      process.exit(2);
     }
   }
 
@@ -197,6 +220,6 @@ function canonicalizeId(name) {
       err('\nRegenerate assets with scripts/fetch-and-extract.cjs --ci and inspect with scripts/inspect-flag-raster.cjs.');
       process.exit(3);
     }
-    console.log('Flag manifest validation passed — flags.ts present and referenced PNGs exist, and all png_full images fully use their canvas.');
+    console.log('Flag validation passed — flags.ts present, category keys valid, referenced PNGs exist, and all png_full images fully use their canvas.');
     process.exit(0);
   })();
