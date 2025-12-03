@@ -42,8 +42,8 @@ export function ImageUploadZone({ imageUrl, onImageUpload, onShowPrivacy }: Imag
             <>
               <div className="icon" aria-hidden="true">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M6 20C6 16 8.5 14 12 14C15.5 14 18 16 18 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="12" cy="8" r="4" fill="currentColor"/>
+                  <path d="M6 20C6 16 8.5 14 12 14C15.5 14 18 16 18 20" fill="currentColor"/>
                 </svg>
               </div>
               <div className="prompt">Choose your profile picture</div>

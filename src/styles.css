@@ -359,7 +359,7 @@ label.choose-circle:hover {
 .choose-circle .icon {
   width: 40px;
   height: 40px;
-  background: #ddd;
+  background: rgba(180, 160, 100, 0.2);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -368,6 +368,7 @@ label.choose-circle:hover {
   margin-bottom: 18px;
   font-family: 'Segoe UI', sans-serif;
   pointer-events: none;
+  color: #666;
 }
 
 .choose-circle .prompt {
@@ -876,7 +877,7 @@ label.choose-circle:hover {
 .flag-preview-empty .icon {
   width: 40px;
   height: 40px;
-  background: #ddd;
+  background: rgba(180, 160, 100, 0.2);
   border-radius: 50%;
   display: flex;
   align-items: center;
