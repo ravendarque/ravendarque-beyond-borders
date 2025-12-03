@@ -15,6 +15,10 @@ export interface FlagPreviewProps {
  * Single Responsibility: Display flag preview image
  */
 export function FlagPreview({ flag, size = 'large' }: FlagPreviewProps) {
+  const flagId = flag?.id ?? null;
+  const imageSrc = flag ? (flag.png_preview || flag.png_full) : null;
+  const fullUrl = imageSrc ? getAssetUrl(`flags/${imageSrc}`) : null;
+
   if (!flag) {
     return (
       <div className="flag-preview flag-preview-empty">
@@ -30,9 +34,7 @@ export function FlagPreview({ flag, size = 'large' }: FlagPreviewProps) {
     );
   }
 
-  const imageSrc = flag.png_preview || flag.png_full;
-  
-  if (!imageSrc) {
+  if (!fullUrl) {
     return (
       <div className="flag-preview">
         <div className="flag-preview-placeholder">No preview available</div>
@@ -43,11 +45,12 @@ export function FlagPreview({ flag, size = 'large' }: FlagPreviewProps) {
   return (
     <div className="flag-preview">
       <img 
-        src={getAssetUrl(`flags/${imageSrc}`)}
+        src={fullUrl}
         alt={flag.displayName}
         className="flag-preview-image"
+        loading="eager"
+        key={flagId}
       />
     </div>
   );
 }
-
