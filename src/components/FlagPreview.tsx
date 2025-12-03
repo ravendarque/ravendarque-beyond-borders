@@ -42,8 +42,13 @@ export function FlagPreview({ flag, size = 'large' }: FlagPreviewProps) {
     );
   }
 
+  const aspectRatio = flag.aspectRatio || 2; // Default to 2:1 if not specified
+
   return (
-    <div className="flag-preview">
+    <div 
+      className="flag-preview"
+      style={{ aspectRatio: `${aspectRatio} / 1` }}
+    >
       <img 
         src={fullUrl}
         alt={flag.displayName}
