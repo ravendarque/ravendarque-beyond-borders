@@ -892,6 +892,30 @@ label.choose-circle:hover {
   text-align: center;
 }
 
+.flag-preview-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.flag-preview-loading .icon {
+  width: 40px;
+  height: 40px;
+  background: #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+.flag-preview {
+  position: relative;
+}
+
 /* Step 3: Adjust Controls */
 .adjust-wrapper {
   width: 100%;

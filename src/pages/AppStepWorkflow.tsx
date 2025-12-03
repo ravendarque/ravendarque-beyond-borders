@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Slider from '@radix-ui/react-slider';
 import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
+import { getAssetUrl } from '@/config';
 import { FlagSelector } from '@/components/FlagSelector';
 import { FlagPreview } from '@/components/FlagPreview';
 import { ImageUploadZone } from '@/components/ImageUploadZone';
@@ -34,6 +35,11 @@ export function AppStepWorkflow() {
   // Avatar rendering
   const flagImageCache = useFlagImageCache();
   const { overlayUrl, isRendering, render } = useAvatarRenderer(flags, flagImageCache);
+  
+  // Memoize selected flag to prevent unnecessary re-renders
+  const selectedFlag = useMemo(() => {
+    return flagId ? flags.find(f => f.id === flagId) || null : null;
+  }, [flagId]);
   
   // Sync currentStep to URL
   useEffect(() => {
@@ -209,7 +215,20 @@ export function AppStepWorkflow() {
                   selectedFlagId={flagId}
                   onFlagChange={setFlagId}
                 />
-                <FlagPreview flag={flags.find(f => f.id === flagId) || null} />
+                {/* Preload all preview images when step 2 loads */}
+                {flags.map(flag => {
+                  const src = flag.png_preview || flag.png_full;
+                  if (!src) return null;
+                  return (
+                    <link
+                      key={flag.id}
+                      rel="preload"
+                      as="image"
+                      href={getAssetUrl(`flags/${src}`)}
+                    />
+                  );
+                })}
+                <FlagPreview flag={selectedFlag} />
               </div>
             )}
 

@@ -10,6 +10,12 @@ export default defineConfig({
   base: process.env.BASE_URL || 
         (process.env.NODE_ENV === 'production' ? '/ravendarque-beyond-borders/' : '/'),
   plugins: [react()],
+  server: {
+    // Optimize static file serving
+    fs: {
+      strict: false,
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
