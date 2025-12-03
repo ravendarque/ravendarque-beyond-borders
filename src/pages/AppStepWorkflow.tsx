@@ -4,7 +4,6 @@ import * as Slider from '@radix-ui/react-slider';
 import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
-import { getAssetUrl } from '@/config';
 import { FlagSelector } from '@/components/FlagSelector';
 import { FlagPreview } from '@/components/FlagPreview';
 import { ImageUploadZone } from '@/components/ImageUploadZone';
@@ -215,19 +214,6 @@ export function AppStepWorkflow() {
                   selectedFlagId={flagId}
                   onFlagChange={setFlagId}
                 />
-                {/* Preload all preview images when step 2 loads */}
-                {flags.map(flag => {
-                  const src = flag.png_preview || flag.png_full;
-                  if (!src) return null;
-                  return (
-                    <link
-                      key={flag.id}
-                      rel="preload"
-                      as="image"
-                      href={getAssetUrl(`flags/${src}`)}
-                    />
-                  );
-                })}
                 <FlagPreview flag={selectedFlag} />
               </div>
             )}
