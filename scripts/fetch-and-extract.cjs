@@ -9,8 +9,9 @@ const argv = process.argv.slice(2);
 const WANT_PUSH = argv.includes('--push');
 const WANT_CI = argv.includes('--ci') || process.env.CI === 'true';
 const WANT_DRY = argv.includes('--dry-run');
+const WANT_FORCE = argv.includes('--force');
 if (argv.includes('--help') || argv.includes('-h')) {
-  console.log('Usage: node scripts/fetch-and-extract.cjs [--push] [--ci] [--dry-run]\n  --push   allow git add/commit/push (local override)\n  --ci     treat run as CI (also allows commit)\n  --dry-run  only simulate actions (no network writes)');
+  console.log('Usage: node scripts/fetch-and-extract.cjs [--push] [--ci] [--dry-run] [--force]\n  --push   allow git add/commit/push (local override)\n  --ci     treat run as CI (also allows commit)\n  --dry-run  only simulate actions (no network writes)\n  --force  delete existing PNG files before regenerating');
   process.exit(0);
 }
 
@@ -590,10 +591,65 @@ async function workerForFlag(f) {
           if (w > 0 && h > 0) aspect = w / h;
         }
 
+        // Detect content bounds early to get accurate aspect ratio for preview height calculation
+        let detectedAspectForPreview = aspect;
+        if (playwright) {
+          try {
+            const chromium = playwright.chromium;
+            const browser = await chromium.launch({ args: ['--no-sandbox'] });
+            try {
+              const context = await browser.newContext({ viewport: { width: 512, height: 512 } });
+              const page = await context.newPage();
+              await page.goto('file://' + tmpHtml);
+              try { await page.waitForSelector('svg', { timeout: 3000 }); } catch {}
+              const detected = await page.evaluate(() => {
+                try {
+                  const svg = document.querySelector('svg');
+                  if (!svg) return null;
+                  const s = new XMLSerializer().serializeToString(svg);
+                  const img = new Image();
+                  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
+                  return new Promise(resolve => {
+                    img.onload = function() {
+                      try {
+                        const iw = img.naturalWidth || 1; const ih = img.naturalHeight || 1;
+                        const tmp = document.createElement('canvas'); tmp.width = iw; tmp.height = ih;
+                        const tctx = tmp.getContext('2d'); tctx.clearRect(0,0,iw,ih); tctx.drawImage(img,0,0,iw,ih);
+                        const imgd = tctx.getImageData(0,0,iw,ih).data;
+                        let minX = iw, minY = ih, maxX = 0, maxY = 0, any = false;
+                        for (let y = 0; y < ih; y++) {
+                          for (let x = 0; x < iw; x++) {
+                            const i = (y * iw + x) * 4;
+                            const a = imgd[i + 3]; const r = imgd[i]; const g = imgd[i+1]; const b = imgd[i+2];
+                            if (a > 8 && !(r > 240 && g > 240 && b > 240)) { any = true; if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+                          }
+                        }
+                        const srcW = any ? (maxX - minX + 1) : iw; const srcH = any ? (maxY - minY + 1) : ih;
+                        resolve(srcW / srcH);
+                      } catch (e) { resolve(null); }
+                    };
+                    img.onerror = function() { resolve(null); };
+                  });
+                } catch (e) { return null; }
+              });
+              if (detected) {
+                detectedAspectForPreview = detected;
+                aspect = detected; // Update stored aspect ratio with detected content bounds
+              }
+              await context.close();
+            } finally {
+              try { await browser.close(); } catch (e) {}
+            }
+          } catch (e) {
+            // Fall back to viewBox aspect ratio if detection fails
+          }
+        }
+
         const FULL_HEIGHT = 1365;
         const PREVIEW_WIDTH = 200;
         const fullWidth = Math.max(64, Math.round(FULL_HEIGHT * aspect));
-        const previewHeight = Math.max(64, Math.round(PREVIEW_WIDTH / aspect));
+        // Use detected content aspect ratio for preview height to avoid letterboxing
+        const previewHeight = Math.max(64, Math.round(PREVIEW_WIDTH / detectedAspectForPreview));
         const targets = [
           { name: pngFull, width: fullWidth, height: FULL_HEIGHT, mode: 'slice' },
           { name: pngPreview, width: PREVIEW_WIDTH, height: previewHeight, mode: 'contain' }
@@ -605,6 +661,15 @@ async function workerForFlag(f) {
 
         for (const t of targets) {
           const outP = path.join(outDir, t.name);
+          // Delete existing file if --force flag is set
+          if (WANT_FORCE && fs.existsSync(outP)) {
+            try {
+              fs.unlinkSync(outP);
+              console.log('Deleted existing', outP, '(--force flag)');
+            } catch (e) {
+              console.warn('Failed to delete', outP, e && e.message);
+            }
+          }
           let usedFast = false;
 
           if (Resvg && Sharp) {
@@ -612,12 +677,17 @@ async function workerForFlag(f) {
               await renderSvgWithResvgSharp(svgText, outP, t.width, t.height, t.mode);
               const stats = await analyzePngUsage(outP);
               const thresh = t.mode === 'slice' ? MIN_PCT_FULL : MIN_PCT_PREVIEW;
-              if ((stats.pctW || 0) >= thresh || (stats.pctH || 0) >= thresh) {
+              // For 'contain' mode (previews), require both dimensions to meet threshold to avoid letterboxing
+              // For 'slice' mode (full), either dimension meeting threshold is acceptable
+              const meetsThreshold = t.mode === 'slice' 
+                ? ((stats.pctW || 0) >= thresh || (stats.pctH || 0) >= thresh)
+                : ((stats.pctW || 0) >= thresh && (stats.pctH || 0) >= thresh);
+              if (meetsThreshold) {
                 usedFast = true;
                 console.log('Fast-path wrote raster', outP, 'coverage=', stats);
                 if (!computedFocal) computedFocal = { x: 0.5, y: 0.5 };
               } else {
-                console.log('Fast-path produced low coverage for', outP, 'coverage=', stats);
+                console.log('Fast-path produced low coverage for', outP, 'coverage=', stats, '(will use Playwright path)');
                 try { fs.unlinkSync(outP); } catch (e) {}
               }
             } catch (e) {
@@ -688,10 +758,11 @@ async function workerForFlag(f) {
                 } catch (e) { computedFocal = { x: 0.5, y: 0.5 }; }
               }
 
+              let detectedAspectRatio = null;
               try {
                 const svgHandle = await page.$('svg');
                 if (svgHandle) {
-                  const dataUrl = await page.evaluate(async (w, h, mode, focal) => {
+                  const result = await page.evaluate(async (w, h, mode, focal) => {
                     try {
                       const svg = document.querySelector('svg');
                       const s = new XMLSerializer().serializeToString(svg);
@@ -711,6 +782,7 @@ async function workerForFlag(f) {
                         }
                       }
                       const srcX = any ? minX : 0; const srcY = any ? minY : 0; const srcW = any ? (maxX - minX + 1) : iw; const srcH = any ? (maxY - minY + 1) : ih;
+                      const detectedAspect = srcW / srcH;
                       const dst = { w: w, h: h };
                       const srcRatio = srcW / srcH; const dstRatio = dst.w / dst.h;
                       let dw, dh, dx, dy;
@@ -738,18 +810,33 @@ async function workerForFlag(f) {
                         if (dy < dst.h - dh) dy = dst.h - dh;
                         const c = document.createElement('canvas'); c.width = dst.w; c.height = dst.h; const ctx = c.getContext('2d'); ctx.clearRect(0,0,dst.w,dst.h);
                         ctx.drawImage(img, srcX, srcY, srcW, srcH, dx, dy, dw, dh);
-                        return c.toDataURL('image/png');
+                        return { dataUrl: c.toDataURL('image/png'), aspectRatio: detectedAspect };
                       } else {
-                        if (srcRatio > dstRatio) { dw = dst.w; dh = Math.round(dw / srcRatio); dx = Math.round((dst.w - dw) / 2); dy = Math.round((dst.h - dh) / 2); }
-                        else { dh = dst.h; dw = Math.round(dh * srcRatio); dx = Math.round((dst.w - dw) / 2); dy = Math.round((dst.h - dh) / 2); }
+                        // For 'contain' mode (previews), scale detected content bounds to fill destination
+                        // Use 'cover' logic to avoid letterboxing - scale to fill, may crop slightly
+                        if (srcRatio > dstRatio) { 
+                          dh = dst.h; 
+                          dw = Math.round(dh * srcRatio); 
+                          dx = Math.round((dst.w - dw) / 2); 
+                          dy = 0; 
+                        } else { 
+                          dw = dst.w; 
+                          dh = Math.round(dw / srcRatio); 
+                          dx = 0; 
+                          dy = Math.round((dst.h - dh) / 2); 
+                        }
                         const c = document.createElement('canvas'); c.width = dst.w; c.height = dst.h; const ctx = c.getContext('2d'); ctx.clearRect(0,0,dst.w,dst.h);
                         ctx.drawImage(img, srcX, srcY, srcW, srcH, dx, dy, dw, dh);
-                        return c.toDataURL('image/png');
+                        return { dataUrl: c.toDataURL('image/png'), aspectRatio: detectedAspect };
                       }
                     } catch (e) { return null; }
                   }, t.width, t.height, t.mode, (computedFocal || null));
-                  if (dataUrl) {
-                    const base64 = dataUrl.replace(/^data:image\/png;base64,/, ''); require('fs').writeFileSync(outP, Buffer.from(base64, 'base64'));
+                  if (result && result.dataUrl) {
+                    const base64 = result.dataUrl.replace(/^data:image\/png;base64,/, ''); require('fs').writeFileSync(outP, Buffer.from(base64, 'base64'));
+                    // Update aspect ratio with detected content bounds (more accurate than viewBox which may include white space)
+                    if (result.aspectRatio) {
+                      detectedAspectRatio = result.aspectRatio;
+                    }
                   } else {
                     await svgHandle.screenshot({ path: outP, omitBackground: true });
                   }
@@ -758,6 +845,11 @@ async function workerForFlag(f) {
                 }
               } catch (e) {
                 await page.screenshot({ path: outP, omitBackground: true, fullPage: true });
+              }
+              
+              // Update aspect ratio if we detected content bounds (more accurate than viewBox)
+              if (detectedAspectRatio !== null) {
+                aspect = detectedAspectRatio;
               }
 
               await context.close();

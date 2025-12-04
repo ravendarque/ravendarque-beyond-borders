@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { FlagSpec } from '@/flags/schema';
 import { getAssetUrl } from '@/config';
 
@@ -15,7 +15,28 @@ export interface FlagPreviewProps {
 export function FlagPreview({ flag }: FlagPreviewProps) {
   const flagId = flag?.id ?? null;
   const imageSrc = flag ? (flag.png_preview || flag.png_full) : null;
-  const fullUrl = imageSrc ? getAssetUrl(`flags/${imageSrc}`) : null;
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  
+  // Force reload image when flag changes by clearing and resetting src
+  useEffect(() => {
+    if (imageSrc && flagId) {
+      const baseUrl = getAssetUrl(`flags/${imageSrc}`);
+      // Clear the image first to force browser to discard cache
+      if (imgRef.current) {
+        imgRef.current.src = '';
+        imgRef.current.removeAttribute('src');
+      }
+      // Use a small delay to ensure browser clears cache, then set new URL with cache-busting
+      const timeout = setTimeout(() => {
+        // Include both flagId and timestamp in cache-bust to ensure unique URL
+        setImageUrl(`${baseUrl}?v=${flagId}-${Date.now()}`);
+      }, 10);
+      return () => clearTimeout(timeout);
+    } else {
+      setImageUrl(null);
+    }
+  }, [imageSrc, flagId]);
 
   if (!flag) {
     return (
@@ -33,7 +54,7 @@ export function FlagPreview({ flag }: FlagPreviewProps) {
     );
   }
 
-  if (!fullUrl) {
+  if (!imageUrl || !flag) {
     return (
       <div className="flag-preview">
         <div className="flag-preview-placeholder">No preview available</div>
@@ -49,11 +70,12 @@ export function FlagPreview({ flag }: FlagPreviewProps) {
       style={{ aspectRatio: `${aspectRatio} / 1` }}
     >
       <img 
-        src={fullUrl}
+        ref={imgRef}
+        src={imageUrl}
         alt={flag.displayName}
         className="flag-preview-image"
         loading="eager"
-        key={flagId}
+        key={`${flagId}-${imageUrl}`}
       />
     </div>
   );

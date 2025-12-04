@@ -26,9 +26,28 @@ import '../styles.css';
  * - Coordinate rendering pipeline
  * - Render step-specific UI
  */
+const STORAGE_KEY_IMAGE = 'beyond-borders-image';
+const STORAGE_KEY_FLAG = 'beyond-borders-flag';
+
 export function AppStepWorkflow() {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [flagId, setFlagId] = useState<string | null>(null);
+  // Restore state from sessionStorage on mount
+  const [imageUrl, setImageUrl] = useState<string | null>(() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY_IMAGE);
+      // If it's a data URL, use it directly; if it's a blob URL, it's invalid now
+      return stored && stored.startsWith('data:') ? stored : null;
+    } catch {
+      return null;
+    }
+  });
+  const [flagId, setFlagId] = useState<string | null>(() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY_FLAG);
+      return stored ? stored : null;
+    } catch {
+      return null;
+    }
+  });
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   
   // Step 3: Adjust controls state
@@ -102,11 +121,48 @@ export function AppStepWorkflow() {
     }
   }, [currentStep, imageUrl, flagId, thickness, insetPct, flagOffsetX, presentation, render]);
 
+  // Persist imageUrl to sessionStorage
+  useEffect(() => {
+    try {
+      if (imageUrl) {
+        sessionStorage.setItem(STORAGE_KEY_IMAGE, imageUrl);
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY_IMAGE);
+      }
+    } catch {
+      // Ignore storage errors (e.g., private browsing)
+    }
+  }, [imageUrl]);
+
+  // Persist flagId to sessionStorage
+  useEffect(() => {
+    try {
+      if (flagId) {
+        sessionStorage.setItem(STORAGE_KEY_FLAG, flagId);
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY_FLAG);
+      }
+    } catch {
+      // Ignore storage errors (e.g., private browsing)
+    }
+  }, [flagId]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setImageUrl(url);
+    
+    // Convert file to data URL for persistence across navigation
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      setImageUrl(dataUrl);
+    };
+    reader.onerror = () => {
+      // Fallback to blob URL if data URL conversion fails
+      const url = URL.createObjectURL(file);
+      setImageUrl(url);
+    };
+    reader.readAsDataURL(file);
   };
   
   const handleDownload = () => {
@@ -279,7 +335,11 @@ export function AppStepWorkflow() {
               GitHub Open Source
             </a>
           </div>
-          <div className="footer-line2">© Nix Crabtree, 2025</div>
+          <div className="footer-line2">
+            <Link to="/copyright" className="footer-link" aria-label="View copyright information">
+              © Nix Crabtree, 2025
+            </Link>
+          </div>
         </footer>
       </main>
 

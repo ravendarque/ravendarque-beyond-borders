@@ -47,7 +47,7 @@ export const flags: FlagSpec[] = [
     displayName: 'Tibet',
     png_full: 'tibet.png',
     png_preview: 'tibet.preview.png',
-    aspectRatio: 1.5,
+    aspectRatio: 1.6,
     svgFilename: 'tibet.svg',
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
@@ -59,8 +59,8 @@ export const flags: FlagSpec[] = [
       stripes: [
         { color: '#E02020', weight: 1, label: 'red' },
         { color: '#301070', weight: 1, label: 'blue' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#F0E010', weight: 1, label: 'orange' }
+        { color: '#F0E010', weight: 1, label: 'orange' },
+        { color: '#FFFFFF', weight: 1, label: 'white' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -70,8 +70,8 @@ export const flags: FlagSpec[] = [
         colors: [
           '#e02020',
           '#301070',
-          '#ffffff',
-          '#f0e010'
+          '#f0e010',
+          '#ffffff'
         ],
       }
     ],
@@ -83,7 +83,7 @@ export const flags: FlagSpec[] = [
     displayName: 'Western Sahara',
     png_full: 'the-sahrawi-arab-democratic-republic.png',
     png_preview: 'the-sahrawi-arab-democratic-republic.preview.png',
-    aspectRatio: 1.5,
+    aspectRatio: 2,
     svgFilename: 'the-sahrawi-arab-democratic-republic.svg',
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
@@ -187,7 +187,7 @@ export const flags: FlagSpec[] = [
     displayName: 'Rohingya',
     png_full: 'rohingya.png',
     png_preview: 'rohingya.preview.png',
-    aspectRatio: 1.5,
+    aspectRatio: 1.4981273408239701,
     svgFilename: 'rohingya.svg',
     category: 'stateless',
     categoryDisplayName: 'Stateless People',
@@ -221,7 +221,7 @@ export const flags: FlagSpec[] = [
     displayName: 'Pride',
     png_full: 'gay-pride.png',
     png_preview: 'gay-pride.preview.png',
-    aspectRatio: 1.61875,
+    aspectRatio: 1.62,
     svgFilename: 'gay-pride.svg',
     category: 'oppressed',
     categoryDisplayName: 'Oppressed Groups',
@@ -232,11 +232,11 @@ export const flags: FlagSpec[] = [
       orientation: 'horizontal',
       stripes: [
         { color: '#E00000', weight: 1, label: 'red' },
-        { color: '#0050FF', weight: 1, label: 'blue' },
-        { color: '#FF9000', weight: 1, label: 'orange' },
         { color: '#FFF000', weight: 1, label: 'orange' },
-        { color: '#700090', weight: 1, label: 'purple' },
-        { color: '#008020', weight: 1, label: 'green' }
+        { color: '#008020', weight: 1, label: 'green' },
+        { color: '#FF9000', weight: 1, label: 'orange' },
+        { color: '#0050FF', weight: 1, label: 'blue' },
+        { color: '#700090', weight: 1, label: 'purple' }
       ],
     },
     recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
@@ -245,11 +245,11 @@ export const flags: FlagSpec[] = [
         type: 'ring',
         colors: [
           '#e00000',
-          '#0050ff',
-          '#ff9000',
           '#fff000',
-          '#700090',
-          '#008020'
+          '#008020',
+          '#ff9000',
+          '#0050ff',
+          '#700090'
         ],
       }
     ],

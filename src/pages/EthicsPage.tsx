@@ -39,6 +39,7 @@ export function EthicsPage() {
               <li>No tracking, analytics, or data collection</li>
               <li>Your images never leave your device</li>
               <li>Open source code for transparency</li>
+              <li>No cookies are used. The app uses browser sessionStorage to temporarily store your uploaded image and flag selection so your progress is preserved if you navigate away and return. This data is automatically cleared when you close your browser tab.</li>
             </ul>
           </section>
 

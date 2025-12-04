@@ -635,6 +635,9 @@ label.choose-circle:hover {
   font-size: 14px;
   margin-bottom: 20px;
   transition: color 0.2s ease;
+  padding: 0;
+  min-height: auto;
+  min-width: auto;
 }
 
 .ethics-page-back-link:hover {
@@ -717,6 +720,9 @@ label.choose-circle:hover {
   color: var(--color-red-accent);
   text-decoration: underline;
   transition: color 0.2s ease;
+  padding: 0;
+  min-height: auto;
+  min-width: auto;
 }
 
 .ethics-link:hover {
@@ -861,6 +867,9 @@ label.choose-circle:hover {
 .dialog-link {
   color: var(--color-red-accent);
   text-decoration: underline;
+  padding: 0;
+  min-height: auto;
+  min-width: auto;
 }
 
 .dialog-link:hover {
@@ -1316,6 +1325,12 @@ label.choose-circle:hover {
   font-size: 13px;
   color: var(--color-red-accent);
   flex-shrink: 0;
+  min-width: 50px;
+  text-align: left;
+}
+
+.slider-labels-row .slider-end-label:last-child {
+  text-align: right;
 }
 
 .slider-value {
