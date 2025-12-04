@@ -6,6 +6,9 @@ export { ImageUploadZone } from './ImageUploadZone';
 export { NavigationButtons } from './NavigationButtons';
 export { PresentationModeSelector } from './PresentationModeSelector';
 export { StepProgressIndicator } from './StepProgressIndicator';
+export { AdjustControls } from './AdjustControls';
+export { AdjustStep } from './AdjustStep';
+export { PrivacyModal } from './PrivacyModal';
 
 // Type exports
 export type { FlagPreviewProps } from './FlagPreview';
@@ -15,3 +18,6 @@ export type { ImageUploadZoneProps } from './ImageUploadZone';
 export type { NavigationButtonsProps } from './NavigationButtons';
 export type { PresentationModeSelectorProps, PresentationMode } from './PresentationModeSelector';
 export type { StepProgressIndicatorProps } from './StepProgressIndicator';
+export type { AdjustControlsProps } from './AdjustControls';
+export type { AdjustStepProps } from './AdjustStep';
+export type { PrivacyModalProps } from './PrivacyModal';
