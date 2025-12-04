@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import * as Dialog from '@radix-ui/react-dialog';
 
 export interface PrivacyModalProps {
@@ -60,14 +61,26 @@ export function PrivacyModal({ open, onOpenChange }: PrivacyModalProps) {
             
             <p>
               This is an open source project so if you want to look through the code, it's{' '}
-              <a 
+              <a
                 href="https://github.com/ravendarque/ravendarque-beyond-borders"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="dialog-link"
               >
                 here on GitHub
-              </a>.
+              </a>
+              .
+            </p>
+
+            <p>
+              For more detailed information please read the{' '}
+              <Link
+                to="/ethics"
+                className="dialog-link"
+                onClick={() => onOpenChange(false)}
+              >
+                Ethics, Sustainability, and Privacy Statement.
+              </Link>
             </p>
           </div>
 

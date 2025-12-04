@@ -229,15 +229,15 @@ export async function renderAvatar(
     
     // If a border image (PNG) is provided, use it for accurate flag rendering
     if (options.borderImageBitmap) {
-      // Draw the flag PNG image scaled to fit the canvas
+      // Draw the flag PNG image scaled to fit the original canvas size (not the expanded one)
       const bw = options.borderImageBitmap.width;
       const bh = options.borderImageBitmap.height;
-      const scale = Math.max(flagCanvas.width / bw, flagCanvas.height / bh);
+      const scale = Math.max(canvasW / bw, canvasH / bh);
       const dw = bw * scale;
       const dh = bh * scale;
-      // Center the flag and apply horizontal offset
-      const dx = (flagCanvas.width - dw) / 2 - flagOffsetX;
-      const dy = (flagCanvas.height - dh) / 2;
+      // Center the flag in the original canvas area and apply horizontal offset
+      const dx = (canvasW - dw) / 2 + extraWidth / 2 - flagOffsetX;
+      const dy = (canvasH - dh) / 2;
       flagCtx.drawImage(options.borderImageBitmap, dx, dy, dw, dh);
     } else {
       // Draw stripes from pattern data

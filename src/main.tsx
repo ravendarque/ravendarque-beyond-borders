@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppStepWorkflow } from './pages/AppStepWorkflow';
 import { EthicsPage } from './pages/EthicsPage';
+import { CopyrightPage } from './pages/CopyrightPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ScrollToTop } from './components/ScrollToTop';
 import { config } from './config';
 import './styles.css';
 
@@ -13,9 +15,11 @@ createRoot(el).render(
   <React.StrictMode>
     <ErrorBoundary>
       <BrowserRouter basename={config.getBaseUrl()}>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<AppStepWorkflow />} />
           <Route path="/ethics" element={<EthicsPage />} />
+          <Route path="/copyright" element={<CopyrightPage />} />
         </Routes>
       </BrowserRouter>
     </ErrorBoundary>

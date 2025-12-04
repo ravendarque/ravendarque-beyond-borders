@@ -11,7 +11,7 @@ export interface AdjustControlsProps {
   insetPct: number;
   /** Inset change handler */
   onInsetChange: (value: number) => void;
-  /** Flag horizontal offset in pixels (-50 to 50) */
+  /** Flag horizontal offset in pixels (full flag width range) */
   flagOffsetX: number;
   /** Flag offset change handler */
   onFlagOffsetChange: (value: number) => void;
@@ -120,7 +120,7 @@ export function AdjustControls({
           <div className="slider-container">
             <div className="slider-labels-row">
               <span className="slider-end-label">Flag L</span>
-              <span className="slider-value">{flagOffsetX}px</span>
+              <span className="slider-value">{Math.round((flagOffsetX / 512) * 100)}%</span>
               <span className="slider-end-label">Flag R</span>
             </div>
             <div className="slider-with-icons">
@@ -134,8 +134,8 @@ export function AdjustControls({
                 className="slider-root"
                 value={[flagOffsetX]}
                 onValueChange={([value]) => onFlagOffsetChange(value)}
-                min={-50}
-                max={50}
+                min={-256}
+                max={256}
                 step={1}
                 aria-label="Flag horizontal offset"
               >
