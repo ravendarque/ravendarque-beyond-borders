@@ -967,6 +967,34 @@ label.choose-circle:hover {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+}
+
+/* Checkered pattern only inside the ring border (circular area) */
+.avatar-preview::before {
+  content: '';
+  position: absolute;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  top: 2px;
+  left: 2px;
+  border-radius: 50%;
+  /* Checkered background to show transparency */
+  background-image: 
+    linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+    linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+    linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  background-color: #fff;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.avatar-preview-image {
+  position: relative;
+  z-index: 1;
 }
 
 .avatar-preview-image {
