@@ -581,8 +581,159 @@ label.choose-circle:hover {
   color: var(--color-red-accent);
 }
 
+.footer-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  color: var(--color-red-accent);
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: var(--color-white);
+}
+
+.footer-link:focus-visible {
+  outline: 2px solid var(--color-red-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .footer-line2 {
   color: var(--color-white);
+}
+
+/* Ethics Page */
+.ethics-page {
+  min-height: 100vh;
+  background: var(--color-dark-blue);
+  color: var(--color-white);
+  padding: 40px 20px;
+}
+
+.ethics-page-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.ethics-page-header {
+  margin-bottom: 40px;
+}
+
+.ethics-page-back-link {
+  display: inline-block;
+  color: var(--color-red-accent);
+  text-decoration: underline;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+  margin-bottom: 20px;
+  transition: color 0.2s ease;
+}
+
+.ethics-page-back-link:hover {
+  color: var(--color-white);
+}
+
+.ethics-page-back-link:focus-visible {
+  outline: 2px solid var(--color-red-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.ethics-page-title {
+  font-family: monospace, ui-monospace, 'Cascadia Code';
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: var(--color-red-accent);
+}
+
+.ethics-page-intro {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-white);
+  margin: 0;
+}
+
+.ethics-page-intro strong {
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.ethics-page-content {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-white);
+}
+
+.ethics-section {
+  margin-bottom: 40px;
+}
+
+.ethics-section-title {
+  font-family: monospace, ui-monospace, 'Cascadia Code';
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: var(--color-red-accent);
+}
+
+.ethics-subsection-title {
+  font-family: monospace, ui-monospace, 'Cascadia Code';
+  font-size: 20px;
+  font-weight: 600;
+  margin: 24px 0 12px 0;
+  color: var(--color-red-accent);
+}
+
+.ethics-section p {
+  margin: 0 0 16px 0;
+}
+
+.ethics-section ul {
+  margin: 16px 0;
+  padding-left: 24px;
+}
+
+.ethics-section li {
+  margin-bottom: 8px;
+}
+
+.ethics-section strong {
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.ethics-link {
+  color: var(--color-red-accent);
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.ethics-link:hover {
+  color: var(--color-white);
+}
+
+.ethics-link:focus-visible {
+  outline: 2px solid var(--color-red-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.ethics-page-footer {
+  margin-top: 60px;
+  padding-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
 }
 
 /* Radix Dialog Styles */
