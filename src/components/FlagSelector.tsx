@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import * as Select from '@radix-ui/react-select';
 import type { FlagSpec } from '@/flags/schema';
 
@@ -18,25 +18,36 @@ export interface FlagSelectorProps {
  */
 export function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelectorProps) {
   // Group flags by category and only include categories that have flags
-  const flagsByCategory = flags.reduce((acc, flag) => {
-    if (!flag.category) return acc;
-    if (!acc[flag.category]) {
-      acc[flag.category] = [];
-    }
-    acc[flag.category].push(flag);
-    return acc;
-  }, {} as Record<string, typeof flags>);
+  // Memoized to prevent recalculation on every render
+  const flagsByCategory = useMemo(() => {
+    return flags.reduce((acc, flag) => {
+      if (!flag.category) return acc;
+      if (!acc[flag.category]) {
+        acc[flag.category] = [];
+      }
+      acc[flag.category].push(flag);
+      return acc;
+    }, {} as Record<string, typeof flags>);
+  }, [flags]);
 
   // Get unique categories that have flags, sorted for consistent display
-  const categories = Object.keys(flagsByCategory).sort();
+  const categories = useMemo(() => {
+    return Object.keys(flagsByCategory).sort();
+  }, [flagsByCategory]);
 
-  // Get display name for a category from the first flag that has it (from source of truth)
+  /**
+   * Get display name for a category from the first flag that has it (from source of truth)
+   * 
+   * Categories are resolved from flag-data.yaml through the fetch-and-extract script,
+   * which preserves the original display name in categoryDisplayName. If for some reason
+   * categoryDisplayName is missing, we fall back to the category code as a last resort.
+   */
   const getCategoryDisplayName = (category: string): string => {
     const flagsInCategory = flagsByCategory[category];
     if (flagsInCategory && flagsInCategory.length > 0) {
       const firstFlag = flagsInCategory[0];
       // Use categoryDisplayName from source of truth if available, otherwise fall back to category code
-      return firstFlag.categoryDisplayName || category;
+      return firstFlag.categoryDisplayName ?? category;
     }
     return category;
   };

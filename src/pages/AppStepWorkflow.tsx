@@ -38,7 +38,7 @@ export function AppStepWorkflow() {
   
   // Memoize selected flag to prevent unnecessary re-renders
   const selectedFlag = useMemo(() => {
-    return flagId ? flags.find(f => f.id === flagId) || null : null;
+    return flagId ? flags.find(f => f.id === flagId) ?? null : null;
   }, [flagId]);
 
   // Preload full flag image when flag is selected (needed for cutout mode)
@@ -70,7 +70,12 @@ export function AppStepWorkflow() {
     void preloadFlag();
   }, [selectedFlag?.png_full, flagImageCache]);
   
-  // Sync currentStep to URL
+  /**
+   * Sync currentStep to URL for browser navigation support
+   * 
+   * Uses pushState to update URL without page reload, enabling browser back/forward buttons.
+   * The isHandlingPopState ref prevents infinite loops when handling browser navigation events.
+   */
   useEffect(() => {
     // Don't update URL if we're handling a popstate event (browser navigation)
     if (isHandlingPopState.current) {
@@ -256,7 +261,7 @@ export function AppStepWorkflow() {
                   {overlayUrl ? (
                     <img 
                       src={overlayUrl} 
-                      alt="Avatar preview"
+                      alt={selectedFlag ? `Avatar with ${selectedFlag.displayName} border` : 'Avatar preview'}
                       className="avatar-preview-image"
                     />
                   ) : (
@@ -295,6 +300,7 @@ export function AppStepWorkflow() {
                           min={5}
                           max={15}
                           step={1}
+                          aria-label="Border thickness"
                         >
                           <Slider.Track className="slider-track">
                             <Slider.Range className="slider-range" />
@@ -332,6 +338,7 @@ export function AppStepWorkflow() {
                           min={-10}
                           max={10}
                           step={1}
+                          aria-label="Border inset/outset"
                         >
                           <Slider.Track className="slider-track">
                             <Slider.Range className="slider-range" />
@@ -371,6 +378,7 @@ export function AppStepWorkflow() {
                             min={-50}
                             max={50}
                             step={1}
+                            aria-label="Flag horizontal offset"
                           >
                             <Slider.Track className="slider-track">
                               <Slider.Range className="slider-range" />
