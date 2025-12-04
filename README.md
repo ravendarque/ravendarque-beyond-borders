@@ -190,7 +190,14 @@ test/
 scripts/
 ├── fetch-and-extract.cjs  # Fetch flags, generate PNGs, create TypeScript manifest
 └── validate-flags.cjs     # Validate flag data integrity
+
+docs/
+├── code-standards.md       # Code standards and review guidelines (for AI agents)
+├── renderer-api.md         # Renderer API documentation
+└── [other documentation]   # Additional docs
 ```
+
+**See [docs/code-standards.md](docs/code-standards.md) for comprehensive code standards, UI patterns, and review guidelines.**
 
 ## Flags Library Governance
 

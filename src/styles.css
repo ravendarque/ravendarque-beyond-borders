@@ -14,6 +14,16 @@
   --card: #ffffff;
   --radius: 12px;
   
+  /* Standard color system */
+  --color-black: #000;
+  --color-white: #fff;
+  --color-charcoal: #333;
+  --color-dark-gray: #1e1e1e;
+  --color-medium-gray: #666;
+  --color-light-gray: #ddd;
+  --color-yellow: #fde047;
+  --color-red-accent: #be1a1a;
+  
   /* New responsive design system - EXACT VALUES FROM MOCK */
   --canvas-width: 306px;
   --canvas-padding: 8px;
@@ -73,6 +83,15 @@
   /* Checkerboard colors (dark theme) */
   --checker-1: #0b1220;
   --checker-2: #1f2937;
+  /* Standard color system (dark theme) */
+  --color-black: #0b1220;
+  --color-white: #fff;
+  --color-charcoal: #9ca3af;
+  --color-dark-gray: #e5e7eb;
+  --color-medium-gray: #9ca3af;
+  --color-light-gray: #4b5563;
+  --color-yellow: #fde047;
+  --color-red-accent: #be1a1a;
 }
 
 * {
@@ -103,8 +122,8 @@ body {
     'Courier New',
     Courier;
   margin: 0;
-  background: #000;
-  color: #fff;
+  background: var(--color-black);
+  color: var(--color-white);
 }
 
 @media (max-width: 350px) {
@@ -127,7 +146,7 @@ body {
   line-height: 1.3;
   font-weight: 400;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--color-white);
   margin: 0;
   padding: 0;
 }
@@ -137,7 +156,7 @@ body {
   font-size: var(--subtitle-size);
   line-height: 1.3;
   font-weight: 400;
-  color: #fff;
+  color: var(--color-white);
   margin: 0;
   padding: 0;
 }
@@ -181,7 +200,7 @@ body {
   align-items: center;
   position: relative;
   z-index: 2;
-  background: #fde047;
+  background: var(--color-yellow);
   padding: 6px 0;
   width: 100%;
 }
@@ -201,7 +220,7 @@ body {
 }
 
 .progress.active span {
-  border-bottom: 3px solid #fff;
+  border-bottom: 3px solid var(--color-white);
   padding-bottom: 2px;
 }
 
@@ -210,7 +229,7 @@ body {
   font-size: calc(var(--subtitle-size) * 1.2);
   font-weight: 400;
   line-height: 1.3;
-  color: #000;
+  color: var(--color-black);
   letter-spacing: 0;
   position: relative;
   z-index: 1;
@@ -223,7 +242,7 @@ body {
   font-size: calc(var(--subtitle-size) * 1.2);
   font-weight: 400;
   line-height: 1.3;
-  color: #000;
+  color: var(--color-black);
   letter-spacing: 0;
   position: relative;
   z-index: 1;
@@ -236,7 +255,7 @@ body {
   font-size: calc(var(--subtitle-size) * 1.2);
   font-weight: 400;
   line-height: 1.3;
-  color: #000;
+  color: var(--color-black);
   letter-spacing: 0;
   position: relative;
   z-index: 1;
@@ -246,7 +265,7 @@ body {
 
 .progress.completed span .progress-number,
 .progress.active span .progress-number {
-  color: #be1a1a;
+  color: var(--color-red-accent);
 }
 
 .progress.upcoming span .progress-number {
@@ -297,7 +316,7 @@ body {
   /* Create a gap around the circle for the halftone border */
   inset: calc(var(--content-size) * 0.10);
   border: 1px solid rgba(180, 160, 100, 0.12);
-  background: #fff;
+  background: var(--color-white);
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -368,7 +387,7 @@ label.choose-circle:hover {
   margin-bottom: 18px;
   font-family: 'Segoe UI', sans-serif;
   pointer-events: none;
-  color: #666;
+  color: var(--color-medium-gray);
 }
 
 .choose-circle .prompt {
@@ -376,7 +395,7 @@ label.choose-circle:hover {
   font-size: 13px;
   line-height: 13px;
   margin-bottom: 12px;
-  color: #1e1e1e;
+  color: var(--color-dark-gray);
   font-weight: 400;
   pointer-events: none;
 }
@@ -386,7 +405,7 @@ label.choose-circle:hover {
   font-size: 12px;
   line-height: 12px;
   margin-bottom: 10px;
-  color: #1e1e1e;
+  color: var(--color-dark-gray);
   pointer-events: none;
 }
 
@@ -397,7 +416,7 @@ label.choose-circle:hover {
   gap: 4px;
   font-size: 12px;
   line-height: 12px;
-  color: #be1a1a;
+  color: var(--color-red-accent);
   background: none;
   border: none;
   padding: 0;
@@ -409,7 +428,7 @@ label.choose-circle:hover {
 }
 
 .choose-circle .privacy:focus-visible {
-  outline: 2px solid #be1a1a;
+  outline: 2px solid var(--color-red-accent);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -450,9 +469,9 @@ label.choose-circle:hover {
   width: var(--nav-btn-width);
   min-width: 100px;
   height: 40px;
-  background: #be1a1a;
+  background: var(--color-red-accent);
   border: 1px solid #be1a1a;
-  color: #fff;
+  color: var(--color-white);
   box-shadow: 
     0 2px 4px rgba(0, 0, 0, 0.1),
     0 1px 2px rgba(0, 0, 0, 0.06);
@@ -486,7 +505,7 @@ label.choose-circle:hover {
   box-shadow: 
     0 6px 12px rgba(190, 26, 26, 0.35),
     0 3px 6px rgba(0, 0, 0, 0.15);
-  border-color: #be1a1a;
+  border-color: var(--color-red-accent);
   border-width: 2px;
 }
 
@@ -506,7 +525,7 @@ label.choose-circle:hover {
   font-size: var(--nav-btn-font);
   font-weight: 600;
   line-height: 16px;
-  color: #fff;
+  color: var(--color-white);
   letter-spacing: 1px;
   text-transform: uppercase;
   position: relative;
@@ -515,14 +534,14 @@ label.choose-circle:hover {
 }
 
 .nav-btn:disabled span {
-  color: #ffffff;
+  color: var(--color-white);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .start-over-btn {
   background: none;
   border: none;
-  color: #be1a1a;
+  color: var(--color-red-accent);
   font-family: monospace;
   font-size: 12px;
   cursor: pointer;
@@ -536,7 +555,7 @@ label.choose-circle:hover {
 }
 
 .start-over-btn:not(:disabled):hover {
-  color: #fff;
+  color: var(--color-white);
 }
 
 /* Footer */
@@ -559,11 +578,11 @@ label.choose-circle:hover {
 }
 
 .footer-line1 {
-  color: #be1a1a;
+  color: var(--color-red-accent);
 }
 
 .footer-line2 {
-  color: #ffffff;
+  color: var(--color-white);
 }
 
 /* Radix Dialog Styles */
@@ -589,8 +608,8 @@ label.choose-circle:hover {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #fff;
-  color: #000;
+  background: var(--color-white);
+  color: var(--color-black);
   padding: 24px;
   border: 3px solid rgba(180, 83, 9, 0.4);
   box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
@@ -610,9 +629,9 @@ label.choose-circle:hover {
   right: 12px;
   width: 24px;
   height: 24px;
-  border: 2px solid #333;
-  background: #fff;
-  color: #000;
+  border: 2px solid var(--color-charcoal);
+  background: var(--color-white);
+  color: var(--color-black);
   font-size: 20px;
   line-height: 20px;
   cursor: pointer;
@@ -629,9 +648,9 @@ label.choose-circle:hover {
 }
 
 .dialog-close-button:hover {
-  background: #fff;
-  border-color: #be1a1a;
-  color: #be1a1a;
+  background: var(--color-white);
+  border-color: var(--color-red-accent);
+  color: var(--color-red-accent);
   transform: scale(1.1);
 }
 
@@ -640,7 +659,7 @@ label.choose-circle:hover {
 }
 
 .dialog-close-button:focus-visible {
-  outline: 2px solid #be1a1a;
+  outline: 2px solid var(--color-red-accent);
   outline-offset: 2px;
 }
 
@@ -660,14 +679,14 @@ label.choose-circle:hover {
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 16px 0;
-  color: #000;
+  color: var(--color-black);
 }
 
 .dialog-body {
   font-family: 'Segoe UI', sans-serif;
   font-size: 14px;
   line-height: 1.6;
-  color: #333;
+  color: var(--color-charcoal);
 }
 
 .dialog-body p {
@@ -685,20 +704,20 @@ label.choose-circle:hover {
 
 .dialog-body strong {
   font-weight: 600;
-  color: #000;
+  color: var(--color-black);
 }
 
 .dialog-link {
-  color: #be1a1a;
+  color: var(--color-red-accent);
   text-decoration: underline;
 }
 
 .dialog-link:hover {
-  color: #be1a1a;
+  color: var(--color-red-accent);
 }
 
 .dialog-link:focus-visible {
-  outline: 2px solid #be1a1a;
+  outline: 2px solid var(--color-red-accent);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -710,8 +729,8 @@ label.choose-circle:hover {
 }
 
 .dialog-button {
-  background: #be1a1a;
-  color: #fff;
+  background: var(--color-red-accent);
+  color: var(--color-white);
   border: none;
   padding: 12px 24px;
   font-family: 'Segoe UI', sans-serif;
@@ -726,7 +745,7 @@ label.choose-circle:hover {
 }
 
 .dialog-button:focus-visible {
-  outline: 2px solid #be1a1a;
+  outline: 2px solid var(--color-red-accent);
   outline-offset: 2px;
 }
 
@@ -765,9 +784,9 @@ label.choose-circle:hover {
   width: 100%;
   min-height: 44px;
   padding: 12px 16px;
-  background: #fff;
-  border: 2px solid #333;
-  color: #be1a1a;
+  background: var(--color-white);
+  border: 2px solid var(--color-charcoal);
+  color: var(--color-red-accent);
   font-family: 'Segoe UI', sans-serif;
   font-size: 16px;
   display: flex;
@@ -780,8 +799,8 @@ label.choose-circle:hover {
 }
 
 .flag-select-trigger:hover {
-  background: #fff;
-  border-color: #333;
+  background: var(--color-white);
+  border-color: var(--color-charcoal);
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease;
@@ -789,17 +808,17 @@ label.choose-circle:hover {
 
 .flag-select-trigger:focus {
   outline: none;
-  border-color: #333;
+  border-color: var(--color-charcoal);
 }
 
 .flag-select-icon {
-  color: #be1a1a;
+  color: var(--color-red-accent);
   font-size: 12px;
 }
 
 .flag-select-content {
-  background: #fff;
-  border: 2px solid #333;
+  background: var(--color-white);
+  border: 2px solid var(--color-charcoal);
   border-radius: 8px;
   max-height: 300px;
   overflow-y: auto;
@@ -810,7 +829,7 @@ label.choose-circle:hover {
 
 .flag-select-item {
   padding: 12px 16px;
-  color: #000;
+  color: var(--color-black);
   font-family: 'Segoe UI', sans-serif;
   font-size: 14px;
   cursor: pointer;
@@ -820,14 +839,14 @@ label.choose-circle:hover {
 
 .flag-select-item:hover,
 .flag-select-item[data-highlighted] {
-  background: #be1a1a;
-  color: #fff;
+  background: var(--color-red-accent);
+  color: var(--color-white);
   transition: all 0.15s ease;
 }
 
 .flag-select-item[data-state='checked'] {
-  background: #be1a1a;
-  color: #fff;
+  background: var(--color-red-accent);
+  color: var(--color-white);
 }
 
 .flag-select-label {
@@ -835,7 +854,7 @@ label.choose-circle:hover {
   font-family: 'Segoe UI', sans-serif;
   font-size: 12px;
   font-weight: 600;
-  color: #666;
+  color: var(--color-medium-gray);
   text-transform: uppercase;
   background: #f0f0f0;
 }
@@ -845,17 +864,17 @@ label.choose-circle:hover {
   width: 100%;
   max-width: 320px;
   /* aspect-ratio set dynamically via inline style based on flag data */
-  border: 2px solid #333;
+  border: 2px solid var(--color-charcoal);
   border-radius: 8px;
   overflow: hidden;
-  background: #fff;
+  background: var(--color-white);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .flag-preview-empty {
-  border: 2px dashed #333;
+  border: 2px dashed var(--color-charcoal);
   flex-direction: column;
   padding: 12px 6px;
   aspect-ratio: 2 / 1;
@@ -869,7 +888,7 @@ label.choose-circle:hover {
 }
 
 .flag-preview-placeholder {
-  color: #666;
+  color: var(--color-medium-gray);
   font-family: 'Segoe UI', sans-serif;
   font-size: 14px;
   text-align: center;
@@ -884,14 +903,14 @@ label.choose-circle:hover {
   align-items: center;
   justify-content: center;
   margin-bottom: 18px;
-  color: #666;
+  color: var(--color-medium-gray);
 }
 
 .flag-preview-empty .prompt {
   font-family: 'Segoe UI', sans-serif;
   font-size: 13px;
   line-height: 13px;
-  color: #1e1e1e;
+  color: var(--color-dark-gray);
   font-weight: 400;
   text-align: center;
 }
@@ -902,7 +921,7 @@ label.choose-circle:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: var(--color-white);
 }
 
 .flag-preview-loading .icon {
@@ -913,7 +932,7 @@ label.choose-circle:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: var(--color-medium-gray);
 }
 
 .flag-preview {
@@ -943,14 +962,14 @@ label.choose-circle:hover {
   text-transform: uppercase;
   margin: 0 0 8px 0;
   letter-spacing: 1px;
-  color: #be1a1a;
+  color: var(--color-red-accent);
 }
 
 .step-subtitle {
   font-family: 'Segoe UI', sans-serif;
   font-size: 14px;
   margin: 0;
-  color: #be1a1a;
+  color: var(--color-red-accent);
 }
 
 .avatar-preview {
@@ -981,13 +1000,13 @@ label.choose-circle:hover {
   border-radius: 50%;
   /* Checkered background to show transparency */
   background-image: 
-    linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
-    linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
-    linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+    linear-gradient(45deg, var(--color-light-gray) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--color-light-gray) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--color-light-gray) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--color-light-gray) 75%);
   background-size: 16px 16px;
   background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
-  background-color: #fff;
+  background-color: var(--color-white);
   z-index: 0;
   pointer-events: none;
 }
@@ -1004,7 +1023,7 @@ label.choose-circle:hover {
 }
 
 .avatar-preview-placeholder {
-  color: #666;
+  color: var(--color-medium-gray);
   font-family: 'Segoe UI', sans-serif;
   font-size: 14px;
   text-align: center;
@@ -1023,7 +1042,7 @@ label.choose-circle:hover {
   font-family: 'Segoe UI', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: #be1a1a;
+  color: var(--color-red-accent);
 }
 
 .presentation-toggle-group {
@@ -1040,13 +1059,13 @@ label.choose-circle:hover {
   justify-content: center;
   gap: 4px;
   padding: 6px 8px;
-  border: 2px solid #333;
-  background: #fff;
+  border: 2px solid var(--color-charcoal);
+  background: var(--color-white);
   cursor: pointer;
   font-family: 'Segoe UI', sans-serif;
   font-size: 12px;
   font-weight: 500;
-  color: #be1a1a;
+  color: var(--color-red-accent);
   border-radius: 8px;
   transition: all 0.2s ease;
   position: relative;
@@ -1055,22 +1074,22 @@ label.choose-circle:hover {
 }
 
 .presentation-toggle:hover {
-  border-color: #333;
-  background: #fff;
-  color: #333;
+  border-color: var(--color-charcoal);
+  background: var(--color-white);
+  color: var(--color-charcoal);
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .presentation-toggle:focus {
-  outline: 2px solid #333;
+  outline: 2px solid var(--color-charcoal);
   outline-offset: 2px;
 }
 
 .presentation-toggle.selected {
-  background: #be1a1a;
-  border-color: #be1a1a;
-  color: #fff;
+  background: var(--color-red-accent);
+  border-color: var(--color-red-accent);
+  color: var(--color-white);
   font-weight: 600;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
@@ -1118,12 +1137,12 @@ label.choose-circle:hover {
   font-family: 'Segoe UI', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: #be1a1a;
+  color: var(--color-red-accent);
 }
 
 .control-value {
   font-family: 'Segoe UI', sans-serif;
-  color: #be1a1a;
+  color: var(--color-red-accent);
 }
 
 /* Radix Slider Styles */
@@ -1144,7 +1163,7 @@ label.choose-circle:hover {
 .slider-end-label {
   font-family: 'Segoe UI', sans-serif;
   font-size: 13px;
-  color: #be1a1a;
+  color: var(--color-red-accent);
   flex-shrink: 0;
 }
 
@@ -1152,7 +1171,7 @@ label.choose-circle:hover {
   text-align: center;
   font-family: 'Segoe UI', sans-serif;
   font-size: 13px;
-  color: #be1a1a;
+  color: var(--color-red-accent);
   flex: 1;
 }
 
@@ -1167,7 +1186,7 @@ label.choose-circle:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #be1a1a;
+  color: var(--color-red-accent);
   flex-shrink: 0;
 }
 
@@ -1182,7 +1201,7 @@ label.choose-circle:hover {
 }
 
 .slider-track {
-  background: #fff;
+  background: var(--color-white);
   position: relative;
   flex-grow: 1;
   height: 4px;
@@ -1199,7 +1218,7 @@ label.choose-circle:hover {
   display: block;
   width: 20px;
   height: 20px;
-  background: #be1a1a;
+  background: var(--color-red-accent);
   box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1213,7 +1232,7 @@ label.choose-circle:hover {
 }
 
 .slider-thumb:focus {
-  outline: 2px solid #be1a1a;
+  outline: 2px solid var(--color-red-accent);
   outline-offset: 2px;
 }
 

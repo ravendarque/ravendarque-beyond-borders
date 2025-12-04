@@ -5,8 +5,6 @@ import { getAssetUrl } from '@/config';
 export interface FlagPreviewProps {
   /** Selected flag to display */
   flag: FlagSpec | null;
-  /** Size variant */
-  size?: 'small' | 'large';
 }
 
 /**
@@ -14,7 +12,7 @@ export interface FlagPreviewProps {
  * 
  * Single Responsibility: Display flag preview image
  */
-export function FlagPreview({ flag, size = 'large' }: FlagPreviewProps) {
+export function FlagPreview({ flag }: FlagPreviewProps) {
   const flagId = flag?.id ?? null;
   const imageSrc = flag ? (flag.png_preview || flag.png_full) : null;
   const fullUrl = imageSrc ? getAssetUrl(`flags/${imageSrc}`) : null;
