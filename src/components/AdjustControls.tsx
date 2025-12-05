@@ -17,6 +17,10 @@ export interface AdjustControlsProps {
   onFlagOffsetChange: (value: number) => void;
   /** Current presentation mode */
   presentation: PresentationMode;
+  /** Segment rotation in degrees (0-360) */
+  segmentRotation: number;
+  /** Segment rotation change handler */
+  onSegmentRotationChange: (value: number) => void;
 }
 
 /**
@@ -35,6 +39,8 @@ export function AdjustControls({
   flagOffsetX,
   onFlagOffsetChange,
   presentation,
+  segmentRotation,
+  onSegmentRotationChange,
 }: AdjustControlsProps) {
   return (
     <div className="adjust-controls">
@@ -113,6 +119,47 @@ export function AdjustControls({
           </div>
         </div>
       </div>
+
+      {/* Rotation Slider - Only for Segment Mode */}
+      {presentation === 'segment' && (
+        <div className="control-group">
+          <div className="slider-container">
+            <div className="slider-labels-row">
+              <span className="slider-end-label">Rotate L</span>
+              <span className="slider-value">{Math.round(segmentRotation)}°</span>
+              <span className="slider-end-label">Rotate R</span>
+            </div>
+            <div className="slider-with-icons">
+              <span className="slider-icon" aria-label="Rotate counter-clockwise">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 7 A8 8 0 1 0 7 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                  <path d="M22.5 7 L17.5 10 L21.5 12.5 Z" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <Slider.Root
+                className="slider-root"
+                value={[segmentRotation]}
+                onValueChange={([value]) => onSegmentRotationChange(value)}
+                min={-180}
+                max={180}
+                step={5}
+                aria-label="Segment rotation"
+              >
+                <Slider.Track className="slider-track">
+                  <Slider.Range className="slider-range" />
+                </Slider.Track>
+                <Slider.Thumb className="slider-thumb" />
+              </Slider.Root>
+              <span className="slider-icon" aria-label="Rotate clockwise">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 7 A8 8 0 1 1 17 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                  <path d="M1.5 7 L6.5 10 L2.5 12.5 Z" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+                </svg>
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Offset Slider - Only for Cutout Mode */}
       {presentation === 'cutout' && (

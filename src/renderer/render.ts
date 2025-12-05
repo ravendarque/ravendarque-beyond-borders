@@ -47,6 +47,9 @@ export interface RenderOptions {
   /** Border presentation style */
   presentation?: 'ring' | 'segment' | 'cutout';
   
+  /** Rotation angle for segment mode in degrees (0-360) */
+  segmentRotation?: number;
+  
   /** Background color (null or 'transparent' for transparent background) */
   backgroundColor?: string | null;
   
@@ -400,8 +403,11 @@ export async function renderAvatar(
       tctx.clearRect(0, 0, texW, texH);
       tctx.drawImage(options.borderImageBitmap, 0, 0, bw, bh, dx, dy, dw, dh);
       const bmpTex = await createImageBitmap(tex);
-      // Map left-edge -> top of ring
-      const startAngle = -Math.PI / 2;
+      // Map left-edge -> top of ring, apply rotation if provided
+      const rotationRad = options.segmentRotation !== undefined 
+        ? (options.segmentRotation * Math.PI) / 180 
+        : 0;
+      const startAngle = -Math.PI / 2 + rotationRad;
       drawTexturedAnnulus(ctx, r, ringInnerRadius, ringOuterRadius, bmpTex, startAngle, 'normal');
     } catch {
       // fallback: draw it directly (older behavior)
@@ -420,7 +426,11 @@ export async function renderAvatar(
     drawConcentricRings(ctx, r, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
   } else {
     // default: angular arcs (vertical stripes map naturally around circumference)
-    let start = -Math.PI / 2; // start at top center
+    // Apply rotation if provided (convert degrees to radians)
+    const rotationRad = options.segmentRotation !== undefined 
+      ? (options.segmentRotation * Math.PI) / 180 
+      : 0;
+    let start = -Math.PI / 2 + rotationRad; // start at top center, apply rotation
     for (const stripe of stripes) {
       const frac = stripe.weight / totalWeight;
       const sweep = Math.PI * 2 * frac;

@@ -26,6 +26,10 @@ export interface AdjustStepProps {
   flagOffsetX: number;
   /** Flag offset change handler */
   onFlagOffsetChange: (value: number) => void;
+  /** Segment rotation in degrees (0-360) */
+  segmentRotation: number;
+  /** Segment rotation change handler */
+  onSegmentRotationChange: (value: number) => void;
 }
 
 /**
@@ -45,6 +49,8 @@ export function AdjustStep({
   onInsetChange,
   flagOffsetX,
   onFlagOffsetChange,
+  segmentRotation,
+  onSegmentRotationChange,
 }: AdjustStepProps) {
   return (
     <div className="adjust-wrapper">
@@ -78,6 +84,8 @@ export function AdjustStep({
         flagOffsetX={flagOffsetX}
         onFlagOffsetChange={onFlagOffsetChange}
         presentation={presentation}
+        segmentRotation={segmentRotation}
+        onSegmentRotationChange={onSegmentRotationChange}
       />
     </div>
   );

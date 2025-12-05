@@ -10,6 +10,7 @@ export interface RenderOptions {
   insetPct: number;
   flagOffsetX: number;
   presentation: 'ring' | 'segment' | 'cutout';
+  segmentRotation?: number;
   bg: string | 'transparent';
 }
 
@@ -42,7 +43,7 @@ export function useAvatarRenderer(
    */
   const render = useCallback(
     async (imageUrl: string, flagId: string, options: RenderOptions) => {
-      const { size, thickness, insetPct, flagOffsetX, presentation, bg } = options;
+      const { size, thickness, insetPct, flagOffsetX, presentation, segmentRotation, bg } = options;
 
       // Exit early if no image
       if (!imageUrl) {
@@ -113,6 +114,7 @@ export function useAvatarRenderer(
           imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
           flagOffsetPx: { x: Math.round(flagOffsetX), y: 0 }, // Use flagOffsetPx for cutout mode
           presentation,
+          segmentRotation,
           backgroundColor: bg === 'transparent' ? null : bg,
           borderImageBitmap: flagImageBitmap,
         });
