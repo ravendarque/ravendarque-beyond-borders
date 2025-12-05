@@ -3,6 +3,7 @@ import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useStepNavigation } from '@/hooks/useStepNavigation';
+import { useDebounce } from '@/hooks/usePerformance';
 import { getAssetUrl } from '@/config';
 import { FlagSelector } from '@/components/FlagSelector';
 import { FlagPreview } from '@/components/FlagPreview';
@@ -108,20 +109,26 @@ export function AppStepWorkflow() {
     void preloadFlag();
   }, [selectedFlag?.png_full, flagImageCache]);
 
+  // Debounce slider values for smoother rendering during drag
+  const debouncedThickness = useDebounce(thickness, 50);
+  const debouncedInsetPct = useDebounce(insetPct, 50);
+  const debouncedFlagOffsetX = useDebounce(flagOffsetX, 50);
+  const debouncedSegmentRotation = useDebounce(segmentRotation, 50);
+
   // Trigger render when parameters change (Step 3)
   useEffect(() => {
     if (currentStep === 3 && imageUrl && flagId) {
       render(imageUrl, flagId, {
         size: 512,
-        thickness,
-        insetPct,
-        flagOffsetX,
+        thickness: debouncedThickness,
+        insetPct: debouncedInsetPct,
+        flagOffsetX: debouncedFlagOffsetX,
         presentation,
-        segmentRotation,
+        segmentRotation: debouncedSegmentRotation,
         bg: 'transparent',
       });
     }
-  }, [currentStep, imageUrl, flagId, thickness, insetPct, flagOffsetX, presentation, segmentRotation, render]);
+  }, [currentStep, imageUrl, flagId, debouncedThickness, debouncedInsetPct, debouncedFlagOffsetX, presentation, debouncedSegmentRotation, render]);
 
   // Persist imageUrl to sessionStorage
   useEffect(() => {
