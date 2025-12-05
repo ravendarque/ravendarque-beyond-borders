@@ -55,6 +55,7 @@ export function AppStepWorkflow() {
   const [insetPct, setInsetPct] = useState(0);
   const [flagOffsetX, setFlagOffsetX] = useState(0);
   const [presentation, setPresentation] = useState<PresentationMode>('ring');
+  const [segmentRotation, setSegmentRotation] = useState(0);
   
   // Step navigation with URL sync
   const {
@@ -116,10 +117,11 @@ export function AppStepWorkflow() {
         insetPct,
         flagOffsetX,
         presentation,
+        segmentRotation,
         bg: 'transparent',
       });
     }
-  }, [currentStep, imageUrl, flagId, thickness, insetPct, flagOffsetX, presentation, render]);
+  }, [currentStep, imageUrl, flagId, thickness, insetPct, flagOffsetX, presentation, segmentRotation, render]);
 
   // Persist imageUrl to sessionStorage
   useEffect(() => {
@@ -245,6 +247,8 @@ export function AppStepWorkflow() {
                 onInsetChange={setInsetPct}
                 flagOffsetX={flagOffsetX}
                 onFlagOffsetChange={setFlagOffsetX}
+                segmentRotation={segmentRotation}
+                onSegmentRotationChange={setSegmentRotation}
               />
             )}
           </div>
