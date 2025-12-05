@@ -75,10 +75,10 @@ export function EthicsPage() {
           <section className="ethics-section">
             <h2 className="ethics-section-title">BDS Movement Compliance</h2>
             <p>
-              I support the 
+              I support the{' '}
               <a href="https://bdsmovement.net" target="_blank" rel="noopener noreferrer" className="ethics-link">
                 Boycott, Divestment, and Sanctions (BDS) Movement
-              </a>
+              </a>{' '}
               and I have made efforts to avoid companies on their boycott list. However, some of the tools used in developing{' '}
               this application do fall under the boycott list, but I have not contributed financially to those organisations.
             </p>
