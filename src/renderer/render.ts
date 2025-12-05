@@ -173,10 +173,10 @@ export async function renderAvatar(
 
   // Geometry (circle only)
   const r = Math.min(canvasW, canvasH) / 2;
-  const ringOuter = r - Math.max(1, padding);
-  const ringInner = Math.max(0, ringOuter - thickness);
+  const ringOuterRadius = r - Math.max(1, padding);
+  const ringInnerRadius = Math.max(0, ringOuterRadius - thickness);
   const imageInset = options.imageInsetPx ?? 0; // can be negative (outset)
-  const imageRadius = clamp(ringInner - imageInset, 0, r - 0.5);
+  const imageRadius = clamp(ringInnerRadius - imageInset, 0, r - 0.5);
 
   // Decide border style early to handle cutout differently
   // Pattern is guaranteed to exist due to validateFlagPattern above
@@ -227,18 +227,79 @@ export async function renderAvatar(
     const flagCanvas = new OffscreenCanvas(canvasW + extraWidth, canvasH);
     const flagCtx = flagCanvas.getContext('2d')!;
     
+    // The ring center on the flagCanvas (accounting for extraWidth)
+    const ringCenterX = extraWidth / 2 + r;
+    
     // If a border image (PNG) is provided, use it for accurate flag rendering
     if (options.borderImageBitmap) {
-      // Draw the flag PNG image scaled to fit the original canvas size (not the expanded one)
-      const bw = options.borderImageBitmap.width;
-      const bh = options.borderImageBitmap.height;
-      const scale = Math.max(canvasW / bw, canvasH / bh);
-      const dw = bw * scale;
-      const dh = bh * scale;
-      // Center the flag in the original canvas area and apply horizontal offset
-      const dx = (canvasW - dw) / 2 + extraWidth / 2 - flagOffsetX;
-      const dy = (canvasH - dh) / 2;
-      flagCtx.drawImage(options.borderImageBitmap, dx, dy, dw, dh);
+      // Draw the flag PNG image with FIXED size based on ring height (diameter) and flag aspect ratio
+      // The flag should NOT scale based on offset - offset only shifts position
+      
+      // Flag rectangle height = ring outer diameter
+      // This matches the full height of the outer circle
+      // This is constant regardless of offset
+      const ringOuterDiameter = ringOuterRadius * 2;
+      const flagRectHeight = ringOuterDiameter;
+      
+      // Flag rectangle width = height * aspect ratio from flags.ts (maintains flag's natural proportions)
+      // Use the aspect ratio from the flag data, not from the bitmap dimensions
+      // Note: The flag will extend beyond the circle's edges horizontally, but the circular clipping will cut it off
+      const flagAspectRatio = flag.aspectRatio ?? 2; // Default to 2:1 if not specified
+      const flagRectWidth = flagRectHeight * flagAspectRatio;
+      
+      // Position flag: ensure it always covers the full ring width, even when offset
+      // The ring center on flagCanvas is at ringCenterX
+      // The ring has a diameter of ringOuterDiameter, so we need to ensure the flag covers at least that width
+      // When offset, we shift the flag but ensure it still covers the ring area
+      // The flag should be positioned so that when offset, it still covers the ring
+      // Calculate desired position with offset
+      let dx = ringCenterX - flagRectWidth / 2 - flagOffsetX;
+      const dy = r - flagRectHeight / 2;
+      
+      // Ensure the flag always covers the ring: clamp position to prevent gaps
+      // The ring extends from ringCenterX - ringOuterRadius to ringCenterX + ringOuterRadius
+      // The flag extends from dx to dx + flagRectWidth
+      // We need: dx <= ringCenterX - ringOuterRadius AND dx + flagRectWidth >= ringCenterX + ringOuterRadius
+      const ringLeftEdge = ringCenterX - ringOuterRadius;
+      const ringRightEdge = ringCenterX + ringOuterRadius;
+      const flagLeftEdge = dx;
+      const flagRightEdge = dx + flagRectWidth;
+      
+      // Clamp the position to ensure the flag always covers the ring
+      if (flagLeftEdge > ringLeftEdge) {
+        // Flag is too far right, move it left to cover the ring
+        dx = ringLeftEdge;
+      }
+      if (flagRightEdge < ringRightEdge) {
+        // Flag is too far left, move it right to cover the ring
+        dx = ringRightEdge - flagRectWidth;
+      }
+      
+      // Debug logging (remove after verification)
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.log('[Cutout] Flag rendering:', {
+          flagId: flag.id,
+          aspectRatio: flagAspectRatio,
+          flagRectHeight,
+          flagRectWidth,
+          ringOuterDiameter,
+          flagOffsetX,
+          bitmapWidth: options.borderImageBitmap.width,
+          bitmapHeight: options.borderImageBitmap.height,
+          bitmapAspectRatio: options.borderImageBitmap.width / options.borderImageBitmap.height,
+          canvasW,
+          canvasH,
+          r,
+          ringCenterX,
+          extraWidth,
+          dx,
+          dy,
+          flagCanvasWidth: flagCanvas.width,
+          flagCanvasHeight: flagCanvas.height,
+        });
+      }
+      flagCtx.drawImage(options.borderImageBitmap, dx, dy, flagRectWidth, flagRectHeight);
     } else {
       // Draw stripes from pattern data
       // Pattern is guaranteed to exist due to validateFlagPattern above
@@ -253,9 +314,8 @@ export async function renderAvatar(
           y += h;
         }
       } else {
-        // Vertical stripes - shift the pattern horizontally
-        // Start position adjusted by flag offset
-        let x = extraWidth / 2 - flagOffsetX; // Negative because we want to shift content, not canvas
+        // Vertical stripes - shift the pattern horizontally relative to ring center
+        let x = ringCenterX - flagOffsetX; // Start at ring center, then shift by offset
         for (const stripe of stripes) {
           const frac = stripe.weight / totalWeight;
           const w = frac * canvasW;
@@ -267,15 +327,17 @@ export async function renderAvatar(
     }
     
     // Clip the flag to only the ring area (annulus)
+    // The ring is centered at ringCenterX on the flagCanvas
     flagCtx.globalCompositeOperation = 'destination-in';
     flagCtx.fillStyle = 'white'; // Color doesn't matter, only alpha
     flagCtx.beginPath();
-    flagCtx.arc(r + extraWidth / 2, r, ringOuter, 0, Math.PI * 2);
-    flagCtx.arc(r + extraWidth / 2, r, ringInner, Math.PI * 2, 0, true); // Cut out the inner circle
+    flagCtx.arc(ringCenterX, r, ringOuterRadius, 0, Math.PI * 2);
+    flagCtx.arc(ringCenterX, r, ringInnerRadius, Math.PI * 2, 0, true); // Cut out the inner circle
     flagCtx.fill();
     
     // Step 3: Draw the flag ring on top of the image
     // Offset the drawing position to account for the extra canvas width
+    // This aligns the ring center on flagCanvas (ringCenterX) with the ring center on main canvas (r)
     ctx.drawImage(flagCanvas, -extraWidth / 2, 0);
 
     // Cutout mode complete - skip normal border rendering below
@@ -319,8 +381,8 @@ export async function renderAvatar(
   // (Not used for cutout mode which has its own rendering path above)
   if (options.borderImageBitmap && presentation !== 'cutout') {
     // If the caller provided an SVG (or any) bitmap, generate a texture mapped to the ring
-    const thickness = Math.max(1, Math.round(ringOuter - ringInner));
-    const midR = (ringInner + ringOuter) / 2;
+    const thickness = Math.max(1, Math.round(ringOuterRadius - ringInnerRadius));
+    const midR = (ringInnerRadius + ringOuterRadius) / 2;
     const circumference = Math.max(2, Math.round(2 * Math.PI * midR));
     const texW = circumference;
     const texH = thickness;
@@ -340,22 +402,22 @@ export async function renderAvatar(
       const bmpTex = await createImageBitmap(tex);
       // Map left-edge -> top of ring
       const startAngle = -Math.PI / 2;
-      drawTexturedAnnulus(ctx, r, ringInner, ringOuter, bmpTex, startAngle, 'normal');
+      drawTexturedAnnulus(ctx, r, ringInnerRadius, ringOuterRadius, bmpTex, startAngle, 'normal');
     } catch {
       // fallback: draw it directly (older behavior)
       try {
-        drawTexturedAnnulus(ctx, r, ringInner, ringOuter, options.borderImageBitmap);
+        drawTexturedAnnulus(ctx, r, ringInnerRadius, ringOuterRadius, options.borderImageBitmap);
       } catch {
         // last resort: semi-transparent concentric rings
         ctx.save();
         ctx.globalAlpha = 0.64;
-        drawConcentricRings(ctx, r, ringInner, ringOuter, stripes, totalWeight);
+        drawConcentricRings(ctx, r, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
         ctx.restore();
       }
     }
   } else if (borderStyle === 'concentric') {
     // Map horizontal stripes to concentric annuli from outer->inner to preserve stripe order (top => outer)
-    drawConcentricRings(ctx, r, ringInner, ringOuter, stripes, totalWeight);
+    drawConcentricRings(ctx, r, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
   } else {
     // default: angular arcs (vertical stripes map naturally around circumference)
     let start = -Math.PI / 2; // start at top center
@@ -363,7 +425,7 @@ export async function renderAvatar(
       const frac = stripe.weight / totalWeight;
       const sweep = Math.PI * 2 * frac;
       const end = start + sweep;
-      drawRingArc(ctx, r, ringInner, ringOuter, start, end, stripe.color);
+      drawRingArc(ctx, r, ringInnerRadius, ringOuterRadius, start, end, stripe.color);
       start = end;
     }
   }
@@ -378,7 +440,7 @@ export async function renderAvatar(
   // Optional outer stroke
   if (options.outerStroke) {
     ctx.beginPath();
-    ctx.arc(canvasW / 2, canvasH / 2, ringOuter, 0, Math.PI * 2);
+    ctx.arc(canvasW / 2, canvasH / 2, ringOuterRadius, 0, Math.PI * 2);
     ctx.strokeStyle = options.outerStroke.color;
     ctx.lineWidth = options.outerStroke.widthPx;
     ctx.stroke();
