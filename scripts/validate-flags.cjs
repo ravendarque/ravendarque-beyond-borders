@@ -52,43 +52,27 @@ function canonicalizeId(name) {
   } catch (e) { err('Failed to read data/flag-data.yaml'); process.exit(1); }
 
   let expected = [];
-  let categories = {};
   try {
     const jsyaml = require('js-yaml');
     const doc = jsyaml.load(yaml);
-    if (doc && doc.categories) {
-      categories = doc.categories;
+    
+    if (!doc || !Array.isArray(doc.categories)) {
+      err('Error: YAML structure is invalid. Expected { categories: [{ category: "...", displayOrder: n, flags: [...] }] }');
+      process.exit(1);
     }
-    if (doc && Array.isArray(doc.flags)) expected = doc.flags;
-    else expected = [];
+    
+    // Flatten nested structure
+    for (const category of doc.categories) {
+      if (!category.category || !Array.isArray(category.flags)) {
+        err(`Error: Invalid category structure. Expected { category: "...", displayOrder: n, flags: [...] }`);
+        process.exit(1);
+      }
+      
+      expected.push(...category.flags.map(flag => ({ ...flag, category: category.category })));
+    }
   } catch (e) {
-    // fallback to simple parse for environments without js-yaml
-    const re = /svg_url:\s*"([^"]+)"/g;
-    let m;
-    while ((m = re.exec(yaml)) !== null) {
-      const url = m[1];
-      const parts = url.split('/');
-      expected.push({ svg: parts[parts.length - 1] });
-    }
-  }
-
-  // Validate category keys
-  if (Object.keys(categories).length > 0) {
-    const categoryKeys = new Set(Object.keys(categories));
-    const invalidCategories = [];
-    for (const flag of expected) {
-      if (flag.category && !categoryKeys.has(flag.category)) {
-        invalidCategories.push({ flag: flag.name || flag.displayName || 'unknown', category: flag.category });
-      }
-    }
-    if (invalidCategories.length) {
-      err('Category validation failed — the following flags have invalid category keys:');
-      for (const x of invalidCategories) {
-        err(`  - ${x.flag}: category "${x.category}" is not a valid key in categories lookup`);
-      }
-      err('\nValid category keys are: ' + Array.from(categoryKeys).join(', '));
-      process.exit(2);
-    }
+    err('Failed to parse YAML: ' + (e && e.message));
+    process.exit(1);
   }
 
   // Build expected set from the YAML source (ids or media filenames) and cross-check against manifest entries.
