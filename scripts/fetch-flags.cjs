@@ -66,43 +66,30 @@ function parseFlagsFromYaml(yaml) {
   const jsyaml = require('js-yaml');
   const doc = jsyaml.load(yaml);
   
-  // Handle new structure with categories lookup
-  if (doc && doc.categories && Array.isArray(doc.flags)) {
-    // Resolve category references to display names
-    const categories = doc.categories;
-    return doc.flags.map(flag => {
-      if (flag.category && categories[flag.category]) {
-        const displayName = categories[flag.category];
-        return {
-          ...flag,
-          categoryDisplayName: displayName,
-          category: mapCategoryToCode(displayName)
-        };
-      }
-      // If category is already a display name (legacy), use it directly
-      if (flag.category) {
-        return {
-          ...flag,
-          categoryDisplayName: flag.category,
-          category: mapCategoryToCode(flag.category)
-        };
-      }
-      return flag;
-    });
+  if (!doc || !Array.isArray(doc.categories)) {
+    console.error('Error: YAML structure is invalid. Expected { categories: [{ category: "...", displayOrder: n, flags: [...] }] }');
+    process.exit(1);
   }
   
-  // Legacy structure support
-  if (Array.isArray(doc)) return doc;
-  if (doc && Array.isArray(doc.flags)) {
-    return doc.flags.map(flag => ({
-      ...flag,
-      categoryDisplayName: flag.category || null,
-      category: mapCategoryToCode(flag.category)
-    }));
+  // Flags are nested under categories - flatten them
+  const flattenedFlags = [];
+  
+  for (const category of doc.categories) {
+    if (!category.category || !Array.isArray(category.flags)) {
+      console.error(`Error: Invalid category structure. Expected { category: "...", displayOrder: n, flags: [...] }`);
+      process.exit(1);
+    }
+    
+    for (const flag of category.flags) {
+      flattenedFlags.push({
+        ...flag,
+        category: mapCategoryToCode(category.category),
+        categoryDisplayName: category.category
+      });
+    }
   }
   
-  console.error('Error: YAML structure is invalid. Expected { flags: [...] } or an array.');
-  process.exit(1);
+  return flattenedFlags;
 }
 
 const flags = parseFlagsFromYaml(yamlText);
