@@ -86,6 +86,7 @@ export function AdjustStep({
         presentation={presentation}
         segmentRotation={segmentRotation}
         onSegmentRotationChange={onSegmentRotationChange}
+        selectedFlag={selectedFlag}
       />
     </div>
   );

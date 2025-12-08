@@ -1,6 +1,7 @@
 import React from 'react';
 import * as Slider from '@radix-ui/react-slider';
 import type { PresentationMode } from './PresentationModeSelector';
+import type { FlagSpec } from '@/flags/schema';
 
 export interface AdjustControlsProps {
   /** Border thickness (5-15) */
@@ -21,6 +22,8 @@ export interface AdjustControlsProps {
   segmentRotation: number;
   /** Segment rotation change handler */
   onSegmentRotationChange: (value: number) => void;
+  /** Selected flag (to check if horizontal offset is meaningful) */
+  selectedFlag: FlagSpec | null;
 }
 
 /**
@@ -41,6 +44,7 @@ export function AdjustControls({
   presentation,
   segmentRotation,
   onSegmentRotationChange,
+  selectedFlag,
 }: AdjustControlsProps) {
   return (
     <div className="adjust-controls">
@@ -125,9 +129,9 @@ export function AdjustControls({
         <div className="control-group">
           <div className="slider-container">
             <div className="slider-labels-row">
-              <span className="slider-end-label">Rotate L</span>
-              <span className="slider-value">{Math.round(segmentRotation)}°</span>
               <span className="slider-end-label">Rotate R</span>
+              <span className="slider-value">{Math.round(segmentRotation)}°</span>
+              <span className="slider-end-label">Rotate L</span>
             </div>
             <div className="slider-with-icons">
               <span className="slider-icon" aria-label="Rotate counter-clockwise">
@@ -161,8 +165,8 @@ export function AdjustControls({
         </div>
       )}
 
-      {/* Offset Slider - Only for Cutout Mode */}
-      {presentation === 'cutout' && (
+      {/* Offset Slider - Only for Cutout Mode and non-horizontal-invariant flags */}
+      {presentation === 'cutout' && !selectedFlag?.horizontalInvariant && (
         <div className="control-group">
           <div className="slider-container">
             <div className="slider-labels-row">

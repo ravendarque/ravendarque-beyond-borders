@@ -285,7 +285,7 @@ src/
    - Flags reference categories by key
    - Display names come from category lookup
 
-2. **Processing**: `scripts/fetch-and-extract.cjs`
+2. **Processing**: `scripts/fetch-flags.cjs`
    - Reads YAML
    - Resolves category keys to display names
    - Maps display names to category codes
@@ -386,7 +386,7 @@ When reviewing pull requests, verify the following:
 1. Edit `data/flag-data.yaml`:
    - Add flag entry with category key (e.g., `category: occupied`)
    - Category must exist in `categories` lookup
-2. Run `node scripts/fetch-and-extract.cjs` to regenerate `flags.ts`
+2. Run `node scripts/fetch-flags.cjs` to regenerate `flags.ts`
 3. Validate: `node scripts/validate-flags.cjs`
 4. Commit both YAML and generated `flags.ts`
 

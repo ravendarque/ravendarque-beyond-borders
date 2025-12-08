@@ -38,7 +38,7 @@ export function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelect
   /**
    * Get display name for a category from the first flag that has it (from source of truth)
    * 
-   * Categories are resolved from flag-data.yaml through the fetch-and-extract script,
+   * Categories are resolved from flag-data.yaml through the fetch-flags script,
    * which preserves the original display name in categoryDisplayName. If for some reason
    * categoryDisplayName is missing, we fall back to the category code as a last resort.
    */

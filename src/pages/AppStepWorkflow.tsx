@@ -184,6 +184,23 @@ export function AppStepWorkflow() {
     document.body.removeChild(a);
   };
 
+  const handleStartOver = () => {
+    setImageUrl(null);
+    setFlagId(null);
+    setCurrentStep(1);
+    setThickness(10);
+    setInsetPct(0);
+    setFlagOffsetX(0);
+    setPresentation('ring');
+    setSegmentRotation(0);
+    try {
+      sessionStorage.removeItem(STORAGE_KEY_IMAGE);
+      sessionStorage.removeItem(STORAGE_KEY_FLAG);
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
   return (
     <>
       {/* Screen reader announcements */}
@@ -275,52 +292,80 @@ export function AppStepWorkflow() {
             )}
             
             {currentStep === 2 && (
-              <>
+              <div className="step-3-nav">
+                <div className="nav-buttons-row">
+                  <button
+                    type="button"
+                    className="nav-btn"
+                    onClick={goToPrevious}
+                    aria-label="Go to previous step"
+                  >
+                    <span>← BACK</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="nav-btn"
+                    onClick={goToNext}
+                    disabled={!canGoToStep3}
+                    aria-label="Go to next step"
+                  >
+                    <span>NEXT →</span>
+                  </button>
+                </div>
                 <button
                   type="button"
-                  className="nav-btn"
-                  onClick={goToPrevious}
-                  aria-label="Go to previous step"
+                  className="start-over-btn"
+                  onClick={handleStartOver}
+                  aria-label="Start over with a new image"
                 >
-                  <span>← BACK</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M21 3v5h-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Start Over
                 </button>
-                <button
-                  type="button"
-                  className="nav-btn"
-                  onClick={goToNext}
-                  disabled={!canGoToStep3}
-                  aria-label="Go to next step"
-                >
-                  <span>NEXT →</span>
-                </button>
-              </>
+              </div>
             )}
             
             {currentStep === 3 && (
-              <>
+              <div className="step-3-nav">
+                <div className="nav-buttons-row">
+                  <button
+                    type="button"
+                    className="nav-btn"
+                    onClick={goToPrevious}
+                    aria-label="Go to previous step"
+                  >
+                    <span>← BACK</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="nav-btn"
+                    onClick={handleDownload}
+                    disabled={!overlayUrl || isRendering}
+                    aria-label="Save avatar"
+                  >
+                    <span>SAVE</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ marginLeft: '6px', position: 'relative', zIndex: 1 }}>
+                      <path d="M8 2L8 10M8 10L5 7M8 10L11 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M2 12L2 13C2 13.5523 2.44772 14 3 14L13 14C13.5523 14 14 13.5523 14 13L14 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      <path d="M3 10L3 12L13 12L13 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
                 <button
                   type="button"
-                  className="nav-btn"
-                  onClick={goToPrevious}
-                  aria-label="Go to previous step"
+                  className="start-over-btn"
+                  onClick={handleStartOver}
+                  aria-label="Start over with a new image"
                 >
-                  <span>← BACK</span>
-                </button>
-                <button
-                  type="button"
-                  className="nav-btn"
-                  onClick={handleDownload}
-                  disabled={!overlayUrl || isRendering}
-                  aria-label="Save avatar"
-                >
-                  <span>SAVE</span>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ marginLeft: '6px', position: 'relative', zIndex: 1 }}>
-                    <path d="M8 2L8 10M8 10L5 7M8 10L11 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M2 12L2 13C2 13.5523 2.44772 14 3 14L13 14C13.5523 14 14 13.5523 14 13L14 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    <path d="M3 10L3 12L13 12L13 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M21 3v5h-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
+                  Start Over
                 </button>
-              </>
+              </div>
             )}
           </div>
         </div>

@@ -33,7 +33,7 @@
   --progress-height: 24px;
   --progress-gap: 11px;
   --progress-font: 11px;
-  --content-size: 250px;
+  --content-size: min(250px, 45vh);
   --nav-btn-width: 120px;
   --nav-btn-font: 14px;
 }
@@ -49,7 +49,7 @@
     --progress-height: 28px;
     --progress-gap: 20px;
     --progress-font: 13px;
-    --content-size: 350px;
+    --content-size: min(350px, 50vh);
     --nav-btn-width: 160px;
     --nav-btn-font: 16px;
   }
@@ -65,7 +65,7 @@
     --progress-height: 32px;
     --progress-gap: 30px;
     --progress-font: 14px;
-    --content-size: 400px;
+    --content-size: min(400px, 55vh);
     --nav-btn-width: 180px;
     --nav-btn-font: 16px;
   }
@@ -167,10 +167,13 @@ body {
   width: 100%;
   max-width: var(--canvas-width);
   min-width: 300px;
-  min-height: 100vh;
+  /* Remove min-height: 100vh to prevent forced overflow with root padding */
+  /* min-height: 100vh; */ 
   display: flex;
   flex-direction: column;
   padding: var(--canvas-padding);
+  /* Allow it to fit within the viewport if possible, but grow if needed */
+  height: auto; 
 }
 
 /* Content wrapper - contains background, progress, content, and navigation */
@@ -424,7 +427,7 @@ label.choose-circle:hover {
 }
 
 .choose-circle .privacy:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .choose-circle .privacy:focus-visible {
@@ -538,15 +541,35 @@ label.choose-circle:hover {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
+/* Step 3 navigation layout */
+.step-3-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.nav-buttons-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
 .start-over-btn {
   background: none;
   border: none;
   color: var(--color-red-accent);
-  font-family: monospace;
-  font-size: 12px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  text-decoration: underline;
-  padding: 0 12px;
+  text-decoration: none;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
 }
 
 .start-over-btn:disabled {
@@ -591,7 +614,7 @@ label.choose-circle:hover {
   line-height: inherit;
   font-weight: inherit;
   color: var(--color-red-accent);
-  text-decoration: underline;
+  text-decoration: none;
   cursor: pointer;
   transition: color 0.2s ease;
 }
@@ -630,7 +653,7 @@ label.choose-circle:hover {
 .ethics-page-back-link {
   display: inline-block;
   color: var(--color-red-accent);
-  text-decoration: underline;
+  text-decoration: none;
   font-family: 'Segoe UI', sans-serif;
   font-size: 14px;
   margin-bottom: 20px;
@@ -718,7 +741,7 @@ label.choose-circle:hover {
 
 .ethics-link {
   color: var(--color-red-accent);
-  text-decoration: underline;
+  text-decoration: none;
   transition: color 0.2s ease;
   padding: 0;
   min-height: auto;
@@ -866,7 +889,7 @@ label.choose-circle:hover {
 
 .dialog-link {
   color: var(--color-red-accent);
-  text-decoration: underline;
+  text-decoration: none;
   padding: 0;
   min-height: auto;
   min-width: auto;
@@ -932,6 +955,7 @@ label.choose-circle:hover {
   align-items: center;
   position: relative;
   z-index: 2;
+  margin-bottom: 20px;
 }
 
 .flag-selector {

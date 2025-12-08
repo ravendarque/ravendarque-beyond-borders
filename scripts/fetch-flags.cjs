@@ -11,7 +11,7 @@ const WANT_CI = argv.includes('--ci') || process.env.CI === 'true';
 const WANT_DRY = argv.includes('--dry-run');
 const WANT_FORCE = argv.includes('--force');
 if (argv.includes('--help') || argv.includes('-h')) {
-  console.log('Usage: node scripts/fetch-and-extract.cjs [--push] [--ci] [--dry-run] [--force]\n  --push   allow git add/commit/push (local override)\n  --ci     treat run as CI (also allows commit)\n  --dry-run  only simulate actions (no network writes)\n  --force  delete existing PNG files before regenerating');
+  console.log('Usage: node scripts/fetch-flags.cjs [--push] [--ci] [--dry-run] [--force]\n  --push   allow git add/commit/push (local override)\n  --ci     treat run as CI (also allows commit)\n  --dry-run  only simulate actions (no network writes)\n  --force  delete existing PNG files before regenerating');
   process.exit(0);
 }
 
@@ -48,7 +48,6 @@ try {
 
 function mapCategoryToCode(category) {
   const mapping = {
-    'Authoritarian State': 'authoritarian',
     'Occupied / Disputed Territory': 'occupied',
     'Stateless People': 'stateless',
     'Oppressed Groups': 'oppressed',
@@ -58,7 +57,6 @@ function mapCategoryToCode(category) {
 
 // Reverse mapping: code to display name (from source of truth)
 const CATEGORY_DISPLAY_NAMES = {
-  'authoritarian': 'Authoritarian State',
   'occupied': 'Occupied / Disputed Territory',
   'stateless': 'Stateless People',
   'oppressed': 'Oppressed Groups',
@@ -254,6 +252,33 @@ async function analyzePngUsage(pngPath) {
   }
 }
 
+async function checkHorizontalInvariance(pngPath) {
+  if (!Sharp) return false;
+  try {
+    const { data, info } = await Sharp(pngPath).raw().ensureAlpha().toBuffer({ resolveWithObject: true });
+    const w = info.width;
+    const h = info.height;
+    const channels = info.channels;
+    // Check every 10th row for speed
+    for (let y = 0; y < h; y += 10) {
+      const rowStart = y * w * channels;
+      const r0 = data[rowStart];
+      const g0 = data[rowStart+1];
+      const b0 = data[rowStart+2];
+      const a0 = data[rowStart+3];
+      // Check sampled pixels in the row
+      for (let x = 1; x < w; x += 5) {
+        const i = rowStart + x * channels;
+        // Tolerance for compression/antialiasing
+        if (Math.abs(data[i] - r0) > 10 || Math.abs(data[i+1] - g0) > 10 || Math.abs(data[i+2] - b0) > 10 || Math.abs(data[i+3] - a0) > 10) {
+          return false;
+        }
+      }
+    }
+    return true;
+  } catch (e) { return false; }
+}
+
 function fetchToFile(url, dst, timeoutMs = 30000, maxRedirects = 5) {
   return new Promise((resolve, reject) => {
     if (maxRedirects <= 0) return reject(new Error('Too many redirects'));
@@ -372,7 +397,7 @@ function generateTypeScriptSource(manifest) {
     '',
     '/**',
     ' * Flag definitions generated from flag-data.yaml',
-    ' * Do not edit manually - run scripts/fetch-and-extract.cjs to regenerate',
+    ' * Do not edit manually - run scripts/fetch-flags.cjs to regenerate',
     ' */',
     'export const flags: FlagSpec[] = [',
   ];
@@ -421,6 +446,10 @@ function generateTypeScriptSource(manifest) {
     
     // Add status field (default to 'active')
     lines.push(`    status: 'active',`);
+    
+    if (entry.horizontalInvariant) {
+      lines.push(`    horizontalInvariant: true,`);
+    }
     
     // Generate pattern field from colors
     // Most flags are horizontal stripes
@@ -880,8 +909,14 @@ async function workerForFlag(f) {
               metadata.colors = pngColors;
               metadata.stripe_order = pngColors;
             }
+            
+            // Check horizontal invariance
+            if (await checkHorizontalInvariance(pngFullPath)) {
+              console.log('Detected horizontal invariance for', filename);
+              metadata.horizontalInvariant = true;
+            }
           } catch (e) {
-            console.warn('Failed to extract colors from PNG:', e.message);
+            console.warn('Failed to extract colors or analyze PNG:', e.message);
           }
         }
         
@@ -951,6 +986,7 @@ async function workerForFlag(f) {
         layouts,
         focalPoint: m.focalPoint || null,
         size: m.size || null,
+        horizontalInvariant: m.horizontalInvariant || false,
       };
       manifest.push(entry);
     }

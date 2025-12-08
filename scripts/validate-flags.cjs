@@ -12,7 +12,7 @@ const publicFlagsDir = path.join(repoRoot, 'public', 'flags');
 
 // We validate that TypeScript manifest exists and that referenced PNGs are present.
 const manifestPath = path.join(repoRoot, 'src', 'flags', 'flags.ts');
-if (!fs.existsSync(manifestPath)) { err('TypeScript manifest src/flags/flags.ts not found — run fetch-and-extract.cjs'); process.exit(2); }
+if (!fs.existsSync(manifestPath)) { err('TypeScript manifest src/flags/flags.ts not found — run fetch-flags.cjs'); process.exit(2); }
 let manifest = null;
 try {
   // Parse the TypeScript file to extract the flags array
@@ -116,7 +116,7 @@ function canonicalizeId(name) {
   if (missingIds.length) {
     err('Flag manifest validation failed — the following flags from data/flag-data.yaml are missing in src/flags/flags.ts:');
     for (const n of missingIds) err('  - ' + n);
-    err('\nRun scripts/fetch-and-extract.cjs --ci to regenerate the manifest and assets.');
+    err('\nRun scripts/fetch-flags.cjs --ci to regenerate the manifest and assets.');
     process.exit(2);
   }
 
@@ -217,7 +217,7 @@ function canonicalizeId(name) {
     if (usageErrors.length) {
       err('Flag asset usage validation failed — the following png_full files do not fill their canvas:');
       for (const x of usageErrors) err('  - ' + (x.id || x.file) + ': ' + (x.reason || (`used ${x.usedW}x${x.usedH} of ${x.w}x${x.h} (${Math.round((x.pctW||0)*100)}% x ${Math.round((x.pctH||0)*100)}%)`)) + (x.error ? ' error=' + x.error : ''));
-      err('\nRegenerate assets with scripts/fetch-and-extract.cjs --ci and inspect with scripts/inspect-flag-raster.cjs.');
+      err('\nRegenerate assets with scripts/fetch-flags.cjs --ci and inspect with scripts/inspect-flag-raster.cjs.');
       process.exit(3);
     }
     console.log('Flag validation passed — flags.ts present, category keys valid, referenced PNGs exist, and all png_full images fully use their canvas.');
