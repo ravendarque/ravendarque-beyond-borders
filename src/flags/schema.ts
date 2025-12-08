@@ -24,6 +24,7 @@ export const FlagSpec = z.object({
   colors: z.array(z.string()).optional().nullable(),
   size: z.number().optional().nullable(),
   stripe_order: z.any().optional(),
+  horizontalInvariant: z.boolean().optional(), // True if flag is invariant under horizontal translation (e.g. horizontal stripes only)
   status: z.enum(['active', 'hidden', 'deprecated']).default('active').optional(),
   pattern: z.object({
     type: z.literal('stripes'),

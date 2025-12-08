@@ -4,7 +4,7 @@ This directory contains utility scripts for managing the Beyond Borders applicat
 
 ## Core Production Scripts
 
-### `fetch-and-extract.cjs`
+### `fetch-flags.cjs`
 **Purpose:** Primary flag asset generation script - the heart of the flag processing pipeline.
 
 **What it does:**
@@ -20,13 +20,13 @@ This directory contains utility scripts for managing the Beyond Borders applicat
 **Usage:**
 ```bash
 # Dry run (preview changes without making them)
-node scripts/fetch-and-extract.cjs --dry-run
+node scripts/fetch-flags.cjs --dry-run
 
 # Local execution (requires explicit --push flag to commit)
-node scripts/fetch-and-extract.cjs --push
+node scripts/fetch-flags.cjs --push
 
 # CI execution (auto-commits and validates)
-node scripts/fetch-and-extract.cjs --ci
+node scripts/fetch-flags.cjs --ci
 ```
 
 **Requirements:** Playwright, sharp, @resvg/resvg-js
@@ -147,7 +147,7 @@ node scripts/screenshot.js
 ```
 scripts/
 ├── README.md                    # This file
-├── fetch-and-extract.cjs        # Flag asset + TypeScript generation (CORE)
+├── fetch-flags.cjs              # Flag asset + TypeScript generation (CORE)
 ├── validate-flags.cjs           # Flag validation (CORE)
 ├── inspect-flag-raster.cjs      # PNG analysis tool
 ├── capture-cutout.cjs           # Cutout mode testing
@@ -167,8 +167,8 @@ scripts/
 ## Workflow: Adding a New Flag
 
 1. **Edit source:** Add flag entry to `data/flag-data.yaml`
-2. **Generate assets:** Run `node scripts/fetch-and-extract.cjs --dry-run` to preview
-3. **Commit assets:** Run `node scripts/fetch-and-extract.cjs --push` to generate and commit (this also updates `flags.ts`)
+2. **Generate assets:** Run `node scripts/fetch-flags.cjs --dry-run` to preview
+3. **Commit assets:** Run `node scripts/fetch-flags.cjs --push` to generate and commit (this also updates `flags.ts`)
 4. **Validate:** Run `node scripts/validate-flags.cjs` to verify
 5. **Test:** Run unit tests with `pnpm test -- flags.test.ts`
 
