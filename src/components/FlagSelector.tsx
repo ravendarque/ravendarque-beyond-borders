@@ -30,9 +30,15 @@ export function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelect
     }, {} as Record<string, typeof flags>);
   }, [flags]);
 
-  // Get unique categories that have flags, sorted for consistent display
+  // Get unique categories that have flags, sorted by displayOrder
   const categories = useMemo(() => {
-    return Object.keys(flagsByCategory).sort();
+    const categoryKeys = Object.keys(flagsByCategory);
+    // Get displayOrder from first flag in each category
+    return categoryKeys.sort((a, b) => {
+      const orderA = flagsByCategory[a]?.[0]?.categoryDisplayOrder ?? 999;
+      const orderB = flagsByCategory[b]?.[0]?.categoryDisplayOrder ?? 999;
+      return orderA - orderB;
+    });
   }, [flagsByCategory]);
 
   /**

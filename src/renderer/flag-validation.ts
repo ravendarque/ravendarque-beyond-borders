@@ -18,110 +18,57 @@ export class FlagValidationError extends Error {
 }
 
 /**
- * Validate flag pattern data before rendering
+ * Validate flag modes data before rendering
  * @throws FlagValidationError if validation fails
  */
 export function validateFlagPattern(flag: FlagSpec): void {
-  // Check pattern exists
-  if (!flag.pattern) {
+  // Check ring colors exist
+  if (!flag.modes?.ring?.colors || !Array.isArray(flag.modes.ring.colors)) {
     throw new FlagValidationError(
-      `Flag "${flag.id}" is missing pattern data`,
+      `Flag "${flag.id}" is missing modes.ring.colors`,
       flag.id,
-      'pattern'
+      'modes.ring.colors'
     );
   }
   
-  // Check stripes exist
-  if (!flag.pattern.stripes || !Array.isArray(flag.pattern.stripes)) {
+  // Check minimum color count
+  if (flag.modes.ring.colors.length < 1) {
     throw new FlagValidationError(
-      `Flag "${flag.id}" pattern is missing stripes array`,
+      `Flag "${flag.id}" must have at least 1 color, got ${flag.modes.ring.colors.length}`,
       flag.id,
-      'pattern.stripes'
+      'modes.ring.colors'
     );
   }
   
-  // Check minimum stripe count
-  if (flag.pattern.stripes.length < 1) {
+  // Check maximum color count (practical limit for rendering)
+  if (flag.modes.ring.colors.length > 50) {
     throw new FlagValidationError(
-      `Flag "${flag.id}" must have at least 1 stripe, got ${flag.pattern.stripes.length}`,
+      `Flag "${flag.id}" has too many colors (${flag.modes.ring.colors.length}), maximum is 50`,
       flag.id,
-      'pattern.stripes'
+      'modes.ring.colors'
     );
   }
   
-  // Check maximum stripe count (practical limit for rendering)
-  if (flag.pattern.stripes.length > 50) {
-    throw new FlagValidationError(
-      `Flag "${flag.id}" has too many stripes (${flag.pattern.stripes.length}), maximum is 50`,
-      flag.id,
-      'pattern.stripes'
-    );
-  }
-  
-  // Validate each stripe
-  flag.pattern.stripes.forEach((stripe, index) => {
+  // Validate each color
+  flag.modes.ring.colors.forEach((color, index) => {
     // Check color exists
-    if (!stripe.color) {
+    if (!color) {
       throw new FlagValidationError(
-        `Flag "${flag.id}" stripe ${index} is missing color`,
+        `Flag "${flag.id}" color ${index} is missing`,
         flag.id,
-        `pattern.stripes[${index}].color`
+        `modes.ring.colors[${index}]`
       );
     }
     
     // Check color is valid hex
-    if (!isValidHexColor(stripe.color)) {
+    if (!isValidHexColor(color)) {
       throw new FlagValidationError(
-        `Flag "${flag.id}" stripe ${index} has invalid hex color: "${stripe.color}"`,
+        `Flag "${flag.id}" color ${index} has invalid hex color: "${color}"`,
         flag.id,
-        `pattern.stripes[${index}].color`
-      );
-    }
-    
-    // Check weight exists
-    if (typeof stripe.weight !== 'number') {
-      throw new FlagValidationError(
-        `Flag "${flag.id}" stripe ${index} is missing weight`,
-        flag.id,
-        `pattern.stripes[${index}].weight`
-      );
-    }
-    
-    // Check weight is positive
-    if (stripe.weight <= 0) {
-      throw new FlagValidationError(
-        `Flag "${flag.id}" stripe ${index} has non-positive weight: ${stripe.weight}`,
-        flag.id,
-        `pattern.stripes[${index}].weight`
-      );
-    }
-    
-    // Check weight is finite
-    if (!Number.isFinite(stripe.weight)) {
-      throw new FlagValidationError(
-        `Flag "${flag.id}" stripe ${index} has non-finite weight: ${stripe.weight}`,
-        flag.id,
-        `pattern.stripes[${index}].weight`
+        `modes.ring.colors[${index}]`
       );
     }
   });
-  
-  // Check orientation
-  if (!flag.pattern.orientation) {
-    throw new FlagValidationError(
-      `Flag "${flag.id}" pattern is missing orientation`,
-      flag.id,
-      'pattern.orientation'
-    );
-  }
-  
-  if (flag.pattern.orientation !== 'horizontal' && flag.pattern.orientation !== 'vertical') {
-    throw new FlagValidationError(
-      `Flag "${flag.id}" pattern has invalid orientation: "${flag.pattern.orientation}"`,
-      flag.id,
-      'pattern.orientation'
-    );
-  }
 }
 
 /**

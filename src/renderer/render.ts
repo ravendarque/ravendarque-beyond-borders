@@ -119,9 +119,6 @@ export async function renderAvatar(
   flag: FlagSpec,
   options: RenderOptions,
 ): Promise<RenderResult> {
-  // Validate flag pattern before rendering
-  validateFlagPattern(flag);
-  
   // Performance tracking
   const tracker = new RenderPerformanceTracker();
   const enableTracking = options.enablePerformanceTracking ?? (import.meta.env.DEV);
@@ -181,16 +178,16 @@ export async function renderAvatar(
   const imageInset = options.imageInsetPx ?? 0; // can be negative (outset)
   const imageRadius = clamp(ringInnerRadius - imageInset, 0, r - 0.5);
 
-  // Decide border style early to handle cutout differently
-  // Pattern is guaranteed to exist due to validateFlagPattern above
-  const stripes = flag.pattern!.stripes;
-  const totalWeight = stripes.reduce((s: number, x: { weight: number }) => s + x.weight, 0);
+  // Get colors from modes.ring.colors (all stripes have weight 1)
+  const ringColors = flag.modes?.ring?.colors ?? [];
+  const stripes = ringColors.map(color => ({ color, weight: 1 }));
+  const totalWeight = stripes.length;
   const presentation = options.presentation as 'ring' | 'segment' | 'cutout' | undefined;
   let borderStyle: 'concentric' | 'angular' | 'cutout';
   if (presentation === 'ring') borderStyle = 'concentric';
   else if (presentation === 'segment') borderStyle = 'angular';
   else if (presentation === 'cutout') borderStyle = 'cutout';
-  else borderStyle = flag.pattern!.orientation === 'horizontal' ? 'concentric' : 'angular';
+  else borderStyle = 'concentric'; // Default to concentric (horizontal stripes)
 
   /**
    * CUTOUT MODE: Special rendering where the user's image is centered
@@ -304,28 +301,14 @@ export async function renderAvatar(
       }
       flagCtx.drawImage(options.borderImageBitmap, dx, dy, flagRectWidth, flagRectHeight);
     } else {
-      // Draw stripes from pattern data
-      // Pattern is guaranteed to exist due to validateFlagPattern above
-      if (flag.pattern!.orientation === 'horizontal') {
-        // Horizontal stripes - draw across full width
-        let y = 0;
-        for (const stripe of stripes) {
-          const frac = stripe.weight / totalWeight;
-          const h = frac * canvasH;
-          flagCtx.fillStyle = stripe.color;
-          flagCtx.fillRect(0, y, flagCanvas.width, h);
-          y += h;
-        }
-      } else {
-        // Vertical stripes - shift the pattern horizontally relative to ring center
-        let x = ringCenterX - flagOffsetX; // Start at ring center, then shift by offset
-        for (const stripe of stripes) {
-          const frac = stripe.weight / totalWeight;
-          const w = frac * canvasW;
-          flagCtx.fillStyle = stripe.color;
-          flagCtx.fillRect(x, 0, w, canvasH);
-          x += w;
-        }
+      // Draw horizontal stripes from modes.ring.colors
+      let y = 0;
+      for (const stripe of stripes) {
+        const frac = stripe.weight / totalWeight;
+        const h = frac * canvasH;
+        flagCtx.fillStyle = stripe.color;
+        flagCtx.fillRect(0, y, flagCanvas.width, h);
+        y += h;
       }
     }
     

@@ -1,92 +1,122 @@
 # Flag data source for Beyond Borders
-# This file is the source of truth for all flags in the application
+# This file is the source of truth for all flags in the application and is processed by the fetch-flags.cjs script to generate the flags.ts file.
 
+# schema: flag-data.schema.json
 categories:
-  - category: "Occupied / Disputed Territory"
+  - categoryName: "Occupied / Disputed Territory"
     displayOrder: 1
     flags:
-      - name: "Palestinian Flag"
+      - flagName: "Palestinian Flag"
         displayName: "Palestine"
         svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Palestine.svg"
         description: "Black, white, and green horizontal stripes with a red triangle at the hoist."
         reason: "Territorial dispute and prolonged occupation affecting the rights, movement, and livelihoods of Palestinians."
         link: "https://en.wikipedia.org/wiki/Palestine"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: -50
 
-      - name: "Snow Lion Flag"
+      - flagName: "Snow Lion Flag"
         displayName: "Tibet"
         svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Tibet.svg"
         description: "A pair of snow lions standing in front of a mountain with a rising sun and Buddhist symbols."
         reason: "Banned in Tibet since Chinese control; symbol of Tibetan cultural and political resistance."
         link: "https://en.wikipedia.org/wiki/Flag_of_Tibet"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: 0
 
-      - name: "Flag Of The Sahrawi Arab Democratic Republic"
+      - flagName: "Flag Of The Sahrawi Arab Democratic Republic"
         displayName: "Western Sahara"
         svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_the_Sahrawi_Arab_Democratic_Republic.svg"
         description: "Black, white, and green horizontal stripes with a red triangle and star and crescent."
         reason: "Territory with partial recognition; long-running dispute and displacement of Sahrawi people."
         link: "https://en.wikipedia.org/wiki/Western_Sahara"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: -50
 
-      - name: "Flag Of Ukraine"
+      - flagName: "Flag Of Ukraine"
         displayName: "Ukraine"
         svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Ukraine.svg"
         description: "Two horizontal bands of blue (top) and yellow (bottom)."
         reason: "Ongoing military occupation and territorial aggression since 2014; symbol of sovereignty and resistance."
         link: "https://en.wikipedia.org/wiki/Flag_of_Ukraine"
 
-  - category: "Stateless People"
+  - categoryName: "Stateless People"
     displayOrder: 2
     flags:
-      - name: "Kurdish Flag (Roj)"
+      - flagName: "Kurdish Flag (Roj)"
         displayName: "Kurdistan"
         svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Kurdistan.svg"
         description: "Red, white, and green tricolor with a golden sun emblem at center."
         reason: "Represents Kurdish identity and independence aspirations; Kurds face repression and denial of rights across multiple states."
         link: "https://en.wikipedia.org/wiki/Kurdistan"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: 50
 
-      - name: "East Turkestan Flag"
+      - flagName: "East Turkestan Flag"
         displayName: "Uyghur (East Turkestan)"
         svg_url: "https://en.wikipedia.org/wiki/File:Kokbayraq_flag.svg"
         description: "Sky-blue field with a white crescent and star."
         reason: "Used by Uyghur activists and diaspora; Uyghurs face mass detention, cultural repression, and rights abuses in Xinjiang."
         link: "https://en.wikipedia.org/wiki/Uyghurs"
+        # cutout mode not enabled because the moon and star are too big to make sense within the border space
 
-      - name: "Rohingya Flag"
+      - flagName: "Rohingya Flag"
         displayName: "Rohingya"
         svg_url: "https://commons.wikimedia.org/wiki/File:Rohingya_flag.svg"
         description: "Green field with a white star and crescent and additional motifs used by Rohingya groups."
         reason: "Rohingya have faced ethnic cleansing, statelessness, and severe persecution in Myanmar."
         link: "https://en.wikipedia.org/wiki/Rohingya"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: 50
 
-  - category: "LGBTQIA+"
+      - flagName: "Irish Traveller Movement"
+        displayName: "Irish Traveller Movement"
+        svg_url: "https://commons.wikimedia.org/wiki/File:Irish_Traveller_Movement_flag.svg"
+        description: "Diagonal design with blue upper-left and green lower-right sections divided by a white stripe outlined in black, featuring a central horseshoe emblem with ITM logo and yellow text reading 'IRISH TRAVELLER' and 'MOVEMENT'."
+        reason: "Represents the Irish Traveller community which faces discrimination, social exclusion, and economic disadvantage."
+        link: "https://en.wikipedia.org/wiki/Irish_Traveller_movement"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: 0
+
+  - categoryName: "LGBTQIA+"
     displayOrder: 3
     flags:
-      - name: "Rainbow Flag"
+      - flagName: "Rainbow Flag"
         displayName: "Pride"
         svg_url: "https://en.wikipedia.org/wiki/Rainbow_flag_(LGBTQ)#/media/File:Gay_Pride_Flag.svg"
         description: "Six horizontal colored stripes representing LGBTQIA+ pride and diversity."
         reason: "Represents LGBTQIA+ communities; in many countries LGBTQIA+ people face criminalisation, discrimination, and violence."
         link: "https://en.wikipedia.org/wiki/Rainbow_flag"
 
-      - name: "Transgender Flag"
+      - flagName: "Transgender Flag"
         displayName: "Trans Pride"
         svg_url: "https://commons.wikimedia.org/wiki/File:Transgender_Pride_flag.svg"
         description: "Light blue, pink, and white horizontal stripes representing transgender community."
         reason: "Symbol of transgender visibility; transgender people face discrimination and legal obstacles in many places."
         link: "https://en.wikipedia.org/wiki/Transgender_flag"
 
-      - name: "Non-Binary Flag"
+      - flagName: "Non-Binary Flag"
         displayName: "Non-Binary Pride"
         svg_url: "https://commons.wikimedia.org/wiki/File:Nonbinary_flag.svg"
         description: "Four horizontal stripes: yellow, white, purple, and black representing people whose gender is outside the binary."
         reason: "Represents non-binary people and their visibility; used in LGBTQIA+ contexts to acknowledge gender diversity."
         link: "https://en.wikipedia.org/wiki/Non-binary_gender#Flags"
 
-  - category: "Oppressed Groups"
+  - categoryName: "Oppressed Groups"
     displayOrder: 4
     flags:
-      - name: "Australian Aboriginal Flag"
+      - flagName: "Australian Aboriginal Flag"
         displayName: "Australian Aboriginal Peoples"
         svg_url: "https://commons.wikimedia.org/wiki/File:Australian_Aboriginal_Flag.svg"
         description: "Black top half, red bottom half, with a central yellow circle representing the Sun."
         reason: "Represents Aboriginal peoples of Australia and is used as a symbol of identity, cultural resilience, and political rights."
         link: "https://en.wikipedia.org/wiki/Aboriginal_flag"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: 50

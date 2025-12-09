@@ -15,288 +15,79 @@ export const flags: FlagSpec[] = [
     svgFilename: 'palestine.svg',
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
+    categoryDisplayOrder: 1,
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Palestine' },
     status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#000000', weight: 1, label: 'black' },
-        { color: '#009040', weight: 1, label: 'green' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#F03040', weight: 1, label: 'red' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
+    modes: {
+      ring: {
         colors: [
           '#000000',
           '#009040',
           '#ffffff',
           '#f03040'
         ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: -50,
+      },
+    },
   },
   {
     id: 'tibet',
     name: 'Snow Lion Flag',
     displayName: 'Tibet',
     png_full: 'tibet.png',
+    png_preview: 'tibet.preview.png',
+    aspectRatio: 1.6,
     svgFilename: 'tibet.svg',
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
+    categoryDisplayOrder: 1,
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Tibet' },
     status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#84BE86', weight: 1, label: 'cyan' },
-        { color: '#328C4E', weight: 1, label: 'green' },
-        { color: '#F4E109', weight: 1, label: 'orange' },
-        { color: '#DA251C', weight: 1, label: 'red' },
-        { color: '#29166F', weight: 1, label: 'blue' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#000000', weight: 1, label: 'black' },
-        { color: '#F1C700', weight: 1, label: 'orange' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
+    modes: {
+      ring: {
         colors: [
-          '#84be86',
-          '#328c4e',
-          '#f4e109',
-          '#da251c',
-          '#29166f',
-          '#ffffff',
-          '#000000',
-          '#f1c700'
+          '#e02020',
+          '#301070',
+          '#f0e010',
+          '#ffffff'
         ],
-      }
-    ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: 0,
+      },
+    },
   },
   {
     id: 'the-sahrawi-arab-democratic-republic',
     name: 'Flag Of The Sahrawi Arab Democratic Republic',
     displayName: 'Western Sahara',
     png_full: 'the-sahrawi-arab-democratic-republic.png',
+    png_preview: 'the-sahrawi-arab-democratic-republic.preview.png',
+    aspectRatio: 2,
     svgFilename: 'the-sahrawi-arab-democratic-republic.svg',
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
+    categoryDisplayOrder: 1,
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Western_Sahara' },
     status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#000000', weight: 1, label: 'black' },
-        { color: '#007A3D', weight: 1, label: 'green' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#C4111B', weight: 1, label: 'red' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
+    modes: {
+      ring: {
         colors: [
           '#000000',
-          '#007a3d',
+          '#008040',
           '#ffffff',
-          '#c4111b'
+          '#c01020'
         ],
-      }
-    ],
-  },
-  {
-    id: 'kurdistan',
-    name: 'Kurdish Flag (Roj)',
-    displayName: 'Kurdistan',
-    png_full: 'kurdistan.png',
-    png_preview: 'kurdistan.preview.png',
-    aspectRatio: 1.5,
-    svgFilename: 'kurdistan.svg',
-    category: 'stateless',
-    categoryDisplayName: 'Stateless People',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Kurdistan' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#F02020', weight: 1, label: 'red' },
-        { color: '#209040', weight: 1, label: 'green' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#FFC010', weight: 1, label: 'orange' }
-      ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: -50,
+      },
     },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
-        colors: [
-          '#f02020',
-          '#209040',
-          '#ffffff',
-          '#ffc010'
-        ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
-  },
-  {
-    id: 'kokbayraq',
-    name: 'East Turkestan Flag',
-    displayName: 'Uyghur (East Turkestan)',
-    png_full: 'kokbayraq.png',
-    png_preview: 'kokbayraq.preview.png',
-    aspectRatio: 1.5,
-    svgFilename: 'kokbayraq.svg',
-    category: 'stateless',
-    categoryDisplayName: 'Stateless People',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Uyghurs' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#50A0E0', weight: 1, label: 'blue' },
-        { color: '#FFFFFF', weight: 1, label: 'white' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
-        colors: [
-          '#50a0e0',
-          '#ffffff'
-        ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
-  },
-  {
-    id: 'rohingya',
-    name: 'Rohingya Flag',
-    displayName: 'Rohingya',
-    png_full: 'rohingya.png',
-    svgFilename: 'rohingya.svg',
-    category: 'stateless',
-    categoryDisplayName: 'Stateless People',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rohingya' },
-    status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#000000', weight: 1, label: 'black' },
-        { color: '#D4AC34', weight: 1, label: 'orange' },
-        { color: '#D4AF37', weight: 1, label: 'orange' },
-        { color: '#FBFBFA', weight: 1, label: 'white' },
-        { color: '#14642C', weight: 1, label: 'green' },
-        { color: '#0B6623', weight: 1, label: 'green' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
-        colors: [
-          '#ffffff',
-          '#000000',
-          '#d4ac34',
-          '#d4af37',
-          '#fbfbfa',
-          '#14642c',
-          '#0b6623'
-        ],
-      }
-    ],
-  },
-  {
-    id: 'gay-pride',
-    name: 'Rainbow Flag',
-    displayName: 'Pride',
-    png_full: 'gay-pride.png',
-    png_preview: 'gay-pride.preview.png',
-    aspectRatio: 1.61875,
-    svgFilename: 'gay-pride.svg',
-    category: 'oppressed',
-    categoryDisplayName: 'Oppressed Groups',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rainbow_flag' },
-    status: 'active',
-    horizontalInvariant: true,
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#E00000', weight: 1, label: 'red' },
-        { color: '#0050FF', weight: 1, label: 'blue' },
-        { color: '#FF9000', weight: 1, label: 'orange' },
-        { color: '#FFF000', weight: 1, label: 'orange' },
-        { color: '#700090', weight: 1, label: 'purple' },
-        { color: '#008020', weight: 1, label: 'green' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
-        colors: [
-          '#e00000',
-          '#0050ff',
-          '#ff9000',
-          '#fff000',
-          '#700090',
-          '#008020'
-        ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
-  },
-  {
-    id: 'transgender-pride',
-    name: 'Transgender Flag',
-    displayName: 'Trans Pride',
-    png_full: 'transgender-pride.png',
-    png_preview: 'transgender-pride.preview.png',
-    aspectRatio: 1.6666666666666667,
-    svgFilename: 'transgender-pride.svg',
-    category: 'oppressed',
-    categoryDisplayName: 'Oppressed Groups',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Transgender_flag' },
-    status: 'active',
-    horizontalInvariant: true,
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#60D0FF', weight: 1, label: 'blue' },
-        { color: '#F0B0C0', weight: 1, label: 'yellow' },
-        { color: '#FFFFFF', weight: 1, label: 'white' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
-        colors: [
-          '#60d0ff',
-          '#f0b0c0',
-          '#ffffff'
-        ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
   },
   {
     id: 'ukraine',
@@ -308,28 +99,196 @@ export const flags: FlagSpec[] = [
     svgFilename: 'ukraine.svg',
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
+    categoryDisplayOrder: 1,
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Ukraine' },
     status: 'active',
-    horizontalInvariant: true,
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#FFD000', weight: 1, label: 'orange' },
-        { color: '#0050B0', weight: 1, label: 'blue' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
+    modes: {
+      ring: {
         colors: [
           '#ffd000',
           '#0050b0'
         ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
+      },
+    },
+  },
+  {
+    id: 'kurdistan',
+    name: 'Kurdish Flag (Roj)',
+    displayName: 'Kurdistan',
+    png_full: 'kurdistan.png',
+    png_preview: 'kurdistan.preview.png',
+    aspectRatio: 1.5,
+    svgFilename: 'kurdistan.svg',
+    category: 'stateless',
+    categoryDisplayName: 'Stateless People',
+    categoryDisplayOrder: 2,
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Kurdistan' },
+    status: 'active',
+    modes: {
+      ring: {
+        colors: [
+          '#f02020',
+          '#209040',
+          '#ffffff',
+          '#ffc010'
+        ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: 50,
+      },
+    },
+  },
+  {
+    id: 'kokbayraq',
+    name: 'East Turkestan Flag',
+    displayName: 'Uyghur (East Turkestan)',
+    png_full: 'kokbayraq.png',
+    png_preview: 'kokbayraq.preview.png',
+    aspectRatio: 1.5,
+    svgFilename: 'kokbayraq.svg',
+    category: 'stateless',
+    categoryDisplayName: 'Stateless People',
+    categoryDisplayOrder: 2,
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Uyghurs' },
+    status: 'active',
+    modes: {
+      ring: {
+        colors: [
+          '#50a0e0',
+          '#ffffff'
+        ],
+      },
+    },
+  },
+  {
+    id: 'rohingya',
+    name: 'Rohingya Flag',
+    displayName: 'Rohingya',
+    png_full: 'rohingya.png',
+    png_preview: 'rohingya.preview.png',
+    aspectRatio: 1.4981273408239701,
+    svgFilename: 'rohingya.svg',
+    category: 'stateless',
+    categoryDisplayName: 'Stateless People',
+    categoryDisplayOrder: 2,
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rohingya' },
+    status: 'active',
+    modes: {
+      ring: {
+        colors: [
+          '#106020',
+          '#d0b030',
+          '#ffffff'
+        ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: 50,
+      },
+    },
+  },
+  {
+    id: 'irish-traveller-movement',
+    name: 'Irish Traveller Movement',
+    displayName: 'Irish Traveller Movement',
+    png_full: 'irish-traveller-movement.png',
+    png_preview: 'irish-traveller-movement.preview.png',
+    aspectRatio: 1.530241935483871,
+    svgFilename: 'irish-traveller-movement.svg',
+    category: 'stateless',
+    categoryDisplayName: 'Stateless People',
+    categoryDisplayOrder: 2,
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Irish_Traveller_movement' },
+    status: 'active',
+    modes: {
+      ring: {
+        colors: [
+          '#005000',
+          '#3030d0',
+          '#ffff00',
+          '#ffffff',
+          '#000000'
+        ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: 0,
+      },
+    },
+  },
+  {
+    id: 'gay-pride',
+    name: 'Rainbow Flag',
+    displayName: 'Pride',
+    png_full: 'gay-pride.png',
+    png_preview: 'gay-pride.preview.png',
+    aspectRatio: 1.62,
+    svgFilename: 'gay-pride.svg',
+    category: 'lgbtqia',
+    categoryDisplayName: 'LGBTQIA+',
+    categoryDisplayOrder: 3,
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rainbow_flag' },
+    status: 'active',
+    modes: {
+      ring: {
+        colors: [
+          '#e00000',
+          '#008020',
+          '#ff9000',
+          '#fff000',
+          '#0050ff',
+          '#700090'
+        ],
+      },
+    },
+  },
+  {
+    id: 'transgender-pride',
+    name: 'Transgender Flag',
+    displayName: 'Trans Pride',
+    png_full: 'transgender-pride.png',
+    png_preview: 'transgender-pride.preview.png',
+    aspectRatio: 1.6666666666666667,
+    svgFilename: 'transgender-pride.svg',
+    category: 'lgbtqia',
+    categoryDisplayName: 'LGBTQIA+',
+    categoryDisplayOrder: 3,
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Transgender_flag' },
+    status: 'active',
+    modes: {
+      ring: {
+        colors: [
+          '#60d0ff',
+          '#f0b0c0',
+          '#ffffff'
+        ],
+      },
+    },
+  },
+  {
+    id: 'nonbinary',
+    name: 'Non-Binary Flag',
+    displayName: 'Non-Binary Pride',
+    png_full: 'nonbinary.png',
+    png_preview: 'nonbinary.preview.png',
+    aspectRatio: 1.5,
+    svgFilename: 'nonbinary.svg',
+    category: 'lgbtqia',
+    categoryDisplayName: 'LGBTQIA+',
+    categoryDisplayOrder: 3,
+    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Non-binary_gender#Flags' },
+    status: 'active',
+    modes: {
+      ring: {
+        colors: [
+          '#303030',
+          '#fff030',
+          '#ffffff',
+          '#a060d0'
+        ],
+      },
+    },
   },
   {
     id: 'australian-aboriginal',
@@ -341,67 +300,22 @@ export const flags: FlagSpec[] = [
     svgFilename: 'australian-aboriginal.svg',
     category: 'oppressed',
     categoryDisplayName: 'Oppressed Groups',
+    categoryDisplayOrder: 4,
     sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Aboriginal_flag' },
     status: 'active',
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#000000', weight: 1, label: 'black' },
-        { color: '#D00000', weight: 1, label: 'red' },
-        { color: '#FFFF00', weight: 1, label: 'yellow' },
-        { color: '#202000', weight: 1, label: 'red' }
-      ],
-    },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
+    modes: {
+      ring: {
         colors: [
           '#000000',
           '#d00000',
           '#ffff00',
           '#202000'
         ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
-  },
-  {
-    id: 'nonbinary',
-    name: 'Non-Binary Flag',
-    displayName: 'Non-Binary Pride',
-    png_full: 'nonbinary.png',
-    png_preview: 'nonbinary.preview.png',
-    aspectRatio: 1.5,
-    svgFilename: 'nonbinary.svg',
-    category: 'oppressed',
-    categoryDisplayName: 'Oppressed Groups',
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Non-binary_gender#Flags' },
-    status: 'active',
-    horizontalInvariant: true,
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#FFF030', weight: 1, label: 'orange' },
-        { color: '#303030', weight: 1, label: 'black' },
-        { color: '#FFFFFF', weight: 1, label: 'white' },
-        { color: '#A060D0', weight: 1, label: 'purple' }
-      ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: 50,
+      },
     },
-    recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 12 },
-    layouts: [
-      {
-        type: 'ring',
-        colors: [
-          '#fff030',
-          '#303030',
-          '#ffffff',
-          '#a060d0'
-        ],
-      }
-    ],
-    focalPoint: { x: 0.5, y: 0.5 },
   }
 ];
