@@ -78,16 +78,6 @@ export function useAvatarRenderer(
 
         // Transform flag data to format expected by renderAvatar
         const transformedFlag: FlagSpec = { ...flag };
-        if (flag.layouts?.[0]?.colors && !flag.pattern) {
-          transformedFlag.pattern = {
-            type: 'stripes' as const,
-            stripes: flag.layouts[0].colors.map((color: string) => ({
-              color,
-              weight: 1,
-            })),
-            orientation: 'horizontal' as const,
-          };
-        }
 
         // Load flag PNG image for cutout mode (for accurate rendering of complex flags)
         // Use cache to avoid re-fetching the same flag image

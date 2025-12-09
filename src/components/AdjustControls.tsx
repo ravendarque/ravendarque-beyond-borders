@@ -165,8 +165,8 @@ export function AdjustControls({
         </div>
       )}
 
-      {/* Offset Slider - Only for Cutout Mode and non-horizontal-invariant flags */}
-      {presentation === 'cutout' && !selectedFlag?.horizontalInvariant && (
+      {/* Offset Slider - Only for Cutout Mode when offsetEnabled is true */}
+      {presentation === 'cutout' && selectedFlag?.modes?.cutout?.offsetEnabled && (
         <div className="control-group">
           <div className="slider-container">
             <div className="slider-labels-row">

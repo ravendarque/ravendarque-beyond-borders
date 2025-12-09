@@ -22,6 +22,37 @@ if (!fs.existsSync(dataYamlPath)) {
 }
 const yamlText = fs.readFileSync(dataYamlPath, 'utf8');
 
+// Validate YAML against schema
+const schemaPath = path.resolve(__dirname, '..', 'data', 'flag-data.schema.json');
+if (!fs.existsSync(schemaPath)) {
+  console.error('data/flag-data.schema.json not found. Please add it.');
+  process.exit(1);
+}
+
+const Ajv = require('ajv');
+const ajv = new Ajv({ allErrors: true, verbose: true });
+const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
+const jsyaml = require('js-yaml');
+
+let yamlData;
+try {
+  yamlData = jsyaml.load(yamlText);
+} catch (e) {
+  console.error('Error: Failed to parse YAML file:', e.message);
+  process.exit(1);
+}
+
+const validate = ajv.compile(schema);
+const valid = validate(yamlData);
+
+if (!valid) {
+  console.error('Error: flag-data.yaml does not match the schema:');
+  console.error(JSON.stringify(validate.errors, null, 2));
+  process.exit(1);
+}
+
+console.log('✓ Schema validation passed');
+
 const helpers = require('./lib/helpers.cjs');
 
 function canonicalizeId(name) {
@@ -51,6 +82,7 @@ function mapCategoryToCode(category) {
     'Occupied / Disputed Territory': 'occupied',
     'Stateless People': 'stateless',
     'Oppressed Groups': 'oppressed',
+    'LGBTQIA+': 'lgbtqia',
   };
   return mapping[category] || null;
 }
@@ -60,6 +92,7 @@ const CATEGORY_DISPLAY_NAMES = {
   'occupied': 'Occupied / Disputed Territory',
   'stateless': 'Stateless People',
   'oppressed': 'Oppressed Groups',
+  'lgbtqia': 'LGBTQIA+',
 };
 
 function parseFlagsFromYaml(yaml) {
@@ -67,7 +100,7 @@ function parseFlagsFromYaml(yaml) {
   const doc = jsyaml.load(yaml);
   
   if (!doc || !Array.isArray(doc.categories)) {
-    console.error('Error: YAML structure is invalid. Expected { categories: [{ category: "...", displayOrder: n, flags: [...] }] }');
+    console.error('Error: YAML structure is invalid. Expected { categories: [{ categoryName: "...", displayOrder: n, flags: [...] }] }');
     process.exit(1);
   }
   
@@ -75,16 +108,18 @@ function parseFlagsFromYaml(yaml) {
   const flattenedFlags = [];
   
   for (const category of doc.categories) {
-    if (!category.category || !Array.isArray(category.flags)) {
-      console.error(`Error: Invalid category structure. Expected { category: "...", displayOrder: n, flags: [...] }`);
+    if (!category.categoryName || !Array.isArray(category.flags)) {
+      console.error(`Error: Invalid category structure. Expected { categoryName: "...", displayOrder: n, flags: [...] }`);
       process.exit(1);
     }
     
     for (const flag of category.flags) {
       flattenedFlags.push({
         ...flag,
-        category: mapCategoryToCode(category.category),
-        categoryDisplayName: category.category
+        category: mapCategoryToCode(category.categoryName),
+        categoryDisplayName: category.categoryName,
+        categoryDisplayOrder: category.displayOrder,
+        cutoutMode: flag.cutoutMode || null
       });
     }
   }
@@ -237,33 +272,6 @@ async function analyzePngUsage(pngPath) {
   } catch (e) {
     return { pctW: 1, pctH: 1, usedW: null, usedH: null };
   }
-}
-
-async function checkHorizontalInvariance(pngPath) {
-  if (!Sharp) return false;
-  try {
-    const { data, info } = await Sharp(pngPath).raw().ensureAlpha().toBuffer({ resolveWithObject: true });
-    const w = info.width;
-    const h = info.height;
-    const channels = info.channels;
-    // Check every 10th row for speed
-    for (let y = 0; y < h; y += 10) {
-      const rowStart = y * w * channels;
-      const r0 = data[rowStart];
-      const g0 = data[rowStart+1];
-      const b0 = data[rowStart+2];
-      const a0 = data[rowStart+3];
-      // Check sampled pixels in the row
-      for (let x = 1; x < w; x += 5) {
-        const i = rowStart + x * channels;
-        // Tolerance for compression/antialiasing
-        if (Math.abs(data[i] - r0) > 10 || Math.abs(data[i+1] - g0) > 10 || Math.abs(data[i+2] - b0) > 10 || Math.abs(data[i+3] - a0) > 10) {
-          return false;
-        }
-      }
-    }
-    return true;
-  } catch (e) { return false; }
 }
 
 function fetchToFile(url, dst, timeoutMs = 30000, maxRedirects = 5) {
@@ -425,6 +433,10 @@ function generateTypeScriptSource(manifest) {
       lines.push(`    categoryDisplayName: '${entry.categoryDisplayName.replace(/'/g, "\\'")}',`);
     }
     
+    if (entry.categoryDisplayOrder !== null && entry.categoryDisplayOrder !== undefined) {
+      lines.push(`    categoryDisplayOrder: ${entry.categoryDisplayOrder},`);
+    }
+    
     // Generate sources field
     if (entry.source_page || entry.link) {
       const refUrl = entry.link || entry.source_page || 'https://en.wikipedia.org';
@@ -434,57 +446,34 @@ function generateTypeScriptSource(manifest) {
     // Add status field (default to 'active')
     lines.push(`    status: 'active',`);
     
-    if (entry.horizontalInvariant) {
-      lines.push(`    horizontalInvariant: true,`);
-    }
-    
-    // Generate pattern field from colors
-    // Most flags are horizontal stripes
-    if (entry.layouts && entry.layouts.length > 0 && entry.layouts[0].colors && entry.layouts[0].colors.length > 0) {
-      const colors = entry.layouts[0].colors;
-      lines.push('    pattern: {');
-      lines.push("      type: 'stripes',");
-      lines.push("      orientation: 'horizontal',");
-      lines.push('      stripes: [');
-      for (let j = 0; j < colors.length; j++) {
-        const color = colors[j];
-        const isLastStripe = j === colors.length - 1;
-        const colorLabel = getColorLabel(color);
-        lines.push(`        { color: '${color.toUpperCase()}', weight: 1, label: '${colorLabel}' }${isLastStripe ? '' : ','}`);
-      }
-      lines.push('      ],');
-      lines.push('    },');
-    }
-    
-    // Add recommended field (default border style)
-    lines.push('    recommended: { borderStyle: \'ring-stripes\', defaultThicknessPct: 12 },');
-    
-    // Generate layouts array from colors
-    if (entry.layouts && entry.layouts.length > 0) {
-      lines.push('    layouts: [');
-      for (let j = 0; j < entry.layouts.length; j++) {
-        const layout = entry.layouts[j];
-        const isLastLayout = j === entry.layouts.length - 1;
-        lines.push('      {');
-        lines.push(`        type: '${layout.type}',`);
-        if (layout.colors && layout.colors.length > 0) {
-          lines.push('        colors: [');
-          for (let k = 0; k < layout.colors.length; k++) {
-            const color = layout.colors[k];
-            const isLastColor = k === layout.colors.length - 1;
-            lines.push(`          '${color}'${isLastColor ? '' : ','}`);
-          }
-          lines.push('        ],');
-        } else {
-          lines.push('        colors: [],');
+    // Generate modes object
+    const hasModes = entry.cutoutMode || (entry.layouts && entry.layouts.length > 0);
+    if (hasModes) {
+      lines.push('    modes: {');
+      
+      // Ring mode config from layouts
+      const ringLayout = entry.layouts?.find(l => l.type === 'ring');
+      if (ringLayout && ringLayout.colors && ringLayout.colors.length > 0) {
+        lines.push('      ring: {');
+        lines.push('        colors: [');
+        for (let k = 0; k < ringLayout.colors.length; k++) {
+          const color = ringLayout.colors[k];
+          const isLastColor = k === ringLayout.colors.length - 1;
+          lines.push(`          '${color}'${isLastColor ? '' : ','}`);
         }
-        lines.push(`      }${isLastLayout ? '' : ','}`);
+        lines.push('        ],');
+        lines.push('      },');
       }
-      lines.push('    ],');
-    }
-    
-    if (entry.focalPoint) {
-      lines.push(`    focalPoint: { x: ${entry.focalPoint.x}, y: ${entry.focalPoint.y} },`);
+      
+      // Cutout mode config
+      if (entry.cutoutMode) {
+        lines.push('      cutout: {');
+        lines.push(`        offsetEnabled: ${entry.cutoutMode.offsetEnabled},`);
+        lines.push(`        defaultOffset: ${entry.cutoutMode.defaultOffset},`);
+        lines.push('      },');
+      }
+      
+      lines.push('    },');
     }
     
     lines.push(`  }${isLast ? '' : ','}`);
@@ -519,7 +508,7 @@ async function getMediaUrlFromCommons(filePageUrl) {
 }
 
 async function workerForFlag(f) {
-  console.log('Processing', f.name, f.svg_url);
+  console.log('Processing', f.flagName || f.name, f.svg_url);
   try {
     let mediaUrl = await getMediaUrlFromCommons(f.svg_url);
     if (!mediaUrl) {
@@ -540,7 +529,7 @@ async function workerForFlag(f) {
     await sleep(400);
     if (WANT_DRY) {
       console.log('Dry-run: would download', mediaUrl, 'to', dst);
-      return { success: true, name: f.name, dry: true };
+      return { success: true, name: f.flagName || f.name, dry: true };
     } else {
       await retryWithBackoff(() => fetchToFile(mediaUrl, dst, 30000), 3, 500);
     }
@@ -553,7 +542,7 @@ async function workerForFlag(f) {
     })();
 
     const metadata = {
-      name: f.name,
+      name: f.flagName || f.name,
       displayName: f.displayName,
       filename,
       source_page: f.svg_url,
@@ -562,10 +551,12 @@ async function workerForFlag(f) {
       description: f.description,
       category: f.category || null, // Already resolved by parseFlagsFromYaml
       categoryDisplayName: f.categoryDisplayName || null, // Already resolved by parseFlagsFromYaml
+      categoryDisplayOrder: f.categoryDisplayOrder || null, // Order for displaying categories in UI
       reason: f.reason,
       link: f.link,
       colors,
-      stripe_order: colors
+      stripe_order: colors,
+      cutoutMode: f.cutoutMode || null
     };
 
     if (svgText) {
@@ -667,13 +658,12 @@ async function workerForFlag(f) {
         // Use detected content aspect ratio for preview height to avoid letterboxing
         const previewHeight = Math.max(64, Math.round(PREVIEW_WIDTH / detectedAspectForPreview));
         const targets = [
-          { name: pngFull, width: fullWidth, height: FULL_HEIGHT, mode: 'slice' },
+          { name: pngFull, width: fullWidth, height: FULL_HEIGHT, mode: 'contain' },
           { name: pngPreview, width: PREVIEW_WIDTH, height: previewHeight, mode: 'contain' }
         ];
 
         const MIN_PCT_PREVIEW = 1.0;
         const MIN_PCT_FULL = 1.0;
-        let computedFocal = null;
 
         for (const t of targets) {
           const outP = path.join(outDir, t.name);
@@ -701,7 +691,6 @@ async function workerForFlag(f) {
               if (meetsThreshold) {
                 usedFast = true;
                 console.log('Fast-path wrote raster', outP, 'coverage=', stats);
-                if (!computedFocal) computedFocal = { x: 0.5, y: 0.5 };
               } else {
                 console.log('Fast-path produced low coverage for', outP, 'coverage=', stats, '(will use Playwright path)');
                 try { fs.unlinkSync(outP); } catch (e) {}
@@ -733,52 +722,11 @@ async function workerForFlag(f) {
                 }, t.width, t.height, t.mode);
               } catch (e) {}
 
-              if (!computedFocal) {
-                try {
-                  computedFocal = await page.evaluate(() => {
-                    try {
-                      const svg = document.querySelector('svg');
-                      if (!svg) return { x: 0.5, y: 0.5 };
-                      const rect = svg.getBoundingClientRect();
-                      const cw = Math.max(1, Math.round(rect.width));
-                      const ch = Math.max(1, Math.round(rect.height));
-                      const canvas = document.createElement('canvas');
-                      canvas.width = cw; canvas.height = ch;
-                      const ctx = canvas.getContext('2d');
-                      const s = new XMLSerializer().serializeToString(svg);
-                      const img = new Image();
-                      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
-                      return new Promise(resolve => {
-                        img.onload = function() {
-                          try {
-                            ctx.drawImage(img, 0, 0, cw, ch);
-                            const imgd = ctx.getImageData(0, 0, cw, ch).data;
-                            let sumx = 0, sumy = 0, count = 0;
-                            for (let y = 0; y < ch; y++) {
-                              for (let x = 0; x < cw; x++) {
-                                const i = (y * cw + x) * 4;
-                                const a = imgd[i + 3]; const r = imgd[i]; const g = imgd[i+1]; const b = imgd[i+2];
-                                if (a < 16) continue;
-                                if (r > 240 && g > 240 && b > 240) continue;
-                                sumx += x; sumy += y; count++;
-                              }
-                            }
-                            if (count === 0) return resolve({ x: 0.5, y: 0.5 });
-                            resolve({ x: sumx / count / cw, y: sumy / count / ch });
-                          } catch (e) { resolve({ x: 0.5, y: 0.5 }); }
-                        };
-                        img.onerror = function() { resolve({ x: 0.5, y: 0.5 }); };
-                      });
-                    } catch (e) { return { x: 0.5, y: 0.5 }; }
-                  });
-                } catch (e) { computedFocal = { x: 0.5, y: 0.5 }; }
-              }
-
               let detectedAspectRatio = null;
               try {
                 const svgHandle = await page.$('svg');
                 if (svgHandle) {
-                  const result = await page.evaluate(async (w, h, mode, focal) => {
+                  const result = await page.evaluate(async (w, h, mode) => {
                     try {
                       const svg = document.querySelector('svg');
                       const s = new XMLSerializer().serializeToString(svg);
@@ -805,21 +753,9 @@ async function workerForFlag(f) {
                       if (mode === 'slice') {
                         if (srcRatio > dstRatio) { dh = dst.h; dw = Math.round(dh * srcRatio); }
                         else { dw = dst.w; dh = Math.round(dw / srcRatio); }
-                        let focalRelX = 0.5, focalRelY = 0.5;
-                        try {
-                          if (focal && typeof focal.x === 'number' && typeof focal.y === 'number') {
-                            const svg = document.querySelector('svg');
-                            const rect = svg.getBoundingClientRect();
-                            const cw = Math.max(1, Math.round(rect.width));
-                            const ch = Math.max(1, Math.round(rect.height));
-                            const focalAbsX = Math.round(focal.x * cw);
-                            const focalAbsY = Math.round(focal.y * ch);
-                            focalRelX = Math.min(1, Math.max(0, (focalAbsX - srcX) / srcW));
-                            focalRelY = Math.min(1, Math.max(0, (focalAbsY - srcY) / srcH));
-                          }
-                        } catch (e) {}
-                        dx = Math.round(dst.w / 2 - focalRelX * dw);
-                        dy = Math.round(dst.h / 2 - focalRelY * dh);
+                        // Center crop (no focal point)
+                        dx = Math.round(dst.w / 2 - 0.5 * dw);
+                        dy = Math.round(dst.h / 2 - 0.5 * dh);
                         if (dx > 0) dx = 0;
                         if (dx < dst.w - dw) dx = dst.w - dw;
                         if (dy > 0) dy = 0;
@@ -828,25 +764,27 @@ async function workerForFlag(f) {
                         ctx.drawImage(img, srcX, srcY, srcW, srcH, dx, dy, dw, dh);
                         return { dataUrl: c.toDataURL('image/png'), aspectRatio: detectedAspect };
                       } else {
-                        // For 'contain' mode (previews), scale detected content bounds to fill destination
-                        // Use 'cover' logic to avoid letterboxing - scale to fill, may crop slightly
+                        // For 'contain' mode, fit entire flag within bounds without cropping
+                        // May have transparent areas (letterboxing) if aspect ratios don't match
                         if (srcRatio > dstRatio) { 
-                          dh = dst.h; 
-                          dw = Math.round(dh * srcRatio); 
-                          dx = Math.round((dst.w - dw) / 2); 
-                          dy = 0; 
-                        } else { 
+                          // Flag is wider - fit to width, center vertically
                           dw = dst.w; 
                           dh = Math.round(dw / srcRatio); 
                           dx = 0; 
                           dy = Math.round((dst.h - dh) / 2); 
+                        } else { 
+                          // Flag is taller - fit to height, center horizontally
+                          dh = dst.h; 
+                          dw = Math.round(dh * srcRatio); 
+                          dx = Math.round((dst.w - dw) / 2); 
+                          dy = 0; 
                         }
                         const c = document.createElement('canvas'); c.width = dst.w; c.height = dst.h; const ctx = c.getContext('2d'); ctx.clearRect(0,0,dst.w,dst.h);
                         ctx.drawImage(img, srcX, srcY, srcW, srcH, dx, dy, dw, dh);
                         return { dataUrl: c.toDataURL('image/png'), aspectRatio: detectedAspect };
                       }
                     } catch (e) { return null; }
-                  }, t.width, t.height, t.mode, (computedFocal || null));
+                  }, t.width, t.height, t.mode);
                   if (result && result.dataUrl) {
                     const base64 = result.dataUrl.replace(/^data:image\/png;base64,/, ''); require('fs').writeFileSync(outP, Buffer.from(base64, 'base64'));
                     // Update aspect ratio with detected content bounds (more accurate than viewBox which may include white space)
@@ -882,9 +820,6 @@ async function workerForFlag(f) {
         metadata.png_preview = id + '.preview.png';
         metadata.aspectRatio = aspect;
         metadata.filename = filename;
-        if (computedFocal) {
-          metadata.focalPoint = computedFocal;
-        }
         
         const pngFullPath = path.join(outDir, pngFull);
         if (fs.existsSync(pngFullPath)) {
@@ -895,12 +830,6 @@ async function workerForFlag(f) {
               console.log('Extracted colors from PNG:', pngColors);
               metadata.colors = pngColors;
               metadata.stripe_order = pngColors;
-            }
-            
-            // Check horizontal invariance
-            if (await checkHorizontalInvariance(pngFullPath)) {
-              console.log('Detected horizontal invariance for', filename);
-              metadata.horizontalInvariant = true;
             }
           } catch (e) {
             console.warn('Failed to extract colors or analyze PNG:', e.message);
@@ -917,8 +846,8 @@ async function workerForFlag(f) {
     console.log('Wrote', dst);
     return { success: true, metadata };
   } catch (err) {
-    console.error('Failed for', f.name, err && err.message);
-    return { success: false, name: f.name, error: String(err) };
+    console.error('Failed for', f.flagName || f.name, err && err.message);
+    return { success: false, name: f.flagName || f.name, error: String(err) };
   }
 }
 
@@ -968,12 +897,12 @@ async function workerForFlag(f) {
         description: m.description || null,
         category: m.category || null,
         categoryDisplayName: m.categoryDisplayName || null,
+        categoryDisplayOrder: m.categoryDisplayOrder || null,
         reason: m.reason || null,
         link: m.link || null,
         layouts,
-        focalPoint: m.focalPoint || null,
         size: m.size || null,
-        horizontalInvariant: m.horizontalInvariant || false,
+        cutoutMode: m.cutoutMode || null,
       };
       manifest.push(entry);
     }
