@@ -36,9 +36,9 @@ describe('FlagSelector', () => {
     const onFlagChange = vi.fn();
     render(<FlagSelector selectedFlagId={null} flags={mockFlags} onFlagChange={onFlagChange} />);
     
-    // Radix Select renders the label
-    const label = screen.getByText(/select.*flag/i);
-    expect(label).toBeTruthy();
+    // Radix Select renders "Choose a flag" as the trigger text
+    const trigger = screen.getByLabelText(/choose a flag/i);
+    expect(trigger).toBeTruthy();
   });
 
   it('should render with empty value', () => {
