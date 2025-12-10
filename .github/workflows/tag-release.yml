@@ -56,8 +56,10 @@ jobs:
           fi
           
           # Check commit messages for version bump type
+          # Note: This workflow only creates major/minor tags. Patch versions are
+          # handled by get-version.cjs based on commit count.
           COMMITS="${{ steps.commits.outputs.commits }}"
-          BUMP_TYPE="patch"
+          BUMP_TYPE="none"
           
           if echo "$COMMITS" | grep -qiE "(^|\s)(BREAKING CHANGE|!:)"; then
             BUMP_TYPE="major"
@@ -66,6 +68,14 @@ jobs:
           elif echo "$COMMITS" | grep -qiE "(^|\s)(feat|feature)(\(|:|\s)"; then
             BUMP_TYPE="minor"
             MINOR=$((MINOR + 1))
+          fi
+          
+          # Only create tag if there's a major or minor bump
+          if [ "$BUMP_TYPE" = "none" ]; then
+            echo "No major or minor version bump detected. Skipping tag creation."
+            echo "bump_type=none" >> $GITHUB_OUTPUT
+            echo "new_tag=" >> $GITHUB_OUTPUT
+            exit 0
           fi
           
           NEW_TAG="v${MAJOR}.${MINOR}"
