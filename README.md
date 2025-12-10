@@ -2,9 +2,9 @@
 
 ![CI](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/ci.yml/badge.svg)
 [![Fetch flags and generate metadata](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/fetch-flags.yml/badge.svg)](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/fetch-flags.yml)
-![Deploy](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/deploy-pages.yml/badge.svg)
-![Beta Deploy](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/deploy-beta.yml/badge.svg)
-![Beta Cleanup](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/cleanup-beta.yml/badge.svg)
+![Deploy](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/deploy-main.yml/badge.svg)
+![Beta Deploy](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/deploy-pr.yml/badge.svg)
+![Beta Cleanup](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/cleanup-pr-deployments.yml/badge.svg)
 
 Add a circular, flag-colored border to your profile picture to show support for marginalized groups and selected causes.
 
@@ -91,8 +91,8 @@ The `main` branch is protected. All changes must be made via pull requests:
 1. **Create a feature branch**: `git checkout -b feature/your-feature`
 2. **Make changes and commit**: Follow [conventional commits](https://www.conventionalcommits.org/)
 3. **Run local validation** (optional but recommended):
-   - All platforms: `pwsh .github/scripts/validate-local.ps1` (PowerShell Core - required)
-   - Windows: `.\.github\scripts\validate-local.ps1` (Windows PowerShell)
+   - All platforms: `pwsh .github/scripts/local-ci.ps1` (PowerShell Core - required)
+   - Windows: `.\.github\scripts\local-ci.ps1` (Windows PowerShell)
    - Or install the pre-push git hook (see [.github/hooks/README.md](.github/hooks/README.md))
 4. **Push and create PR**: `git push -u origin feature/your-feature`
 5. **Wait for CI checks** to pass (validation, build, tests)
@@ -125,19 +125,19 @@ We use a three-tier validation approach to catch issues early:
 All platforms (PowerShell Core - required):
 ```powershell
 # Full validation
-pwsh .github/scripts/validate-local.ps1
+pwsh .github/scripts/local-ci.ps1
 
 # Skip build/test for faster feedback
-pwsh .github/scripts/validate-local.ps1 -SkipBuild
+pwsh .github/scripts/local-ci.ps1 -SkipBuild
 ```
 
 Windows (Windows PowerShell):
 ```powershell
 # Full validation
-.\.github\scripts\validate-local.ps1
+.\.github\scripts\local-ci.ps1
 
 # Skip build/test for faster feedback
-.\.github\scripts\validate-local.ps1 -SkipBuild
+.\.github\scripts\local-ci.ps1 -SkipBuild
 ```
 
 **Note:** PowerShell Core (pwsh) is required and works on all platforms. Install from https://github.com/PowerShell/PowerShell

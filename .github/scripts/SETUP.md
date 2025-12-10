@@ -197,7 +197,7 @@ pnpm test
 pnpm dev
 
 # Run validation (this will auto-refresh PATH internally)
-.\.github\scripts\validate-local.ps1
+.\.github\scripts\local-ci.ps1
 ```
 
 **Linux/macOS (Bash):**
@@ -360,7 +360,7 @@ After setup is complete:
 
 1. **Start development server**: `pnpm dev`
 2. **Run tests**: `pnpm test`
-3. **Run validation**: `pwsh .github/scripts/validate-local.ps1`
+3. **Run validation**: `pwsh .github/scripts/local-ci.ps1`
 4. **Install git pre-push hook**: See [.github/hooks/README.md](../hooks/README.md)
 5. **Read contributing guidelines**: See [README.md](../../README.md#contributing)
 
@@ -393,7 +393,7 @@ If you encounter issues:
 
 ## Related Documentation
 
-- **Validation Scripts**: See [validate-local.ps1](./validate-local.ps1)
+- **Validation Scripts**: See [local-ci.ps1](./local-ci.ps1)
 - **Git Hooks**: See [.github/hooks/README.md](../hooks/README.md)
 - **Contributing**: See [README.md](../../README.md#contributing)
 - **CI/CD**: See [.github/workflows/ci.yml](../workflows/ci.yml)

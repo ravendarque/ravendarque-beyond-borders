@@ -44,7 +44,7 @@ The `BASE_URL` is set to `/` for custom domains (already configured).
 
 For additional environments (e.g., `staging/`):
 
-1. Create a new workflow based on `deploy-beta.yml`
+1. Create a new workflow based on `deploy-pr.yml`
 2. Push to a different subdirectory in `gh-pages` (e.g., `staging/`)
 3. Adjust `BASE_URL` to match the subdirectory path
 4. Follow the same `gh-pages` branch deployment pattern
