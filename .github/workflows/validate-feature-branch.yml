@@ -1,0 +1,152 @@
+name: Validate Feature Branch
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'feat/**'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.local/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better secret scanning
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+      - name: Security audit
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
+      - name: Get changed markdown files
+        id: changed-md
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            **/*.md
+            !node_modules/**
+            !.local/**
+
+      - name: Markdown lint
+        if: steps.changed-md.outputs.any_changed == 'true'
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: ${{ steps.changed-md.outputs.all_changed_files }}
+
+      - name: Get changed YAML files
+        id: changed-yaml
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            .github/workflows/**/*.yml
+            .github/workflows/**/*.yaml
+
+      - name: YAML lint
+        if: steps.changed-yaml.outputs.any_changed == 'true'
+        run: |
+          echo "Linting changed YAML files:"
+          for file in ${{ steps.changed-yaml.outputs.all_changed_files }}; do
+            echo "Checking $file"
+            npx yaml-lint "$file"
+          done
+
+      - name: Check for TODO/FIXME comments
+        run: |
+          echo "4️⃣  Checking for TODO/FIXME comments..."
+          pwsh .github/scripts/check-todo-fixme.ps1
+        continue-on-error: true
+
+      - name: Validate file permissions
+        run: |
+          echo "5️⃣  Validating file permissions..."
+          pwsh .github/scripts/check-file-permissions.ps1
+
+      - name: Check for large files
+        run: |
+          echo "6️⃣  Checking for large files (>1MB)..."
+          pwsh .github/scripts/check-large-files.ps1
+        continue-on-error: true
+
+      - name: Privacy check
+        run: |
+          echo "7️⃣  Checking for privacy concerns..."
+          pwsh .github/scripts/check-privacy.ps1
+
+      - name: Check for stale references
+        run: |
+          echo "8️⃣  Checking for broken imports and missing files..."
+          pwsh .github/scripts/check-stale-references.ps1
+
+      - name: Get changed production files
+        id: changed-prod
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            src/**
+            public/**
+            index.html
+            vite.config.ts
+            tsconfig.json
+            package.json
+            pnpm-lock.yaml
+            playwright.config.ts
+            scripts/**
+            .github/scripts/**
+
+      - name: Lint code
+        if: steps.changed-prod.outputs.any_changed == 'true'
+        run: |
+          echo "📝 Linting code..."
+          pnpm run lint
+
+      - name: Typecheck and build
+        if: steps.changed-prod.outputs.any_changed == 'true'
+        run: |
+          echo "🏗️  Type checking and building..."
+          pnpm run build
+
+      - name: Run tests
+        if: steps.changed-prod.outputs.any_changed == 'true'
+        run: |
+          echo "🧪 Running tests..."
+          pnpm test -- --run
+
+      - name: Validation summary
+        if: always()
+        run: |
+          echo "### ✅ Feature Branch Validation Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All validation checks have been completed for this feature branch push." >> $GITHUB_STEP_SUMMARY
+
