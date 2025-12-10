@@ -101,34 +101,19 @@ jobs:
 
       - name: Check for TODO/FIXME comments in production code
         run: |
-          if grep -r "TODO\|FIXME" src/ public/ --exclude-dir=node_modules; then
-            echo "⚠️ Warning: Found TODO/FIXME comments in production code"
-            echo "Consider creating issues for these items"
-          else
-            echo "✅ No TODO/FIXME comments in production code"
-          fi
+          echo "4️⃣  Checking for TODO/FIXME comments..."
+          pwsh .github/scripts/check-todo-fixme.ps1
         continue-on-error: true
 
       - name: Validate file permissions
         run: |
-          # Check for executable files that shouldn't be
-          if find src/ public/ -type f -executable -not -path "*/node_modules/*" | grep -v ".sh$"; then
-            echo "❌ Found executable files in src/public that shouldn't be"
-            exit 1
-          fi
-          echo "✅ File permissions OK"
+          echo "5️⃣  Validating file permissions..."
+          pwsh .github/scripts/check-file-permissions.ps1
 
       - name: Check for large files
         run: |
-          # Find files larger than 1MB (except node_modules)
-          large_files=$(find . -type f -size +1M -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.local/*")
-          if [ -n "$large_files" ]; then
-            echo "⚠️ Warning: Large files found:"
-            echo "$large_files"
-            du -h $large_files
-          else
-            echo "✅ No large files found"
-          fi
+          echo "6️⃣  Checking for large files (>1MB)..."
+          pwsh .github/scripts/check-large-files.ps1
         continue-on-error: true
 
       - name: Privacy check - detect tracking, Google Fonts, etc.
