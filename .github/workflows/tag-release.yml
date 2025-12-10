@@ -87,7 +87,10 @@ jobs:
         id: check-tag
         run: |
           NEW_TAG="${{ steps.version.outputs.new_tag }}"
-          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+          if [ -z "$NEW_TAG" ]; then
+            echo "exists=skip" >> $GITHUB_OUTPUT
+            echo "No tag to check (no version bump needed)"
+          elif git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "Tag $NEW_TAG already exists"
           else
@@ -96,7 +99,7 @@ jobs:
           fi
 
       - name: Create and push tag
-        if: steps.check-tag.outputs.exists == 'false'
+        if: steps.check-tag.outputs.exists == 'false' && steps.version.outputs.new_tag != ''
         run: |
           NEW_TAG="${{ steps.version.outputs.new_tag }}"
           BUMP_TYPE="${{ steps.version.outputs.bump_type }}"
@@ -111,13 +114,21 @@ jobs:
 
       - name: Summary
         run: |
-          if [ "${{ steps.check-tag.outputs.exists }}" = "false" ]; then
+          BUMP_TYPE="${{ steps.version.outputs.bump_type }}"
+          NEW_TAG="${{ steps.version.outputs.new_tag }}"
+          EXISTS="${{ steps.check-tag.outputs.exists }}"
+          
+          if [ "$BUMP_TYPE" = "none" ] || [ -z "$NEW_TAG" ]; then
+            echo "### ℹ️ No Version Bump" >> $GITHUB_STEP_SUMMARY
+            echo "No major or minor version bump detected in commits." >> $GITHUB_STEP_SUMMARY
+            echo "No tag created." >> $GITHUB_STEP_SUMMARY
+          elif [ "$EXISTS" = "false" ]; then
             echo "### ✅ Tag Created" >> $GITHUB_STEP_SUMMARY
-            echo "**Tag:** \`${{ steps.version.outputs.new_tag }}\`" >> $GITHUB_STEP_SUMMARY
-            echo "**Bump Type:** ${{ steps.version.outputs.bump_type }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Tag:** \`$NEW_TAG\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Bump Type:** $BUMP_TYPE" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ℹ️ Tag Already Exists" >> $GITHUB_STEP_SUMMARY
-            echo "**Tag:** \`${{ steps.version.outputs.new_tag }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Tag:** \`$NEW_TAG\`" >> $GITHUB_STEP_SUMMARY
             echo "No new tag created (tag already exists)" >> $GITHUB_STEP_SUMMARY
           fi
 
