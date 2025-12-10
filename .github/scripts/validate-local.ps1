@@ -194,47 +194,32 @@ Write-Host ""
 
 # 4. Check for TODO/FIXME
 Write-Host "4️⃣  Checking for TODO/FIXME comments..." -ForegroundColor White
-$todoFiles = Get-ChildItem -Path src,public -Recurse -Include "*.ts","*.tsx","*.js","*.jsx" -ErrorAction SilentlyContinue |
-    Select-String -Pattern "TODO|FIXME" -ErrorAction SilentlyContinue |
-    Select-Object -Unique Path
-if ($todoFiles) {
-    Print-Warning "Found TODO/FIXME comments in production code:"
-    $todoFiles | ForEach-Object { Write-Host "    $($_.Path)" -ForegroundColor Gray }
-    Write-Host "  Consider creating issues for these items" -ForegroundColor Gray
-} else {
-    Print-Status $true "No TODO/FIXME comments in production code"
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+try {
+    & pwsh -File "$scriptDir/check-todo-fixme.ps1" | Out-Host
+} catch {
+    # Non-blocking, continue
 }
 Write-Host ""
 
-# 5. Validate file permissions (Windows: check for unexpected file attributes)
-Write-Host "5️⃣  Validating files..." -ForegroundColor White
-$suspiciousFiles = Get-ChildItem src\,public\ -Recurse -File | Where-Object { 
-    $_.Extension -notin @('.tsx','.ts','.css','.png','.jpg','.svg','.json','.html') 
-}
-if ($suspiciousFiles) {
-    Print-Warning "Found unexpected file types:"
-    $suspiciousFiles | ForEach-Object { Write-Host "    $($_.FullName)" -ForegroundColor Gray }
-} else {
-    Print-Status $true "File validation OK"
+# 5. Validate file permissions
+Write-Host "5️⃣  Validating file permissions..." -ForegroundColor White
+try {
+    & pwsh -File "$scriptDir/check-file-permissions.ps1"
+    if ($LASTEXITCODE -ne 0) {
+        $script:Errors++
+    }
+} catch {
+    $script:Errors++
 }
 Write-Host ""
 
 # 6. Check for large files
 Write-Host "6️⃣  Checking for large files (>1MB)..." -ForegroundColor White
-$largeFiles = Get-ChildItem -Recurse -File | Where-Object { 
-    $_.Length -gt 1MB -and 
-    $_.FullName -notmatch "node_modules" -and 
-    $_.FullName -notmatch "\.git" -and
-    $_.FullName -notmatch "\.local"
-}
-if ($largeFiles) {
-    Print-Warning "Large files found:"
-    $largeFiles | ForEach-Object { 
-        $size = "{0:N2} MB" -f ($_.Length / 1MB)
-        Write-Host "    $size - $($_.Name)" -ForegroundColor Gray
-    }
-} else {
-    Print-Status $true "No large files found"
+try {
+    & pwsh -File "$scriptDir/check-large-files.ps1" | Out-Host
+} catch {
+    # Non-blocking, continue
 }
 Write-Host ""
 

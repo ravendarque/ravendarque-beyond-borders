@@ -85,35 +85,57 @@ echo ""
 
 # 4. Check for TODO/FIXME in production code
 echo "4️⃣  Checking for TODO/FIXME comments..."
-if grep -r "TODO\|FIXME" src/ public/ --exclude-dir=node_modules 2>/dev/null; then
-    print_warning "Found TODO/FIXME comments in production code"
-    echo "  Consider creating issues for these items"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+set +e
+if command -v pwsh &> /dev/null; then
+    pwsh "$SCRIPT_DIR/check-todo-fixme.ps1"
 else
-    echo -e "${GREEN}✅ No TODO/FIXME comments in production code${NC}"
+    if grep -r "TODO\|FIXME" src/ public/ --exclude-dir=node_modules 2>/dev/null; then
+        print_warning "Found TODO/FIXME comments in production code"
+        echo "  Consider creating issues for these items"
+    else
+        echo -e "${GREEN}✅ No TODO/FIXME comments in production code${NC}"
+    fi
 fi
+set -e
 echo ""
 
 # 5. Validate file permissions
 echo "5️⃣  Validating file permissions..."
-if find src/ public/ -type f -executable -not -path "*/node_modules/*" 2>/dev/null | grep -v ".sh$"; then
-    print_status 1 "Found unexpected executable files"
+set +e
+if command -v pwsh &> /dev/null; then
+    pwsh "$SCRIPT_DIR/check-file-permissions.ps1"
+    if [ $? -ne 0 ]; then
+        ERRORS=$((ERRORS + 1))
+    fi
 else
-    print_status 0 "File permissions OK"
+    if find src/ public/ -type f -executable -not -path "*/node_modules/*" 2>/dev/null | grep -v ".sh$"; then
+        print_status 1 "Found unexpected executable files"
+    else
+        print_status 0 "File permissions OK"
+    fi
 fi
+set -e
 echo ""
 
 # 6. Check for large files
 echo "6️⃣  Checking for large files (>1MB)..."
-large_files=$(find . -type f -size +1M -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.local/*" 2>/dev/null || true)
-if [ -n "$large_files" ]; then
-    print_warning "Large files found:"
-    echo "$large_files" | while read -r file; do
-        size=$(du -h "$file" | cut -f1)
-        echo "    $size - $file"
-    done
+set +e
+if command -v pwsh &> /dev/null; then
+    pwsh "$SCRIPT_DIR/check-large-files.ps1"
 else
-    echo -e "${GREEN}✅ No large files found${NC}"
+    large_files=$(find . -type f -size +1M -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.local/*" 2>/dev/null || true)
+    if [ -n "$large_files" ]; then
+        print_warning "Large files found:"
+        echo "$large_files" | while read -r file; do
+            size=$(du -h "$file" | cut -f1)
+            echo "    $size - $file"
+        done
+    else
+        echo -e "${GREEN}✅ No large files found${NC}"
+    fi
 fi
+set -e
 echo ""
 
 # 7. Privacy check - detect tracking, Google Fonts, etc.
