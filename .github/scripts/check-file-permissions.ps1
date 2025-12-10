@@ -26,10 +26,12 @@ if ($IsLinux -or $IsMacOS -or ($env:RUNNER_OS -eq "Linux")) {
 }
 
 # On all systems, check for unexpected file types in src/public
-$allowedExtensions = @('.tsx','.ts','.css','.png','.jpg','.jpeg','.svg','.json','.html','.webp','.gif')
+$allowedExtensions = @('.tsx','.ts','.css','.png','.jpg','.jpeg','.svg','.json','.html','.webp','.gif','.ttf','.woff','.woff2','.otf')
+$allowedFilesWithoutExtension = @('CNAME')  # GitHub Pages custom domain file
 $suspiciousFiles = Get-ChildItem -Path src,public -Recurse -File -ErrorAction SilentlyContinue |
     Where-Object { 
         $_.Extension -notin $allowedExtensions -and
+        -not ($_.Extension -eq '' -and $allowedFilesWithoutExtension -contains $_.Name) -and
         $_.FullName -notmatch "node_modules"
     }
 
