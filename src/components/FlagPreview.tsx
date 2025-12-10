@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { FlagSpec } from '@/flags/schema';
 import { getAssetUrl } from '@/config';
+import { FlagDetailsModal } from './FlagDetailsModal';
 
 export interface FlagPreviewProps {
   /** Selected flag to display */
@@ -17,6 +18,7 @@ export function FlagPreview({ flag }: FlagPreviewProps) {
   const imageSrc = flag ? (flag.png_preview || flag.png_full) : null;
   const imgRef = useRef<HTMLImageElement>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   
   // Force reload image when flag changes by clearing and resetting src
   useEffect(() => {
@@ -65,18 +67,39 @@ export function FlagPreview({ flag }: FlagPreviewProps) {
   const aspectRatio = flag.aspectRatio ?? 2; // Default to 2:1 if not specified
 
   return (
-    <div 
-      className="flag-preview"
-      style={{ aspectRatio: `${aspectRatio} / 1` }}
-    >
-      <img 
-        ref={imgRef}
-        src={imageUrl}
-        alt={flag.displayName}
-        className="flag-preview-image"
-        loading="eager"
-        key={`${flagId}-${imageUrl}`}
+    <>
+      <div className="flag-preview-wrapper">
+        <div 
+          className="flag-preview"
+          style={{ aspectRatio: `${aspectRatio} / 1` }}
+        >
+          <img 
+            ref={imgRef}
+            src={imageUrl}
+            alt={flag.displayName}
+            className="flag-preview-image"
+            loading="eager"
+            key={`${flagId}-${imageUrl}`}
+          />
+        </div>
+        <button
+          className="flag-about-link"
+          onClick={() => setShowDetailsModal(true)}
+          type="button"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          About this flag
+        </button>
+      </div>
+      <FlagDetailsModal
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
+        flag={flag}
       />
-    </div>
+    </>
   );
 }

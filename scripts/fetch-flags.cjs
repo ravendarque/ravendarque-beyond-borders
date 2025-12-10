@@ -437,14 +437,23 @@ function generateTypeScriptSource(manifest) {
       lines.push(`    categoryDisplayOrder: ${entry.categoryDisplayOrder},`);
     }
     
-    // Generate sources field
-    if (entry.source_page || entry.link) {
-      const refUrl = entry.link || entry.source_page || 'https://en.wikipedia.org';
-      lines.push(`    sources: { referenceUrl: '${refUrl.replace(/'/g, "\\'")}' },`);
+    if (entry.reason) {
+      lines.push(`    reason: '${entry.reason.replace(/'/g, "\\'")}',`);
     }
     
-    // Add status field (default to 'active')
-    lines.push(`    status: 'active',`);
+    // Generate references field
+    if (entry.references && Array.isArray(entry.references) && entry.references.length > 0) {
+      lines.push('    references: [');
+      for (let j = 0; j < entry.references.length; j++) {
+        const ref = entry.references[j];
+        const isLastRef = j === entry.references.length - 1;
+        lines.push('      {');
+        lines.push(`        url: '${ref.url.replace(/'/g, "\\'")}',`);
+        lines.push(`        text: '${ref.text.replace(/'/g, "\\'")}'${isLastRef ? '' : ','}`);
+        lines.push(`      }${isLastRef ? '' : ','}`);
+      }
+      lines.push('    ],');
+    }
     
     // Generate modes object
     const hasModes = entry.cutoutMode || (entry.layouts && entry.layouts.length > 0);
@@ -553,7 +562,7 @@ async function workerForFlag(f) {
       categoryDisplayName: f.categoryDisplayName || null, // Already resolved by parseFlagsFromYaml
       categoryDisplayOrder: f.categoryDisplayOrder || null, // Order for displaying categories in UI
       reason: f.reason,
-      link: f.link,
+      references: f.references || null,
       colors,
       stripe_order: colors,
       cutoutMode: f.cutoutMode || null
@@ -899,7 +908,7 @@ async function workerForFlag(f) {
         categoryDisplayName: m.categoryDisplayName || null,
         categoryDisplayOrder: m.categoryDisplayOrder || null,
         reason: m.reason || null,
-        link: m.link || null,
+        references: m.references || null,
         layouts,
         size: m.size || null,
         cutoutMode: m.cutoutMode || null,

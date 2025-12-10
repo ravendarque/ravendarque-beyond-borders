@@ -1,6 +1,7 @@
 // Component exports
 export { ErrorBoundary } from './ErrorBoundary';
 export { FlagPreview } from './FlagPreview';
+export { FlagDetailsModal } from './FlagDetailsModal';
 export { FlagSelector } from './FlagSelector';
 export { ImageUploadZone } from './ImageUploadZone';
 export { PresentationModeSelector } from './PresentationModeSelector';
@@ -17,3 +18,4 @@ export type { PresentationModeSelectorProps, PresentationMode } from './Presenta
 export type { AdjustControlsProps } from './AdjustControls';
 export type { AdjustStepProps } from './AdjustStep';
 export type { PrivacyModalProps } from './PrivacyModal';
+export type { FlagDetailsModalProps } from './FlagDetailsModal';
