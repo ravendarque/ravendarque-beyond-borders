@@ -110,7 +110,8 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: beta
-      url: https://wearebeyondborders.com/beta/${{ steps.version.outputs.semver }}/
+      # Note: environment.url is evaluated before steps run, so we can't use step outputs here.
+      # The actual deployment URL is provided in the PR comment instead.
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
