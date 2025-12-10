@@ -1,14 +1,14 @@
-#!/usr/bin/env pwsh
+#!/bin/sh
 # Git pre-push hook
 # Runs validation checks before allowing push
 # Uses PowerShell Core (pwsh) which works on all platforms
 
-if (Get-Command pwsh -ErrorAction SilentlyContinue) {
-    pwsh -File .github/scripts/validate-local.ps1
-    exit $LASTEXITCODE
-}
+if command -v pwsh >/dev/null 2>&1; then
+    pwsh -NoProfile -File .github/scripts/validate-local.ps1
+    exit $?
+fi
 
-Write-Host "❌ Error: pwsh (PowerShell Core) not found" -ForegroundColor Red
-Write-Host "  Install from: https://github.com/PowerShell/PowerShell" -ForegroundColor Yellow
-Write-Host "  Or bypass hook: git push --no-verify" -ForegroundColor Yellow
+echo "❌ Error: pwsh (PowerShell Core) not found"
+echo "  Install from: https://github.com/PowerShell/PowerShell"
+echo "  Or bypass hook: git push --no-verify"
 exit 1
