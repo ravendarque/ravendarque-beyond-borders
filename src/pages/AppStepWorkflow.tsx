@@ -116,7 +116,9 @@ export function AppStepWorkflow() {
         flagImageCache.set(cacheKey, bitmap);
       } catch (error) {
         // Silent fail - preloading is best-effort
+        // Error logged in development via debug logging if needed
         if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
           console.warn('[Preload] Failed to preload flag image:', error);
         }
       }
