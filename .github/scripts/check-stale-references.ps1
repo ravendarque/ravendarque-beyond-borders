@@ -20,14 +20,14 @@ foreach ($file in $sourceFiles) {
     if (-not $content) { continue }
     
     $fileDir = Split-Path -Parent $file.FullName
-    $lines = Get-Content $file.FullName
+    $lines = @(Get-Content $file.FullName)
     
     # Track if we're inside a block comment
     $inBlockComment = $false
     
     for ($lineIndex = 0; $lineIndex -lt $lines.Count; $lineIndex++) {
-        $line = $lines[$lineIndex]
-        $trimmed = $line.Trim()
+        $lineText = $lines[$lineIndex].ToString()
+        $trimmed = $lineText.Trim()
         
         # Handle block comments
         if ($trimmed -match "/\*") {
