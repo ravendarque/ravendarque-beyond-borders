@@ -7,11 +7,11 @@ Comprehensive scripts for development environment setup, validation, issue manag
 **First-time setup (automated):**
 
 ```powershell
-# Windows
-.\.github\scripts\setup-dev-env.ps1
+# All platforms (PowerShell Core)
+pwsh .github/scripts/setup-dev-env.ps1
 
-# Linux/Mac
-bash .github/scripts/setup-dev-env.sh
+# Windows (Windows PowerShell)
+.\.github\scripts\setup-dev-env.ps1
 ```
 
 📖 **Full Setup Guide**: [SETUP.md](./SETUP.md)
@@ -20,15 +20,17 @@ bash .github/scripts/setup-dev-env.sh
 
 ```
 .github/scripts/
-  setup-dev-env.ps1          ← Automated environment setup (Windows) 🆕
-  setup-dev-env.sh           ← Automated environment setup (Linux/Mac) 🆕
-  validate-local.ps1         ← Pre-push validation (Windows) 🆕
-  validate-local.sh          ← Pre-push validation (Linux/Mac) 🆕
+  setup-dev-env.ps1          ← Automated environment setup (all platforms) 🆕
+  validate-local.ps1         ← Pre-push validation (all platforms) 🆕
+  check-privacy.ps1          ← Privacy validation checks
+  check-todo-fixme.ps1       ← TODO/FIXME detection
+  check-file-permissions.ps1 ← File permissions validation
+  check-large-files.ps1      ← Large file detection
   github-helper.ps1          ← Main CLI (error-resistant wrapper) ⭐
   sync-labels.ps1            ← Label management
   SETUP.md                   ← Setup documentation 🆕
   README.md
-  commands/                  ← Individual command implementations
+  commands/                   ← Individual command implementations
     create-tracked-issue.ps1
     create-pr.ps1
     get-pr-template.ps1
@@ -46,8 +48,8 @@ bash .github/scripts/setup-dev-env.sh
 
 | Script | Purpose |
 |--------|---------|
-| **`setup-dev-env.ps1` / `.sh`** 🆕 | **One-command setup for new developers** |
-| **`validate-local.ps1` / `.sh`** 🆕 | **Pre-push validation (secrets, security, linting)** |
+| **`setup-dev-env.ps1`** 🆕 | **One-command setup for new developers (all platforms)** |
+| **`validate-local.ps1`** 🆕 | **Pre-push validation (secrets, security, linting)** |
 | `sync-labels.ps1` | Sync standard labels to GitHub repository |
 
 📖 **Setup Guide**: [SETUP.md](./SETUP.md)

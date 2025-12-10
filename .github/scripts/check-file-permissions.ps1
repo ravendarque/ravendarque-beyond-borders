@@ -9,19 +9,19 @@ $ErrorActionPreference = 'Stop'
 $issues = 0
 
 # On Unix systems (Linux/macOS/CI), check for executable files that shouldn't be
-# This uses bash find command which is available on Unix systems
+# Use find command directly (available on Unix systems)
 if ($IsLinux -or $IsMacOS -or ($env:RUNNER_OS -eq "Linux")) {
     try {
-        $bashOutput = bash -c "find src public -type f -executable -not -path '*/node_modules/*' 2>/dev/null | grep -v '\.sh$' || true"
-        if ($bashOutput -and $bashOutput.Trim()) {
+        $findOutput = find src public -type f -executable -not -path '*/node_modules/*' 2>$null | Where-Object { $_ -and $_ -notmatch '\.sh$' }
+        if ($findOutput) {
             Write-Host "❌ Found unexpected executable files" -ForegroundColor Red
-            $bashOutput -split "`n" | Where-Object { $_.Trim() } | ForEach-Object {
+            $findOutput | ForEach-Object {
                 Write-Host "    $_"
             }
             $issues++
         }
     } catch {
-        # If bash/find fails, skip executable check (non-critical on Windows)
+        # If find fails, skip executable check (non-critical on Windows)
     }
 }
 

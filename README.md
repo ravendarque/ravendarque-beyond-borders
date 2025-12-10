@@ -60,9 +60,9 @@ We provide setup scripts that automatically install all required tools and depen
 .\.github\scripts\setup-dev-env.ps1
 ```
 
-**Linux/macOS (Bash):**
-```bash
-bash .github/scripts/setup-dev-env.sh
+**Linux/macOS (PowerShell Core):**
+```powershell
+pwsh .github/scripts/setup-dev-env.ps1
 ```
 
 See [.github/scripts/SETUP.md](.github/scripts/SETUP.md) for detailed setup instructions and troubleshooting.
@@ -91,8 +91,8 @@ The `main` branch is protected. All changes must be made via pull requests:
 1. **Create a feature branch**: `git checkout -b feature/your-feature`
 2. **Make changes and commit**: Follow [conventional commits](https://www.conventionalcommits.org/)
 3. **Run local validation** (optional but recommended):
-   - Windows: `.\.github\scripts\validate-local.ps1`
-   - Linux/Mac: `bash .github/scripts/validate-local.sh`
+   - All platforms: `pwsh .github/scripts/validate-local.ps1` (PowerShell Core - required)
+   - Windows: `.\.github\scripts\validate-local.ps1` (Windows PowerShell)
    - Or install the pre-push git hook (see [.github/hooks/README.md](.github/hooks/README.md))
 4. **Push and create PR**: `git push -u origin feature/your-feature`
 5. **Wait for CI checks** to pass (validation, build, tests)
@@ -122,7 +122,16 @@ We use a three-tier validation approach to catch issues early:
 
 **Running validation locally:**
 
-Windows (PowerShell):
+All platforms (PowerShell Core - required):
+```powershell
+# Full validation
+pwsh .github/scripts/validate-local.ps1
+
+# Skip build/test for faster feedback
+pwsh .github/scripts/validate-local.ps1 -SkipBuild
+```
+
+Windows (Windows PowerShell):
 ```powershell
 # Full validation
 .\.github\scripts\validate-local.ps1
@@ -131,11 +140,7 @@ Windows (PowerShell):
 .\.github\scripts\validate-local.ps1 -SkipBuild
 ```
 
-Linux/Mac (Bash):
-```bash
-# Full validation
-bash .github/scripts/validate-local.sh
-```
+**Note:** PowerShell Core (pwsh) is required and works on all platforms. Install from https://github.com/PowerShell/PowerShell
 
 **Installing the git pre-push hook:**
 
