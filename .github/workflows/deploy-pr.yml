@@ -36,10 +36,57 @@ jobs:
               - 'scripts/**'
               - '.github/scripts/**'
 
+  # Check if CI has passed for this PR
+  check-ci-status:
+    runs-on: ubuntu-latest
+    outputs:
+      ci-passed: ${{ steps.check.outputs.ci-passed }}
+    steps:
+      - name: Check CI status
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: statuses } = await github.rest.repos.getCombinedStatusForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.payload.pull_request.head.sha,
+            });
+
+            // Check all status checks - CI must be successful
+            const allStatuses = statuses.statuses || [];
+            const ciStatuses = allStatuses.filter(status => 
+              status.context.includes('CI') || 
+              status.context.includes('ci')
+            );
+
+            if (ciStatuses.length === 0) {
+              core.setOutput('ci-passed', 'false');
+              core.warning('CI status check not found. Waiting for CI to run...');
+              return;
+            }
+
+            // Check if any CI status is not successful
+            const failedOrPending = ciStatuses.find(status => 
+              status.state !== 'success'
+            );
+
+            if (failedOrPending) {
+              core.setOutput('ci-passed', 'false');
+              if (failedOrPending.state === 'pending') {
+                core.warning(`⏳ CI is still running: ${failedOrPending.context}`);
+              } else {
+                core.error(`❌ CI has failed or errored: ${failedOrPending.context} (${failedOrPending.state})`);
+              }
+            } else {
+              core.setOutput('ci-passed', 'true');
+              core.info('✅ All CI status checks have passed');
+            }
+
   # Deploy to beta after CI passes
   deploy-beta:
-    needs: check-changes
-    if: needs.check-changes.outputs.production-code == 'true'
+    needs: [check-changes, check-ci-status]
+    if: needs.check-changes.outputs.production-code == 'true' && needs.check-ci-status.outputs.ci-passed == 'true'
     runs-on: ubuntu-latest
     environment:
       name: beta
