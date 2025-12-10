@@ -131,6 +131,11 @@ jobs:
           fi
         continue-on-error: true
 
+      - name: Privacy check - detect tracking, Google Fonts, etc.
+        run: |
+          echo "7️⃣  Checking for privacy concerns..."
+          pwsh .github/scripts/check-privacy.ps1
+
       - name: Validation summary
         if: always()
         run: |

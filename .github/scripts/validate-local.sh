@@ -118,44 +118,18 @@ echo ""
 
 # 7. Privacy check - detect tracking, Google Fonts, etc.
 echo "7️⃣  Checking for privacy concerns..."
-privacy_issues=0
-
-# Check for Google Fonts
-google_fonts=$(grep -r "fonts\.googleapis\|fonts\.gstatic" src/ public/ index.html --exclude-dir=node_modules 2>/dev/null || true)
-if [ -n "$google_fonts" ]; then
-    print_status 1 "Google Fonts detected (privacy concern)"
-    echo "$google_fonts" | while read -r line; do
-        echo "    $line"
-    done
-    echo "  Consider using self-hosted fonts instead"
-    privacy_issues=$((privacy_issues + 1))
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+set +e  # Temporarily disable exit on error to capture exit code
+if command -v pwsh &> /dev/null; then
+    pwsh "$SCRIPT_DIR/check-privacy.ps1"
+else
+    echo "⚠️  Warning: pwsh not found, skipping privacy check"
+    echo "  Install PowerShell Core: https://github.com/PowerShell/PowerShell"
 fi
-
-# Check for tracking scripts and analytics (exclude internal performance tracking)
-tracking_patterns="google.*analytics|gtag|ga\(|googletagmanager|facebook.*pixel|fbq\(|analytics\.js|doubleclick|adservice|googlesyndication|advertising|adserver"
-tracking_found=$(grep -riE "$tracking_patterns" src/ public/ index.html --exclude-dir=node_modules 2>/dev/null | grep -v "enablePerformanceTracking\|performance.*tracking\|tracking.*performance" || true)
-if [ -n "$tracking_found" ]; then
-    print_status 1 "Tracking/analytics scripts detected"
-    echo "$tracking_found" | while read -r line; do
-        echo "    $line"
-    done
-    echo "  Remove tracking scripts to protect user privacy"
-    privacy_issues=$((privacy_issues + 1))
-fi
-
-# Check for external CDN resources that could track users
-cdn_patterns="cdn\.jsdelivr|cdnjs\.cloudflare|unpkg\.com|cdn\.bootcdn|stackpath\.bootstrapcdn"
-cdn_found=$(grep -riE "$cdn_patterns" src/ public/ index.html --exclude-dir=node_modules 2>/dev/null || true)
-if [ -n "$cdn_found" ]; then
-    print_warning "External CDN resources detected (may have privacy implications)"
-    echo "$cdn_found" | while read -r line; do
-        echo "    $line"
-    done
-    echo "  Consider self-hosting resources for better privacy"
-fi
-
-if [ $privacy_issues -eq 0 ]; then
-    echo -e "${GREEN}✅ No privacy concerns detected${NC}"
+privacy_exit=$?
+set -e  # Re-enable exit on error
+if [ $privacy_exit -ne 0 ]; then
+    ERRORS=$((ERRORS + 1))
 fi
 echo ""
 
