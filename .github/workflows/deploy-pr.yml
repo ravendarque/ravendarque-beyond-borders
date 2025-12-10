@@ -110,7 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: beta
-      url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/beta/${{ steps.version.outputs.semver }}/
+      url: https://wearebeyondborders.com/beta/${{ steps.version.outputs.semver }}/
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
@@ -140,7 +140,7 @@ jobs:
       - name: Build with beta base path
         run: pnpm run build
         env:
-          BASE_URL: /${{ github.event.repository.name }}/beta/${{ steps.version.outputs.semver }}/
+          BASE_URL: /beta/${{ steps.version.outputs.semver }}/
 
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
@@ -204,7 +204,7 @@ jobs:
         with:
           script: |
             const version = '${{ steps.version.outputs.semver }}';
-            const url = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/beta/${version}/`;
+            const url = `https://wearebeyondborders.com/beta/${version}/`;
             const body = `🚀 **Beta Deployment**
 
             🔗 **Preview:** ${url}
@@ -241,6 +241,6 @@ jobs:
         run: |
           echo "### ✅ Beta Deployment" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** \`v${{ steps.version.outputs.semver }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/beta/${{ steps.version.outputs.semver }}/" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://wearebeyondborders.com/beta/${{ steps.version.outputs.semver }}/" >> $GITHUB_STEP_SUMMARY
 
 
