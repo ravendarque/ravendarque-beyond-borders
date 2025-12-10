@@ -12,14 +12,18 @@ File: `.github/workflows/deploy-pr.yml`
 ## Process
 
 1. Determine branch & derive semantic version via `scripts/get-version.cjs`
-2. Build with `BASE_URL=/<repo>/beta/<semver>/`
+2. Build with `BASE_URL=/beta/<semver>/` (for custom domain)
 3. Commit build into `gh-pages` under `beta/<semver>/`
 4. Generate/refresh index page enumerating all beta versions
 
 ## URLs
 
-- **Beta URL pattern:** `https://<owner>.github.io/<repo>/beta/<semver>/`
-- **Beta index page:** `https://<owner>.github.io/<repo>/beta/`
+- **Custom Domain (Primary):**
+  - **Beta URL pattern:** `https://wearebeyondborders.com/beta/<semver>/`
+  - **Beta index page:** `https://wearebeyondborders.com/beta/`
+- **GitHub Pages (Fallback):**
+  - **Beta URL pattern:** `https://<owner>.github.io/<repo>/beta/<semver>/`
+  - **Beta index page:** `https://<owner>.github.io/<repo>/beta/`
 
 ## Cleanup
 

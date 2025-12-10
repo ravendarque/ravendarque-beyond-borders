@@ -8,7 +8,7 @@
 
 Add a circular, flag-colored border to your profile picture to show support for marginalized groups and selected causes.
 
-🌐 **Live App**: [https://ravendarque.github.io/ravendarque-beyond-borders/](https://ravendarque.github.io/ravendarque-beyond-borders/)
+🌐 **Live App**: [https://wearebeyondborders.com](https://wearebeyondborders.com)
 
 ## Overview
 
