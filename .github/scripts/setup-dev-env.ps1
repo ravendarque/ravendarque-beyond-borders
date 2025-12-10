@@ -318,12 +318,12 @@ if ($failed -eq 0) {
         Write-Host "  1. ⚠️  RESTART THIS TERMINAL (close and reopen PowerShell)" -ForegroundColor Yellow
         Write-Host "  2. Run 'pnpm dev' to start the development server" -ForegroundColor Gray
         Write-Host "  3. Run 'pnpm test' to run tests" -ForegroundColor Gray
-        Write-Host "  4. Run '.\.github\scripts\validate-local.ps1' to test validation" -ForegroundColor Gray
+        Write-Host "  4. Run '.\.github\scripts\local-ci.ps1' to test validation" -ForegroundColor Gray
         Write-Host "  5. Install git pre-push hook (see .github/hooks/README.md)" -ForegroundColor Gray
     } else {
         Write-Host "  1. Run 'pnpm dev' to start the development server" -ForegroundColor Gray
         Write-Host "  2. Run 'pnpm test' to run tests" -ForegroundColor Gray
-        Write-Host "  3. Run '.\.github\scripts\validate-local.ps1' to test validation" -ForegroundColor Gray
+        Write-Host "  3. Run '.\.github\scripts\local-ci.ps1' to test validation" -ForegroundColor Gray
         Write-Host "  4. Install git pre-push hook (see .github/hooks/README.md)" -ForegroundColor Gray
     }
     exit 0

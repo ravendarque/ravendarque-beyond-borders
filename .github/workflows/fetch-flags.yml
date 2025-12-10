@@ -32,11 +32,8 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
         
-      - name: Fetch and extract flags
-        run: node scripts/fetch-and-extract.cjs
-        
-      - name: Sync flags.ts from flags.json
-        run: node scripts/sync-flags-ts.cjs
+      - name: Fetch and generate flags
+        run: node scripts/fetch-flags.cjs
       - name: Validate flag data integrity
         run: |
           pnpm test -- flags.test.ts
@@ -55,8 +52,7 @@ jobs:
             
             ## Changes
             - 🖼️ Updated flag PNGs in `public/flags/`
-            - 📝 Updated `public/flags/flags.json` manifest
-            - 🔧 Synced `src/flags/flags.ts` from manifest
+            - 🔧 Generated `src/flags/flags.ts` from `data/flag-data.yaml`
             
             ## Pre-merge Validation
             - ✅ Unit tests passed (flags.test.ts)
@@ -67,6 +63,6 @@ jobs:
             **Note**: CI will run automatically on this PR for final validation.
           labels: automated, flags
           assignees: ${{ github.actor }}
-          commit-paths: |
+          add-paths: |
             public/flags
             src/flags/flags.ts

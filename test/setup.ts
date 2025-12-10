@@ -52,3 +52,47 @@ if (typeof (globalThis as any).createImageBitmap === 'undefined') {
     return { width: 32, height: 32 } as any
   }
 }
+
+// ResizeObserver is not in happy-dom/jsdom; provide a minimal stub for Radix UI components
+if (typeof (globalThis as any).ResizeObserver === 'undefined') {
+  ;(globalThis as any).ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+}
+
+// Pointer Events API polyfill for Radix UI Select
+// happy-dom and jsdom don't fully support Pointer Events API
+if (typeof (globalThis as any).PointerEvent === 'undefined') {
+  ;(globalThis as any).PointerEvent = class PointerEvent extends MouseEvent {
+    constructor(type: string, init?: PointerEventInit) {
+      super(type, init as MouseEventInit);
+    }
+  };
+}
+
+// Add hasPointerCapture and setPointerCapture methods to Element prototype
+if (typeof Element !== 'undefined') {
+  const originalHasPointerCapture = Element.prototype.hasPointerCapture;
+  if (!originalHasPointerCapture || typeof originalHasPointerCapture !== 'function') {
+    Element.prototype.hasPointerCapture = function(pointerId: number): boolean {
+      // Return false for tests - Radix UI checks this but doesn't require it to work
+      return false;
+    };
+  }
+
+  const originalSetPointerCapture = Element.prototype.setPointerCapture;
+  if (!originalSetPointerCapture || typeof originalSetPointerCapture !== 'function') {
+    Element.prototype.setPointerCapture = function(pointerId: number): void {
+      // No-op for tests
+    };
+  }
+
+  const originalReleasePointerCapture = Element.prototype.releasePointerCapture;
+  if (!originalReleasePointerCapture || typeof originalReleasePointerCapture !== 'function') {
+    Element.prototype.releasePointerCapture = function(pointerId: number): void {
+      // No-op for tests
+    };
+  }
+}

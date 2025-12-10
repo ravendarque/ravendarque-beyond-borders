@@ -1,25 +1,21 @@
-export { ImageUploader } from './ImageUploader';
-export { FlagSelector } from './FlagSelector';
-export { FlagDropdown } from './FlagDropdown';
+// Component exports
+export { ErrorBoundary } from './ErrorBoundary';
 export { FlagPreview } from './FlagPreview';
-export { NavigationButtons } from './NavigationButtons';
-export { StepContainer } from './StepContainer';
-export { PresentationControls } from './PresentationControls';
-export { SliderControl } from './SliderControl';
-export { AvatarPreview } from './AvatarPreview';
-export { ControlPanel } from './ControlPanel';
-export { StepIndicator } from './StepIndicator';
-export { StepProgressIndicator } from './StepProgressIndicator';
+export { FlagDetailsModal } from './FlagDetailsModal';
+export { FlagSelector } from './FlagSelector';
+export { ImageUploadZone } from './ImageUploadZone';
+export { PresentationModeSelector } from './PresentationModeSelector';
+export { AdjustControls } from './AdjustControls';
+export { AdjustStep } from './AdjustStep';
+export { PrivacyModal } from './PrivacyModal';
 
-export type { ImageUploaderProps } from './ImageUploader';
-export type { FlagSelectorProps } from './FlagSelector';
-export type { FlagDropdownProps } from './FlagDropdown';
+// Type exports
 export type { FlagPreviewProps } from './FlagPreview';
-export type { NavigationButtonsProps } from './NavigationButtons';
-export type { StepContainerProps } from './StepContainer';
-export type { PresentationControlsProps } from './PresentationControls';
-export type { SliderControlProps } from './SliderControl';
-export type { AvatarPreviewProps } from './AvatarPreview';
-export type { ControlPanelProps } from './ControlPanel';
-export type { StepIndicatorProps } from './StepIndicator';
-export type { StepProgressIndicatorProps } from './StepProgressIndicator';
+// Note: FlagPreviewProps.size prop was removed - size variant not implemented
+export type { FlagSelectorProps } from './FlagSelector';
+export type { ImageUploadZoneProps } from './ImageUploadZone';
+export type { PresentationModeSelectorProps, PresentationMode } from './PresentationModeSelector';
+export type { AdjustControlsProps } from './AdjustControls';
+export type { AdjustStepProps } from './AdjustStep';
+export type { PrivacyModalProps } from './PrivacyModal';
+export type { FlagDetailsModalProps } from './FlagDetailsModal';

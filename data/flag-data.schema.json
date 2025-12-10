@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flag Data Schema",
+  "description": "Schema for flag-data.yaml - the source of truth for all flags in the application, processed by the fetch-flags.cjs script to generate the flags.ts file.",
+  "type": "object",
+  "required": ["categories"],
+  "properties": {
+    "categories": {
+      "type": "array",
+      "description": "List of flag categories",
+      "items": {
+        "type": "object",
+        "required": ["categoryName", "displayOrder", "flags"],
+        "properties": {
+          "categoryName": {
+            "type": "string",
+            "description": "The name of the category as it will be displayed in the flag selector dropdown"
+          },
+          "displayOrder": {
+            "type": "integer",
+            "description": "The order in which the category will be displayed in the flag selector dropdown"
+          },
+          "flags": {
+            "type": "array",
+            "description": "List of flags in this category",
+            "items": {
+              "type": "object",
+              "required": ["flagName", "displayName", "svg_url", "description", "reason", "references"],
+              "properties": {
+                "flagName": {
+                  "type": "string",
+                  "description": "The official name of the flag"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "The name of the flag as it will be displayed in the flag selector dropdown"
+                },
+                "svg_url": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "The URL of the SVG file of the flag on Wikimedia Commons"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A short description of the flag based on the Wikipedia page"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "The reason why the flag is included based on the Wikipedia page (or other reliable source)"
+                },
+                "references": {
+                  "type": "array",
+                  "description": "List of reference links for the flag",
+                  "items": {
+                    "type": "object",
+                    "required": ["url", "text"],
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "The URL of the reference"
+                      },
+                      "text": {
+                        "type": "string",
+                        "description": "The display text for the reference link"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "minItems": 1
+                },
+                "cutoutMode": {
+                  "type": "object",
+                  "description": "Optional cutout configuration. If present, enables cutout mode in the adjust step.",
+                  "required": ["offsetEnabled", "defaultOffset"],
+                  "properties": {
+                    "offsetEnabled": {
+                      "type": "boolean",
+                      "description": "Governs whether the offset slider is visible. Defaults to false if the cutoutMode property doesn't exist."
+                    },
+                    "defaultOffset": {
+                      "type": "integer",
+                      "minimum": -50,
+                      "maximum": 50,
+                      "description": "The default value of the offset slider. -50 (left edge of border touches left edge of flag), 0 (centre, no offset), 50 (right edge of border touches right edge of flag)"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+
