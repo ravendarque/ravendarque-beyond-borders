@@ -8,6 +8,7 @@ permissions:
   contents: write
   pull-requests: write
   deployments: write
+  actions: read  # Required to check CI workflow status
 
 jobs:
   # Check if production code changed
@@ -36,52 +37,57 @@ jobs:
               - 'scripts/**'
               - '.github/scripts/**'
 
-  # Check if CI has passed for this PR
+  # Check if CI workflow has passed for this PR
   check-ci-status:
     runs-on: ubuntu-latest
     outputs:
       ci-passed: ${{ steps.check.outputs.ci-passed }}
     steps:
-      - name: Check CI status
+      - name: Check CI workflow status
         id: check
         uses: actions/github-script@v7
         with:
           script: |
-            const { data: statuses } = await github.rest.repos.getCombinedStatusForRef({
+            const headSha = context.payload.pull_request.head.sha;
+            
+            // Get workflow runs for the CI workflow on this branch
+            const { data: workflowRuns } = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: context.payload.pull_request.head.sha,
+              workflow_id: 'ci.yml',
+              head_sha: headSha,
+              per_page: 1,
             });
 
-            // Check all status checks - CI must be successful
-            const allStatuses = statuses.statuses || [];
-            const ciStatuses = allStatuses.filter(status => 
-              status.context.includes('CI') || 
-              status.context.includes('ci')
-            );
-
-            if (ciStatuses.length === 0) {
+            if (workflowRuns.total_count === 0) {
               core.setOutput('ci-passed', 'false');
-              core.warning('CI status check not found. Waiting for CI to run...');
+              core.warning('CI workflow has not run yet. Waiting for CI to run...');
               return;
             }
 
-            // Check if any CI status is not successful
-            const failedOrPending = ciStatuses.find(status => 
-              status.state !== 'success'
-            );
-
-            if (failedOrPending) {
+            const latestRun = workflowRuns.workflow_runs[0];
+            
+            // Check if the latest run is for the correct commit
+            if (latestRun.head_sha !== headSha) {
               core.setOutput('ci-passed', 'false');
-              if (failedOrPending.state === 'pending') {
-                core.warning(`⏳ CI is still running: ${failedOrPending.context}`);
-              } else {
-                core.error(`❌ CI has failed or errored: ${failedOrPending.context} (${failedOrPending.state})`);
-              }
-            } else {
-              core.setOutput('ci-passed', 'true');
-              core.info('✅ All CI status checks have passed');
+              core.warning(`CI workflow run found but for different commit. Expected: ${headSha}, Found: ${latestRun.head_sha}`);
+              return;
             }
+
+            if (latestRun.status !== 'completed') {
+              core.setOutput('ci-passed', 'false');
+              core.warning(`⏳ CI workflow is still running (status: ${latestRun.status})`);
+              return;
+            }
+
+            if (latestRun.conclusion !== 'success') {
+              core.setOutput('ci-passed', 'false');
+              core.error(`❌ CI workflow has failed or errored (conclusion: ${latestRun.conclusion})`);
+              return;
+            }
+
+            core.setOutput('ci-passed', 'true');
+            core.info(`✅ CI workflow has passed (run #${latestRun.run_number})`);
 
   # Deploy to beta after CI passes
   deploy-beta:
