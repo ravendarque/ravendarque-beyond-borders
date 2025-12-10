@@ -63,6 +63,6 @@ jobs:
             **Note**: CI will run automatically on this PR for final validation.
           labels: automated, flags
           assignees: ${{ github.actor }}
-          commit-paths: |
+          add-paths: |
             public/flags
             src/flags/flags.ts
