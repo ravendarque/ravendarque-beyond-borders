@@ -25,7 +25,7 @@
             "description": "List of flags in this category",
             "items": {
               "type": "object",
-              "required": ["flagName", "displayName", "svg_url", "description", "reason", "link"],
+              "required": ["flagName", "displayName", "svg_url", "description", "reason", "references"],
               "properties": {
                 "flagName": {
                   "type": "string",
@@ -48,10 +48,26 @@
                   "type": "string",
                   "description": "The reason why the flag is included based on the Wikipedia page (or other reliable source)"
                 },
-                "link": {
-                  "type": "string",
-                  "format": "uri",
-                  "description": "The URL of the Wikipedia page of the group/people/community/cause that the flag represents"
+                "references": {
+                  "type": "array",
+                  "description": "List of reference links for the flag",
+                  "items": {
+                    "type": "object",
+                    "required": ["url", "text"],
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "The URL of the reference"
+                      },
+                      "text": {
+                        "type": "string",
+                        "description": "The display text for the reference link"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "minItems": 1
                 },
                 "cutoutMode": {
                   "type": "object",

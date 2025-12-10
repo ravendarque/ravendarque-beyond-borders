@@ -16,8 +16,17 @@ export const flags: FlagSpec[] = [
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Palestine' },
-    status: 'active',
+    reason: 'Unlawful occupation since 1967 and ongoing genocide in Gaza. The Israeli government has imposed a total siege, cut off essential supplies, and launched military attacks resulting in catastrophic civilian deaths.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Flag_of_Palestine',
+        text: 'Flag of Palestine on Wikipedia',
+      },
+      {
+        url: 'https://www.unrwa.org/resources/fact-sheet/two-years-fast-facts',
+        text: 'Two Years of War: Fast Facts on UNRWA'
+      }
+    ],
     modes: {
       ring: {
         colors: [
@@ -44,8 +53,13 @@ export const flags: FlagSpec[] = [
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Tibet' },
-    status: 'active',
+    reason: 'Banned in Tibet since Chinese control; symbol of Tibetan cultural and political resistance.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Flag_of_Tibet',
+        text: 'Flag of Tibet on Wikipedia'
+      }
+    ],
     modes: {
       ring: {
         colors: [
@@ -72,8 +86,13 @@ export const flags: FlagSpec[] = [
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Western_Sahara' },
-    status: 'active',
+    reason: 'Territory with partial recognition; long-running dispute and displacement of Sahrawi people.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Flag_of_Western_Sahara',
+        text: 'Flag of Western Sahara on Wikipedia'
+      }
+    ],
     modes: {
       ring: {
         colors: [
@@ -100,8 +119,13 @@ export const flags: FlagSpec[] = [
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Flag_of_Ukraine' },
-    status: 'active',
+    reason: 'Ongoing military occupation and territorial aggression since 2014; symbol of sovereignty and resistance.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Flag_of_Ukraine',
+        text: 'Flag of Ukraine on Wikipedia'
+      }
+    ],
     modes: {
       ring: {
         colors: [
@@ -122,8 +146,13 @@ export const flags: FlagSpec[] = [
     category: 'stateless',
     categoryDisplayName: 'Stateless People',
     categoryDisplayOrder: 2,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Kurdistan' },
-    status: 'active',
+    reason: 'Represents Kurdish identity and independence aspirations; Kurds face repression and denial of rights across multiple states.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Flag_of_Kurdistan',
+        text: 'Flag of Kurdistan on Wikipedia'
+      }
+    ],
     modes: {
       ring: {
         colors: [
@@ -150,8 +179,13 @@ export const flags: FlagSpec[] = [
     category: 'stateless',
     categoryDisplayName: 'Stateless People',
     categoryDisplayOrder: 2,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Uyghurs' },
-    status: 'active',
+    reason: 'Used by Uyghur activists and diaspora; Uyghurs face mass detention, cultural repression, and rights abuses in Xinjiang.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Flag_of_East_Turkestan',
+        text: 'Flag of East Turkestan on Wikipedia'
+      }
+    ],
     modes: {
       ring: {
         colors: [
@@ -164,7 +198,7 @@ export const flags: FlagSpec[] = [
   {
     id: 'rohingya',
     name: 'Rohingya Flag',
-    displayName: 'Rohingya',
+    displayName: 'Rohingya (Myanmar)',
     png_full: 'rohingya.png',
     png_preview: 'rohingya.preview.png',
     aspectRatio: 1.4981273408239701,
@@ -172,8 +206,13 @@ export const flags: FlagSpec[] = [
     category: 'stateless',
     categoryDisplayName: 'Stateless People',
     categoryDisplayOrder: 2,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rohingya' },
-    status: 'active',
+    reason: 'Rohingya have faced ethnic cleansing, statelessness, and severe persecution in Myanmar.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Rohingya_flag',
+        text: 'Flag of Rohingya on Wikipedia'
+      }
+    ],
     modes: {
       ring: {
         colors: [
@@ -189,35 +228,6 @@ export const flags: FlagSpec[] = [
     },
   },
   {
-    id: 'irish-traveller-movement',
-    name: 'Irish Traveller Movement',
-    displayName: 'Irish Traveller Movement',
-    png_full: 'irish-traveller-movement.png',
-    png_preview: 'irish-traveller-movement.preview.png',
-    aspectRatio: 1.530241935483871,
-    svgFilename: 'irish-traveller-movement.svg',
-    category: 'stateless',
-    categoryDisplayName: 'Stateless People',
-    categoryDisplayOrder: 2,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Irish_Traveller_movement' },
-    status: 'active',
-    modes: {
-      ring: {
-        colors: [
-          '#005000',
-          '#3030d0',
-          '#ffff00',
-          '#ffffff',
-          '#000000'
-        ],
-      },
-      cutout: {
-        offsetEnabled: true,
-        defaultOffset: 0,
-      },
-    },
-  },
-  {
     id: 'gay-pride',
     name: 'Rainbow Flag',
     displayName: 'Pride',
@@ -228,8 +238,13 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 3,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Rainbow_flag' },
-    status: 'active',
+    reason: 'Represents LGBTQIA+ communities; in many countries LGBTQIA+ people face criminalisation, discrimination, and violence.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Rainbow_flag',
+        text: 'Wikipedia page'
+      }
+    ],
     modes: {
       ring: {
         colors: [
@@ -254,8 +269,13 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 3,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Transgender_flag' },
-    status: 'active',
+    reason: 'Symbol of transgender visibility; transgender people face discrimination and legal obstacles in many places.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Transgender_flag',
+        text: 'Wikipedia page'
+      }
+    ],
     modes: {
       ring: {
         colors: [
@@ -277,8 +297,13 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 3,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Non-binary_gender#Flags' },
-    status: 'active',
+    reason: 'Represents non-binary people and their visibility; used in LGBTQIA+ contexts to acknowledge gender diversity.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Non-binary_gender#Flags',
+        text: 'Wikipedia page'
+      }
+    ],
     modes: {
       ring: {
         colors: [
@@ -287,6 +312,72 @@ export const flags: FlagSpec[] = [
           '#ffffff',
           '#a060d0'
         ],
+      },
+    },
+  },
+  {
+    id: 'irish-traveller-movement',
+    name: 'Irish Traveller Movement',
+    displayName: 'Irish Traveller Movement',
+    png_full: 'irish-traveller-movement.png',
+    png_preview: 'irish-traveller-movement.preview.png',
+    aspectRatio: 1.530241935483871,
+    svgFilename: 'irish-traveller-movement.svg',
+    category: 'oppressed',
+    categoryDisplayName: 'Oppressed Groups',
+    categoryDisplayOrder: 4,
+    reason: 'Represents the Irish Traveller community which faces discrimination, social exclusion, and economic disadvantage.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Irish_Traveller_Movement',
+        text: 'Irish Traveller Movement on Wikipedia'
+      }
+    ],
+    modes: {
+      ring: {
+        colors: [
+          '#005000',
+          '#3030d0',
+          '#ffff00',
+          '#ffffff',
+          '#000000'
+        ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: 0,
+      },
+    },
+  },
+  {
+    id: 'the-romani-people',
+    name: 'Flag of the Romani people',
+    displayName: 'Romani',
+    png_full: 'the-romani-people.png',
+    png_preview: 'the-romani-people.preview.png',
+    aspectRatio: 1.5,
+    svgFilename: 'the-romani-people.svg',
+    category: 'oppressed',
+    categoryDisplayName: 'Oppressed Groups',
+    categoryDisplayOrder: 4,
+    reason: 'Represents the Romani people, a minority concentrated in Europe who face widespread discrimination, social exclusion, and persecution across many countries.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Flag_of_the_Romani_people',
+        text: 'Flag of the Romani people on Wikipedia'
+      }
+    ],
+    modes: {
+      ring: {
+        colors: [
+          '#008000',
+          '#0080ff',
+          '#ff0000'
+        ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: 0,
       },
     },
   },
@@ -301,8 +392,13 @@ export const flags: FlagSpec[] = [
     category: 'oppressed',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 4,
-    sources: { referenceUrl: 'https://en.wikipedia.org/wiki/Aboriginal_flag' },
-    status: 'active',
+    reason: 'Represents Aboriginal peoples of Australia and is used as a symbol of identity, cultural resilience, and political rights.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Aboriginal_flag',
+        text: 'Wikipedia page'
+      }
+    ],
     modes: {
       ring: {
         colors: [
