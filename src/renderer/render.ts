@@ -361,7 +361,6 @@ export async function renderAvatar(
   options.onProgress?.(0.5);
 
   // Draw ring segments for the flag
-  // Decide border style: take explicit presentation if provided, else fall back to recommended or stripe orientation
   // If a border image bitmap is provided, prefer rendering it wrapped around the annulus.
   // (Not used for cutout mode which has its own rendering path above)
   if (options.borderImageBitmap && presentation !== 'cutout') {
