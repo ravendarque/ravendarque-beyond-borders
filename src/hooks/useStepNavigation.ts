@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 export type Step = 1 | 2 | 3;
 
@@ -52,12 +52,12 @@ export function useStepNavigation(
   /**
    * Validate if a step transition is allowed
    */
-  const canNavigateToStep = (step: Step): boolean => {
+  const canNavigateToStep = useCallback((step: Step): boolean => {
     if (step === 1) return true;
     if (step === 2) return canGoToStep2;
     if (step === 3) return canGoToStep3;
     return false;
-  };
+  }, [canGoToStep2, canGoToStep3]);
 
   /**
    * Update URL to reflect current step
@@ -134,11 +134,12 @@ export function useStepNavigation(
       const requestedStep = parseInt(stepParam, 10) as Step;
       
       // Only restore step if we have the required data
+      // Note: canNavigateToStep is intentionally not in deps - this should only run on mount
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       if (canNavigateToStep(requestedStep)) {
         setCurrentStepState(requestedStep);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
   /**
@@ -176,7 +177,7 @@ export function useStepNavigation(
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [imageUrl, flagId, currentStep]);
+  }, [imageUrl, flagId, currentStep, canNavigateToStep]);
 
   return {
     currentStep,
