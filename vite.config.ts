@@ -6,9 +6,10 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   // Set base URL for deployment
   // Priority: BASE_URL env var > production default > dev default
-  // BASE_URL is used for UAT deployments (e.g., /ravendarque-beyond-borders/uat/branch-name/)
+  // BASE_URL is used for beta deployments (e.g., /beta/0.2.136-pr/)
+  // Production uses / for custom domain (wearebeyondborders.com)
   base: process.env.BASE_URL || 
-        (process.env.NODE_ENV === 'production' ? '/ravendarque-beyond-borders/' : '/'),
+        (process.env.NODE_ENV === 'production' ? '/' : '/'),
   plugins: [react()],
   server: {
     // Optimize static file serving
