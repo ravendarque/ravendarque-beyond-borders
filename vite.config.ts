@@ -25,13 +25,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Keep React and MUI together in vendor chunk
-          // MUI depends on React and they must share the same React instance
+          // Keep React together in vendor chunk
           if (id.includes('node_modules/react') || 
               id.includes('node_modules/react-dom') ||
-              id.includes('node_modules/scheduler') ||
-              id.includes('node_modules/@mui') || 
-              id.includes('node_modules/@emotion')) {
+              id.includes('node_modules/scheduler')) {
             return 'vendor';
           }
           
@@ -48,7 +45,6 @@ export default defineConfig({
       },
     },
     // Increase chunk size warning limit to accommodate vendor chunk
-    // Vendor chunk includes React + MUI which is larger but necessary
     chunkSizeWarningLimit: 700,
   },
   test: {
