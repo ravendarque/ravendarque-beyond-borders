@@ -16,6 +16,7 @@ Runs validation checks before allowing a push to proceed. This helps catch issue
 - TODO/FIXME detection (warning only)
 - File permission validation
 - Large file detection (>1MB warning)
+- Privacy check (Google Fonts, tracking scripts, external CDNs)
 - Conditional build/test (if production code changed)
 
 ## Installation
@@ -34,7 +35,7 @@ Copy-Item -Path .github\hooks\pre-push -Destination .git\hooks\pre-push -Force
 git update-index --chmod=+x .git/hooks/pre-push
 ```
 
-### Linux/macOS (Bash):
+### Linux/macOS:
 ```bash
 # Create hooks directory if it doesn't exist
 mkdir -p .git/hooks
@@ -58,20 +59,23 @@ git push --no-verify
 
 You can also run validation manually without pushing:
 
-### Windows:
+### All platforms (PowerShell Core - required):
 ```powershell
-.\.github\scripts\validate-local.ps1
+pwsh .github/scripts/local-ci.ps1
 ```
 
-### Linux/macOS:
-```bash
-bash .github/scripts/validate-local.sh
+### Windows (Windows PowerShell):
+```powershell
+.\.github\scripts\local-ci.ps1
 ```
+
+**Note:** PowerShell Core (pwsh) is required and works on all platforms. Install from https://github.com/PowerShell/PowerShell
 
 ## Required Tools
 
 The validation scripts will check for required tools and provide installation instructions if any are missing:
 
+- **PowerShell Core (pwsh)** - Recommended for all platforms (install from https://github.com/PowerShell/PowerShell)
 - **TruffleHog** - Secret scanning
 - **Trivy** - Security audit
 - **markdownlint-cli2** - Markdown linting
@@ -87,4 +91,4 @@ If the hook fails to run:
 3. Ensure PowerShell or Bash is available in your PATH
 4. Try running validation manually to see detailed error messages
 
-For more information, see `.github/scripts/validate-local.ps1` or `.github/scripts/validate-local.sh`.
+For more information, see `.github/scripts/local-ci.ps1`.

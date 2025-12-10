@@ -1,78 +1,94 @@
-import React from 'react';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import FormHelperText from '@mui/material/FormHelperText';
-import Skeleton from '@mui/material/Skeleton';
+import React, { useMemo } from 'react';
+import * as Select from '@radix-ui/react-select';
 import type { FlagSpec } from '@/flags/schema';
 
 export interface FlagSelectorProps {
-  value: string;
+  /** Available flags to choose from */
   flags: FlagSpec[];
-  onChange: (flagId: string) => void;
-  isLoading?: boolean; // NEW: Track if flags are being loaded
+  /** Currently selected flag ID */
+  selectedFlagId: string | null;
+  /** Callback when selection changes */
+  onFlagChange: (flagId: string | null) => void;
 }
 
 /**
- * Flag selection dropdown component
- * Memoized to prevent re-renders when props unchanged
+ * FlagSelector - Dropdown for selecting a flag from categorized groups
+ * 
+ * Single Responsibility: Flag selection UI with Radix Select primitive
  */
-function FlagSelectorComponent({ value, flags, onChange, isLoading = false }: FlagSelectorProps) {
-  // Get the currently selected flag display name for aria-describedby
-  const selectedFlag = flags.find(f => f.id === value);
-  const flagDescription = selectedFlag 
-    ? `${selectedFlag.displayName} selected` 
-    : 'No flag selected';
-  
-  // Show skeleton loader while flags are being loaded
-  if (isLoading) {
-    return (
-      <FormControl fullWidth>
-        <Skeleton 
-          variant="rectangular" 
-          height={56} 
-          sx={{ borderRadius: 1 }}
-          aria-label="Loading flags..."
-          role="status"
-          aria-busy="true"
-        />
-        <FormHelperText>
-          <Skeleton width="60%" />
-        </FormHelperText>
-      </FormControl>
-    );
-  }
-  
+export function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelectorProps) {
+  // Group flags by category and only include categories that have flags
+  // Memoized to prevent recalculation on every render
+  const flagsByCategory = useMemo(() => {
+    return flags.reduce((acc, flag) => {
+      if (!flag.category) return acc;
+      if (!acc[flag.category]) {
+        acc[flag.category] = [];
+      }
+      acc[flag.category].push(flag);
+      return acc;
+    }, {} as Record<string, typeof flags>);
+  }, [flags]);
+
+  // Get unique categories that have flags, sorted by displayOrder
+  const categories = useMemo(() => {
+    const categoryKeys = Object.keys(flagsByCategory);
+    // Get displayOrder from first flag in each category
+    return categoryKeys.sort((a, b) => {
+      const orderA = flagsByCategory[a]?.[0]?.categoryDisplayOrder ?? 999;
+      const orderB = flagsByCategory[b]?.[0]?.categoryDisplayOrder ?? 999;
+      return orderA - orderB;
+    });
+  }, [flagsByCategory]);
+
+  /**
+   * Get display name for a category from the first flag that has it (from source of truth)
+   * 
+   * Categories are resolved from flag-data.yaml through the fetch-flags script,
+   * which preserves the original display name in categoryDisplayName. If for some reason
+   * categoryDisplayName is missing, we fall back to the category code as a last resort.
+   */
+  const getCategoryDisplayName = (category: string): string => {
+    const flagsInCategory = flagsByCategory[category];
+    if (flagsInCategory && flagsInCategory.length > 0) {
+      const firstFlag = flagsInCategory[0];
+      // Use categoryDisplayName from source of truth if available, otherwise fall back to category code
+      return firstFlag.categoryDisplayName ?? category;
+    }
+    return category;
+  };
+
   return (
-    <FormControl fullWidth>
-      <InputLabel id="flag-select-label">Select a flag</InputLabel>
-      <Select 
-        value={value} 
-        onChange={(e) => onChange(e.target.value)} 
-        label="Select a flag"
-        labelId="flag-select-label"
-        aria-describedby="flag-select-description flag-helper-text"
+    <div className="flag-selector">
+      <Select.Root 
+        value={selectedFlagId ?? ''} 
+        onValueChange={(value) => onFlagChange(value || null)}
       >
-        <MenuItem value="">
-          <em>None</em>
-        </MenuItem>
-        {flags.map((flag) => (
-          <MenuItem key={flag.id} value={flag.id}>
-            {flag.displayName}
-          </MenuItem>
-        ))}
-      </Select>
-      <span id="flag-select-description" className="visually-hidden">
-        {flagDescription}. Choose a flag to add as a border to your avatar.
-      </span>
-      {!value && (
-        <FormHelperText id="flag-helper-text">
-          Select a flag to add a colorful border to your avatar
-        </FormHelperText>
-      )}
-    </FormControl>
+        <Select.Trigger className="flag-select-trigger" aria-label="Choose a flag">
+          <Select.Value placeholder="Choose a flag" />
+          <Select.Icon className="flag-select-icon">▼</Select.Icon>
+        </Select.Trigger>
+
+        <Select.Portal>
+          <Select.Content className="flag-select-content" position="popper">
+            <Select.Viewport>
+              {categories.map((category) => (
+                <Select.Group key={category}>
+                  <Select.Label className="flag-select-label">
+                    {getCategoryDisplayName(category)}
+                  </Select.Label>
+                  {flagsByCategory[category].map((flag) => (
+                    <Select.Item key={flag.id} value={flag.id} className="flag-select-item">
+                      <Select.ItemText>{flag.displayName}</Select.ItemText>
+                    </Select.Item>
+                  ))}
+                </Select.Group>
+              ))}
+            </Select.Viewport>
+          </Select.Content>
+        </Select.Portal>
+      </Select.Root>
+    </div>
   );
 }
 
-export const FlagSelector = React.memo(FlagSelectorComponent);

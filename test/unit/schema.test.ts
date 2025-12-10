@@ -8,18 +8,12 @@ describe('flags schema', () => {
       name: 'Transgender Pride Flag',
       displayName: 'Trans Pride',
       category: 'oppressed',
-      sources: {},
-      status: 'active',
-      png_full: 'trans-pride.png', // Required field
-      pattern: {
-        type: 'stripes',
-        orientation: 'horizontal',
-        stripes: [
-          { color: '#5BCEFA', weight: 1 },
-          { color: '#F5A9B8', weight: 1 },
-        ],
+      png_full: 'trans-pride.png',
+      modes: {
+        ring: {
+          colors: ['#5BCEFA', '#F5A9B8'],
+        },
       },
-      recommended: { borderStyle: 'ring-stripes', defaultThicknessPct: 10 },
     }
     const parsed = FlagSpec.parse(specimen)
     expect(parsed.id).toBe('trans-pride')

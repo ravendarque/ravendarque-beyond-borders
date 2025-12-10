@@ -38,15 +38,13 @@ describe('flags data', () => {
     }
   })
 
-  it('all flags have color layout data', () => {
+  it('all flags have color data in modes.ring.colors', () => {
     for (const flag of flags) {
-      const hasPattern = flag.pattern && flag.pattern.stripes && flag.pattern.stripes.length > 0
-      const hasLayout = flag.layouts && flag.layouts.length > 0 && 
-                       flag.layouts[0].colors && flag.layouts[0].colors.length > 0
+      const hasRingColors = flag.modes?.ring?.colors && flag.modes.ring.colors.length > 0
       
       expect(
-        hasPattern || hasLayout,
-        `Flag ${flag.id} missing both pattern.stripes and layouts[0].colors`
+        hasRingColors,
+        `Flag ${flag.id} missing modes.ring.colors`
       ).toBe(true)
     }
   })

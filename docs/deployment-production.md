@@ -2,7 +2,7 @@
 
 ## Workflow
 
-File: `.github/workflows/deploy-pages.yml`
+File: `.github/workflows/deploy-main.yml`
 
 ## Triggers
 

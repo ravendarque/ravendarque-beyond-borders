@@ -6,10 +6,17 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   // Set base URL for deployment
   // Priority: BASE_URL env var > production default > dev default
-  // BASE_URL is used for UAT deployments (e.g., /ravendarque-beyond-borders/uat/branch-name/)
+  // BASE_URL is used for beta deployments (e.g., /beta/0.2.136-pr/)
+  // Production uses / for custom domain (wearebeyondborders.com)
   base: process.env.BASE_URL || 
-        (process.env.NODE_ENV === 'production' ? '/ravendarque-beyond-borders/' : '/'),
+        (process.env.NODE_ENV === 'production' ? '/' : '/'),
   plugins: [react()],
+  server: {
+    // Optimize static file serving
+    fs: {
+      strict: false,
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -19,13 +26,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Keep React and MUI together in vendor chunk
-          // MUI depends on React and they must share the same React instance
+          // Keep React together in vendor chunk
           if (id.includes('node_modules/react') || 
               id.includes('node_modules/react-dom') ||
-              id.includes('node_modules/scheduler') ||
-              id.includes('node_modules/@mui') || 
-              id.includes('node_modules/@emotion')) {
+              id.includes('node_modules/scheduler')) {
             return 'vendor';
           }
           
@@ -42,11 +46,10 @@ export default defineConfig({
       },
     },
     // Increase chunk size warning limit to accommodate vendor chunk
-    // Vendor chunk includes React + MUI which is larger but necessary
     chunkSizeWarningLimit: 700,
   },
   test: {
-    environment: 'jsdom',
+    environment: 'happy-dom',
     globals: true,
     setupFiles: ['./test/setup.ts'],
     exclude: [

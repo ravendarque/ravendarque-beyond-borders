@@ -11,30 +11,22 @@ describe('flag-validation', () => {
         displayName: 'Test Flag',
         png_full: '/flags/test-flag.png',
         category: 'oppressed',
-        sources: {},
-        status: 'active',
-        pattern: {
-          type: 'stripes',
-          stripes: [
-            { color: '#FF0000', weight: 1 },
-            { color: '#00FF00', weight: 1 },
-            { color: '#0000FF', weight: 1 }
-          ],
-          orientation: 'horizontal'
+        modes: {
+          ring: {
+            colors: ['#FF0000', '#00FF00', '#0000FF'],
+          },
         },
-        recommended: {
-          borderStyle: 'ring-stripes',
-          defaultThicknessPct: 10
-        }
       }
 
       expect(() => validateFlagPattern(validFlag)).not.toThrow()
     })
 
-    it('should throw if pattern is missing', () => {
+    it('should throw if modes.ring.colors is missing', () => {
       const invalidFlag = {
-        id: 'no-pattern',
-        name: 'No Pattern'
+        id: 'no-colors',
+        name: 'No Colors',
+        displayName: 'No Colors',
+        category: 'oppressed',
       } as any
 
       expect(() => validateFlagPattern(invalidFlag))
@@ -43,17 +35,23 @@ describe('flag-validation', () => {
       try {
         validateFlagPattern(invalidFlag)
       } catch (err: any) {
-        expect(err.message).toContain('missing pattern data')
-        expect(err.flagId).toBe('no-pattern')
-        expect(err.field).toBe('pattern')
+        expect(err.message).toContain('missing modes.ring.colors')
+        expect(err.flagId).toBe('no-colors')
+        expect(err.field).toBe('modes.ring.colors')
       }
     })
 
-    it('should throw if stripes array is missing', () => {
+    it('should throw if colors array is empty', () => {
       const invalidFlag = {
-        id: 'no-stripes',
-        name: 'No Stripes',
-        pattern: {}
+        id: 'empty-colors',
+        name: 'Empty Colors',
+        displayName: 'Empty Colors',
+        category: 'oppressed',
+        modes: {
+          ring: {
+            colors: [],
+          },
+        },
       } as any
 
       expect(() => validateFlagPattern(invalidFlag))
@@ -62,42 +60,22 @@ describe('flag-validation', () => {
       try {
         validateFlagPattern(invalidFlag)
       } catch (err: any) {
-        expect(err.message).toContain('missing stripes array')
-        expect(err.flagId).toBe('no-stripes')
+        expect(err.message).toContain('at least 1 color')
+        expect(err.flagId).toBe('empty-colors')
       }
     })
 
-    it('should throw if stripes array is empty', () => {
-      const invalidFlag = {
-        id: 'empty-stripes',
-        name: 'Empty Stripes',
-        pattern: {
-          stripes: [],
-          orientation: 'horizontal'
-        }
-      } as any
-
-      expect(() => validateFlagPattern(invalidFlag))
-        .toThrow(FlagValidationError)
-      
-      try {
-        validateFlagPattern(invalidFlag)
-      } catch (err: any) {
-        expect(err.message).toContain('at least 1 stripe')
-        expect(err.flagId).toBe('empty-stripes')
-      }
-    })
-
-    it('should throw if stripe has invalid color', () => {
+    it('should throw if color has invalid hex format', () => {
       const invalidFlag = {
         id: 'bad-color',
         name: 'Bad Color',
-        pattern: {
-          stripes: [
-            { color: 'not-a-hex', weight: 1 }
-          ],
-          orientation: 'horizontal'
-        }
+        displayName: 'Bad Color',
+        category: 'oppressed',
+        modes: {
+          ring: {
+            colors: ['not-a-hex'],
+          },
+        },
       } as any
 
       expect(() => validateFlagPattern(invalidFlag))
@@ -112,16 +90,17 @@ describe('flag-validation', () => {
       }
     })
 
-    it('should throw if stripe is missing color', () => {
+    it('should throw if color is missing', () => {
       const invalidFlag = {
         id: 'no-color',
         name: 'No Color',
-        pattern: {
-          stripes: [
-            { weight: 1 } as any
-          ],
-          orientation: 'horizontal'
-        }
+        displayName: 'No Color',
+        category: 'oppressed',
+        modes: {
+          ring: {
+            colors: [null, '#00FF00'],
+          },
+        },
       } as any
 
       expect(() => validateFlagPattern(invalidFlag))
@@ -130,47 +109,24 @@ describe('flag-validation', () => {
       try {
         validateFlagPattern(invalidFlag)
       } catch (err: any) {
-        expect(err.message).toContain('missing color')
+        expect(err.message).toContain('missing')
         expect(err.flagId).toBe('no-color')
       }
     })
 
-    it('should throw if stripe has invalid weight', () => {
-      const invalidFlag = {
-        id: 'bad-weight',
-        name: 'Bad Weight',
-        pattern: {
-          stripes: [
-            { color: '#FF0000', weight: 0 }
-          ],
-          orientation: 'horizontal'
-        }
-      } as any
-
-      expect(() => validateFlagPattern(invalidFlag))
-        .toThrow(FlagValidationError)
-      
-      try {
-        validateFlagPattern(invalidFlag)
-      } catch (err: any) {
-        expect(err.message).toContain('non-positive weight')
-        expect(err.flagId).toBe('bad-weight')
-      }
-    })
-
-    it('should throw if too many stripes', () => {
-      const tooManyStripes = Array(51).fill(null).map(() => ({
-        color: '#FF0000',
-        weight: 1
-      }))
+    it('should throw if too many colors', () => {
+      const tooManyColors = Array(51).fill('#FF0000')
 
       const invalidFlag = {
         id: 'too-many',
         name: 'Too Many',
-        pattern: {
-          stripes: tooManyStripes,
-          orientation: 'horizontal'
-        }
+        displayName: 'Too Many',
+        category: 'oppressed',
+        modes: {
+          ring: {
+            colors: tooManyColors,
+          },
+        },
       } as any
 
       expect(() => validateFlagPattern(invalidFlag))
@@ -179,7 +135,7 @@ describe('flag-validation', () => {
       try {
         validateFlagPattern(invalidFlag)
       } catch (err: any) {
-        expect(err.message).toContain('too many stripes')
+        expect(err.message).toContain('too many colors')
         expect(err.message).toContain('51')
         expect(err.flagId).toBe('too-many')
       }
@@ -189,13 +145,13 @@ describe('flag-validation', () => {
       const validFlag = {
         id: 'short-hex',
         name: 'Short Hex',
-        pattern: {
-          stripes: [
-            { color: '#F00', weight: 1 },
-            { color: '#0F0', weight: 1 }
-          ],
-          orientation: 'horizontal'
-        }
+        displayName: 'Short Hex',
+        category: 'oppressed',
+        modes: {
+          ring: {
+            colors: ['#F00', '#0F0'],
+          },
+        },
       } as any
 
       expect(() => validateFlagPattern(validFlag)).not.toThrow()
@@ -205,30 +161,13 @@ describe('flag-validation', () => {
       const validFlag = {
         id: 'long-hex',
         name: 'Long Hex',
-        pattern: {
-          stripes: [
-            { color: '#FF0000', weight: 1 },
-            { color: '#00FF00', weight: 1 }
-          ],
-          orientation: 'horizontal'
-        }
-      } as any
-
-      expect(() => validateFlagPattern(validFlag)).not.toThrow()
-    })
-
-    it('should validate flags with different weights', () => {
-      const validFlag = {
-        id: 'weighted',
-        name: 'Weighted',
-        pattern: {
-          stripes: [
-            { color: '#FF0000', weight: 2 },
-            { color: '#00FF00', weight: 1 },
-            { color: '#0000FF', weight: 3 }
-          ],
-          orientation: 'horizontal'
-        }
+        displayName: 'Long Hex',
+        category: 'oppressed',
+        modes: {
+          ring: {
+            colors: ['#FF0000', '#00FF00'],
+          },
+        },
       } as any
 
       expect(() => validateFlagPattern(validFlag)).not.toThrow()
@@ -238,20 +177,20 @@ describe('flag-validation', () => {
       const invalidFlag = {
         id: 'test',
         name: 'Test',
-        pattern: {
-          stripes: [
-            { color: '#FF0000', weight: 1 },
-            { color: 'bad', weight: 1 }
-          ],
-          orientation: 'horizontal'
-        }
+        displayName: 'Test',
+        category: 'oppressed',
+        modes: {
+          ring: {
+            colors: ['#FF0000', 'bad'],
+          },
+        },
       } as any
 
       try {
         validateFlagPattern(invalidFlag)
         expect.fail('Should have thrown')
       } catch (err: any) {
-        expect(err.field).toContain('stripes[1].color')
+        expect(err.field).toContain('modes.ring.colors[1]')
       }
     })
   })

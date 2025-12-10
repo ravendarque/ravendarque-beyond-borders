@@ -38,10 +38,13 @@ This ensures only validated, tested code is deployed to beta.
 
 ## Beta URLs
 
-- **Beta Index**: `https://ravendarque.github.io/ravendarque-beyond-borders/beta/`
-- **Version Deployment**: `https://ravendarque.github.io/ravendarque-beyond-borders/beta/<semver>/`
-
-Example: `https://ravendarque.github.io/ravendarque-beyond-borders/beta/0.1.0/`
+- **Custom Domain (Primary):**
+  - **Beta Index**: `https://wearebeyondborders.com/beta/`
+  - **Version Deployment**: `https://wearebeyondborders.com/beta/<semver>/`
+  - Example: `https://wearebeyondborders.com/beta/0.1.0/`
+- **GitHub Pages (Fallback):**
+  - **Beta Index**: `https://ravendarque.github.io/ravendarque-beyond-borders/beta/`
+  - **Version Deployment**: `https://ravendarque.github.io/ravendarque-beyond-borders/beta/<semver>/`
 
 ## Version Management
 
@@ -188,7 +191,7 @@ export default defineConfig({
 });
 ```
 
-The workflow sets `BASE_URL=/ravendarque-beyond-borders/beta/<semver>/` during build.
+The workflow sets `BASE_URL=/beta/<semver>/` during build (for custom domain).
 
 ## Best Practices
 
@@ -310,7 +313,7 @@ gh workflow run cleanup-beta.yml -f version=0.1.0
 
 ### View All Beta Deployments
 
-Visit: `https://ravendarque.github.io/ravendarque-beyond-borders/beta/`
+Visit: `https://wearebeyondborders.com/beta/`
 
 ## Related Documentation
 

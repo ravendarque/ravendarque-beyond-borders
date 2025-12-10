@@ -1,684 +1,427 @@
-import React, { useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { ThemeModeContext } from '../main';
+import React, { useState, useEffect, useMemo } from 'react';
 import { flags } from '@/flags/flags';
-import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
-import { useFocusManagement } from '@/hooks/useFocusManagement';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { useFlagPreloader } from '@/hooks/useFlagPreloader';
-import { useStepWorkflow, Step } from '@/hooks/useStepWorkflow';
-import {
-  StepProgressIndicator,
-  NavigationButtons,
-  FlagDropdown,
-  FlagPreview,
-  PresentationControls,
-  AvatarPreview,
-  SliderControl,
-} from '@/components';
-import { ErrorAlert } from '@/components/ErrorAlert';
+import { useFlagImageCache } from '@/hooks/useFlagImageCache';
+import { useStepNavigation } from '@/hooks/useStepNavigation';
+import { useDebounce } from '@/hooks/usePerformance';
+import { getAssetUrl } from '@/config';
+import { FlagSelector } from '@/components/FlagSelector';
+import { FlagPreview } from '@/components/FlagPreview';
+import { ImageUploadZone } from '@/components/ImageUploadZone';
+import { Link } from 'react-router-dom';
+import { AdjustStep } from '@/components/AdjustStep';
+import { PrivacyModal } from '@/components/PrivacyModal';
+import type { PresentationMode } from '@/components/PresentationModeSelector';
+import '../styles.css';
 
-import FileUploadIcon from '@mui/icons-material/UploadFile';
-import IconButton from '@mui/material/IconButton';
-import Button from '@mui/material/Button';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import toast, { Toaster } from 'react-hot-toast';
-import type { AppError } from '@/types/errors';
-import { normalizeError } from '@/types/errors';
-
-const STEP_TITLES = ['Image', 'Flag', 'Adjust'];
+/**
+ * AppStepWorkflow - Main application component
+ * 
+ * Three-step workflow for creating profile picture with flag border:
+ * 1. Upload image
+ * 2. Select flag
+ * 3. Adjust and download
+ * 
+ * Responsibilities:
+ * - Orchestrate workflow state (image, flag, step)
+ * - Coordinate rendering pipeline
+ * - Render step-specific UI
+ */
+const STORAGE_KEY_IMAGE = 'beyond-borders-image';
+const STORAGE_KEY_FLAG = 'beyond-borders-flag';
 
 export function AppStepWorkflow() {
-  const { mode, setMode } = useContext(ThemeModeContext);
-  const theme = useTheme();
-
-  // Responsive breakpoints
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  // Restore state from sessionStorage on mount
+  const [imageUrl, setImageUrl] = useState<string | null>(() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY_IMAGE);
+      // If it's a data URL, use it directly; if it's a blob URL, it's invalid now
+      return stored && stored.startsWith('data:') ? stored : null;
+    } catch {
+      return null;
+    }
+  });
+  const [flagId, setFlagId] = useState<string | null>(() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY_FLAG);
+      return stored ? stored : null;
+    } catch {
+      return null;
+    }
+  });
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   
-  // Constants
-  const size = 1024 as const;
-  const displaySize = isMobile ? Math.min(window.innerWidth - 80, 280) : isTablet ? 320 : 300;
-
-  // Step workflow state - handles imageUrl, flagId, and navigation
-  const {
-    currentStep,
-    nextStep,
-    prevStep,
-    goToStep,
-    startOver,
-    completedSteps,
-    imageUrl,
-    setImageUrl,
-    flagId,
-    setFlagId,
-  } = useStepWorkflow();
-
-  // App state (local to this component)
-  const [presentation, setPresentation] = useState<'ring' | 'segment' | 'cutout'>('ring');
-  const [thickness, setThickness] = useState(7);
+  // Step 3: Adjust controls state
+  const [thickness, setThickness] = useState(10);
   const [insetPct, setInsetPct] = useState(0);
   const [flagOffsetX, setFlagOffsetX] = useState(0);
-  const [bg, setBg] = useState<string | 'transparent'>('transparent');
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [isCopying, setIsCopying] = useState(false);
-  const [error, setError] = useState<AppError | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>('');
-  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-
-  // Refs
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  // Custom hooks - flags are now statically imported
+  const [presentation, setPresentation] = useState<PresentationMode>('ring');
+  const [segmentRotation, setSegmentRotation] = useState(0);
+  
+  // Step navigation with URL sync
+  const {
+    currentStep,
+    setCurrentStep,
+    goToNext,
+    goToPrevious,
+    canGoToStep2,
+    canGoToStep3,
+  } = useStepNavigation({
+    imageUrl,
+    flagId,
+  });
+  
+  // Avatar rendering
   const flagImageCache = useFlagImageCache();
   const { overlayUrl, isRendering, render } = useAvatarRenderer(flags, flagImageCache);
-  const { focusRef: errorFocusRef, setFocus: focusError } = useFocusManagement<HTMLDivElement>();
-  useFlagPreloader(flags, flagImageCache, flagId);
-
-  /**
-   * Handle image selection
-   */
-  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const url = URL.createObjectURL(file);
-    setImageUrl(url);
-    setStatusMessage('Image selected successfully. Ready to select flag.');
-  }
   
-  /**
-   * Handle flag selection change
-   */
-  function handleFlagChange(id: string | null) {
-    setFlagId(id || '');
-  }
+  // Memoize selected flag to prevent unnecessary re-renders
+  const selectedFlag = useMemo(() => {
+    return flagId ? flags.find(f => f.id === flagId) ?? null : null;
+  }, [flagId]);
 
-  /**
-   * Render avatar with current settings
-   */
-  const renderWithImageUrl = useCallback(async (specificImageUrl: string) => {
-    try {
-      setStatusMessage('Rendering avatar...');
-      await render(specificImageUrl, flagId, {
-        size,
-        thickness,
-        insetPct,
-        flagOffsetX,
-        presentation,
-        bg,
-      });
-      setError(null);
-      setStatusMessage('Avatar rendered successfully. Ready to download.');
-    } catch (err) {
-      const normalizedError = normalizeError(err);
-      setError(normalizedError);
-      toast.error(`Render failed: ${normalizedError.message}`);
-      setStatusMessage(`Error: ${normalizedError.message}`);
-    }
-  }, [render, flagId, size, thickness, insetPct, flagOffsetX, presentation, bg]);
-
-  /**
-   * Auto-render when image, flag, or settings change
-   */
+  // Set default offset when flag changes or when switching to cutout mode
   useEffect(() => {
-    if (imageUrl && flagId) {
-      void renderWithImageUrl(imageUrl);
+    if (presentation === 'cutout') {
+      const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
+      if (defaultOffset !== undefined) {
+        // Convert percentage (-50 to 50) to pixels
+        // For a 512px canvas, -50% = -256px, 0% = 0px, 50% = 256px
+        const defaultOffsetPx = (defaultOffset / 100) * 512;
+        setFlagOffsetX(defaultOffsetPx);
+      } else {
+        // If in cutout mode but flag doesn't have cutout config, reset to 0
+        setFlagOffsetX(0);
+      }
     }
-  }, [imageUrl, flagId, renderWithImageUrl]);
+  }, [flagId, presentation, selectedFlag?.modes?.cutout?.defaultOffset, setFlagOffsetX]);
 
-  /**
-   * Cleanup: revoke imageUrl on unmount
-   */
+  // Preload full flag image when flag is selected (needed for cutout mode)
   useEffect(() => {
-    return () => {
-      if (imageUrl) {
-        URL.revokeObjectURL(imageUrl);
+    if (!selectedFlag?.png_full) return;
+
+    const cacheKey = selectedFlag.png_full;
+    
+    // Skip if already cached
+    if (flagImageCache.has(cacheKey)) return;
+
+    // Preload the full flag image asynchronously
+    const preloadFlag = async () => {
+      try {
+        const response = await fetch(getAssetUrl(`flags/${selectedFlag.png_full}`));
+        if (!response.ok) return;
+        
+        const blob = await response.blob();
+        const bitmap = await createImageBitmap(blob);
+        flagImageCache.set(cacheKey, bitmap);
+      } catch (error) {
+        // Silent fail - preloading is best-effort
+        // Error logged in development via debug logging if needed
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.warn('[Preload] Failed to preload flag image:', error);
+        }
       }
     };
+
+    void preloadFlag();
+  }, [selectedFlag?.png_full, flagImageCache]);
+
+  // Debounce slider values for smoother rendering during drag
+  const debouncedThickness = useDebounce(thickness, 50);
+  const debouncedInsetPct = useDebounce(insetPct, 50);
+  const debouncedFlagOffsetX = useDebounce(flagOffsetX, 50);
+  const debouncedSegmentRotation = useDebounce(segmentRotation, 50);
+
+  // Trigger render when parameters change (Step 3)
+  useEffect(() => {
+    if (currentStep === 3 && imageUrl && flagId) {
+      render(imageUrl, flagId, {
+        size: 512,
+        thickness: debouncedThickness,
+        insetPct: debouncedInsetPct,
+        flagOffsetX: debouncedFlagOffsetX,
+        presentation,
+        segmentRotation: debouncedSegmentRotation,
+        bg: 'transparent',
+      });
+    }
+  }, [currentStep, imageUrl, flagId, debouncedThickness, debouncedInsetPct, debouncedFlagOffsetX, presentation, debouncedSegmentRotation, render]);
+
+  // Persist imageUrl to sessionStorage
+  useEffect(() => {
+    try {
+      if (imageUrl) {
+        sessionStorage.setItem(STORAGE_KEY_IMAGE, imageUrl);
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY_IMAGE);
+      }
+    } catch {
+      // Ignore storage errors (e.g., private browsing)
+    }
   }, [imageUrl]);
 
-  /**
-   * Focus on error when it appears
-   */
+  // Persist flagId to sessionStorage
   useEffect(() => {
-    if (error) {
-      setTimeout(() => focusError(), 100);
-    }
-  }, [error, focusError]);
-
-  /**
-   * Download rendered avatar
-   */
-  async function handleDownload() {
-    if (!overlayUrl) return;
     try {
-      setIsDownloading(true);
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const a = document.createElement('a');
-      a.href = overlayUrl;
-      a.download = 'avatar-with-border.png';
-      a.click();
-      toast.success('Avatar downloaded successfully!');
-      setStatusMessage('Avatar downloaded successfully.');
-    } catch {
-      toast.error('Failed to download avatar');
-      setStatusMessage('Failed to download avatar.');
-    } finally {
-      setIsDownloading(false);
-    }
-  }
-
-  /**
-   * Copy avatar to clipboard
-   */
-  async function handleCopy() {
-    if (!overlayUrl) return;
-
-    try {
-      setIsCopying(true);
-      
-      if (!navigator.clipboard || !window.ClipboardItem) {
-        const message = 'Copy to clipboard not supported in this browser';
-        toast.error(message);
-        setStatusMessage(message);
-        setError(normalizeError(new Error('Clipboard API not supported')));
-        return;
+      if (flagId) {
+        sessionStorage.setItem(STORAGE_KEY_FLAG, flagId);
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY_FLAG);
       }
-
-      const response = await fetch(overlayUrl);
-      const blob = await response.blob();
-      const item = new ClipboardItem({ 'image/png': blob });
-      await navigator.clipboard.write([item]);
-
-      toast.success('Avatar copied to clipboard!');
-      setStatusMessage('Avatar copied to clipboard!');
-      setError(null);
-    } catch (err) {
-      const message = 'Failed to copy to clipboard';
-      toast.error(message);
-      setStatusMessage(message);
-      setError(normalizeError(err));
-    } finally {
-      setIsCopying(false);
+    } catch {
+      // Ignore storage errors (e.g., private browsing)
     }
-  }
+  }, [flagId]);
 
-  /**
-   * Keyboard shortcuts
-   */
-  useKeyboardShortcuts([
-    {
-      key: 'd',
-      ctrlKey: true,
-      callback: (e) => {
-        e.preventDefault();
-        handleDownload();
-      },
-      description: 'Download avatar',
-      enabled: !!overlayUrl,
-    },
-  ]);
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Convert file to data URL for persistence across navigation
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      setImageUrl(dataUrl);
+    };
+    reader.onerror = () => {
+      // Fallback to blob URL if data URL conversion fails
+      const url = URL.createObjectURL(file);
+      setImageUrl(url);
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  const handleDownload = () => {
+    if (!overlayUrl) return;
+    const a = document.createElement('a');
+    a.href = overlayUrl;
+    a.download = `beyond-borders-avatar-${Date.now()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
-  // Find selected flag object for preview
-  const selectedFlag = flags.find(f => f.id === flagId) || null;
-
-  // Determine if we can proceed to next step
-  const canProceedFromStep1 = !!imageUrl;
-  const canProceedFromStep2 = !!flagId;
+  const handleStartOver = () => {
+    setImageUrl(null);
+    setFlagId(null);
+    setCurrentStep(1);
+    setThickness(10);
+    setInsetPct(0);
+    setFlagOffsetX(0);
+    setPresentation('ring');
+    setSegmentRotation(0);
+    try {
+      sessionStorage.removeItem(STORAGE_KEY_IMAGE);
+      sessionStorage.removeItem(STORAGE_KEY_FLAG);
+    } catch {
+      // Ignore storage errors
+    }
+  };
 
   return (
     <>
-      {/* Toast Notifications */}
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: mode === 'dark' ? '#333' : '#fff',
-            color: mode === 'dark' ? '#fff' : '#333',
-          },
-        }}
-      />
-
-      {/* Screen Reader Announcements */}
+      {/* Screen reader announcements */}
       <div role="status" aria-live="polite" aria-atomic="true" className="visually-hidden">
-        {statusMessage}
-      </div>
-      <div role="alert" aria-live="assertive" aria-atomic="true" className="visually-hidden">
-        {error ? `Error: ${error.message}` : ''}
+        Step {currentStep} of 3
       </div>
 
-      {/* Main Container */}
-      <Box
-        component="main"
-        id="main-content"
-        aria-labelledby="app-title"
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          py: { xs: 2, sm: 3 },
-          px: { xs: 2, sm: 3 },
-        }}
-      >
-        {/* Dark Mode Toggle - Fixed Position */}
-        <IconButton 
-          size={isMobile ? 'large' : 'medium'}
-          onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
-          aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}
-        >
-          {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
-        </IconButton>
+      {/* Main Canvas Container */}
+      <main className="canvas" role="presentation" aria-label="Beyond Borders Application">
+        {/* Header */}
+        <header className="app-header">
+          <h1 className="app-title">Beyond Borders</h1>
+          <p className="app-subtitle">Add a flag border to your profile picture</p>
+        </header>
 
-        {/* Centered Content Column */}
-        <Box sx={{ maxWidth: 600, width: '100%', mx: 'auto' }}>
-          {/* Header */}
-          <Box component="header" role="banner" sx={{ mb: { xs: 1.5, sm: 3 }, textAlign: 'center' }}>
-            <Typography variant="h4" component="h1" id="app-title" sx={{ fontWeight: 700, mb: 1 }}>
-              Beyond Borders
-            </Typography>
-            <Typography variant="subtitle1" color="textSecondary" component="p">
-              Add a circular, flag-colored border to your profile picture.
-            </Typography>
-          </Box>
+        {/* Content Wrapper */}
+        <div className="content-wrapper">
+          {/* Background */}
+          <div className="content-bg" aria-hidden="true"></div>
 
-          {/* Step Progress Indicator */}
-          <StepProgressIndicator
-            currentStep={currentStep}
-            completedSteps={completedSteps}
-            steps={STEP_TITLES.map((title, index) => ({
-              number: (index + 1) as Step,
-              label: title,
-              title: title,
-            }))}
-            onStepClick={goToStep}
-          />
+          {/* Progress indicators */}
+          <div className="progress-row">
+            <div className={`progress ${currentStep > 1 ? 'completed' : currentStep === 1 ? 'active' : 'upcoming'}`}>
+              <span><span className="progress-number">1/</span>IMAGE</span>
+            </div>
+            <div className={`progress ${currentStep > 2 ? 'completed' : currentStep === 2 ? 'active' : 'upcoming'}`}>
+              <span><span className="progress-number">2/</span>FLAG</span>
+            </div>
+            <div className={`progress ${currentStep > 3 ? 'completed' : currentStep === 3 ? 'active' : 'upcoming'}`}>
+              <span><span className="progress-number">3/</span>ADJUST</span>
+            </div>
+          </div>
 
-          {/* Error Display */}
-          {error && (
-            <Box ref={errorFocusRef} tabIndex={-1} sx={{ mb: { xs: 1.5, sm: 2 }, outline: 'none' }}>
-              <ErrorAlert
-                error={error}
-                onRetry={() => {
-                  setError(null);
-                  if (imageUrl && flagId) {
-                    renderWithImageUrl(imageUrl);
-                  }
-                }}
-                onDismiss={() => setError(null)}
+          {/* Content Area */}
+          <div className="content-area">
+            {/* Step 1: Image Upload */}
+            {currentStep === 1 && (
+              <ImageUploadZone
+                imageUrl={imageUrl}
+                onImageUpload={handleImageUpload}
+                onShowPrivacy={() => setShowPrivacyModal(true)}
               />
-            </Box>
-          )}
+            )}
 
-          {/* Step Content */}
-          {currentStep === 1 && (
-            <>
-              {/* Hidden file input */}
-              <input
-                ref={inputRef}
-                accept="image/jpeg,image/jpg,image/png"
-                style={{ display: 'none' }}
-                id="step1-file-upload"
-                type="file"
-                onChange={handleImageUpload}
-                aria-label="Choose image file (JPG or PNG, max 10 MB)"
+            {/* Step 2: Flag Selection */}
+            {currentStep === 2 && (
+              <div className="flag-selector-wrapper">
+                <FlagSelector
+                  flags={flags}
+                  selectedFlagId={flagId}
+                  onFlagChange={setFlagId}
+                />
+                <FlagPreview flag={selectedFlag} />
+              </div>
+            )}
+
+            {/* Step 3: Adjust */}
+            {currentStep === 3 && (
+              <AdjustStep
+                overlayUrl={overlayUrl}
+                isRendering={isRendering}
+                selectedFlag={selectedFlag}
+                presentation={presentation}
+                onPresentationChange={setPresentation}
+                thickness={thickness}
+                onThicknessChange={setThickness}
+                insetPct={insetPct}
+                onInsetChange={setInsetPct}
+                flagOffsetX={flagOffsetX}
+                onFlagOffsetChange={setFlagOffsetX}
+                segmentRotation={segmentRotation}
+                onSegmentRotationChange={setSegmentRotation}
               />
-            
-            {/* Clickable preview area */}
-            <Box
-              component="label"
-              htmlFor="step1-file-upload"
-              sx={{
-                width: { xs: '100%', sm: 300 },
-                maxWidth: 300,
-                height: { xs: '100%', sm: 300 },
-                aspectRatio: '1',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: { xs: 2, sm: 3 },
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                ...(imageUrl ? {
-                  // Has image - show preview
-                  backgroundImage: `url(${imageUrl})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  boxShadow: 3,
-                  '&:hover': {
-                    boxShadow: 6,
-                    transform: 'scale(1.02)',
-                  },
-                } : {
-                  // No image - show selection prompt
-                  border: 3,
-                    borderColor: 'grey.300',
-                    borderStyle: 'dashed',
-                    bgcolor: 'grey.50',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'grey.100',
-                    },
-                  }),
-                }}
+            )}
+          </div>
+
+          {/* Navigation Section */}
+          <div className="nav-section">
+            {currentStep === 1 && (
+              <button
+                type="button"
+                className="nav-btn"
+                onClick={goToNext}
+                disabled={!canGoToStep2}
+                aria-label="Go to next step"
               >
-                {!imageUrl && (
-                  <Box sx={{ textAlign: 'center', px: 4 }}>
-                    <FileUploadIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
-                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 'medium' }}>
-                      Choose your profile image
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      or drag and drop it here
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
-                      JPG or PNG
-                    </Typography>
-                    <Box
-                      component="button"
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowPrivacyModal(true);
-                      }}
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        color: 'primary.main',
-                        textDecoration: 'underline',
-                        textDecorationStyle: 'dotted',
-                        fontSize: '0.75rem',
-                        '&:hover': {
-                          color: 'primary.dark',
-                        },
-                        '&:focus-visible': {
-                          outline: '2px solid',
-                          outlineColor: 'primary.main',
-                          outlineOffset: 2,
-                          borderRadius: 0.5,
-                        },
-                      }}
-                      aria-label="Learn about privacy: Your image stays on your device"
-                    >
-                      <InfoOutlinedIcon sx={{ fontSize: 14 }} />
-                      Stays on your device
-                    </Box>
-                  </Box>
-                )}
-              </Box>
-              
-              <Box sx={{ mb: 3 }} />
-              
-              <Box sx={{ width: '100%', maxWidth: 300, mx: 'auto' }}>
-                <NavigationButtons
-                  currentStep={currentStep}
-                  canGoBack={false}
-                  canGoNext={canProceedFromStep1}
-                  onNext={nextStep}
-                  nextLabel="Select Flag"
-                />
-              </Box>
-            </>
-          )}
-
-          {currentStep === 2 && (
-            <>
-              <Stack spacing={3} sx={{ mb: { xs: 2, sm: 3 } }}>
-                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Box sx={{ width: '100%', maxWidth: 320 }}>
-                    <FlagDropdown
-                      flags={flags}
-                      selectedFlagId={flagId}
-                      onChange={handleFlagChange}
-                      disabled={false}
-                    />
-                  </Box>
-                </Box>
-                
-                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <FlagPreview
-                    flag={selectedFlag}
-                    size="large"
-                    animate={true}
-                  />
-                </Box>
-              </Stack>
-
-              <Box sx={{ width: '100%', maxWidth: 300, mx: 'auto' }}>
-                <NavigationButtons
-                  currentStep={currentStep}
-                  canGoBack={true}
-                  canGoNext={canProceedFromStep2}
-                  onBack={prevStep}
-                  onNext={nextStep}
-                  onStartOver={startOver}
-                  backLabel="Back"
-                  nextLabel="Adjust"
-                />
-              </Box>
-            </>
-          )}
-
-          {currentStep === 3 && (
-            <>
-              <Stack spacing={3} sx={{ mb: { xs: 2, sm: 3 } }}>
-                {/* Preview Section */}
-                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                  <AvatarPreview
-                    size={size}
-                    displaySize={displaySize}
-                    canvasRef={canvasRef}
-                    overlayUrl={overlayUrl}
-                    isRendering={isRendering}
-                    hasImage={!!imageUrl}
-                    hasFlag={!!flagId}
-                  />
-                </Box>
-
-                {/* Customization Controls */}
-                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Box sx={{ width: '100%', maxWidth: 400 }}>
-                    <PresentationControls
-                      value={presentation}
-                      onChange={setPresentation}
-                    />
-                  </Box>
-                </Box>
-
-                {/* Adjustment Controls */}
-                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Box sx={{ maxWidth: 400, width: '100%' }}>
-                    <Stack spacing={3}>
-                      <SliderControl
-                        label="Border thickness"
-                        value={thickness}
-                        min={3}
-                        max={20}
-                        step={1}
-                        onChange={setThickness}
-                        unit="%"
-                      />
-
-                      <SliderControl
-                        label="Profile Image Inset/Outset"
-                        value={insetPct}
-                        min={-10}
-                        max={10}
-                        step={1}
-                        onChange={setInsetPct}
-                        unit="%"
-                      />
-
-                      {presentation === 'cutout' && (
-                        <SliderControl
-                          label="Flag Horizontal Offset"
-                          value={flagOffsetX}
-                          min={-200}
-                          max={200}
-                          step={5}
-                          onChange={setFlagOffsetX}
-                          unit="px"
-                        />
-                      )}
-
-                      <FormControl fullWidth>
-                        <InputLabel id="background-select-label">Background</InputLabel>
-                        <Select 
-                          value={bg} 
-                          onChange={(e) => setBg(e.target.value)}
-                          label="Background"
-                          labelId="background-select-label"
-                        >
-                          <MenuItem value="transparent">Transparent</MenuItem>
-                          <MenuItem value="#ffffff">White</MenuItem>
-                          <MenuItem value="#000000">Black</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Stack>
-                  </Box>
-                </Box>
-              </Stack>
-
-              <Box sx={{ mb: 3 }} />
-
-              <Box sx={{ width: '100%', maxWidth: 300, mx: 'auto' }}>
-                <NavigationButtons
-                  currentStep={currentStep}
-                  canGoBack={true}
-                  canGoNext={false}
-                  onBack={prevStep}
-                  onFinish={handleDownload}
-                  onStartOver={startOver}
-                  isLoading={isDownloading}
-                  backLabel="Back"
-                  finishLabel="Download"
-                />
-              </Box>
-
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <Button
-                  variant="text"
-                  onClick={handleCopy}
-                  disabled={!overlayUrl || isCopying}
-                  sx={{ 
-                    color: 'text.secondary',
-                    minHeight: 44, // Accessibility: adequate touch target
-                  }}
+                <span>NEXT →</span>
+              </button>
+            )}
+            
+            {currentStep === 2 && (
+              <div className="step-3-nav">
+                <div className="nav-buttons-row">
+                  <button
+                    type="button"
+                    className="nav-btn"
+                    onClick={goToPrevious}
+                    aria-label="Go to previous step"
+                  >
+                    <span>← BACK</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="nav-btn"
+                    onClick={goToNext}
+                    disabled={!canGoToStep3}
+                    aria-label="Go to next step"
+                  >
+                    <span>NEXT →</span>
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="start-over-btn"
+                  onClick={handleStartOver}
+                  aria-label="Start over with a new image"
                 >
-                  {isCopying ? 'Copying...' : 'Copy to Clipboard'}
-                </Button>
-              </Box>
-            </>
-          )}
-        </Box>
-
-        {/* Privacy Information Modal */}
-        <Dialog
-          open={showPrivacyModal}
-          onClose={() => setShowPrivacyModal(false)}
-          maxWidth="sm"
-          fullWidth
-          aria-labelledby="privacy-dialog-title"
-          aria-describedby="privacy-dialog-description"
-        >
-          <DialogTitle id="privacy-dialog-title">
-            Your Privacy is Protected
-          </DialogTitle>
-          <DialogContent>
-            <Stack spacing={2} sx={{ pt: 1 }}>
-              <Typography variant="body1" id="privacy-dialog-description">
-                Beyond Borders processes everything <strong>directly in your browser</strong>. Your images never leave your device.
-              </Typography>
-              
-              <Typography variant="body2">
-                <strong>What this means:</strong>
-              </Typography>
-              
-              <Box component="ul" sx={{ pl: 2, my: 1 }}>
-                <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-                  ✓ No uploads to servers
-                </Typography>
-                <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-                  ✓ No cloud storage
-                </Typography>
-                <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-                  ✓ No tracking or analytics
-                </Typography>
-                <Typography component="li" variant="body2">
-                  ✓ Complete privacy and control
-                </Typography>
-              </Box>
-              
-              <Typography variant="body2" color="text.secondary">
-                All image processing happens using HTML5 Canvas technology in your browser. When you download your avatar, it's created and saved directly on your device. We never see, store, or have access to your images.
-              </Typography>
-              
-              <Typography variant="body2" color="text.secondary">
-                This is an open source project so if you want to look through the code, it's{' '}
-                <Box
-                  component="a"
-                  href="https://github.com/ravendarque/ravendarque-beyond-borders"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{
-                    color: 'primary.main',
-                    textDecoration: 'underline',
-                    '&:hover': {
-                      color: 'primary.dark',
-                    },
-                    '&:focus-visible': {
-                      outline: '2px solid',
-                      outlineColor: 'primary.main',
-                      outlineOffset: 2,
-                      borderRadius: 0.5,
-                    },
-                  }}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M21 3v5h-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Start Over
+                </button>
+              </div>
+            )}
+            
+            {currentStep === 3 && (
+              <div className="step-3-nav">
+                <div className="nav-buttons-row">
+                  <button
+                    type="button"
+                    className="nav-btn"
+                    onClick={goToPrevious}
+                    aria-label="Go to previous step"
+                  >
+                    <span>← BACK</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="nav-btn"
+                    onClick={handleDownload}
+                    disabled={!overlayUrl || isRendering}
+                    aria-label="Save avatar"
+                  >
+                    <span>SAVE</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ marginLeft: '6px', position: 'relative', zIndex: 1 }}>
+                      <path d="M8 2L8 10M8 10L5 7M8 10L11 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M2 12L2 13C2 13.5523 2.44772 14 3 14L13 14C13.5523 14 14 13.5523 14 13L14 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      <path d="M3 10L3 12L13 12L13 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="start-over-btn"
+                  onClick={handleStartOver}
+                  aria-label="Start over with a new image"
                 >
-                  here on GitHub
-                </Box>
-                .
-              </Typography>
-            </Stack>
-          </DialogContent>
-          <DialogActions>
-            <Button 
-              onClick={() => setShowPrivacyModal(false)} 
-              variant="contained"
-              autoFocus
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M21 3v5h-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Start Over
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="footer">
+          <div className="footer-line1">
+            <Link
+              to="/ethics"
+              className="footer-link"
+              aria-label="Learn about ethics and sustainability"
             >
-              Got it
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
+              Ethics and Sustainability
+            </Link>
+            {' | '}
+            <a
+              href="https://github.com/ravendarque/ravendarque-beyond-borders"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-link"
+              aria-label="View source code on GitHub"
+            >
+              GitHub Open Source
+            </a>
+          </div>
+          <div className="footer-line2">
+            <Link to="/copyright" className="footer-link" aria-label="View copyright information">
+              © Nix Crabtree, 2025
+            </Link>
+          </div>
+        </footer>
+      </main>
+
+      {/* Privacy Information Modal */}
+      <PrivacyModal
+        open={showPrivacyModal}
+        onOpenChange={setShowPrivacyModal}
+      />
     </>
   );
 }
