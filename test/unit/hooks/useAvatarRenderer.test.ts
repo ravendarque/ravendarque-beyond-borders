@@ -15,15 +15,10 @@ describe('useAvatarRenderer', () => {
     displayName: 'Test Flag',
     png_full: 'test.png',
     category: 'oppressed',
-    status: 'active',
-    sources: {},
-    pattern: {
-      type: 'stripes',
-      orientation: 'horizontal',
-      stripes: [
-        { color: '#FF0000', weight: 1 },
-        { color: '#00FF00', weight: 1 },
-      ],
+    modes: {
+      ring: {
+        colors: ['#FF0000', '#00FF00'],
+      },
     },
   };
 
@@ -261,19 +256,17 @@ describe('useAvatarRenderer', () => {
     expect(() => unmount()).not.toThrow();
   });
 
-  it('should transform flag with layouts to pattern', async () => {
-    const flagWithLayouts: FlagSpec = {
+  it('should render with flag modes', async () => {
+    const flagWithModes: FlagSpec = {
       ...mockFlag,
-      pattern: undefined,
-      layouts: [
-        {
-          type: 'horizontal-stripes',
+      modes: {
+        ring: {
           colors: ['#FF0000', '#00FF00', '#0000FF'],
         },
-      ],
+      },
     };
 
-    const { result } = renderHook(() => useAvatarRenderer([flagWithLayouts], mockCache));
+    const { result } = renderHook(() => useAvatarRenderer([flagWithModes], mockCache));
 
     await act(async () => {
       await result.current.render('blob:test-image', 'test', {

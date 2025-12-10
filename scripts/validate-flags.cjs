@@ -57,18 +57,18 @@ function canonicalizeId(name) {
     const doc = jsyaml.load(yaml);
     
     if (!doc || !Array.isArray(doc.categories)) {
-      err('Error: YAML structure is invalid. Expected { categories: [{ category: "...", displayOrder: n, flags: [...] }] }');
+      err('Error: YAML structure is invalid. Expected { categories: [{ categoryName: "...", displayOrder: n, flags: [...] }] }');
       process.exit(1);
     }
     
     // Flatten nested structure
     for (const category of doc.categories) {
-      if (!category.category || !Array.isArray(category.flags)) {
-        err(`Error: Invalid category structure. Expected { category: "...", displayOrder: n, flags: [...] }`);
+      if (!category.categoryName || !Array.isArray(category.flags)) {
+        err(`Error: Invalid category structure. Expected { categoryName: "...", displayOrder: n, flags: [...] }`);
         process.exit(1);
       }
       
-      expected.push(...category.flags.map(flag => ({ ...flag, category: category.category })));
+      expected.push(...category.flags.map(flag => ({ ...flag, category: category.categoryName })));
     }
   } catch (e) {
     err('Failed to parse YAML: ' + (e && e.message));
