@@ -1,5 +1,5 @@
-# Check for stale references and missing files
-# Can be called from local validation scripts or CI workflows
+# Check for broken imports and missing file references
+# Generic sanity checks that catch common mistakes in any codebase
 #
 # Exit codes:
 #   0 - No issues found
@@ -8,132 +8,159 @@
 $ErrorActionPreference = 'Stop'
 $issues = 0
 
-Write-Host "Checking for stale references and missing files..." -ForegroundColor White
+Write-Host "Checking for broken imports and missing files..." -ForegroundColor White
 
-# 1. Check for missing font files referenced in CSS
-Write-Host "  Checking font file references..." -ForegroundColor Gray
-$fontCssFile = "public/fonts/fonts.css"
-if (Test-Path $fontCssFile) {
-    $fontCss = Get-Content $fontCssFile -Raw
-    $fontDir = "public/fonts"
+# 1. Check for broken TypeScript/JavaScript imports
+Write-Host "  Checking for broken imports..." -ForegroundColor Gray
+$sourceFiles = Get-ChildItem -Path src -Recurse -Include "*.ts","*.tsx","*.js","*.jsx" -ErrorAction SilentlyContinue
+$brokenImports = @()
+
+foreach ($file in $sourceFiles) {
+    $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
+    if (-not $content) { continue }
     
-    # Extract font file references from CSS (url('./filename.ttf'))
-    $fontMatches = [regex]::Matches($fontCss, "url\(['""]\./([^'""]+)['""]\)")
-    foreach ($match in $fontMatches) {
-        $fontFile = $match.Groups[1].Value
-        $fontPath = Join-Path $fontDir $fontFile
-        if (-not (Test-Path $fontPath)) {
-            Write-Host "    ❌ Missing font file: $fontPath (referenced in fonts.css)" -ForegroundColor Red
+    $fileDir = Split-Path -Parent $file.FullName
+    $lines = Get-Content $file.FullName
+    
+    foreach ($line in $lines) {
+        $trimmed = $line.Trim()
+        # Skip comments
+        if ($trimmed -match "^//|^/\*|^\s*\*") { continue }
+        
+        # Match import/from statements
+        if ($trimmed -match "(?:import|from|require)\s+['""]([^'""]+)['""]") {
+            $importPath = $matches[1]
+            
+            # Skip external packages (node_modules, npm packages)
+            if ($importPath -match "^[^./]|^@[^/]") { continue }
+            
+            # Skip special imports (CSS, JSON, etc.)
+            if ($importPath -match "\.(css|scss|json|svg|png|jpg|jpeg|gif|webp)$") { continue }
+            
+            # Resolve relative imports
+            $resolvedPath = $null
+            if ($importPath -match "^\.\.?/") {
+                # Relative path
+                $resolvedPath = Join-Path $fileDir $importPath
+            } elseif ($importPath -match "^@/") {
+                # Alias path (assumes @ maps to src/)
+                $aliasPath = $importPath -replace "^@/", "src/"
+                $resolvedPath = Join-Path (Get-Location) $aliasPath
+            } else {
+                # Absolute from project root
+                $resolvedPath = Join-Path (Get-Location) $importPath
+            }
+            
+            # Try common extensions
+            $extensions = @("", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx", "/index.js", "/index.jsx")
+            $found = $false
+            foreach ($ext in $extensions) {
+                $testPath = $resolvedPath + $ext
+                if (Test-Path $testPath) {
+                    $found = $true
+                    break
+                }
+            }
+            
+            if (-not $found) {
+                $brokenImports += @{
+                    File = $file.FullName
+                    Line = $lines.IndexOf($line) + 1
+                    Import = $importPath
+                }
+            }
+        }
+    }
+}
+
+if ($brokenImports.Count -gt 0) {
+    foreach ($broken in $brokenImports) {
+        Write-Host "    ❌ Broken import: '$($broken.Import)' in $($broken.File):$($broken.Line)" -ForegroundColor Red
+        $issues++
+    }
+}
+
+# 2. Check for missing files referenced in CSS (fonts, images, etc.)
+Write-Host "  Checking CSS file references..." -ForegroundColor Gray
+$cssFiles = Get-ChildItem -Path src,public -Recurse -Include "*.css" -ErrorAction SilentlyContinue
+foreach ($cssFile in $cssFiles) {
+    $content = Get-Content $cssFile.FullName -Raw -ErrorAction SilentlyContinue
+    if (-not $content) { continue }
+    
+    $cssDir = Split-Path -Parent $cssFile.FullName
+    
+    # Match url() references
+    $urlMatches = [regex]::Matches($content, "url\(['""]([^'""]+)['""]\)")
+    foreach ($match in $urlMatches) {
+        $urlPath = $match.Groups[1].Value
+        
+        # Skip external URLs and data URIs
+        if ($urlPath -match "^https?://|^data:") { continue }
+        
+        # Resolve paths
+        if ($urlPath -match "^/") {
+            # Absolute path from public root (e.g., /fonts/fonts.css)
+            $resolvedPath = Join-Path "public" $urlPath.TrimStart('/')
+        } elseif ($urlPath -match "^\.\.?/") {
+            # Relative path from CSS file location
+            $resolvedPath = Join-Path $cssDir $urlPath
+        } else {
+            # Relative to CSS file directory
+            $resolvedPath = Join-Path $cssDir $urlPath
+        }
+        
+        # Normalize path separators
+        $resolvedPath = $resolvedPath -replace '/', [System.IO.Path]::DirectorySeparatorChar
+        
+        if (-not (Test-Path $resolvedPath)) {
+            Write-Host "    ❌ Missing file referenced in CSS: $urlPath (in $($cssFile.Name))" -ForegroundColor Red
+            Write-Host "      Expected at: $resolvedPath" -ForegroundColor Gray
             $issues++
         }
     }
 }
 
-# 2. Check for stale MUI imports in source files
-Write-Host "  Checking for stale MUI imports..." -ForegroundColor Gray
-$sourceFiles = Get-ChildItem -Path src -Recurse -Include "*.ts","*.tsx" -ErrorAction SilentlyContinue
+# 3. Check for missing asset files referenced via getAssetUrl or similar helpers
+Write-Host "  Checking asset file references..." -ForegroundColor Gray
 foreach ($file in $sourceFiles) {
     $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
-    if ($content) {
-        # Check for actual imports (not just comments)
-        if ($content -match "(?:import|from|require).*['""]@mui|['""]@emotion") {
-            Write-Host "    ❌ Stale MUI import found: $($file.FullName)" -ForegroundColor Red
-            $issues++
-        }
-    }
-}
-
-# 3. Check for references to deleted theme.ts
-Write-Host "  Checking for theme.ts references..." -ForegroundColor Gray
-foreach ($file in $sourceFiles) {
-    $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
-    if ($content) {
-        # Check for imports of theme.ts
-        if ($content -match "(?:import|from).*['""][^'""]*theme['""]") {
-            # Make sure it's not just a comment
-            $lines = Get-Content $file.FullName
-            foreach ($line in $lines) {
-                $trimmed = $line.Trim()
-                if ($trimmed -match "(?:import|from).*['""][^'""]*theme['""]" -and $trimmed -notmatch "^//|^/\*|^\s*\*") {
-                    Write-Host "    ❌ Reference to deleted theme.ts: $($file.FullName):$($lines.IndexOf($line) + 1)" -ForegroundColor Red
+    if (-not $content) { continue }
+    
+    # Match getAssetUrl() calls and similar patterns
+    $assetPatterns = @(
+        "getAssetUrl\(['""]([^'""]+)['""]\)",
+        "['""](flags/[^'""]+)['""]",
+        "['""](fonts/[^'""]+)['""]"
+    )
+    
+    foreach ($pattern in $assetPatterns) {
+        $matches = [regex]::Matches($content, $pattern)
+        foreach ($match in $matches) {
+            $assetPath = $match.Groups[1].Value
+            
+            # Skip external URLs
+            if ($assetPath -match "^https?://") { continue }
+            
+            # Check if it's a public asset
+            if ($assetPath -match "^flags/|^fonts/|^images/") {
+                $fullPath = Join-Path "public" $assetPath
+                if (-not (Test-Path $fullPath)) {
+                    Write-Host "    ❌ Missing asset file: $assetPath (referenced in $($file.Name))" -ForegroundColor Red
                     $issues++
-                    break
                 }
             }
         }
     }
 }
 
-# 4. Check for old schema fields in test files
-Write-Host "  Checking for old schema fields in tests..." -ForegroundColor Gray
-$testFiles = Get-ChildItem -Path test -Recurse -Include "*.ts","*.tsx" -ErrorAction SilentlyContinue
-# Old schema fields - be careful with regex to avoid false positives
-$oldSchemaPatterns = @(
-    @{ pattern = "sources:\s*\{"; name = "sources" },
-    @{ pattern = "status:\s*['""]"; name = "status (schema)" },
-    @{ pattern = "pattern:\s*\{"; name = "pattern" },
-    @{ pattern = "layouts\["; name = "layouts" },
-    @{ pattern = "recommended:\s*\{"; name = "recommended" },
-    @{ pattern = "focalPoint"; name = "focalPoint" }
-)
-foreach ($file in $testFiles) {
-    $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
-    if ($content) {
-        foreach ($fieldPattern in $oldSchemaPatterns) {
-            # Check if it's used in actual code (not just comments)
-            $lines = Get-Content $file.FullName
-            foreach ($line in $lines) {
-                $trimmed = $line.Trim()
-                # Skip comments and HTTP status checks
-                if ($trimmed -notmatch "^//|^/\*|^\s*\*" -and 
-                    $trimmed -notmatch "\.status\s*=|status:\s*\d|r\.status" -and
-                    $trimmed -match $fieldPattern.pattern) {
-                    Write-Host "    ⚠️  Old schema field '$($fieldPattern.name)' found in: $($file.FullName):$($lines.IndexOf($line) + 1)" -ForegroundColor Yellow
-                    # Warning only, not blocking
-                    break
-                }
-            }
-        }
-    }
-}
-
-# 5. Check for missing asset files referenced in code
-Write-Host "  Checking for missing asset references..." -ForegroundColor Gray
-# This is a basic check - could be expanded
-$assetPatterns = @(
-    "getAssetUrl\(['""]([^'""]+)['""]\)",
-    "url\(['""]([^'""]+)['""]\)"
-)
-foreach ($file in $sourceFiles) {
-    $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
-    if ($content) {
-        foreach ($pattern in $assetPatterns) {
-            $matches = [regex]::Matches($content, $pattern)
-            foreach ($match in $matches) {
-                $assetPath = $match.Groups[1].Value
-                # Skip external URLs
-                if ($assetPath -match "^https?://") { continue }
-                # Skip data URIs
-                if ($assetPath -match "^data:") { continue }
-                
-                # Check if it's a public asset
-                if ($assetPath -match "^flags/|^fonts/") {
-                    $fullPath = Join-Path "public" $assetPath
-                    if (-not (Test-Path $fullPath)) {
-                        Write-Host "    ❌ Missing asset file: $fullPath (referenced in $($file.Name))" -ForegroundColor Red
-                        $issues++
-                    }
-                }
-            }
-        }
-    }
-}
+# 4. Check for missing files in import statements that reference non-existent paths
+Write-Host "  Checking import paths..." -ForegroundColor Gray
+# This is already covered in step 1, but we can add more specific checks here if needed
 
 if ($issues -eq 0) {
-    Write-Host "  ✅ No stale references or missing files found" -ForegroundColor Green
+    Write-Host "  ✅ No broken imports or missing files found" -ForegroundColor Green
     exit 0
 } else {
     Write-Host "`n  Found $issues issue(s) - please fix before pushing" -ForegroundColor Red
     exit 1
 }
-
