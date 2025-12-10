@@ -40,17 +40,17 @@ This approach ensures:
 
 **⚠️ IMPORTANT:** After running the setup script, **restart your PowerShell terminal** to refresh the PATH environment variable. Newly installed tools won't be detected until you open a new terminal window.
 
-### Linux/macOS (Bash)
+### Linux/macOS (PowerShell Core)
 
-```bash
+```powershell
 # Full setup (recommended for first-time setup)
-bash .github/scripts/setup-dev-env.sh
+pwsh .github/scripts/setup-dev-env.ps1
 
 # Preview what would be installed
-bash .github/scripts/setup-dev-env.sh --dry-run
+pwsh .github/scripts/setup-dev-env.ps1 -DryRun
 
 # Install only essential tools (skip optional security tools)
-bash .github/scripts/setup-dev-env.sh --skip-optional
+pwsh .github/scripts/setup-dev-env.ps1 -SkipOptional
 ```
 
 ## What Gets Installed
@@ -136,8 +136,8 @@ If you have a Windows package manager, some tools can be installed automatically
 
 3. Run the setup script:
 
-   ```bash
-   bash .github/scripts/setup-dev-env.sh
+   ```powershell
+   pwsh .github/scripts/setup-dev-env.ps1
    ```
 
 #### Fedora/RHEL
@@ -168,8 +168,8 @@ If you have a Windows package manager, some tools can be installed automatically
 
 3. Run the setup script:
 
-   ```bash
-   bash .github/scripts/setup-dev-env.sh
+   ```powershell
+   pwsh .github/scripts/setup-dev-env.ps1
    ```
 
 ## Verification
@@ -222,7 +222,7 @@ pnpm test
 pnpm dev
 
 # Run validation
-bash .github/scripts/validate-local.sh
+pwsh .github/scripts/validate-local.ps1
 ```
 
 ## Troubleshooting
@@ -360,7 +360,7 @@ After setup is complete:
 
 1. **Start development server**: `pnpm dev`
 2. **Run tests**: `pnpm test`
-3. **Run validation**: `.\.github\scripts\validate-local.ps1` (or `.sh`)
+3. **Run validation**: `pwsh .github/scripts/validate-local.ps1`
 4. **Install git pre-push hook**: See [.github/hooks/README.md](../hooks/README.md)
 5. **Read contributing guidelines**: See [README.md](../../README.md#contributing)
 
@@ -382,22 +382,6 @@ After setup is complete:
 .\.github\scripts\setup-dev-env.ps1 -DryRun -SkipOptional
 ```
 
-### Bash (`setup-dev-env.sh`)
-
-```bash
-# Full setup (default)
-bash .github/scripts/setup-dev-env.sh
-
-# Dry run - show what would be installed
-bash .github/scripts/setup-dev-env.sh --dry-run
-
-# Skip optional tools (TruffleHog, Trivy)
-bash .github/scripts/setup-dev-env.sh --skip-optional
-
-# Combine options
-bash .github/scripts/setup-dev-env.sh --dry-run --skip-optional
-```
-
 ## Support
 
 If you encounter issues:
@@ -409,7 +393,7 @@ If you encounter issues:
 
 ## Related Documentation
 
-- **Validation Scripts**: See [validate-local.ps1](./validate-local.ps1) and [validate-local.sh](./validate-local.sh)
+- **Validation Scripts**: See [validate-local.ps1](./validate-local.ps1)
 - **Git Hooks**: See [.github/hooks/README.md](../hooks/README.md)
 - **Contributing**: See [README.md](../../README.md#contributing)
 - **CI/CD**: See [.github/workflows/ci.yml](../workflows/ci.yml)
