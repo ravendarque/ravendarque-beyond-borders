@@ -104,9 +104,6 @@ jobs:
     needs: [check-changes, validate]
     if: needs.check-changes.outputs.production-code == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -114,10 +111,10 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 
@@ -143,7 +140,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.node-version }}
+          name: coverage
           path: coverage
           if-no-files-found: ignore
 
