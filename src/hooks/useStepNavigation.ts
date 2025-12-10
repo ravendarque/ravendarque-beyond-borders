@@ -62,7 +62,7 @@ export function useStepNavigation(
   /**
    * Update URL to reflect current step
    */
-  const updateUrl = (step: Step) => {
+  const updateUrl = useCallback((step: Step) => {
     // Don't update URL if we're handling a popstate event (browser navigation)
     if (isHandlingPopState.current) {
       isHandlingPopState.current = false;
@@ -79,7 +79,7 @@ export function useStepNavigation(
     
     // Use pushState to allow browser back/forward navigation
     window.history.pushState({}, '', url.toString());
-  };
+  }, []); // No dependencies - only uses ref and step parameter
 
   /**
    * Set step with validation
@@ -121,10 +121,11 @@ export function useStepNavigation(
    */
   useEffect(() => {
     updateUrl(currentStep);
-  }, [currentStep]);
+  }, [currentStep, updateUrl]);
 
   /**
-   * Read initial step from URL on mount
+   * Read initial step from URL on mount and when navigation becomes possible
+   * (e.g., if user loads with step 2 URL but no image, then uploads image)
    */
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -134,13 +135,11 @@ export function useStepNavigation(
       const requestedStep = parseInt(stepParam, 10) as Step;
       
       // Only restore step if we have the required data
-      // Note: canNavigateToStep is intentionally not in deps - this should only run on mount
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       if (canNavigateToStep(requestedStep)) {
         setCurrentStepState(requestedStep);
       }
     }
-  }, []); // Only run on mount
+  }, [canNavigateToStep]); // Re-run when navigation becomes possible (e.g., after image upload)
 
   /**
    * Handle browser back/forward navigation
@@ -177,7 +176,7 @@ export function useStepNavigation(
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [imageUrl, flagId, currentStep, canNavigateToStep]);
+  }, [imageUrl, flagId, currentStep, canNavigateToStep, updateUrl]);
 
   return {
     currentStep,
