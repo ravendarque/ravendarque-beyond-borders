@@ -22,17 +22,37 @@ foreach ($file in $sourceFiles) {
     $fileDir = Split-Path -Parent $file.FullName
     $lines = Get-Content $file.FullName
     
-    foreach ($line in $lines) {
+    # Track if we're inside a block comment
+    $inBlockComment = $false
+    
+    for ($lineIndex = 0; $lineIndex -lt $lines.Count; $lineIndex++) {
+        $line = $lines[$lineIndex]
         $trimmed = $line.Trim()
-        # Skip comments
+        
+        # Handle block comments
+        if ($trimmed -match "/\*") {
+            $inBlockComment = $true
+        }
+        if ($trimmed -match "\*/") {
+            $inBlockComment = $false
+            continue
+        }
+        if ($inBlockComment) { continue }
+        
+        # Skip single-line comments
         if ($trimmed -match "^//|^/\*|^\s*\*") { continue }
         
         # Match import/from statements
         if ($trimmed -match "(?:import|from|require)\s+['""]([^'""]+)['""]") {
             $importPath = $matches[1]
             
-            # Skip external packages (node_modules, npm packages)
-            if ($importPath -match "^[^./]|^@[^/]") { continue }
+            # Skip external packages (node_modules, npm packages) but NOT @/ aliases
+            if ($importPath -match "^@/") {
+                # Handle @/ alias - don't skip it
+            } elseif ($importPath -match "^[^./]|^@[^/]") {
+                # Skip external packages (but not @/ which is handled above)
+                continue
+            }
             
             # Skip special imports (CSS, JSON, etc.)
             if ($importPath -match "\.(css|scss|json|svg|png|jpg|jpeg|gif|webp)$") { continue }
@@ -65,7 +85,7 @@ foreach ($file in $sourceFiles) {
             if (-not $found) {
                 $brokenImports += @{
                     File = $file.FullName
-                    Line = $lines.IndexOf($line) + 1
+                    Line = $lineIndex + 1
                     Import = $importPath
                 }
             }
@@ -89,10 +109,17 @@ foreach ($cssFile in $cssFiles) {
     
     $cssDir = Split-Path -Parent $cssFile.FullName
     
-    # Match url() references
-    $urlMatches = [regex]::Matches($content, "url\(['""]([^'""]+)['""]\)")
+    # Match url() references (both quoted and unquoted)
+    # Pattern matches: url('path'), url("path"), and url(path)
+    # Use alternation to match both quoted and unquoted forms
+    $urlMatches = [regex]::Matches($content, "url\((?:(['""])([^'""]+)\1|([^'""\)]+))\)")
     foreach ($match in $urlMatches) {
-        $urlPath = $match.Groups[1].Value
+        # For quoted URLs, path is in group 2; for unquoted, it's in group 3
+        if ($match.Groups[2].Success) {
+            $urlPath = $match.Groups[2].Value
+        } else {
+            $urlPath = $match.Groups[3].Value
+        }
         
         # Skip external URLs and data URIs
         if ($urlPath -match "^https?://|^data:") { continue }
@@ -134,8 +161,8 @@ foreach ($file in $sourceFiles) {
     )
     
     foreach ($pattern in $assetPatterns) {
-        $matches = [regex]::Matches($content, $pattern)
-        foreach ($match in $matches) {
+        $assetMatches = [regex]::Matches($content, $pattern)
+        foreach ($match in $assetMatches) {
             $assetPath = $match.Groups[1].Value
             
             # Skip external URLs
