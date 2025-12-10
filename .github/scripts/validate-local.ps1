@@ -238,8 +238,20 @@ if ($privacyExit -ne 0) {
 }
 Write-Host ""
 
-# 8. Check if production code changed and run build checks
-Write-Host "8️⃣  Checking if production code changed..." -ForegroundColor White
+# 8. Check for stale references and missing files
+Write-Host "8️⃣  Checking for stale references..." -ForegroundColor White
+try {
+    & pwsh -File "$scriptDir/check-stale-references.ps1"
+    if ($LASTEXITCODE -ne 0) {
+        $script:Errors++
+    }
+} catch {
+    $script:Errors++
+}
+Write-Host ""
+
+# 9. Check if production code changed and run build checks
+Write-Host "9️⃣  Checking if production code changed..." -ForegroundColor White
 $stagedFiles = git diff --cached --name-only 2>&1
 $prodPattern = "^(src/|public/|index.html|vite.config.ts|tsconfig.json|package.json|pnpm-lock.yaml|playwright.config.ts|scripts/|.github/scripts/)"
 $prodFilesChanged = $stagedFiles | Where-Object { $_ -match $prodPattern }
