@@ -3,6 +3,10 @@
  * 
  * Tilt Warp - SIL Open Font License (OFL)
  * https://fonts.google.com/specimen/Tilt+Warp
+ * 
+ * Azeret Mono - Main title font
+ * 
+ * Anton - Progress labels font
  */
 
 @font-face {
@@ -11,4 +15,20 @@
   font-weight: 400;
   font-display: swap;
   src: url('./tilt-warp.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Azeret Mono';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./azeret-mono-regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./anton-regular.ttf') format('truetype');
 }
