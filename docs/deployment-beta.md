@@ -2,7 +2,7 @@
 
 ## Workflow
 
-File: `.github/workflows/deploy-beta.yml`
+File: `.github/workflows/deploy-pr.yml`
 
 ## Invocation
 
@@ -23,7 +23,7 @@ File: `.github/workflows/deploy-beta.yml`
 
 ## Cleanup
 
-Workflow: `.github/workflows/cleanup-beta.yml`
+Workflow: `.github/workflows/cleanup-pr-deployments.yml`
 
 Removes a specific version directory and regenerates the beta index.
 
@@ -39,7 +39,7 @@ Removes a specific version directory and regenerates the beta index.
 Trigger a manual beta deployment of your current branch:
 
 ```bash
-gh workflow run deploy-beta.yml -f branch=$(git rev-parse --abbrev-ref HEAD)
+gh workflow run deploy-pr.yml
 ```
 
 ## Checklist

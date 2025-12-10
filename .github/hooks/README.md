@@ -61,12 +61,12 @@ You can also run validation manually without pushing:
 
 ### All platforms (PowerShell Core - required):
 ```powershell
-pwsh .github/scripts/validate-local.ps1
+pwsh .github/scripts/local-ci.ps1
 ```
 
 ### Windows (Windows PowerShell):
 ```powershell
-.\.github\scripts\validate-local.ps1
+.\.github\scripts\local-ci.ps1
 ```
 
 **Note:** PowerShell Core (pwsh) is required and works on all platforms. Install from https://github.com/PowerShell/PowerShell
@@ -91,4 +91,4 @@ If the hook fails to run:
 3. Ensure PowerShell or Bash is available in your PATH
 4. Try running validation manually to see detailed error messages
 
-For more information, see `.github/scripts/validate-local.ps1`.
+For more information, see `.github/scripts/local-ci.ps1`.

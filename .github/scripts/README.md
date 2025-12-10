@@ -21,7 +21,7 @@ pwsh .github/scripts/setup-dev-env.ps1
 ```
 .github/scripts/
   setup-dev-env.ps1          ← Automated environment setup (all platforms) 🆕
-  validate-local.ps1         ← Pre-push validation (all platforms) 🆕
+  local-ci.ps1                ← Pre-push validation (all platforms) 🆕
   check-privacy.ps1          ← Privacy validation checks
   check-todo-fixme.ps1       ← TODO/FIXME detection
   check-file-permissions.ps1 ← File permissions validation
@@ -49,7 +49,7 @@ pwsh .github/scripts/setup-dev-env.ps1
 | Script | Purpose |
 |--------|---------|
 | **`setup-dev-env.ps1`** 🆕 | **One-command setup for new developers (all platforms)** |
-| **`validate-local.ps1`** 🆕 | **Pre-push validation (secrets, security, linting)** |
+| **`local-ci.ps1`** 🆕 | **Pre-push validation (secrets, security, linting)** |
 | `sync-labels.ps1` | Sync standard labels to GitHub repository |
 
 📖 **Setup Guide**: [SETUP.md](./SETUP.md)

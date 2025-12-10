@@ -1,0 +1,113 @@
+name: Tag Release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.local/**'
+
+permissions:
+  contents: write
+
+jobs:
+  tag-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest tag
+        id: latest-tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0")
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $TAG"
+
+      - name: Get commits since last tag
+        id: commits
+        run: |
+          LATEST_TAG="${{ steps.latest-tag.outputs.tag }}"
+          if [ "$LATEST_TAG" = "v0.0" ]; then
+            COMMITS=$(git log --oneline)
+          else
+            COMMITS=$(git log ${LATEST_TAG}..HEAD --oneline)
+          fi
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Calculate new version
+        id: version
+        run: |
+          LATEST_TAG="${{ steps.latest-tag.outputs.tag }}"
+          
+          # Parse current version
+          if [[ $LATEST_TAG =~ v([0-9]+)\.([0-9]+) ]]; then
+            MAJOR=${BASH_REMATCH[1]}
+            MINOR=${BASH_REMATCH[2]}
+          else
+            MAJOR=0
+            MINOR=0
+          fi
+          
+          # Check commit messages for version bump type
+          COMMITS="${{ steps.commits.outputs.commits }}"
+          BUMP_TYPE="patch"
+          
+          if echo "$COMMITS" | grep -qiE "(^|\s)(BREAKING CHANGE|!:)"; then
+            BUMP_TYPE="major"
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+          elif echo "$COMMITS" | grep -qiE "(^|\s)(feat|feature)(\(|:|\s)"; then
+            BUMP_TYPE="minor"
+            MINOR=$((MINOR + 1))
+          fi
+          
+          NEW_TAG="v${MAJOR}.${MINOR}"
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "Calculated: $NEW_TAG ($BUMP_TYPE bump)"
+
+      - name: Check if tag already exists
+        id: check-tag
+        run: |
+          NEW_TAG="${{ steps.version.outputs.new_tag }}"
+          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag $NEW_TAG already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag $NEW_TAG does not exist, will create"
+          fi
+
+      - name: Create and push tag
+        if: steps.check-tag.outputs.exists == 'false'
+        run: |
+          NEW_TAG="${{ steps.version.outputs.new_tag }}"
+          BUMP_TYPE="${{ steps.version.outputs.bump_type }}"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git tag -a "$NEW_TAG" -m "Release $NEW_TAG ($BUMP_TYPE bump)"
+          git push origin "$NEW_TAG"
+          
+          echo "Created and pushed tag: $NEW_TAG"
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check-tag.outputs.exists }}" = "false" ]; then
+            echo "### ✅ Tag Created" >> $GITHUB_STEP_SUMMARY
+            echo "**Tag:** \`${{ steps.version.outputs.new_tag }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Bump Type:** ${{ steps.version.outputs.bump_type }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ℹ️ Tag Already Exists" >> $GITHUB_STEP_SUMMARY
+            echo "**Tag:** \`${{ steps.version.outputs.new_tag }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "No new tag created (tag already exists)" >> $GITHUB_STEP_SUMMARY
+          fi
+

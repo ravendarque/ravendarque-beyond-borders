@@ -13,11 +13,11 @@
     Skip build/test checks even if production code changed
 
 .EXAMPLE
-    .\validate-local.ps1
+    .\local-ci.ps1
     Run all validation checks
 
 .EXAMPLE
-    .\validate-local.ps1 -SkipBuild
+    .\local-ci.ps1 -SkipBuild
     Run only fast validation checks
 #>
 
@@ -117,78 +117,46 @@ function Test-CommandExists {
 # Refresh PATH at start to pick up newly installed tools
 Refresh-EnvironmentPath
 
-# 1. Security audit with trivy
+# 1. Security audit
 Write-Host "1️⃣  Running security audit..." -ForegroundColor White
-$trivyPaths = @(
-    "$env:LocalAppData\Microsoft\WinGet\Packages\Aquasecurity.Trivy*\",
-    "$env:ProgramData\chocolatey\bin",
-    "$env:UserProfile\scoop\shims"
-)
-if (Test-CommandExists "trivy" -CommonPaths $trivyPaths) {
-    $exitCode = 0
-    trivy fs . --severity CRITICAL,HIGH --exit-code 1 --quiet 2>&1 | Out-Null
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$exitCode = 0
+try {
+    & pwsh -File "$scriptDir/check-security.ps1" 2>&1 | Out-Host
     $exitCode = $LASTEXITCODE
-    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "No critical/high vulnerabilities found" } else { "Security vulnerabilities found" })
-} else {
-    Print-Warning "trivy not installed - skipping security scan"
-    Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
+} catch {
+    $exitCode = 1
+}
+if ($exitCode -ne 0) {
+    $script:Errors++
 }
 Write-Host ""
 
 # 2. Markdown linting
 Write-Host "2️⃣  Linting Markdown files..." -ForegroundColor White
-if (Get-Command npx -ErrorAction SilentlyContinue) {
-    # Get staged markdown files (matching CI behavior of checking changed files)
-    $stagedMdFiles = git diff --cached --name-only --diff-filter=ACM | Where-Object { $_ -match '\.md$' -and $_ -notmatch 'node_modules' -and $_ -notmatch '\.local' }
-    if ($stagedMdFiles) {
-        $exitCode = 0
-        # Show output if there are errors, hide if successful
-        $output = npx markdownlint-cli2 $stagedMdFiles 2>&1
-        $exitCode = $LASTEXITCODE
-        if ($exitCode -ne 0) {
-            Write-Host ""
-            Write-Output $output
-            Write-Host ""
-        }
-        Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Markdown files are valid" } else { "Markdown linting failed" })
-    } else {
-        Print-Status $true "No staged markdown files to check"
-    }
-} else {
-    Print-Warning "npx not found - ensure Node.js is installed"
-    Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
+$exitCode = 0
+try {
+    & pwsh -File "$scriptDir/check-markdown.ps1" 2>&1 | Out-Host
+    $exitCode = $LASTEXITCODE
+} catch {
+    $exitCode = 1
+}
+if ($exitCode -ne 0) {
+    $script:Errors++
 }
 Write-Host ""
 
 # 3. YAML linting
 Write-Host "3️⃣  Linting YAML files..." -ForegroundColor White
-if (Get-Command npx -ErrorAction SilentlyContinue) {
-    # Get staged YAML workflow files (matching CI behavior)
-    $stagedYamlFiles = git diff --cached --name-only --diff-filter=ACM | Where-Object { $_ -match '\.github/workflows/.*\.ya?ml$' }
-    if ($stagedYamlFiles) {
-        $exitCode = 0
-        $hasErrors = $false
-        foreach ($file in $stagedYamlFiles) {
-            $output = npx yaml-lint $file 2>&1
-            if ($LASTEXITCODE -ne 0) {
-                if (-not $hasErrors) {
-                    Write-Host ""
-                    $hasErrors = $true
-                }
-                Write-Output $output
-                $exitCode = 1
-            }
-        }
-        if ($hasErrors) {
-            Write-Host ""
-        }
-        Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "YAML files are valid" } else { "YAML linting failed" })
-    } else {
-        Print-Status $true "No staged YAML files to check"
-    }
-} else {
-    Print-Warning "npx not found - ensure Node.js is installed"
-    Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
+$exitCode = 0
+try {
+    & pwsh -File "$scriptDir/check-yaml.ps1" 2>&1 | Out-Host
+    $exitCode = $LASTEXITCODE
+} catch {
+    $exitCode = 1
+}
+if ($exitCode -ne 0) {
+    $script:Errors++
 }
 Write-Host ""
 
@@ -312,3 +280,4 @@ if ($script:Errors -eq 0) {
     Write-Host "`nTo skip validation: git push --no-verify" -ForegroundColor Gray
     exit 1
 }
+

@@ -1,14 +1,8 @@
-name: Deploy to Beta
+name: Deploy PR
 
 on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to deploy (leave empty for current branch)'
-        required: false
-        type: string
   pull_request:
-    types: [labeled]
+    branches: [main]
 
 permissions:
   contents: write
@@ -16,33 +10,45 @@ permissions:
   deployments: write
 
 jobs:
+  # Check if production code changed
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      production-code: ${{ steps.filter.outputs.production-code }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check file changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            production-code:
+              - 'src/**'
+              - 'public/**'
+              - 'index.html'
+              - 'vite.config.ts'
+              - 'tsconfig.json'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'playwright.config.ts'
+              - 'scripts/**'
+              - '.github/scripts/**'
+
+  # Deploy to beta after CI passes
   deploy-beta:
-    # Only run on workflow_dispatch or when 'deploy-beta' label is added
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'deploy-beta'
+    needs: check-changes
+    if: needs.check-changes.outputs.production-code == 'true'
     runs-on: ubuntu-latest
     environment:
       name: beta
       url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/beta/${{ steps.version.outputs.semver }}/
     steps:
-      - name: Determine branch name
-        id: branch-name
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ -n "${{ inputs.branch }}" ]; then
-              BRANCH="${{ inputs.branch }}"
-            else
-              BRANCH="${GITHUB_REF#refs/heads/}"
-            fi
-          else
-            # Pull request event
-            BRANCH="${{ github.head_ref }}"
-          fi
-          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
-
-      - name: Checkout branch
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.branch-name.outputs.branch }}
+          ref: ${{ github.head_ref }}
           fetch-depth: 0  # Need full history for version calculation
 
       - name: Calculate semantic version from git
@@ -51,11 +57,6 @@ jobs:
           VERSION=$(node scripts/get-version.cjs)
           echo "semver=$VERSION" >> $GITHUB_OUTPUT
           echo "Deploying version: $VERSION"
-          echo ""
-          echo "Version calculation details:"
-          echo "  Branch: ${{ steps.branch-name.outputs.branch }}"
-          echo "  Latest tag: $(git describe --tags --abbrev=0 2>/dev/null || echo 'none')"
-          echo "  Commits since tag: $(git rev-list $(git describe --tags --abbrev=0 2>/dev/null || echo 'HEAD')..HEAD --count)"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -72,7 +73,6 @@ jobs:
       - name: Build with beta base path
         run: pnpm run build
         env:
-          # Set base path for beta deployment
           BASE_URL: /${{ github.event.repository.name }}/beta/${{ steps.version.outputs.semver }}/
 
       - name: Checkout gh-pages branch
@@ -83,16 +83,10 @@ jobs:
 
       - name: Deploy to beta directory
         run: |
-          # Create beta directory structure if it doesn't exist
           mkdir -p gh-pages-repo/beta/${{ steps.version.outputs.semver }}
-
-          # Remove old deployment (if exists)
           rm -rf gh-pages-repo/beta/${{ steps.version.outputs.semver }}/*
-
-          # Copy new build
           cp -r dist/* gh-pages-repo/beta/${{ steps.version.outputs.semver }}/
 
-          # Create/update index of beta deployments
           cd gh-pages-repo/beta
           cat > index.html << 'EOF'
           <!DOCTYPE html>
@@ -131,31 +125,25 @@ jobs:
       - name: Commit and push to gh-pages
         run: |
           cd gh-pages-repo
-          # Ensure .nojekyll exists (prevents Jekyll processing)
           touch .nojekyll
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Deploy beta v${{ steps.version.outputs.semver }} from ${{ steps.branch-name.outputs.branch }} ($(date -u +'%Y-%m-%d %H:%M:%S UTC'))" || echo "No changes to commit"
+          git commit -m "Deploy beta v${{ steps.version.outputs.semver }} from ${{ github.head_ref }}" || echo "No changes"
           git push
 
-      - name: Comment on PR with deployment URL
-        if: github.event_name == 'pull_request'
+      - name: Comment on PR
         uses: actions/github-script@v7
         with:
           script: |
             const version = '${{ steps.version.outputs.semver }}';
-            const branch = '${{ steps.branch-name.outputs.branch }}';
             const url = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/beta/${version}/`;
-            const body = `🚀 **Beta Deployment Complete!**
+            const body = `🚀 **Beta Deployment**
 
-            Version **v${version}** from branch \`${branch}\` has been deployed:
+            🔗 **Preview:** ${url}
 
-            🔗 **Preview URL:** ${url}
+            Version: \`v${version}\` from \`${{ github.head_ref }}\``;
 
-            This beta deployment will remain available until manually removed or replaced by a new version.`;
-
-            // Find existing deployment comment
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -163,12 +151,10 @@ jobs:
             });
 
             const botComment = comments.data.find(comment =>
-              comment.user.type === 'Bot' &&
-              comment.body.includes('Beta Deployment Complete')
+              comment.user.type === 'Bot' && comment.body.includes('Beta Deployment')
             );
 
             if (botComment) {
-              // Update existing comment
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -176,7 +162,6 @@ jobs:
                 body: body
               });
             } else {
-              // Create new comment
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -185,10 +170,10 @@ jobs:
               });
             }
 
-      - name: Deployment summary
+      - name: Summary
         run: |
-          echo "### ✅ Beta Deployment Successful" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Beta Deployment" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** \`v${{ steps.version.outputs.semver }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** \`${{ steps.branch-name.outputs.branch }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**URL:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/beta/${{ steps.version.outputs.semver }}/" >> $GITHUB_STEP_SUMMARY
+
+

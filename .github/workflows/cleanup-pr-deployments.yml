@@ -1,4 +1,4 @@
-name: Cleanup Beta Deployment
+name: Cleanup PR Deployments
 
 on:
   workflow_dispatch:
@@ -91,16 +91,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Cleanup beta v${{ inputs.version }} ($(date -u +'%Y-%m-%d %H:%M:%S UTC'))" || echo "No changes to commit"
+          git commit -m "Cleanup beta v${{ inputs.version }}" || echo "No changes"
           git push
 
-      - name: Cleanup summary
+      - name: Summary
         run: |
-          echo "### 🗑️ Beta Deployment Cleanup" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🗑️ Beta Cleanup" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** \`v${{ inputs.version }}\`" >> $GITHUB_STEP_SUMMARY
           if [ "$DEPLOYMENT_REMOVED" = "true" ]; then
-            echo "**Status:** ✅ Deployment removed" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Removed" >> $GITHUB_STEP_SUMMARY
           else
-            echo "**Status:** ℹ️ No deployment found to remove" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ℹ️ Not found" >> $GITHUB_STEP_SUMMARY
           fi
+
