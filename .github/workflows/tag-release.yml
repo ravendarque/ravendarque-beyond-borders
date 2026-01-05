@@ -61,11 +61,12 @@ jobs:
           COMMITS="${{ steps.commits.outputs.commits }}"
           BUMP_TYPE="none"
           
-          if echo "$COMMITS" | grep -qiE "(^|\s)(BREAKING CHANGE|!:)"; then
+          # Match breaking changes: "BREAKING CHANGE" or conventional "type(scope)!:" / "type!:" format (e.g., "feat(api)!: ..." or "feat!: ...")
+          if echo "$COMMITS" | grep -qiE "((^|[[:space:]])BREAKING CHANGE)|([[:alnum:]_)]!:)"; then
             BUMP_TYPE="major"
             MAJOR=$((MAJOR + 1))
             MINOR=0
-          elif echo "$COMMITS" | grep -qiE "(^|\s)(feat|feature)(\(|:|\s)"; then
+          elif echo "$COMMITS" | grep -qiE "(^|[[:space:]])(feat|feature)(\(|:|[[:space:]])"; then
             BUMP_TYPE="minor"
             MINOR=$((MINOR + 1))
           fi
