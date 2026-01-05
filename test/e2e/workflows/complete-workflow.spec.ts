@@ -86,9 +86,7 @@ test.describe('Complete Workflow', () => {
     }
 
     // Upload image
-    const fileInput = page.locator('input[type="file"]').first();
-    await fileInput.setInputFiles(TEST_IMAGE_PATH);
-    await page.waitForTimeout(1000);
+    await uploadImage(page);
 
     // Step indicator should update (if implemented)
     // This is a placeholder for when step indicator is fully implemented
