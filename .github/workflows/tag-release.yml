@@ -57,7 +57,7 @@ jobs:
           
           # Check commit messages for version bump type
           # Note: This workflow only creates major/minor tags. Patch versions are
-          # handled by get-version.cjs based on commit count.
+          # handled by get-version.js based on commit count.
           COMMITS="${{ steps.commits.outputs.commits }}"
           BUMP_TYPE="none"
           
