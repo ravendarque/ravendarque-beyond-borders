@@ -63,14 +63,22 @@ jobs:
                 ref: headSha,
               });
 
-              const totalChecks = combinedStatus.statuses.length;
-              const pendingChecks = combinedStatus.statuses.filter(s => s.state === 'pending');
-              const successChecks = combinedStatus.statuses.filter(s => s.state === 'success');
-              const failureChecks = combinedStatus.statuses.filter(s => s.state === 'failure' || s.state === 'error');
+              // Filter out this workflow's own status checks to avoid circular dependency
+              const workflowName = 'Deploy PR';
+              const relevantChecks = combinedStatus.statuses.filter(s => 
+                !s.context.includes(workflowName) && 
+                !s.context.includes('deploy-pr') &&
+                !s.context.includes('check-status-checks')
+              );
 
-              core.info(`Status checks: ${successChecks.length}/${totalChecks} passed, ${pendingChecks.length} pending, ${failureChecks.length} failed`);
+              const totalChecks = relevantChecks.length;
+              const pendingChecks = relevantChecks.filter(s => s.state === 'pending');
+              const successChecks = relevantChecks.filter(s => s.state === 'success');
+              const failureChecks = relevantChecks.filter(s => s.state === 'failure' || s.state === 'error');
 
-              // If any checks have failed, fail immediately
+              core.info(`Status checks (excluding Deploy PR): ${successChecks.length}/${totalChecks} passed, ${pendingChecks.length} pending, ${failureChecks.length} failed`);
+
+              // If any relevant checks have failed, fail immediately
               if (failureChecks.length > 0) {
                 const failedCheckNames = failureChecks.map(c => c.context).join(', ');
                 core.setOutput('all-checks-passed', 'false');
@@ -78,27 +86,30 @@ jobs:
                 return;
               }
 
-              // If all checks are successful, we're done
-              if (combinedStatus.state === 'success') {
+              // If all relevant checks are successful, we're done
+              if (pendingChecks.length === 0 && failureChecks.length === 0 && totalChecks > 0) {
                 core.setOutput('all-checks-passed', 'true');
-                core.info(`✅ All status checks have passed (${totalChecks} checks)`);
+                core.info(`✅ All required status checks have passed (${totalChecks} checks)`);
                 return;
               }
 
-              // If state is still pending, wait and check again
-              if (combinedStatus.state === 'pending') {
-                if (pendingChecks.length > 0) {
-                  const pendingNames = pendingChecks.map(c => c.context).join(', ');
-                  core.info(`⏳ Waiting for checks to complete: ${pendingNames}`);
-                } else {
-                  core.info('⏳ Waiting for status checks to update...');
-                }
+              // If there are still pending checks, wait and check again
+              if (pendingChecks.length > 0) {
+                const pendingNames = pendingChecks.map(c => c.context).join(', ');
+                core.info(`⏳ Waiting for checks to complete: ${pendingNames}`);
                 await new Promise(resolve => setTimeout(resolve, pollInterval));
                 continue;
               }
 
-              // If we get here, state might be something unexpected
-              core.info(`⏳ Combined status: ${combinedStatus.state}, waiting...`);
+              // If no checks found yet, wait a bit longer
+              if (totalChecks === 0) {
+                core.info('⏳ No status checks found yet, waiting...');
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+                continue;
+              }
+
+              // If we get here, something unexpected happened
+              core.info(`⏳ Unexpected state: ${totalChecks} checks, ${pendingChecks.length} pending, ${failureChecks.length} failed`);
               await new Promise(resolve => setTimeout(resolve, pollInterval));
             }
 
