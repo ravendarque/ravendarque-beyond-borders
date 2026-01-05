@@ -3,52 +3,39 @@
  */
 
 import { test, expect } from '@playwright/test';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const TEST_IMAGE_PATH = path.resolve(__dirname, '../../test-data/profile-pic.jpg');
+import {
+  uploadImage,
+  selectFlag,
+  selectPresentationMode,
+  setSliderValue,
+  waitForRenderComplete,
+} from '../helpers/page-helpers';
+import { TEST_FLAGS } from '../helpers/test-data';
 
 test.describe('Complete Workflow', () => {
-  test('should complete full happy path: upload → flag → adjust → download', async ({ page }) => {
+  test('should complete full happy path: upload → flag → adjust → download', { tag: '@smoke' }, async ({ page }) => {
     await page.goto('/');
 
     // Step 1: Upload image
-    const fileInput = page.locator('input[type="file"]').first();
-    await fileInput.setInputFiles(TEST_IMAGE_PATH);
-    await page.waitForTimeout(1000);
-
-    // Verify no error
-    const errorCount = await page.getByText(/Invalid file type|File too large|Image dimensions too large/).count();
-    expect(errorCount).toBe(0);
+    await uploadImage(page);
 
     // Step 2: Select flag
-    const flagSelector = page.locator('#flag-select-label').locator('..');
-    await flagSelector.click();
-    await page.waitForTimeout(300);
-    await page.getByRole('option', { name: 'Palestine — Palestinian flag' }).click();
-    await page.waitForTimeout(800);
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
 
     // Verify flag is selected
     await expect(page.locator('#flag-select-label')).toBeVisible();
 
     // Step 3: Adjust settings (should be on step 3 now)
-    await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, { timeout: 30000 });
+    await waitForRenderComplete(page);
 
     // Verify presentation mode selector is visible
     await expect(page.getByText('Presentation Style')).toBeVisible();
 
     // Select Ring mode
-    await page.getByRole('radio', { name: 'Ring' }).check();
-    await page.waitForTimeout(500);
+    await selectPresentationMode(page, 'Ring');
 
     // Adjust border width
-    const thicknessSlider = page.locator('input[type="range"][aria-label*="thickness" i]').first();
-    await thicknessSlider.waitFor({ state: 'visible', timeout: 5000 });
-    await thicknessSlider.fill('15');
-    await page.waitForTimeout(400);
+    await setSliderValue(page, 'Border Width', 15);
 
     // Verify preview is rendered
     const previewImg = page.locator('img[data-preview-url]').first();
@@ -69,29 +56,23 @@ test.describe('Complete Workflow', () => {
     }
   });
 
-  test('should navigate between steps correctly', async ({ page }) => {
+  test('should navigate between steps correctly', { tag: '@smoke' }, async ({ page }) => {
     await page.goto('/');
 
     // Step 1: Verify we're on step 1
     await expect(page.getByText(/Choose your profile picture|Upload/i)).toBeVisible();
 
     // Upload image to move to step 2
-    const fileInput = page.locator('input[type="file"]').first();
-    await fileInput.setInputFiles(TEST_IMAGE_PATH);
-    await page.waitForTimeout(1000);
+    await uploadImage(page);
 
     // Step 2: Verify we're on step 2
     await expect(page.locator('#flag-select-label')).toBeVisible();
 
     // Select flag to move to step 3
-    const flagSelector = page.locator('#flag-select-label').locator('..');
-    await flagSelector.click();
-    await page.waitForTimeout(300);
-    await page.getByRole('option', { name: 'Palestine — Palestinian flag' }).click();
-    await page.waitForTimeout(800);
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
 
     // Step 3: Verify we're on step 3
-    await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, { timeout: 30000 });
+    await waitForRenderComplete(page);
     await expect(page.getByText('Presentation Style')).toBeVisible();
   });
 

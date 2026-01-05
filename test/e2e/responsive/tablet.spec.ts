@@ -3,13 +3,8 @@
  */
 
 import { test, expect } from '@playwright/test';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const TEST_IMAGE_PATH = path.resolve(__dirname, '../../test-data/profile-pic.jpg');
+import { uploadImage, selectFlag } from '../helpers/page-helpers';
+import { TEST_FLAGS } from '../helpers/test-data';
 
 const tabletViewports = [
   { width: 768, height: 1024, name: 'iPad' },
@@ -34,15 +29,8 @@ for (const viewport of tabletViewports) {
       await page.goto('/');
 
       // Upload and select flag
-      const fileInput = page.locator('input[type="file"]').first();
-      await fileInput.setInputFiles(TEST_IMAGE_PATH);
-      await page.waitForTimeout(1000);
-
-      const flagSelector = page.locator('#flag-select-label').locator('..');
-      await flagSelector.click();
-      await page.waitForTimeout(300);
-      await page.getByRole('option', { name: 'Palestine — Palestinian flag' }).click();
-      await page.waitForTimeout(800);
+      await uploadImage(page);
+      await selectFlag(page, TEST_FLAGS.PALESTINE);
 
       // Wait for step 3
       await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, { timeout: 30000 });
@@ -55,9 +43,7 @@ for (const viewport of tabletViewports) {
       await page.goto('/');
 
       // Test mouse interaction
-      const fileInput = page.locator('input[type="file"]').first();
-      await fileInput.setInputFiles(TEST_IMAGE_PATH);
-      await page.waitForTimeout(1000);
+      await uploadImage(page);
 
       // Test touch interaction on flag selector
       const flagSelector = page.locator('#flag-select-label').locator('..');
