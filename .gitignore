@@ -13,6 +13,13 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Package manager lock files (use pnpm only)
+package-lock.json
+yarn.lock
+
+# pnpm ignores conflicting packages
+node_modules/.ignored/
+
 # Editor/OS
 .DS_Store
 Thumbs.db
