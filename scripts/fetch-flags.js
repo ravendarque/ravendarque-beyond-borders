@@ -60,7 +60,7 @@ if (!jsyaml) {
 }
 
 // Validate YAML against schema
-const ajv = new Ajv({ allErrors: true, verbose: true });
+const ajv = new Ajv({ allErrors: true, verbose: true, strict: false });
 const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
 
 let yamlData;
