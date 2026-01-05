@@ -37,13 +37,13 @@ jobs:
               - 'scripts/**'
               - '.github/scripts/**'
 
-  # Check if CI workflow has passed for this PR (polls until complete)
-  check-ci-status:
+  # Check if all required status checks have passed for this PR (polls until complete)
+  check-status-checks:
     runs-on: ubuntu-latest
     outputs:
-      ci-passed: ${{ steps.check.outputs.ci-passed }}
+      all-checks-passed: ${{ steps.check.outputs.all-checks-passed }}
     steps:
-      - name: Wait for CI workflow to complete
+      - name: Wait for all status checks to pass
         id: check
         uses: actions/github-script@v7
         with:
@@ -53,60 +53,117 @@ jobs:
             const pollInterval = 10 * 1000; // 10 seconds
             const startTime = Date.now();
 
-            core.info(`Waiting for CI workflow to complete for commit ${headSha}...`);
+            core.info(`Waiting for all required status checks to pass for commit ${headSha}...`);
 
             while (Date.now() - startTime < maxWaitTime) {
-              // Get workflow runs for the CI workflow on this branch
-              const { data: workflowRuns } = await github.rest.actions.listWorkflowRuns({
+              // Use Checks API (more reliable for GitHub Actions workflows)
+              const { data: checkRuns } = await github.rest.checks.listForRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                workflow_id: 'ci.yml',
-                head_sha: headSha,
-                per_page: 1,
+                ref: headSha,
+                per_page: 100,
               });
 
-              if (workflowRuns.total_count === 0) {
-                core.info('⏳ CI workflow has not started yet. Waiting...');
-                await new Promise(resolve => setTimeout(resolve, pollInterval));
-                continue;
+              // Also get combined status as fallback for non-check-run statuses
+              const { data: combinedStatus } = await github.rest.repos.getCombinedStatusForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: headSha,
+              });
+
+              // Convert check runs to status format
+              const checkRunStatuses = checkRuns.check_runs.map(cr => ({
+                context: cr.name,
+                state: cr.status === 'completed' 
+                  ? (cr.conclusion === 'success' ? 'success' : cr.conclusion === 'failure' || cr.conclusion === 'error' ? 'failure' : 'pending')
+                  : 'pending',
+              }));
+
+              // Combine with status API results
+              const allChecks = [...checkRunStatuses, ...combinedStatus.statuses];
+
+              // Remove duplicates (prefer check runs)
+              const uniqueChecks = [];
+              const seen = new Set();
+              for (const check of allChecks) {
+                if (!seen.has(check.context)) {
+                  seen.add(check.context);
+                  uniqueChecks.push(check);
+                }
               }
 
-              const latestRun = workflowRuns.workflow_runs[0];
+              // Log all checks for debugging
+              if (uniqueChecks.length > 0) {
+                core.info(`All status checks found (${uniqueChecks.length}): ${uniqueChecks.map(s => `${s.context} (${s.state})`).join(', ')}`);
+              } else {
+                core.info('No status checks found yet');
+              }
+
+              // Filter out this workflow's own status checks to avoid circular dependency
+              const relevantChecks = uniqueChecks.filter(s => {
+                const context = s.context.toLowerCase();
+                return !context.includes('deploy pr') && 
+                       !context.includes('deploy-pr') &&
+                       !context.includes('check-status-checks') &&
+                       !context.includes('check-ci-status');
+              });
+
+              const totalChecks = relevantChecks.length;
+              const pendingChecks = relevantChecks.filter(s => s.state === 'pending');
+              const successChecks = relevantChecks.filter(s => s.state === 'success');
+              const failureChecks = relevantChecks.filter(s => s.state === 'failure' || s.state === 'error');
+
+              core.info(`Status checks (excluding Deploy PR): ${successChecks.length}/${totalChecks} passed, ${pendingChecks.length} pending, ${failureChecks.length} failed`);
               
-              // Check if the latest run is for the correct commit
-              if (latestRun.head_sha !== headSha) {
-                core.info(`⏳ CI workflow run found but for different commit. Waiting for new run...`);
-                await new Promise(resolve => setTimeout(resolve, pollInterval));
-                continue;
+              if (totalChecks > 0) {
+                core.info(`Relevant check contexts: ${relevantChecks.map(c => c.context).join(', ')}`);
+              } else {
+                core.info('⚠️ No relevant status checks found - waiting for checks to be created...');
               }
 
-              if (latestRun.status !== 'completed') {
-                core.info(`⏳ CI workflow is still running (status: ${latestRun.status}, run #${latestRun.run_number})`);
-                await new Promise(resolve => setTimeout(resolve, pollInterval));
-                continue;
-              }
-
-              // Workflow has completed
-              if (latestRun.conclusion !== 'success') {
-                core.setOutput('ci-passed', 'false');
-                core.setFailed(`❌ CI workflow has failed or errored (conclusion: ${latestRun.conclusion}, run #${latestRun.run_number})`);
+              // If any relevant checks have failed, fail immediately
+              if (failureChecks.length > 0) {
+                const failedCheckNames = failureChecks.map(c => c.context).join(', ');
+                core.setOutput('all-checks-passed', 'false');
+                core.setFailed(`❌ Status checks failed: ${failedCheckNames}`);
                 return;
               }
 
-              // Success!
-              core.setOutput('ci-passed', 'true');
-              core.info(`✅ CI workflow has passed (run #${latestRun.run_number})`);
-              return;
+              // If all relevant checks are successful and there are checks, we're done
+              if (totalChecks > 0 && pendingChecks.length === 0 && failureChecks.length === 0) {
+                core.setOutput('all-checks-passed', 'true');
+                core.info(`✅ All required status checks have passed (${totalChecks} checks)`);
+                return;
+              }
+
+              // If there are still pending checks, wait and check again
+              if (pendingChecks.length > 0) {
+                const pendingNames = pendingChecks.map(c => c.context).join(', ');
+                core.info(`⏳ Waiting for checks to complete: ${pendingNames}`);
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+                continue;
+              }
+
+              // If no checks found yet, wait a bit longer (they might not have been created yet)
+              if (totalChecks === 0) {
+                core.info('⏳ No status checks found yet (they may not have been created), waiting...');
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+                continue;
+              }
+
+              // If we get here, something unexpected happened
+              core.info(`⏳ Unexpected state: ${totalChecks} checks, ${pendingChecks.length} pending, ${failureChecks.length} failed`);
+              await new Promise(resolve => setTimeout(resolve, pollInterval));
             }
 
             // Timeout
-            core.setOutput('ci-passed', 'false');
-            core.setFailed(`⏱️ Timeout: CI workflow did not complete within 30 minutes`);
+            core.setOutput('all-checks-passed', 'false');
+            core.setFailed(`⏱️ Timeout: Status checks did not complete within 30 minutes`);
 
-  # Deploy to beta after CI passes
+  # Deploy to beta after all status checks pass
   deploy-beta:
-    needs: [check-changes, check-ci-status]
-    if: needs.check-changes.outputs.production-code == 'true' && needs.check-ci-status.outputs.ci-passed == 'true'
+    needs: [check-changes, check-status-checks]
+    if: needs.check-changes.outputs.production-code == 'true' && needs.check-status-checks.outputs.all-checks-passed == 'true'
     runs-on: ubuntu-latest
     environment:
       name: beta
