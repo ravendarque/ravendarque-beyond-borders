@@ -83,12 +83,8 @@ All flag colors should match official specifications from authoritative sources:
 5. Verify within ±1 tolerance
 
 ### Automated Color Testing
-Use `src/renderer/__tests__/color-accuracy.test.ts`:
-```typescript
-// Renders each flag and samples colors
-// Compares to official specifications
-// Fails if outside ±1 RGB tolerance
-```
+Color accuracy testing utilities were removed as they were not integrated into the test suite.
+Manual color testing procedures should be used instead.
 
 ### Visual Inspection
 1. Display reference flag image side-by-side with rendered version
