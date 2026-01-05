@@ -662,7 +662,9 @@ async function workerForFlag(f) {
         }
 
         const FULL_HEIGHT = 1365;
-        const PREVIEW_WIDTH = 200;
+        // Preview width increased to 512px for crisp display quality
+        // Display size is 250-400px, so 512px provides 1.3-2x resolution for sharp scaling
+        const PREVIEW_WIDTH = 512;
         const fullWidth = Math.max(64, Math.round(FULL_HEIGHT * aspect));
         // Use detected content aspect ratio for preview height to avoid letterboxing
         const previewHeight = Math.max(64, Math.round(PREVIEW_WIDTH / detectedAspectForPreview));

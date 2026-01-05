@@ -136,8 +136,11 @@ export function AppStepWorkflow() {
   // Trigger render when parameters change (Step 3)
   useEffect(() => {
     if (currentStep === 3 && imageUrl && flagId) {
+      // Render at 1024px (2x) for preview to ensure crisp quality when scaled down
+      // The preview container is 250-400px, so 1024px gives us 2.5-4x resolution
+      // This eliminates blur from CSS downscaling
       render(imageUrl, flagId, {
-        size: 512,
+        size: 1024,
         thickness: debouncedThickness,
         insetPct: debouncedInsetPct,
         flagOffsetX: debouncedFlagOffsetX,

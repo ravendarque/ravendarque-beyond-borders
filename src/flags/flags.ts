@@ -43,6 +43,42 @@ export const flags: FlagSpec[] = [
     },
   },
   {
+    id: 'venezuela',
+    name: 'Flag of Venezuela',
+    displayName: 'Venezuela',
+    png_full: 'venezuela.png',
+    png_preview: 'venezuela.preview.png',
+    aspectRatio: 1.5,
+    svgFilename: 'venezuela.svg',
+    category: 'occupied',
+    categoryDisplayName: 'Occupied / Disputed Territory',
+    categoryDisplayOrder: 1,
+    reason: 'The military action on 3rd January 2026 by the US Trump Administration in Venezuela, which resulted in the capture of Nicolás Maduro and Cilia Flores, raises grave concerns for the human rights of the Venezuelan population. It most likely constitutes a violation of international law, including the UN Charter, as does the stated US intention to run Venezuela and control its oil resources.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Flag_of_Venezuela',
+        text: 'Flag of Venezuela on Wikipedia',
+      },
+      {
+        url: 'https://www.amnesty.org/en/latest/news/2026/01/amnesty-raises-concerns-following-us-military-action-in-venezuela/',
+        text: 'Amnesty International news article'
+      }
+    ],
+    modes: {
+      ring: {
+        colors: [
+          '#ffd000',
+          '#d01030',
+          '#002080'
+        ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: -27,
+      },
+    },
+  },
+  {
     id: 'tibet',
     name: 'Snow Lion Flag',
     displayName: 'Tibet',
