@@ -7,63 +7,13 @@
  */
 
 import { test, expect } from '@playwright/test';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Helper to get test image path
-const TEST_IMAGE_PATH = path.resolve(__dirname, '../test-data/profile-pic.jpg');
-
-/**
- * Helper to upload an image file
- */
-async function uploadImage(page: any) {
-  const fileInput = page.locator('input[type="file"]');
-  await fileInput.setInputFiles(TEST_IMAGE_PATH);
-  await page.waitForTimeout(1000);
-  
-  // Verify no error message
-  const errorCount = await page.getByText(/Invalid file type|File too large|Image dimensions too large/).count();
-  expect(errorCount).toBe(0);
-}
-
-/**
- * Helper to select a flag from the dropdown
- */
-async function selectFlag(page: any, flagName: string) {
-  // Click the select to open menu
-  await page.locator('#flag-select-label').locator('..').click();
-  await page.waitForTimeout(300);
-  
-  // Select the flag by exact name match
-  await page.getByRole('option', { name: flagName, exact: true }).click();
-  await page.waitForTimeout(800);
-}
-
-/**
- * Helper to select presentation mode
- */
-async function selectPresentationMode(page: any, mode: 'Ring' | 'Segment' | 'Cutout') {
-  await page.getByRole('radio', { name: mode }).check();
-  await page.waitForTimeout(500);
-}
-
-/**
- * Helper to set a slider value
- * Waits for slider to be visible before interacting
- */
-async function setSliderValue(page: any, label: string, value: number) {
-  const labelId = label.replace(/\s+/g, '-').toLowerCase() + '-label';
-  const slider = page.locator(`input[type="range"][aria-labelledby="${labelId}"]`);
-  
-  // Wait for slider to be visible
-  await slider.waitFor({ state: 'visible', timeout: 5000 });
-  
-  await slider.fill(value.toString());
-  await page.waitForTimeout(400);
-}
+import {
+  uploadImage,
+  selectFlag,
+  selectPresentationMode,
+  setSliderValue,
+} from '../helpers/page-helpers';
+import { TEST_FLAGS } from '../helpers/test-data';
 
 test.describe('Visual Flows - Ring Mode', () => {
   test('should support ring mode workflow with UI interactions', async ({ page }) => {
@@ -79,7 +29,7 @@ test.describe('Visual Flows - Ring Mode', () => {
     });
     
     // Step 2: Select Non-binary flag
-    await selectFlag(page, 'Non-binary Pride — Non-binary flag');
+    await selectFlag(page, TEST_FLAGS.NON_BINARY);
     const afterFlagSelect = await page.screenshot();
     test.info().attachments.push({
       name: 'ring-02-after-flag-select.png',
@@ -114,7 +64,7 @@ test.describe('Visual Flows - Segment Mode', () => {
     await uploadImage(page);
     
     // Step 2: Select Pride flag
-    await selectFlag(page, 'Pride — Rainbow Flag');
+    await selectFlag(page, TEST_FLAGS.PRIDE);
     const afterFlagSelect = await page.screenshot();
     test.info().attachments.push({
       name: 'segment-01-after-flag-select.png',
@@ -146,7 +96,7 @@ test.describe('Visual Flows - Cutout Mode', () => {
     await uploadImage(page);
     
     // Step 2: Select Palestine flag
-    await selectFlag(page, 'Palestine — Palestinian flag');
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
     const afterFlagSelect = await page.screenshot();
     test.info().attachments.push({
       name: 'cutout-01-after-flag-select.png',
@@ -222,7 +172,7 @@ test.describe('Visual Flows - Flag Switching', () => {
     await uploadImage(page);
     
     // Test first flag
-    await selectFlag(page, 'Pride — Rainbow Flag');
+    await selectFlag(page, TEST_FLAGS.PRIDE);
     await expect(page.locator('#flag-select-label')).toBeVisible();
     const prideScreenshot = await page.screenshot();
     test.info().attachments.push({
@@ -232,7 +182,7 @@ test.describe('Visual Flows - Flag Switching', () => {
     });
     
     // Switch to second flag
-    await selectFlag(page, 'Palestine — Palestinian flag');
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
     const palestineScreenshot = await page.screenshot();
     test.info().attachments.push({
       name: 'flag-switch-02-palestine.png',
@@ -241,7 +191,7 @@ test.describe('Visual Flows - Flag Switching', () => {
     });
     
     // Switch to third flag
-    await selectFlag(page, 'Transgender Pride — Transgender flag');
+    await selectFlag(page, TEST_FLAGS.TRANSGENDER);
     const transScreenshot = await page.screenshot();
     test.info().attachments.push({
       name: 'flag-switch-03-transgender.png',
@@ -256,7 +206,7 @@ test.describe('Visual Flows - Error Handling', () => {
     await page.goto('/');
     
     // Try to select flag without image
-    await selectFlag(page, 'Palestine — Palestinian flag');
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
     
     // Should still show upload button
     const uploadButton = await page.locator('text=/Upload|Choose/i').count();

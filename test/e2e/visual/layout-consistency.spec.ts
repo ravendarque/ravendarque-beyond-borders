@@ -3,13 +3,8 @@
  */
 
 import { test, expect } from '@playwright/test';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const TEST_IMAGE_PATH = path.resolve(__dirname, '../../test-data/profile-pic.jpg');
+import { uploadImage, selectFlag, waitForRenderComplete } from '../helpers/page-helpers';
+import { TEST_FLAGS } from '../helpers/test-data';
 
 test.describe('Layout Consistency', () => {
   test('should maintain layout during step transitions', async ({ page }) => {
@@ -19,22 +14,16 @@ test.describe('Layout Consistency', () => {
     await expect(page).toHaveScreenshot('step1-initial.png', { fullPage: true });
 
     // Upload image
-    const fileInput = page.locator('input[type="file"]').first();
-    await fileInput.setInputFiles(TEST_IMAGE_PATH);
-    await page.waitForTimeout(1000);
+    await uploadImage(page);
 
     // Step 2 screenshot
     await expect(page).toHaveScreenshot('step2-after-upload.png', { fullPage: true });
 
     // Select flag
-    const flagSelector = page.locator('#flag-select-label').locator('..');
-    await flagSelector.click();
-    await page.waitForTimeout(300);
-    await page.getByRole('option', { name: 'Palestine — Palestinian flag' }).click();
-    await page.waitForTimeout(800);
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
 
     // Step 3 screenshot
-    await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, { timeout: 30000 });
+    await waitForRenderComplete(page);
     await expect(page).toHaveScreenshot('step3-after-flag-select.png', { fullPage: true });
   });
 
@@ -54,9 +43,8 @@ test.describe('Layout Consistency', () => {
     });
 
     // Upload image
-    const fileInput = page.locator('input[type="file"]').first();
-    await fileInput.setInputFiles(TEST_IMAGE_PATH);
-    await page.waitForTimeout(2000);
+    await uploadImage(page);
+    await page.waitForTimeout(1000); // Additional wait for layout shifts to settle
 
     // Get layout shift values
     const shifts = await page.evaluate(() => {

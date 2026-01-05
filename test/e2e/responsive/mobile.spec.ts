@@ -3,13 +3,8 @@
  */
 
 import { test, expect, devices } from '@playwright/test';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const TEST_IMAGE_PATH = path.resolve(__dirname, '../../test-data/profile-pic.jpg');
+import { uploadImage } from '../helpers/page-helpers';
+import { TEST_IMAGE_PATH } from '../helpers/test-data';
 
 const mobileViewports = [
   { width: 320, height: 568, name: 'iPhone SE' },
@@ -54,9 +49,7 @@ for (const viewport of mobileViewports) {
       await page.goto('/');
 
       // Upload image
-      const fileInput = page.locator('input[type="file"]').first();
-      await fileInput.setInputFiles(TEST_IMAGE_PATH);
-      await page.waitForTimeout(1000);
+      await uploadImage(page);
 
       // Test flag selector (should work with touch)
       const flagSelector = page.locator('#flag-select-label').locator('..');
@@ -74,9 +67,7 @@ for (const viewport of mobileViewports) {
       await page.goto('/');
 
       // Upload image
-      const fileInput = page.locator('input[type="file"]').first();
-      await fileInput.setInputFiles(TEST_IMAGE_PATH);
-      await page.waitForTimeout(1000);
+      await uploadImage(page);
 
       // Check image doesn't exceed viewport
       const images = page.locator('img');

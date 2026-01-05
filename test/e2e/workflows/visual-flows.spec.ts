@@ -6,75 +6,14 @@
  */
 
 import { test, expect } from '@playwright/test';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Helper to get test image path
-const TEST_IMAGE_PATH = path.resolve(__dirname, '../test-data/profile-pic.jpg');
-
-/**
- * Helper to upload an image file
- */
-async function uploadImage(page: any) {
-  const fileInput = page.locator('input[type="file"]');
-  await fileInput.setInputFiles(TEST_IMAGE_PATH);
-  
-  // Wait a moment for the file to be processed
-  await page.waitForTimeout(1000);
-  
-  // Verify no error message
-  const errorCount = await page.getByText(/Invalid file type|File too large|Image dimensions too large/).count();
-  expect(errorCount).toBe(0);
-}
-
-/**
- * Helper to select a flag from the dropdown
- */
-async function selectFlag(page: any, flagName: string) {
-  // Find the Select component by its label
-  const flagSelector = page.locator('#flag-select-label').locator('..');
-  await flagSelector.click();
-  
-  // Wait for menu to open and find the option
-  await page.waitForTimeout(300);
-  
-  // Click the flag option by text content
-  const flagOption = page.getByRole('option', { name: flagName });
-  await flagOption.click();
-  
-  // Wait for flag to load and render
-  await page.waitForTimeout(800);
-}
-
-/**
- * Helper to select presentation mode
- */
-async function selectPresentationMode(page: any, mode: 'Ring' | 'Segment' | 'Cutout') {
-  // Find the radio button by label
-  const modeRadio = page.getByRole('radio', { name: mode });
-  await modeRadio.check();
-  
-  // Wait for re-render
-  await page.waitForTimeout(500);
-}
-
-/**
- * Helper to set a slider value
- */
-async function setSliderValue(page: any, label: string, value: number) {
-  // Create the aria-labelledby id from the label
-  const labelId = label.replace(/\s+/g, '-').toLowerCase() + '-label';
-  
-  // Find the slider by its aria-labelledby attribute
-  const slider = page.locator(`input[type="range"][aria-labelledby="${labelId}"]`);
-  await slider.fill(value.toString());
-  
-  // Wait for debounce and re-render (150ms debounce + render time)
-  await page.waitForTimeout(400);
-}
+import {
+  uploadImage,
+  selectFlag,
+  selectPresentationMode,
+  setSliderValue,
+  waitForRenderComplete,
+} from '../helpers/page-helpers';
+import { TEST_FLAGS } from '../helpers/test-data';
 
 /**
  * Helper to capture canvas as base64 data URL

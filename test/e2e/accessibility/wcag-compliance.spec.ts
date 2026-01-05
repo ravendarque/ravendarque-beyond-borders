@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 test.describe('WCAG AA Compliance', () => {
-  test('should have no accessibility violations on home page', async ({ page }) => {
+  test('should have no accessibility violations on home page', { tag: '@accessibility' }, async ({ page }) => {
     await page.goto('/');
 
     const accessibilityScanResults = await new AxeBuilder({ page })
