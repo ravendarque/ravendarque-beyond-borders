@@ -198,6 +198,7 @@ scripts/
 docs/
 ├── code-standards.md       # Code standards and review guidelines (for AI agents)
 ├── renderer-api.md         # Renderer API documentation
+├── testing.md              # Testing overview and links
 └── [other documentation]   # Additional docs
 ```
 
