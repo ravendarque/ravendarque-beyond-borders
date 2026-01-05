@@ -7,6 +7,13 @@ on:
       - 'feat/**'
       - 'fix/**'
       - 'hotfix/**'
+      - 'refactor/**'
+      - 'test/**'
+      - 'docs/**'
+      - 'style/**'
+      - 'perf/**'
+      - 'chore/**'
+      - 'ci/**'
 
 permissions:
   contents: read
@@ -54,6 +61,11 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           extra_args: --only-verified
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.3
+        with:
+          version: 'latest'
 
       - name: Security audit
         run: pwsh .github/scripts/check-security.ps1
