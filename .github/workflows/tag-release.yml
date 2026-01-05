@@ -61,7 +61,8 @@ jobs:
           COMMITS="${{ steps.commits.outputs.commits }}"
           BUMP_TYPE="none"
           
-          if echo "$COMMITS" | grep -qiE "(^|\s)(BREAKING CHANGE|!:)"; then
+          # Match breaking changes: "BREAKING CHANGE" or "type!:" format (e.g., "feat!: description")
+          if echo "$COMMITS" | grep -qiE "(^|\s)BREAKING CHANGE|\w!:"; then
             BUMP_TYPE="major"
             MAJOR=$((MAJOR + 1))
             MINOR=0

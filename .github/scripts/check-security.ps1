@@ -46,17 +46,26 @@ foreach ($pathPattern in $trivyPaths) {
     if ($trivyFound) { break }
 }
 
-# Also check if trivy is in PATH
+# Also check if trivy is in PATH (works on Linux/macOS and Windows if installed via package manager)
 if (-not $trivyFound) {
     if (Get-Command trivy -ErrorAction SilentlyContinue) {
         $trivyFound = $true
     }
 }
 
+# Check if we're in CI - if so, trivy must be available
+$isCI = $env:GITHUB_ACTIONS -eq "true" -or $env:CI -eq "true"
+
 if (-not $trivyFound) {
-    Write-Host "⚠️  Warning: trivy not installed - skipping security scan" -ForegroundColor Yellow
-    Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
-    exit 0  # Non-blocking warning
+    if ($isCI) {
+        Write-Host "❌ Error: trivy not found in CI - security scan required" -ForegroundColor Red
+        Write-Host "  Ensure trivy is installed in the workflow before running this script" -ForegroundColor Yellow
+        exit 1  # Fail in CI
+    } else {
+        Write-Host "⚠️  Warning: trivy not installed - skipping security scan" -ForegroundColor Yellow
+        Write-Host "  Install: Run .\.github\scripts\setup-dev-env.ps1" -ForegroundColor Gray
+        exit 0  # Non-blocking warning for local dev
+    }
 }
 
 # Run trivy scan
