@@ -56,21 +56,51 @@ jobs:
             core.info(`Waiting for all required status checks to pass for commit ${headSha}...`);
 
             while (Date.now() - startTime < maxWaitTime) {
-              // Get combined status for the commit (includes all status checks)
+              // Use Checks API (more reliable for GitHub Actions workflows)
+              const { data: checkRuns } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: headSha,
+                per_page: 100,
+              });
+
+              // Also get combined status as fallback for non-check-run statuses
               const { data: combinedStatus } = await github.rest.repos.getCombinedStatusForRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 ref: headSha,
               });
 
-              // Log all status checks for debugging
-              if (combinedStatus.statuses.length > 0) {
-                core.info(`All status checks found: ${combinedStatus.statuses.map(s => `${s.context} (${s.state})`).join(', ')}`);
+              // Convert check runs to status format
+              const checkRunStatuses = checkRuns.check_runs.map(cr => ({
+                context: cr.name,
+                state: cr.status === 'completed' 
+                  ? (cr.conclusion === 'success' ? 'success' : cr.conclusion === 'failure' || cr.conclusion === 'error' ? 'failure' : 'pending')
+                  : 'pending',
+              }));
+
+              // Combine with status API results
+              const allChecks = [...checkRunStatuses, ...combinedStatus.statuses];
+
+              // Remove duplicates (prefer check runs)
+              const uniqueChecks = [];
+              const seen = new Set();
+              for (const check of allChecks) {
+                if (!seen.has(check.context)) {
+                  seen.add(check.context);
+                  uniqueChecks.push(check);
+                }
+              }
+
+              // Log all checks for debugging
+              if (uniqueChecks.length > 0) {
+                core.info(`All status checks found (${uniqueChecks.length}): ${uniqueChecks.map(s => `${s.context} (${s.state})`).join(', ')}`);
+              } else {
+                core.info('No status checks found yet');
               }
 
               // Filter out this workflow's own status checks to avoid circular dependency
-              // The context name format is usually "workflow-name / job-name" or just "workflow-name"
-              const relevantChecks = combinedStatus.statuses.filter(s => {
+              const relevantChecks = uniqueChecks.filter(s => {
                 const context = s.context.toLowerCase();
                 return !context.includes('deploy pr') && 
                        !context.includes('deploy-pr') &&
@@ -87,6 +117,8 @@ jobs:
               
               if (totalChecks > 0) {
                 core.info(`Relevant check contexts: ${relevantChecks.map(c => c.context).join(', ')}`);
+              } else {
+                core.info('⚠️ No relevant status checks found - waiting for checks to be created...');
               }
 
               // If any relevant checks have failed, fail immediately
