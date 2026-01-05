@@ -14,9 +14,12 @@
  * - release/v1.0, tag v0.9, 1 commit after: 0.9.1-rc
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import { join } from 'path';
+import { resolveFromScript } from './lib/paths.js';
+import { logger } from './lib/logger.js';
+import { exitWithError, FileError } from './lib/errors.js';
 
 /**
  * Execute a git command and return the output
@@ -35,7 +38,7 @@ function git(command) {
  * Get the current branch name
  * @returns {string} - Branch name
  */
-function getBranchName() {
+export function getBranchName() {
   // Try to get from GitHub Actions environment
   const ghRef = process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME;
   if (ghRef) {
@@ -50,7 +53,7 @@ function getBranchName() {
  * Get the latest git tag matching semantic version pattern
  * @returns {string} - Latest tag (e.g., "v0.1" or "v1.0.0")
  */
-function getLatestTag() {
+export function getLatestTag() {
   const tags = git('tag --list "v*" --sort=-version:refname');
   if (!tags) {
     return 'v0.0'; // Default if no tags exist
@@ -64,7 +67,7 @@ function getLatestTag() {
  * @param {string} tag - Version tag (e.g., "v0.1" or "v1.0.0")
  * @returns {{major: number, minor: number}} - Parsed version
  */
-function parseTag(tag) {
+export function parseTag(tag) {
   const match = tag.match(/v?(\d+)\.(\d+)/);
   if (!match) {
     return { major: 0, minor: 0 };
@@ -81,7 +84,7 @@ function parseTag(tag) {
  * @param {string} tag - Tag to count from
  * @returns {number} - Number of commits since tag
  */
-function getCommitsSinceTag(tag) {
+export function getCommitsSinceTag(tag) {
   const count = git(`rev-list ${tag}..HEAD --count`);
   return parseInt(count, 10) || 0;
 }
@@ -100,7 +103,7 @@ function getTotalCommitCount() {
  * @param {string} branch - Branch name
  * @returns {string} - Prerelease suffix (e.g., "pr", "beta", "rc") or empty string
  */
-function getPrereleaseSuffix(branch) {
+export function getPrereleaseSuffix(branch) {
   // Main/master branches: no suffix (stable)
   if (/^(main|master)$/.test(branch)) {
     return '';
@@ -129,7 +132,7 @@ function getPrereleaseSuffix(branch) {
  * Calculate semantic version based on git history
  * @returns {string} - Calculated version (e.g., "0.1.5" or "0.1.3-alpha.3")
  */
-function calculateVersion() {
+export function calculateVersion() {
   const branch = getBranchName();
   const latestTag = getLatestTag();
   const { major, minor } = parseTag(latestTag);
@@ -161,13 +164,13 @@ function calculateVersion() {
 /**
  * Update package.json with calculated version (optional)
  * @param {string} version - Version to write to package.json
+ * @param {string} importMetaUrl - The import.meta.url from the calling script
  */
-function updatePackageJson(version) {
-  const packageJsonPath = path.join(__dirname, '..', 'package.json');
+function updatePackageJson(version, importMetaUrl) {
+  const packageJsonPath = join(resolveFromScript(importMetaUrl, '..'), 'package.json');
   
   if (!fs.existsSync(packageJsonPath)) {
-    console.error('package.json not found');
-    return;
+    exitWithError(new FileError('package.json not found', packageJsonPath));
   }
   
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
@@ -179,28 +182,17 @@ function updatePackageJson(version) {
     'utf8'
   );
   
-  console.log(`Updated package.json version to ${version}`);
+  logger.success(`Updated package.json version to ${version}`);
 }
 
-// Main execution
-if (require.main === module) {
-  const version = calculateVersion();
-  const args = process.argv.slice(2);
-  
-  // If --update flag is provided, update package.json
-  if (args.includes('--update')) {
-    updatePackageJson(version);
-  } else {
-    // Otherwise, just output the version
-    console.log(version);
-  }
-}
+// Main execution (runs when script is executed directly)
+const version = calculateVersion();
+const args = process.argv.slice(2);
 
-module.exports = {
-  calculateVersion,
-  getBranchName,
-  getLatestTag,
-  parseTag,
-  getCommitsSinceTag,
-  getPrereleaseSuffix
-};
+// If --update flag is provided, update package.json
+if (args.includes('--update')) {
+  updatePackageJson(version, import.meta.url);
+} else {
+  // Otherwise, just output the version
+  console.log(version);
+}

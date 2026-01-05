@@ -1,7 +1,5 @@
 import { test, expect } from 'vitest';
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const helpers = require('../../../scripts/lib/helpers.cjs');
+import * as helpers from '../../../scripts/lib/helpers.js';
 
 test('sanitizeFilename strips paths and normalizes', () => {
   const s = helpers.sanitizeFilename('../File:Weird/Name<>.svg');

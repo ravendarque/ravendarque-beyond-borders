@@ -4,7 +4,7 @@ This directory contains utility scripts for managing the Beyond Borders applicat
 
 ## Core Production Scripts
 
-### `fetch-flags.cjs`
+### `fetch-flags.js`
 **Purpose:** Primary flag asset generation script - the heart of the flag processing pipeline.
 
 **What it does:**
@@ -12,7 +12,7 @@ This directory contains utility scripts for managing the Beyond Borders applicat
 - Downloads SVG files from Wikimedia Commons
 - Rasterizes SVGs into PNGs using Playwright/resvg/sharp
 - Generates full-size PNGs (standardized height: 1365px)
-- Generates preview PNGs (200×100px for UI thumbnails)
+- Generates preview PNGs (512px width for UI thumbnails)
 - Extracts colors from SVG files
 - **Generates `src/flags/flags.ts` TypeScript file directly**
 - Cleans up obsolete flag assets
@@ -20,20 +20,20 @@ This directory contains utility scripts for managing the Beyond Borders applicat
 **Usage:**
 ```bash
 # Dry run (preview changes without making them)
-node scripts/fetch-flags.cjs --dry-run
+node scripts/fetch-flags.js --dry-run
 
 # Local execution (requires explicit --push flag to commit)
-node scripts/fetch-flags.cjs --push
+node scripts/fetch-flags.js --push
 
 # CI execution (auto-commits and validates)
-node scripts/fetch-flags.cjs --ci
+node scripts/fetch-flags.js --ci
 ```
 
 **Requirements:** Playwright, sharp, @resvg/resvg-js
 
 ---
 
-### `validate-flags.cjs`
+### `validate-flags.js`
 **Purpose:** Validates flag data integrity and PNG quality.
 
 **What it does:**
@@ -44,7 +44,7 @@ node scripts/fetch-flags.cjs --ci
 
 **Usage:**
 ```bash
-node scripts/validate-flags.cjs
+node scripts/validate-flags.js
 ```
 
 **Requirements:** Playwright (for PNG analysis), js-yaml
@@ -53,7 +53,7 @@ node scripts/validate-flags.cjs
 
 ## Development & Debug Scripts
 
-### `inspect-flag-raster.cjs`
+### `inspect-flag-raster.js`
 **Purpose:** Analyzes PNG files to check canvas usage and transparency.
 
 **What it does:**
@@ -64,14 +64,14 @@ node scripts/validate-flags.cjs
 
 **Usage:**
 ```bash
-node scripts/inspect-flag-raster.cjs public/flags/palestine.png
+node scripts/inspect-flag-raster.js public/flags/palestine.png
 ```
 
 **Requirements:** Playwright
 
 ---
 
-### `capture-cutout.cjs`
+### `capture-cutout.js`
 **Purpose:** Captures screenshots of the cutout mode for testing.
 
 **What it does:**
@@ -81,14 +81,14 @@ node scripts/inspect-flag-raster.cjs public/flags/palestine.png
 
 **Usage:**
 ```bash
-node scripts/capture-cutout.cjs
+node scripts/capture-cutout.js
 ```
 
 **Requirements:** Playwright
 
 ---
 
-### `inspect-page.cjs`
+### `inspect-page.js`
 **Purpose:** Inspects the app's page structure and state.
 
 **What it does:**
@@ -98,7 +98,7 @@ node scripts/capture-cutout.cjs
 
 **Usage:**
 ```bash
-node scripts/inspect-page.cjs
+node scripts/inspect-page.js
 ```
 
 **Requirements:** Playwright
@@ -147,15 +147,25 @@ node scripts/screenshot.js
 ```
 scripts/
 ├── README.md                    # This file
-├── fetch-flags.cjs              # Flag asset + TypeScript generation (CORE)
-├── validate-flags.cjs           # Flag validation (CORE)
-├── inspect-flag-raster.cjs      # PNG analysis tool
-├── capture-cutout.cjs           # Cutout mode testing
-├── inspect-page.cjs             # Page inspector
+├── fetch-flags.js               # Flag asset + TypeScript generation (CORE)
+├── validate-flags.js            # Flag validation (CORE)
+├── get-version.js               # Version calculator
+├── inspect-flag-raster.js       # PNG analysis tool
+├── capture-cutout.js            # Cutout mode testing
+├── inspect-page.js              # Page inspector
 ├── grab_bb_debug.js             # Debug data extractor
 ├── screenshot.js                # Screenshot utility
 ├── lib/
-│   └── helpers.cjs              # Shared utilities
+│   ├── helpers.js               # Shared utilities
+│   ├── paths.js                 # Path resolution utilities
+│   ├── logger.js                # Structured logging
+│   ├── config.js                # Configuration
+│   ├── deps.js                  # Optional dependency loader
+│   ├── errors.js                # Custom error classes
+│   ├── flag-parser.js           # Flag data parsing
+│   ├── network.js               # Network utilities
+│   ├── image-processor.js       # Image processing
+│   └── typescript-generator.js  # TypeScript code generation
 └── tests/
     ├── helpers.test.js          # Tests for helpers
     ├── unit-runner.cjs          # Test runner
@@ -167,9 +177,9 @@ scripts/
 ## Workflow: Adding a New Flag
 
 1. **Edit source:** Add flag entry to `data/flag-data.yaml`
-2. **Generate assets:** Run `node scripts/fetch-flags.cjs --dry-run` to preview
-3. **Commit assets:** Run `node scripts/fetch-flags.cjs --push` to generate and commit (this also updates `flags.ts`)
-4. **Validate:** Run `node scripts/validate-flags.cjs` to verify
+2. **Generate assets:** Run `node scripts/fetch-flags.js --dry-run` to preview
+3. **Commit assets:** Run `node scripts/fetch-flags.js --push` to generate and commit (this also updates `flags.ts`)
+4. **Validate:** Run `node scripts/validate-flags.js` to verify
 5. **Test:** Run unit tests with `pnpm test -- flags.test.ts`
 
 **Note:** When using the GitHub Actions workflow, steps 4-5 happen automatically!
