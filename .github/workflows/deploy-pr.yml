@@ -63,13 +63,20 @@ jobs:
                 ref: headSha,
               });
 
+              // Log all status checks for debugging
+              if (combinedStatus.statuses.length > 0) {
+                core.info(`All status checks found: ${combinedStatus.statuses.map(s => `${s.context} (${s.state})`).join(', ')}`);
+              }
+
               // Filter out this workflow's own status checks to avoid circular dependency
-              const workflowName = 'Deploy PR';
-              const relevantChecks = combinedStatus.statuses.filter(s => 
-                !s.context.includes(workflowName) && 
-                !s.context.includes('deploy-pr') &&
-                !s.context.includes('check-status-checks')
-              );
+              // The context name format is usually "workflow-name / job-name" or just "workflow-name"
+              const relevantChecks = combinedStatus.statuses.filter(s => {
+                const context = s.context.toLowerCase();
+                return !context.includes('deploy pr') && 
+                       !context.includes('deploy-pr') &&
+                       !context.includes('check-status-checks') &&
+                       !context.includes('check-ci-status');
+              });
 
               const totalChecks = relevantChecks.length;
               const pendingChecks = relevantChecks.filter(s => s.state === 'pending');
@@ -77,6 +84,10 @@ jobs:
               const failureChecks = relevantChecks.filter(s => s.state === 'failure' || s.state === 'error');
 
               core.info(`Status checks (excluding Deploy PR): ${successChecks.length}/${totalChecks} passed, ${pendingChecks.length} pending, ${failureChecks.length} failed`);
+              
+              if (totalChecks > 0) {
+                core.info(`Relevant check contexts: ${relevantChecks.map(c => c.context).join(', ')}`);
+              }
 
               // If any relevant checks have failed, fail immediately
               if (failureChecks.length > 0) {
@@ -86,8 +97,8 @@ jobs:
                 return;
               }
 
-              // If all relevant checks are successful, we're done
-              if (pendingChecks.length === 0 && failureChecks.length === 0 && totalChecks > 0) {
+              // If all relevant checks are successful and there are checks, we're done
+              if (totalChecks > 0 && pendingChecks.length === 0 && failureChecks.length === 0) {
                 core.setOutput('all-checks-passed', 'true');
                 core.info(`✅ All required status checks have passed (${totalChecks} checks)`);
                 return;
@@ -101,9 +112,9 @@ jobs:
                 continue;
               }
 
-              // If no checks found yet, wait a bit longer
+              // If no checks found yet, wait a bit longer (they might not have been created yet)
               if (totalChecks === 0) {
-                core.info('⏳ No status checks found yet, waiting...');
+                core.info('⏳ No status checks found yet (they may not have been created), waiting...');
                 await new Promise(resolve => setTimeout(resolve, pollInterval));
                 continue;
               }
