@@ -33,13 +33,13 @@ jobs:
         run: npx playwright install --with-deps chromium
         
       - name: Fetch and generate flags
-        run: node scripts/fetch-flags.cjs
+        run: node scripts/fetch-flags.js
       - name: Validate flag data integrity
         run: |
           pnpm test -- flags.test.ts
       - name: Validate flag assets quality
         run: |
-          node scripts/validate-flags.cjs
+          node scripts/validate-flags.js
       - name: Create pull request with updated flags
         uses: peter-evans/create-pull-request@v5
         with:
@@ -56,7 +56,7 @@ jobs:
             
             ## Pre-merge Validation
             - ✅ Unit tests passed (flags.test.ts)
-            - ✅ Flag asset quality validated (validate-flags.cjs)
+            - ✅ Flag asset quality validated (validate-flags.js)
             - ✅ All PNG files exist and fill canvas properly
             - ✅ All flags have required properties
             

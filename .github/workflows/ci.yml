@@ -139,7 +139,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Validate flag SVGs
-        run: node scripts/validate-flags.cjs
+        run: node scripts/validate-flags.js
 
       - name: Lint code
         run: pnpm run lint
