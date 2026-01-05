@@ -161,6 +161,10 @@ export async function renderAvatar(
 
   // Create canvas (with OffscreenCanvas fallback and size validation)
   const { canvas, ctx } = createCanvas(canvasW, canvasH);
+  
+  // Enable high-quality image smoothing for crisp rendering
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
 
   // Background fill (optional, else transparent)
   if (options.backgroundColor) {
@@ -226,6 +230,10 @@ export async function renderAvatar(
     const flagCanvas = new OffscreenCanvas(canvasW + extraWidth, canvasH);
     const flagCtx = flagCanvas.getContext('2d')!;
     
+    // Enable high-quality image smoothing for crisp flag rendering
+    flagCtx.imageSmoothingEnabled = true;
+    flagCtx.imageSmoothingQuality = 'high';
+    
     // The ring center on the flagCanvas (accounting for extraWidth)
     const ringCenterX = extraWidth / 2 + r;
     
@@ -246,33 +254,20 @@ export async function renderAvatar(
       const flagAspectRatio = flag.aspectRatio ?? 2; // Default to 2:1 if not specified
       const flagRectWidth = flagRectHeight * flagAspectRatio;
       
-      // Position flag: ensure it always covers the full ring width, even when offset
+      // Position flag with offset
       // The ring center on flagCanvas is at ringCenterX
-      // The ring has a diameter of ringOuterDiameter, so we need to ensure the flag covers at least that width
-      // When offset, we shift the flag but ensure it still covers the ring area
-      // The flag should be positioned so that when offset, it still covers the ring
-      // Calculate desired position with offset
-      let dx = ringCenterX - flagRectWidth / 2 - flagOffsetX;
+      // Offset semantics (from schema):
+      //   -50%: left edge of border touches left edge of flag
+      //   0%: center, no offset
+      //   +50%: right edge of border touches right edge of flag
+      // 
+      // The flag extends beyond the ring by (flagRectWidth - ringOuterDiameter) / 2 on each side
+      // We need to map the offset percentage to this extension range
+      // flagOffsetX is in pixels (-256 to +256), representing -50% to +50%
+      const flagExtension = (flagRectWidth - ringOuterDiameter) / 2;
+      const offsetPx = (flagOffsetX / 256) * flagExtension;
+      const dx = ringCenterX - flagRectWidth / 2 + offsetPx;
       const dy = r - flagRectHeight / 2;
-      
-      // Ensure the flag always covers the ring: clamp position to prevent gaps
-      // The ring extends from ringCenterX - ringOuterRadius to ringCenterX + ringOuterRadius
-      // The flag extends from dx to dx + flagRectWidth
-      // We need: dx <= ringCenterX - ringOuterRadius AND dx + flagRectWidth >= ringCenterX + ringOuterRadius
-      const ringLeftEdge = ringCenterX - ringOuterRadius;
-      const ringRightEdge = ringCenterX + ringOuterRadius;
-      const flagLeftEdge = dx;
-      const flagRightEdge = dx + flagRectWidth;
-      
-      // Clamp the position to ensure the flag always covers the ring
-      if (flagLeftEdge > ringLeftEdge) {
-        // Flag is too far right, move it left to cover the ring
-        dx = ringLeftEdge;
-      }
-      if (flagRightEdge < ringRightEdge) {
-        // Flag is too far left, move it right to cover the ring
-        dx = ringRightEdge - flagRectWidth;
-      }
       
       // Debug logging (remove after verification)
       if (import.meta.env.DEV) {

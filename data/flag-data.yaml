@@ -20,6 +20,20 @@ categories:
           offsetEnabled: true
           defaultOffset: -50
 
+      - flagName: "Flag of Venezuela"
+        displayName: "Venezuela"
+        svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Venezuela.svg"
+        description: "A yellow field with a blue and red diagonal cross."
+        reason: "The military action on 3rd January 2026 by the US Trump Administration in Venezuela, which resulted in the capture of Nicolás Maduro and Cilia Flores, raises grave concerns for the human rights of the Venezuelan population. It most likely constitutes a violation of international law, including the UN Charter, as does the stated US intention to run Venezuela and control its oil resources."
+        references:
+          - url: "https://en.wikipedia.org/wiki/Flag_of_Venezuela"
+            text: "Flag of Venezuela on Wikipedia"
+          - url: "https://www.amnesty.org/en/latest/news/2026/01/amnesty-raises-concerns-following-us-military-action-in-venezuela/"
+            text: "Amnesty International news article"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: -27
+          
       - flagName: "Snow Lion Flag"
         displayName: "Tibet"
         svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Tibet.svg"
