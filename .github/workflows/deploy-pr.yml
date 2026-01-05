@@ -179,7 +179,7 @@ jobs:
       - name: Calculate semantic version from git
         id: version
         run: |
-          VERSION=$(node scripts/get-version.cjs)
+          VERSION=$(node scripts/get-version.js)
           echo "semver=$VERSION" >> $GITHUB_OUTPUT
           echo "Deploying version: $VERSION"
 

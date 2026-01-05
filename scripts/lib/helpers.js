@@ -1,11 +1,21 @@
-const path = require('path');
-const fs = require('fs');
+/**
+ * Shared utility functions for flag processing scripts
+ */
 
-function sanitizeFilename(name) {
+import { basename } from 'path';
+import { loadOptionalDep } from './deps.js';
+import { logger } from './logger.js';
+
+/**
+ * Sanitize a filename to be filesystem-safe
+ * @param {string} name - Original filename
+ * @returns {string} Sanitized filename
+ */
+export function sanitizeFilename(name) {
   name = decodeURIComponent(name || 'flag.svg');
-  name = path.basename(name);
+  name = basename(name);
   name = name.replace(/^File:/i, '');
-  name = name.replace(/[<>:\"/\\|?*]/g, '_');
+  name = name.replace(/[<>:"/\\|?*]/g, '_');
   name = name.replace(/^[._\-\s]+/, '').replace(/[._\-\s]+$/, '');
   if (name.length > 120) name = name.slice(0, 120);
   if (!name.toLowerCase().endsWith('.svg')) name = name + '.svg';
@@ -18,11 +28,10 @@ function sanitizeFilename(name) {
  * @param {string} pngPath - Path to PNG file
  * @returns {Promise<string[]>} Array of hex color strings
  */
-async function extractColorsFromPng(pngPath) {
-  let Sharp = null;
-  try {
-    Sharp = require('sharp');
-  } catch (e) {
+export async function extractColorsFromPng(pngPath) {
+  const Sharp = await loadOptionalDep('sharp');
+  if (!Sharp) {
+    logger.warn('sharp not available, skipping PNG color extraction');
     return [];
   }
 
@@ -90,14 +99,20 @@ async function extractColorsFromPng(pngPath) {
     
     return uniqueColors.slice(0, 8);
   } catch (e) {
-    console.warn('Failed to extract colors from PNG:', e.message);
+    logger.warn('Failed to extract colors from PNG:', e.message);
     return [];
   }
 }
 
-function extractColorsFromSvgText(svgText) {
+/**
+ * Extract colors from SVG text content
+ * @param {string} svgText - SVG file content as string
+ * @returns {string[]} Array of hex color strings
+ */
+export function extractColorsFromSvgText(svgText) {
   const colors = [];
   const seen = new Set();
+  
   function pushColor(c) {
     if (!c) return;
     const n = c.toLowerCase();
@@ -119,6 +134,7 @@ function extractColorsFromSvgText(svgText) {
     if (h.length === 9) h = h.slice(0, 7);
     pushColor(h);
   }
+  
   const rgbRe = /rgb\s*\(([^\)]+)\)/gi;
   while ((m = rgbRe.exec(svgText)) !== null) {
     const parts = m[1].split(',').map(s => s.trim());
@@ -132,7 +148,8 @@ function extractColorsFromSvgText(svgText) {
       }
     }
   }
-  const nameRe = /(?:fill|stop-color)\s*[:=]\s*['\"]?([a-zA-Z]+)['\"]?/g;
+  
+  const nameRe = /(?:fill|stop-color)\s*[:=]\s*['"]?([a-zA-Z]+)['"]?/g;
   while ((m = nameRe.exec(svgText)) !== null) {
     const namedColor = m[1].toLowerCase();
     // Convert common named colors to hex
@@ -156,5 +173,3 @@ function extractColorsFromSvgText(svgText) {
   
   return colors.slice(0, 8);
 }
-
-module.exports = { sanitizeFilename, extractColorsFromSvgText, extractColorsFromPng };
