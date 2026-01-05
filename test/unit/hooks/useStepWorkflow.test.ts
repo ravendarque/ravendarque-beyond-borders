@@ -8,6 +8,32 @@ describe('useStepWorkflow', () => {
   let mockRemoveEventListener: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    // Clear and properly mock localStorage
+    const localStorageMock = (() => {
+      let store: Record<string, string> = {};
+      return {
+        getItem: vi.fn((key: string) => store[key] || null),
+        setItem: vi.fn((key: string, value: string) => {
+          store[key] = value.toString();
+        }),
+        removeItem: vi.fn((key: string) => {
+          delete store[key];
+        }),
+        clear: vi.fn(() => {
+          store = {};
+        }),
+        get length() {
+          return Object.keys(store).length;
+        },
+        key: vi.fn((index: number) => Object.keys(store)[index] || null),
+      };
+    })();
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+      configurable: true,
+    });
+
     // Mock window.history
     mockPushState = vi.fn();
     Object.defineProperty(window, 'history', {
