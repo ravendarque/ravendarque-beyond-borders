@@ -12,6 +12,8 @@ import { Link } from 'react-router-dom';
 import { AdjustStep } from '@/components/AdjustStep';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import type { PresentationMode } from '@/components/PresentationModeSelector';
+import type { ImagePosition, ImageDimensions, ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
+import { calculatePositionLimits, getAspectRatio, positionToRendererOffset } from '@/utils/imagePosition';
 import '../styles.css';
 
 /**
@@ -51,6 +53,11 @@ export function AppStepWorkflow() {
   });
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   
+  // Step 1: Image position and dimensions
+  const [imagePosition, setImagePosition] = useState<ImagePosition>({ x: 0, y: 0, zoom: 0 });
+  const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
+  const [circleSize, setCircleSize] = useState(250); // Default, will be updated from CSS
+  
   // Step 3: Adjust controls state
   const [thickness, setThickness] = useState(10);
   const [insetPct, setInsetPct] = useState(0);
@@ -79,6 +86,61 @@ export function AppStepWorkflow() {
   const selectedFlag = useMemo(() => {
     return flagId ? flags.find(f => f.id === flagId) ?? null : null;
   }, [flagId]);
+
+  // Calculate position limits based on image dimensions and zoom
+  const positionLimits = useMemo<PositionLimits>(() => {
+    if (!imageDimensions) {
+      return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    }
+    return calculatePositionLimits(imageDimensions, circleSize, imagePosition.zoom);
+  }, [imageDimensions, circleSize, imagePosition.zoom]);
+
+  // Get aspect ratio
+  const aspectRatio = useMemo<ImageAspectRatio | null>(() => {
+    return imageDimensions ? getAspectRatio(imageDimensions) : null;
+  }, [imageDimensions]);
+
+  // Detect image dimensions when image URL changes
+  useEffect(() => {
+    if (!imageUrl) {
+      setImageDimensions(null);
+      setImagePosition({ x: 0, y: 0, zoom: 0 });
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      setImageDimensions({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+      // Reset position when new image is loaded
+      setImagePosition({ x: 0, y: 0, zoom: 0 });
+    };
+    img.onerror = () => {
+      setImageDimensions(null);
+    };
+    img.src = imageUrl;
+  }, [imageUrl]);
+
+  // Get circle size from CSS variable
+  useEffect(() => {
+    const updateCircleSize = () => {
+      const wrapper = document.querySelector('.choose-wrapper');
+      if (wrapper) {
+        const computed = window.getComputedStyle(wrapper);
+        const size = parseFloat(computed.width);
+        if (!isNaN(size)) {
+          // Circle is 80% of wrapper (inset 10% on each side)
+          setCircleSize(size * 0.8);
+        }
+      }
+    };
+    
+    updateCircleSize();
+    window.addEventListener('resize', updateCircleSize);
+    return () => window.removeEventListener('resize', updateCircleSize);
+  }, [imageUrl]); // Re-run when image changes to ensure element exists
 
   // Set default offset when flag changes or when switching to cutout mode
   useEffect(() => {
@@ -133,6 +195,9 @@ export function AppStepWorkflow() {
   const debouncedFlagOffsetX = useDebounce(flagOffsetX, 50);
   const debouncedSegmentRotation = useDebounce(segmentRotation, 50);
 
+  // Debounce position for smoother rendering
+  const debouncedImagePosition = useDebounce(imagePosition, 50);
+
   // Trigger render when parameters change (Step 3)
   useEffect(() => {
     if (currentStep === 3 && imageUrl && flagId) {
@@ -147,9 +212,10 @@ export function AppStepWorkflow() {
         presentation,
         segmentRotation: debouncedSegmentRotation,
         bg: 'transparent',
+        imagePosition: debouncedImagePosition,
       });
     }
-  }, [currentStep, imageUrl, flagId, debouncedThickness, debouncedInsetPct, debouncedFlagOffsetX, presentation, debouncedSegmentRotation, render]);
+  }, [currentStep, imageUrl, flagId, debouncedThickness, debouncedInsetPct, debouncedFlagOffsetX, presentation, debouncedSegmentRotation, debouncedImagePosition, render]);
 
   // Persist imageUrl to sessionStorage
   useEffect(() => {
@@ -263,6 +329,12 @@ export function AppStepWorkflow() {
                 imageUrl={imageUrl}
                 onImageUpload={handleImageUpload}
                 onShowPrivacy={() => setShowPrivacyModal(true)}
+                position={imagePosition}
+                limits={positionLimits}
+                aspectRatio={aspectRatio}
+                imageDimensions={imageDimensions}
+                onPositionChange={setImagePosition}
+                circleSize={circleSize}
               />
             )}
 

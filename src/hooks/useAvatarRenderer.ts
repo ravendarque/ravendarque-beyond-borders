@@ -3,6 +3,8 @@ import { renderAvatar } from '@/renderer/render';
 import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
 import { getAssetUrl } from '@/config';
+import type { ImagePosition } from '@/utils/imagePosition';
+import { positionToRendererOffset } from '@/utils/imagePosition';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -12,6 +14,7 @@ export interface RenderOptions {
   presentation: 'ring' | 'segment' | 'cutout';
   segmentRotation?: number;
   bg: string | 'transparent';
+  imagePosition?: ImagePosition;
 }
 
 /**
@@ -43,7 +46,7 @@ export function useAvatarRenderer(
    */
   const render = useCallback(
     async (imageUrl: string, flagId: string, options: RenderOptions) => {
-      const { size, thickness, insetPct, flagOffsetX, presentation, segmentRotation, bg } = options;
+      const { size, thickness, insetPct, flagOffsetX, presentation, segmentRotation, bg, imagePosition } = options;
 
       // Exit early if no image
       if (!imageUrl) {
@@ -97,11 +100,17 @@ export function useAvatarRenderer(
           }
         }
 
+        // Calculate image offset from position
+        const imageOffsetPx = imagePosition
+          ? positionToRendererOffset({ x: imagePosition.x, y: imagePosition.y }, size)
+          : undefined;
+
         // Render avatar with flag border
         const result = await renderAvatar(img, transformedFlag, {
           size,
           thicknessPct: thickness,
           imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
+          imageOffsetPx, // Image position offset (for ring/segment modes)
           flagOffsetPx: { x: Math.round(flagOffsetX), y: 0 }, // Use flagOffsetPx for cutout mode
           presentation,
           segmentRotation,
