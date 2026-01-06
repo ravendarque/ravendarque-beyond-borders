@@ -61,6 +61,18 @@ if (!jsyaml) {
 
 // Validate YAML against schema
 const ajv = new Ajv({ allErrors: true, verbose: true, strict: false });
+// Add custom format validator for "uri" to suppress warnings
+ajv.addFormat('uri', {
+  type: 'string',
+  validate: (uri) => {
+    try {
+      new URL(uri);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+});
 const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
 
 let yamlData;
