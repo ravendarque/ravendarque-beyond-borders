@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
@@ -13,7 +13,7 @@ import { AdjustStep } from '@/components/AdjustStep';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import type { PresentationMode } from '@/components/PresentationModeSelector';
 import type { ImagePosition, ImageDimensions, ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
-import { calculatePositionLimits, getAspectRatio, positionToRendererOffset } from '@/utils/imagePosition';
+import { calculatePositionLimits, getAspectRatio, positionToRendererOffset, clampPosition } from '@/utils/imagePosition';
 import '../styles.css';
 
 /**
@@ -94,6 +94,31 @@ export function AppStepWorkflow() {
     }
     return calculatePositionLimits(imageDimensions, circleSize, imagePosition.zoom);
   }, [imageDimensions, circleSize, imagePosition.zoom]);
+
+  // Clamp position when limits change (e.g., when zoom changes)
+  const prevLimitsRef = useRef<PositionLimits | null>(null);
+  const positionRef = useRef<ImagePosition>(imagePosition);
+  positionRef.current = imagePosition; // Keep ref in sync
+  
+  useEffect(() => {
+    if (imageDimensions && prevLimitsRef.current) {
+      // Only clamp if limits actually changed (not just position)
+      const limitsChanged = 
+        prevLimitsRef.current.minX !== positionLimits.minX ||
+        prevLimitsRef.current.maxX !== positionLimits.maxX ||
+        prevLimitsRef.current.minY !== positionLimits.minY ||
+        prevLimitsRef.current.maxY !== positionLimits.maxY;
+      
+      if (limitsChanged) {
+        const clamped = clampPosition(positionRef.current, positionLimits);
+        // Only update if position was actually clamped
+        if (clamped.x !== positionRef.current.x || clamped.y !== positionRef.current.y) {
+          setImagePosition(clamped);
+        }
+      }
+    }
+    prevLimitsRef.current = positionLimits;
+  }, [positionLimits, imageDimensions]);
 
   // Get aspect ratio
   const aspectRatio = useMemo<ImageAspectRatio | null>(() => {

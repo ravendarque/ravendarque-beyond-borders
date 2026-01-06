@@ -1,8 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import * as Slider from '@radix-ui/react-slider';
 import type { ImagePosition, PositionLimits, ImageAspectRatio, ImageDimensions } from '@/utils/imagePosition';
 import { useImageDrag } from '@/hooks/useImageDrag';
-import { positionToBackgroundPosition } from '@/utils/imagePosition';
+import { positionToBackgroundPosition, calculateBackgroundSize } from '@/utils/imagePosition';
 
 export interface ImageUploadZoneProps {
   /** Current uploaded image URL */
@@ -43,6 +43,7 @@ export function ImageUploadZone({
 }: ImageUploadZoneProps) {
   const labelRef = useRef<HTMLLabelElement>(null);
   const wasDraggingRef = useRef(false);
+  const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
   
   // Use drag hook for panning
   const { dragHandlers, setElementRef, isDragging } = useImageDrag({
@@ -51,6 +52,85 @@ export function ImageUploadZone({
     onPositionChange,
     enabled: !!imageUrl,
   });
+
+  // Handle scroll wheel for zoom
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (!imageUrl) return;
+    
+    // Only handle zoom if not dragging
+    if (isDragging) return;
+    
+    e.preventDefault();
+    
+    // Scroll down = zoom out, scroll up = zoom in
+    // Use deltaY: positive = scroll down, negative = scroll up
+    const zoomDelta = -e.deltaY * 0.5; // Scale down the sensitivity
+    const newZoom = Math.max(0, Math.min(200, position.zoom + zoomDelta));
+    
+    // Update zoom and clamp position to new limits
+    const newPosition = { ...position, zoom: newZoom };
+    // Recalculate limits would happen in parent, but we need to clamp here
+    // For now, just update zoom - parent will handle clamping via limits
+    onPositionChange(newPosition);
+  }, [imageUrl, isDragging, position, onPositionChange]);
+
+  // Handle pinch gesture for zoom (touch devices)
+  const getTouchDistance = useCallback((touches: TouchList): number => {
+    if (touches.length < 2) return 0;
+    const touch1 = touches[0];
+    const touch2 = touches[1];
+    const dx = touch2.clientX - touch1.clientX;
+    const dy = touch2.clientY - touch1.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }, []);
+
+  // Combined touch handlers that handle both pinch and drag
+  const combinedTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!imageUrl) return;
+    
+    // If two touches, start pinch gesture (prevent drag)
+    if (e.touches.length === 2) {
+      const distance = getTouchDistance(e.touches);
+      pinchStartRef.current = { distance, zoom: position.zoom };
+      e.preventDefault(); // Prevent default to avoid scrolling
+      e.stopPropagation(); // Prevent drag handler from running
+    } else {
+      // Single touch - clear pinch state and let drag handler handle it
+      pinchStartRef.current = null;
+      // Call the drag handler for single touches
+      dragHandlers.onTouchStart?.(e);
+    }
+  }, [imageUrl, position.zoom, getTouchDistance, dragHandlers]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!imageUrl) return;
+    
+    // If pinching (two touches), handle zoom
+    if (e.touches.length === 2 && pinchStartRef.current) {
+      e.preventDefault();
+      e.stopPropagation(); // Prevent drag handler from running
+      
+      const currentDistance = getTouchDistance(e.touches);
+      const startDistance = pinchStartRef.current.distance;
+      const startZoom = pinchStartRef.current.zoom;
+      
+      // Calculate zoom change based on distance change
+      const distanceRatio = currentDistance / startDistance;
+      // Scale the ratio to zoom percentage (1.0 = no change, 1.5 = 50% more zoom)
+      const zoomChange = (distanceRatio - 1) * 100;
+      const newZoom = Math.max(0, Math.min(200, startZoom + zoomChange));
+      
+      const newPosition = { ...position, zoom: newZoom };
+      onPositionChange(newPosition);
+    } else if (e.touches.length === 1) {
+      // Single touch - clear pinch state (drag will handle it)
+      pinchStartRef.current = null;
+    }
+  }, [imageUrl, position, onPositionChange, getTouchDistance]);
+
+  const handleTouchEnd = useCallback(() => {
+    pinchStartRef.current = null;
+  }, []);
   
   // Track if we were dragging to prevent click after drag
   useEffect(() => {
@@ -66,17 +146,20 @@ export function ImageUploadZone({
   }, [isDragging]);
   
   // Calculate CSS values for background-image display
+  // Use calculateBackgroundSize to maintain cover behavior with zoom
+  const backgroundSize = calculateBackgroundSize(imageDimensions, circleSize, position.zoom);
   const backgroundStyle = imageUrl ? {
     backgroundImage: `url(${imageUrl})`,
-    backgroundSize: 'cover',
+    backgroundSize,
     backgroundPosition: positionToBackgroundPosition({ x: position.x, y: position.y }),
     backgroundRepeat: 'no-repeat',
   } : undefined;
-  
+
   // Determine which controls are enabled based on whether movement is possible
+  // When zoom > 0, both controls should be enabled
   const EPSILON = 0.001;
-  const horizontalEnabled = Math.abs(limits.maxX - limits.minX) > EPSILON;
-  const verticalEnabled = Math.abs(limits.maxY - limits.minY) > EPSILON;
+  const horizontalEnabled = position.zoom > 0 || Math.abs(limits.maxX - limits.minX) > EPSILON;
+  const verticalEnabled = position.zoom > 0 || Math.abs(limits.maxY - limits.minY) > EPSILON;
   
   return (
     <>
@@ -100,7 +183,11 @@ export function ImageUploadZone({
           role="button"
           aria-label="Choose your profile picture"
           style={backgroundStyle}
-          {...dragHandlers}
+          onMouseDown={dragHandlers.onMouseDown}
+          onWheel={handleWheel}
+          onTouchStart={combinedTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           onClick={(e) => {
             // Prevent file dialog only if we were dragging
             // This allows clicking to choose a new image when an image is already selected
@@ -218,6 +305,48 @@ export function ImageUploadZone({
                 <span className="slider-icon" aria-label="Move up">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M18 15L12 9L6 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Zoom Slider */}
+          <div className="control-group">
+            <div className="slider-container">
+              <div className="slider-labels-row">
+                <span className="slider-end-label">Zoom Out</span>
+                <span className="slider-value">{Math.round(position.zoom)}%</span>
+                <span className="slider-end-label">Zoom In</span>
+              </div>
+              <div className="slider-with-icons">
+                <span className="slider-icon" aria-label="Zoom out">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M8 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </span>
+                <Slider.Root
+                  className="slider-root"
+                  value={[position.zoom]}
+                  onValueChange={([value]) => {
+                    const clampedZoom = Math.max(0, Math.min(200, value));
+                    onPositionChange({ ...position, zoom: clampedZoom });
+                  }}
+                  min={0}
+                  max={200}
+                  step={1}
+                  aria-label="Zoom level"
+                >
+                  <Slider.Track className="slider-track">
+                    <Slider.Range className="slider-range" />
+                  </Slider.Track>
+                  <Slider.Thumb className="slider-thumb" />
+                </Slider.Root>
+                <span className="slider-icon" aria-label="Zoom in">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M12 8V16M8 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                 </span>
               </div>
