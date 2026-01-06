@@ -58,9 +58,15 @@ export function calculatePositionLimits(
   
   // Calculate scale factor for cover sizing
   // Image is scaled so the smaller dimension fits the circle
-  const scale = Math.max(circleDiameter / imgWidth, circleDiameter / imgHeight);
-  const scaledWidth = imgWidth * scale;
-  const scaledHeight = imgHeight * scale;
+  const coverScale = Math.max(circleDiameter / imgWidth, circleDiameter / imgHeight);
+  
+  // Apply zoom: zoom increases the scale, which increases movement range
+  const zoomMultiplier = 1 + (zoom / 100); // 0% zoom = 1x, 100% zoom = 2x, 200% zoom = 3x
+  const zoomedScale = coverScale * zoomMultiplier;
+  
+  // Calculate scaled dimensions with zoom applied
+  const scaledWidth = imgWidth * zoomedScale;
+  const scaledHeight = imgHeight * zoomedScale;
   
   // Calculate how much the image extends beyond the circle
   // This determines the movement range
@@ -73,10 +79,9 @@ export function calculatePositionLimits(
   const maxMoveX = (overflowX / radius) * 100;
   const maxMoveY = (overflowY / radius) * 100;
   
-  // Apply zoom: zoom increases the scale, which increases movement range
-  const zoomMultiplier = 1 + (zoom / 100); // 0% zoom = 1x, 100% zoom = 2x, 200% zoom = 3x
-  const zoomedMaxMoveX = maxMoveX * zoomMultiplier;
-  const zoomedMaxMoveY = maxMoveY * zoomMultiplier;
+  // Use these directly (zoom is already applied in the scale calculation)
+  const zoomedMaxMoveX = maxMoveX;
+  const zoomedMaxMoveY = maxMoveY;
   
   // For landscape: only horizontal movement (when zoom = 0)
   // For portrait: only vertical movement (when zoom = 0)
@@ -151,6 +156,61 @@ export function positionToRendererOffset(
   const xPx = (position.x / 100) * radius;
   const yPx = (position.y / 100) * radius;
   return { x: xPx, y: yPx };
+}
+
+/**
+ * Calculate CSS background-size value that maintains cover behavior with zoom
+ * 
+ * @param imageDimensions - Natural image dimensions
+ * @param circleSize - Size of the circular preview area in pixels
+ * @param zoom - Zoom level (0-200, where 0 is no zoom)
+ * @returns CSS background-size value ('cover' at 0% zoom, or percentage string)
+ */
+export function calculateBackgroundSize(
+  imageDimensions: ImageDimensions | null,
+  circleSize: number,
+  zoom: number
+): string {
+  if (!imageDimensions || zoom === 0) {
+    return 'cover';
+  }
+  
+  const { width: imgWidth, height: imgHeight } = imageDimensions;
+  const circleDiameter = circleSize;
+  
+  // Calculate cover scale factor (same as in calculatePositionLimits)
+  // Cover scales so the smaller dimension fits the circle
+  const coverScale = Math.max(circleDiameter / imgWidth, circleDiameter / imgHeight);
+  
+  // Calculate what percentage would give us the cover size
+  // For landscape: height fits, so percentage = (imgWidth * coverScale / circleDiameter) * 100
+  // For portrait: width fits, so percentage = (imgHeight * coverScale / circleDiameter) * 100
+  // Since coverScale = max(circleDiameter/imgWidth, circleDiameter/imgHeight),
+  // the larger ratio determines which dimension fits
+  
+  let basePercentage: number;
+  if (imgWidth > imgHeight) {
+    // Landscape: height fits
+    // coverScale = circleDiameter / imgHeight
+    // scaledWidth = imgWidth * coverScale = imgWidth * circleDiameter / imgHeight
+    // percentage = (scaledWidth / circleDiameter) * 100 = (imgWidth / imgHeight) * 100
+    basePercentage = (imgWidth / imgHeight) * 100;
+  } else if (imgHeight > imgWidth) {
+    // Portrait: width fits
+    // coverScale = circleDiameter / imgWidth
+    // scaledHeight = imgHeight * coverScale = imgHeight * circleDiameter / imgWidth
+    // percentage = (scaledHeight / circleDiameter) * 100 = (imgHeight / imgWidth) * 100
+    basePercentage = (imgHeight / imgWidth) * 100;
+  } else {
+    // Square: either dimension works, base is 100%
+    basePercentage = 100;
+  }
+  
+  // Apply zoom multiplier: 0% zoom = 1x, 100% zoom = 2x, 200% zoom = 3x
+  const zoomMultiplier = 1 + (zoom / 100);
+  const finalPercentage = basePercentage * zoomMultiplier;
+  
+  return `${finalPercentage}%`;
 }
 
 /**
