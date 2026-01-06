@@ -2,7 +2,7 @@ import { FlagSpec } from './schema';
 
 /**
  * Flag definitions generated from flag-data.yaml
- * Do not edit manually - run scripts/fetch-flags.cjs to regenerate
+ * Do not edit manually - run scripts/fetch-flags.js to regenerate
  */
 export const flags: FlagSpec[] = [
   {
@@ -285,9 +285,9 @@ export const flags: FlagSpec[] = [
       ring: {
         colors: [
           '#e00000',
-          '#008020',
-          '#ff9000',
           '#fff000',
+          '#ff9000',
+          '#008020',
           '#0050ff',
           '#700090'
         ],
@@ -343,8 +343,8 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#303030',
           '#fff030',
+          '#303030',
           '#ffffff',
           '#a060d0'
         ],
@@ -438,10 +438,9 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#000000',
           '#d00000',
-          '#ffff00',
-          '#202000'
+          '#000000',
+          '#ffff00'
         ],
       },
       cutout: {
