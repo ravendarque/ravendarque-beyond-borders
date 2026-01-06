@@ -446,57 +446,60 @@ async function workerForFlag(f) {
                 try {
                   const svgHandle = await page.$('svg');
                   if (svgHandle) {
-                    const result = await page.evaluate(() => {
-                      try {
-                        const svg = document.querySelector('svg');
-                        if (!svg) return null;
-                        const s = new XMLSerializer().serializeToString(svg);
-                        const img = new Image();
-                        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
-                        return new Promise(resolve => {
-                          img.onload = function() {
-                            try {
-                              const iw = img.naturalWidth || 1;
-                              const ih = img.naturalHeight || 1;
-                              const tmp = document.createElement('canvas');
-                              tmp.width = iw;
-                              tmp.height = ih;
-                              const tctx = tmp.getContext('2d');
-                              tctx.clearRect(0, 0, iw, ih);
-                              tctx.drawImage(img, 0, 0, iw, ih);
-                              const imgd = tctx.getImageData(0, 0, iw, ih).data;
-                              let minX = iw, minY = ih, maxX = 0, maxY = 0, any = false;
-                              for (let y = 0; y < ih; y++) {
-                                for (let x = 0; x < iw; x++) {
-                                  const i = (y * iw + x) * 4;
-                                  const a = imgd[i + 3];
-                                  const r = imgd[i];
-                                  const g = imgd[i + 1];
-                                  const b = imgd[i + 2];
-                                  if (a > 8 && !(r > 240 && g > 240 && b > 240)) {
-                                    any = true;
-                                    if (x < minX) minX = x;
-                                    if (x > maxX) maxX = x;
-                                    if (y < minY) minY = y;
-                                    if (y > maxY) maxY = y;
+                    const result = await Promise.race([
+                      page.evaluate(() => {
+                        try {
+                          const svg = document.querySelector('svg');
+                          if (!svg) return null;
+                          const s = new XMLSerializer().serializeToString(svg);
+                          const img = new Image();
+                          img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
+                          return new Promise(resolve => {
+                            img.onload = function() {
+                              try {
+                                const iw = img.naturalWidth || 1;
+                                const ih = img.naturalHeight || 1;
+                                const tmp = document.createElement('canvas');
+                                tmp.width = iw;
+                                tmp.height = ih;
+                                const tctx = tmp.getContext('2d');
+                                tctx.clearRect(0, 0, iw, ih);
+                                tctx.drawImage(img, 0, 0, iw, ih);
+                                const imgd = tctx.getImageData(0, 0, iw, ih).data;
+                                let minX = iw, minY = ih, maxX = 0, maxY = 0, any = false;
+                                for (let y = 0; y < ih; y++) {
+                                  for (let x = 0; x < iw; x++) {
+                                    const i = (y * iw + x) * 4;
+                                    const a = imgd[i + 3];
+                                    const r = imgd[i];
+                                    const g = imgd[i + 1];
+                                    const b = imgd[i + 2];
+                                    if (a > 8 && !(r > 240 && g > 240 && b > 240)) {
+                                      any = true;
+                                      if (x < minX) minX = x;
+                                      if (x > maxX) maxX = x;
+                                      if (y < minY) minY = y;
+                                      if (y > maxY) maxY = y;
+                                    }
                                   }
                                 }
+                                const srcW = any ? (maxX - minX + 1) : iw;
+                                const srcH = any ? (maxY - minY + 1) : ih;
+                                return { aspectRatio: srcW / srcH, dataUrl: tmp.toDataURL('image/png') };
+                              } catch (e) {
+                                return null;
                               }
-                              const srcW = any ? (maxX - minX + 1) : iw;
-                              const srcH = any ? (maxY - minY + 1) : ih;
-                              return { aspectRatio: srcW / srcH, dataUrl: tmp.toDataURL('image/png') };
-                            } catch (e) {
-                              return null;
-                            }
-                          };
-                          img.onerror = function() {
-                            resolve(null);
-                          };
-                        });
-                      } catch (e) {
-                        return null;
-                      }
-                    });
+                            };
+                            img.onerror = function() {
+                              resolve(null);
+                            };
+                          });
+                        } catch (e) {
+                          return null;
+                        }
+                      }),
+                      new Promise((resolve) => setTimeout(() => resolve(null), 10000)) // 10 second timeout
+                    ]);
                     if (result && result.dataUrl) {
                       const base64 = result.dataUrl.replace(/^data:image\/png;base64,/, '');
                       fs.writeFileSync(outP, Buffer.from(base64, 'base64'));
