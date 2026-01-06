@@ -44,7 +44,15 @@ export async function renderSvgWithResvgSharp(svgText, dstPath, width, height, m
     const { Resvg: ResvgModule } = await initDeps();
     if (ResvgModule) {
       try {
-        const inst = new ResvgModule(svgText);
+        // Configure resvg to render at target width to avoid upscaling blur
+        // This ensures we render at the target resolution, then Sharp only handles final fit/contain
+        const resvgOptions = {
+          fitTo: {
+            mode: 'width',
+            value: width
+          }
+        };
+        const inst = new ResvgModule(svgText, resvgOptions);
         const pngData = inst.render();
         srcPngBuf = Buffer.from(pngData.asPng());
       } catch (e) {
