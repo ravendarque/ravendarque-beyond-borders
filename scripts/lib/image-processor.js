@@ -29,7 +29,7 @@ async function initDeps() {
  * @param {string} svgText - SVG content as string
  * @param {string} dstPath - Destination PNG path
  * @param {number} width - Target width
- * @param {number} height - Target height
+ * @param {number} height - Target height (for 'contain' mode, will use actual rendered height if resvg succeeds)
  * @param {string} mode - Resize mode: 'slice' (cover) or 'contain' (default: 'slice')
  * @returns {Promise<boolean>} - Success
  */
@@ -64,10 +64,23 @@ export async function renderSvgWithResvgSharp(svgText, dstPath, width, height, m
   }
 
   try {
-    const fit = mode === 'slice' ? 'cover' : 'contain';
     if (srcPngBuf) {
+      // resvg already rendered at target width with fitTo
+      // For 'contain' mode (previews), use the actual rendered height to avoid letterboxing
+      // For 'slice' mode (full), Sharp handles the final cover resize
+      const metadata = await SharpModule(srcPngBuf).metadata();
+      if (mode === 'contain' && Math.abs(metadata.width - width) <= 2) {
+        // For previews, use the actual rendered dimensions (no resize needed)
+        // This ensures no letterboxing and 100% coverage
+        await SharpModule(srcPngBuf).png().toFile(dstPath);
+        return true;
+      }
+      // For 'slice' mode or if dimensions don't match, use Sharp to resize
+      const fit = mode === 'slice' ? 'cover' : 'contain';
       await SharpModule(srcPngBuf).resize(width, height, { fit, position: 'centre', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toFile(dstPath);
     } else {
+      // resvg failed, fall back to Sharp-only rendering
+      const fit = mode === 'slice' ? 'cover' : 'contain';
       await SharpModule(Buffer.from(svgText)).resize(width, height, { fit, position: 'centre', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toFile(dstPath);
     }
     return true;
