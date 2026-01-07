@@ -6,13 +6,15 @@
 ![Beta Deploy](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/deploy-pr.yml/badge.svg)
 ![Beta Cleanup](https://github.com/ravendarque/ravendarque-beyond-borders/actions/workflows/cleanup-pr-deployments.yml/badge.svg)
 
-Add a circular, flag-colored border to your profile picture to show support for marginalized groups and selected causes.
+Add a circular, flag-colored border to your profile picture to show support
+for marginalized groups and selected causes.
 
 🌐 **Live App**: [https://wearebeyondborders.com](https://wearebeyondborders.com)
 
 ## Overview
 
-Beyond Borders uses a simple **three-step workflow** to create your flag-bordered profile picture:
+Beyond Borders uses a simple **three-step workflow** to create your
+flag-bordered profile picture:
 
 ### Step 1: Choose Your Image
 
@@ -40,7 +42,10 @@ Beyond Borders uses a simple **three-step workflow** to create your flag-bordere
 
 ## Status
 
-**✅ Live and deployed!** Production uses GitHub Pages **workflow mode** (artifact deployment) on every push to `main`. Versioned **beta previews** are committed under `gh-pages/beta/<semver>/` and managed by dedicated workflows.
+**✅ Live and deployed!** Production uses GitHub Pages **workflow mode**
+(artifact deployment) on every push to `main`. Versioned **beta previews**
+are committed under `gh-pages/beta/<semver>/` and managed by dedicated
+workflows.
 
 See `DEPLOYMENT.md` for full details on production vs beta infrastructure.
 
@@ -72,7 +77,8 @@ We provide setup scripts that automatically install all required tools and depen
 pwsh .github/scripts/setup-dev-env.ps1
 ```
 
-See [.github/scripts/SETUP.md](.github/scripts/SETUP.md) for detailed setup instructions and troubleshooting.
+See [.github/scripts/SETUP.md](.github/scripts/SETUP.md) for detailed setup
+instructions and troubleshooting.
 
 ### Manual Setup
 
@@ -90,11 +96,15 @@ For pre-push validation, you may also want to install:
 
 - **Trivy**: Security scanning ([installation](https://aquasecurity.github.io/trivy/latest/getting-started/installation/))
 
-**Note**: TruffleHog secret scanning is used in CI but not in local validation to keep pre-push checks fast.
+**Note**: TruffleHog secret scanning is used in CI but not in local
+validation to keep pre-push checks fast.
 
 ### Contributing
 
-**Important:** By contributing to this project, you agree to the [Contributor Agreement](CONTRIBUTING.md) and [License terms](LICENSE), which prohibit use against oppressed groups and require ethical contributions.
+**Important:** By contributing to this project, you agree to the
+[Contributor Agreement](CONTRIBUTING.md) and [License terms](LICENSE),
+which prohibit use against oppressed groups and require ethical
+contributions.
 
 The `main` branch is protected. All changes must be made via pull requests:
 
@@ -152,11 +162,13 @@ Windows (Windows PowerShell):
 .\.github\scripts\local-ci.ps1 -SkipBuild
 ```
 
-**Note:** PowerShell Core (pwsh) is required and works on all platforms. Install from <https://github.com/PowerShell/PowerShell>
+**Note:** PowerShell Core (pwsh) is required and works on all platforms.
+Install from <https://github.com/PowerShell/PowerShell>
 
 **Installing the git pre-push hook:**
 
-This automatically runs validation before every push. See [.github/hooks/README.md](.github/hooks/README.md) for setup instructions.
+This automatically runs validation before every push. See
+[.github/hooks/README.md](.github/hooks/README.md) for setup instructions.
 
 **Bypass validation** (not recommended):
 
@@ -166,7 +178,10 @@ git push --no-verify
 
 ## Flag validation & fetching
 
-  This project requires PNG flag assets to live in `public/flags` for accurate previews and exports. A validator is provided to ensure every flag referenced in `src/flags/flags.ts` has corresponding PNG files in `public/flags`.
+  This project requires PNG flag assets to live in `public/flags` for
+  accurate previews and exports. A validator is provided to ensure every
+  flag referenced in `src/flags/flags.ts` has corresponding PNG files in
+  `public/flags`.
 
 - Run the validator locally:
 
@@ -174,7 +189,8 @@ git push --no-verify
   node scripts/validate-flags.cjs
   ```
 
-- Fetch or refresh flags (recommended to run from CI or with `--push` to commit the results):
+- Fetch or refresh flags (recommended to run from CI or with `--push` to
+  commit the results):
 
   ```bash
   node scripts/fetch-flags.cjs --ci
@@ -182,17 +198,19 @@ git push --no-verify
   node scripts/fetch-flags.cjs --push
   ```
 
-  This script fetches SVG flags, generates PNG assets, and creates the TypeScript manifest (`src/flags/flags.ts`) in one step.
+  This script fetches SVG flags, generates PNG assets, and creates the
+  TypeScript manifest (`src/flags/flags.ts`) in one step.
 
-  The GitHub Actions workflow runs the validator before the build so missing PNGs will fail CI with a clear message.
+  The GitHub Actions workflow runs the validator before the build so missing
+  PNGs will fail CI with a clear message.
 
 ## Project Structure
 
-```
+```text
 src/
-├── components/         # React components (StepProgressIndicator, FlagDropdown, etc.)
+├── components/         # React components
 ├── pages/             # Page components (AppStepWorkflow)
-├── hooks/             # Custom React hooks (useStepWorkflow, useAvatarRenderer, etc.)
+├── hooks/             # Custom React hooks
 ├── renderer/          # Canvas rendering engine + flag processing
 ├── flags/             # Flag data (flags.ts generated by fetch-flags script)
 ├── utils/             # Utilities (EXIF handling, validation, etc.)
@@ -221,8 +239,10 @@ docs/
 
 Our flag collection is carefully curated to support awareness and solidarity:
 
-- **Oppressed groups**: Pride, transgender, non-binary, and other identity flags
-- **Occupied territories**: Flags representing peoples under occupation or disputed governance
+- **Oppressed groups**: Pride, transgender, non-binary, and other identity
+  flags
+- **Occupied territories**: Flags representing peoples under occupation or
+  disputed governance
 - **Stateless nations**: Flags of peoples without recognized nation-states
 
 Each flag includes:
@@ -247,6 +267,10 @@ All flag data is versioned in `src/flags/flags.ts` with full attribution.
 
 ## License
 
-This project is licensed under the **Polyform Noncommercial License 1.0.0** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **Polyform Noncommercial License 1.0.0**
 
-**Important:** This license prohibits commercial use and profiteering. The software is free to use for personal, educational, and non-commercial purposes only.
+- see the [LICENSE](LICENSE) file for details.
+
+**Important:** This license prohibits commercial use and profiteering. The
+software is free to use for personal, educational, and non-commercial
+purposes only.

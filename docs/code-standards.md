@@ -1,6 +1,8 @@
 # Code Standards & Review Guidelines
 
-This document defines the code standards, UI patterns, and review criteria for Beyond Borders. It is designed to be comprehensive enough for AI agents to properly review pull requests and ensure consistency.
+This document defines the code standards, UI patterns, and review criteria
+for Beyond Borders. It is designed to be comprehensive enough for AI agents
+to properly review pull requests and ensure consistency.
 
 ## Table of Contents
 
@@ -217,7 +219,8 @@ The application uses CSS custom properties for consistent spacing:
 
 1. **Image Preloading**: Preload flag images when entering step 3
 2. **Cache Management**: Use `Map` for image bitmap caching
-3. **Asset URLs**: Always use `getAssetUrl()` for dynamic asset paths (GitHub Pages compatibility)
+3. **Asset URLs**: Always use `getAssetUrl()` for dynamic asset paths
+   (GitHub Pages compatibility)
 
 ### Error Handling
 
@@ -246,7 +249,7 @@ The application uses CSS custom properties for consistent spacing:
 
 ### Source Structure
 
-```
+```text
 src/
 ├── components/         # Reusable UI components
 │   ├── FlagSelector.tsx
@@ -303,11 +306,12 @@ src/
 
 3. **Usage**: Components use `flags.ts`
    - `category`: Code for filtering/grouping (e.g., 'occupied')
-   - `categoryDisplayName`: Display name from source of truth (e.g., 'Occupied / Disputed Territory')
+   - `categoryDisplayName`: Display name from source of truth
+     (e.g., 'Occupied / Disputed Territory')
 
 ### State Flow in AppStepWorkflow
 
-```
+```text
 AppStepWorkflow (main orchestrator)
 ├── Step 1: ImageUploadZone
 │   └── imageUrl state
@@ -361,7 +365,7 @@ When reviewing pull requests, verify the following:
 - [ ] Asset URLs use `getAssetUrl()` for GitHub Pages compatibility
 - [ ] State management follows [Data Flow](#data-flow--state-management) patterns
 
-### Accessibility
+### Accessibility Review
 
 - [ ] All interactive elements have ARIA labels
 - [ ] Keyboard navigation works for all controls
@@ -369,7 +373,7 @@ When reviewing pull requests, verify the following:
 - [ ] Semantic HTML used appropriately
 - [ ] Screen reader testing considered
 
-### File Organization
+### File Organization Review
 
 - [ ] Files follow [File Organization](#file-organization) structure
 - [ ] Imports follow [Import Order](#import-order)

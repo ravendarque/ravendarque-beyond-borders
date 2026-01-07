@@ -6,7 +6,8 @@ This directory contains utility scripts for managing the Beyond Borders applicat
 
 ### `fetch-flags.js`
 
-**Purpose:** Primary flag asset generation script - the heart of the flag processing pipeline.
+**Purpose:** Primary flag asset generation script - the heart of the flag
+processing pipeline.
 
 **What it does:**
 
@@ -166,7 +167,7 @@ node scripts/screenshot.js
 
 ## Directory Structure
 
-```
+```text
 scripts/
 ├── README.md                    # This file
 ├── fetch-flags.js               # Flag asset + TypeScript generation (CORE)
@@ -200,7 +201,8 @@ scripts/
 
 1. **Edit source:** Add flag entry to `data/flag-data.yaml`
 2. **Generate assets:** Run `node scripts/fetch-flags.js --dry-run` to preview
-3. **Commit assets:** Run `node scripts/fetch-flags.js --push` to generate and commit (this also updates `flags.ts`)
+3. **Commit assets:** Run `node scripts/fetch-flags.js --push` to generate
+   and commit (this also updates `flags.ts`)
 4. **Validate:** Run `node scripts/validate-flags.js` to verify
 5. **Test:** Run unit tests with `pnpm test -- flags.test.ts`
 
