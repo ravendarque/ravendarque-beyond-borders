@@ -89,6 +89,7 @@ export function ComponentName({ propName, optionalProp }: ComponentNameProps) {
 The application uses a carefully defined color palette:
 
 #### Primary Colors
+
 - **Red Accent**: `#be1a1a` - Used for:
   - Active step indicators
   - Error states
@@ -97,6 +98,7 @@ The application uses a carefully defined color palette:
   - Slider track borders
 
 #### Neutral Colors
+
 - **Charcoal**: `#333` - Used for:
   - Text on light backgrounds
   - Borders (dashed borders, flag preview borders)
@@ -111,6 +113,7 @@ The application uses a carefully defined color palette:
   - Placeholder elements
 
 #### Background Colors
+
 - **White**: `#fff` - Primary content backgrounds
 - **Cream/Yellow**: `rgba(180, 160, 100, ...)` - Used for:
   - Halftone pattern dots
@@ -118,6 +121,7 @@ The application uses a carefully defined color palette:
   - Hover shadows on choose-circle
 
 #### Transparency Indicators
+
 - **Checkered Pattern**: Light gray (`#e0e0e0`) on white (`#fff`)
   - Only appears inside ring border (circular area)
   - Used in avatar preview to show transparency
@@ -144,12 +148,14 @@ The application uses CSS custom properties for consistent spacing:
 ### Border & Shadow Standards
 
 #### Borders
+
 - **Solid borders**: 1px for thin borders, 2px for prominent borders
 - **Dashed borders**: 2px dashed `#333` for empty states
 - **Charcoal borders**: Used for neutral states, not red
 - **Red borders**: Only for sliders and active states
 
 #### Shadows
+
 - **Subtle glows**: Cream/yellow for choose-circle hover states
 - **No shadows on dropdowns**: Removed for consistency
 - **Box shadows**: Use rgba with appropriate opacity (0.08-0.3 range)
@@ -165,6 +171,7 @@ The application uses CSS custom properties for consistent spacing:
 ### Component-Specific UI Patterns
 
 #### Choose Circle (Step 1)
+
 - White circular area with halftone border effect
 - Halftone uses diamond cluster pattern (5 dots: center + 4 around)
 - Thin solid border (1px) inside halftone border
@@ -172,6 +179,7 @@ The application uses CSS custom properties for consistent spacing:
 - Subtle glow on hover (cream/yellow, not red)
 
 #### Flag Selector (Step 2)
+
 - Dropdown with categorized groups
 - Groups dynamically generated from flag data
 - Category display names come from source of truth (flag-data.yaml)
@@ -180,6 +188,7 @@ The application uses CSS custom properties for consistent spacing:
 - Red only for active/selected states
 
 #### Avatar Preview (Step 3)
+
 - Circular preview area
 - Checkered background pattern inside ring border only
 - White background for checkered pattern
@@ -187,6 +196,7 @@ The application uses CSS custom properties for consistent spacing:
 - Transparent background outside ring
 
 #### Mode Buttons (Step 3)
+
 - Uniform sizing (fixed width/height)
 - Consistent padding to prevent wrapping
 - Charcoal borders for click/hover states
@@ -427,4 +437,3 @@ If standards are unclear or you need to deviate:
 1. **Check existing code**: Look for similar patterns
 2. **Ask**: Create an issue or discussion
 3. **Document**: If you deviate, document why in PR description
-
