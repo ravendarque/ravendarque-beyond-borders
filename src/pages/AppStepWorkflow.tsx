@@ -11,10 +11,12 @@ import { ImageUploadZone } from '@/components/ImageUploadZone';
 import { Link } from 'react-router-dom';
 import { AdjustStep } from '@/components/AdjustStep';
 import { PrivacyModal } from '@/components/PrivacyModal';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { PresentationMode } from '@/components/PresentationModeSelector';
 import type { ImagePosition, ImageDimensions, ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
 import { calculatePositionLimits, getAspectRatio, clampPosition } from '@/utils/imagePosition';
 import { captureAdjustedImage } from '@/utils/captureImage';
+import { IMAGE_CONSTANTS, RENDER_SIZES } from '@/constants';
 import '../styles.css';
 
 /**
@@ -57,7 +59,7 @@ export function AppStepWorkflow() {
   // Step 1: Image position and dimensions
   const [imagePosition, setImagePosition] = useState<ImagePosition>({ x: 0, y: 0, zoom: 0 });
   const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
-  const [circleSize, setCircleSize] = useState(250); // Default, will be updated from CSS
+  const [circleSize, setCircleSize] = useState<number>(IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE); // Default, will be updated from CSS
   
   // Step 1 → Step 3: Captured cropped image (Approach 2)
   const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
@@ -220,11 +222,7 @@ export function AppStepWorkflow() {
         flagImageCache.set(cacheKey, bitmap);
       } catch (error) {
         // Silent fail - preloading is best-effort
-        // Error logged in development via debug logging if needed
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.warn('[Preload] Failed to preload flag image:', error);
-        }
+        // Errors are handled silently to avoid user-facing noise
       }
     };
 
@@ -250,24 +248,21 @@ export function AppStepWorkflow() {
         capturedPositionRef.current.zoom !== imagePosition.zoom;
       
       if (needsCapture) {
-        // Capture the adjusted image at final render size (1024px)
+        // Capture the adjusted image at final render size (high-res for quality)
         captureAdjustedImage(
           imageUrl,
           imagePosition,
           circleSize,
           imageDimensions,
-          1024
+          IMAGE_CONSTANTS.DEFAULT_CAPTURE_SIZE
         )
           .then((captured) => {
             setCroppedImageUrl(captured);
             capturedPositionRef.current = { ...imagePosition };
           })
-          .catch((error) => {
+          .catch(() => {
             // Fallback: use original image if capture fails
-            if (process.env.NODE_ENV === 'development') {
-              // eslint-disable-next-line no-console
-              console.warn('[Capture] Failed to capture adjusted image, using original:', error);
-            }
+            // Error is handled silently - user still gets a working image
             setCroppedImageUrl(imageUrl);
             capturedPositionRef.current = { ...imagePosition };
           });
@@ -284,12 +279,12 @@ export function AppStepWorkflow() {
   // Trigger render when parameters change (Step 3)
   useEffect(() => {
     if (currentStep === 3 && croppedImageUrl && flagId) {
-      // Render at 1024px (2x) for preview to ensure crisp quality when scaled down
-      // The preview container is 250-400px, so 1024px gives us 2.5-4x resolution
+      // Render at high-res (2x) for preview to ensure crisp quality when scaled down
+      // The preview container is 250-400px, so high-res gives us 2.5-4x resolution
       // This eliminates blur from CSS downscaling
       // Use cropped image - no position/zoom needed (already captured)
       render(croppedImageUrl, flagId, {
-        size: 1024,
+        size: RENDER_SIZES.HIGH_RES,
         thickness: debouncedThickness,
         flagOffsetPct: debouncedFlagOffsetPct,
         presentation,
@@ -410,46 +405,73 @@ export function AppStepWorkflow() {
           <div className="content-area">
             {/* Step 1: Image Upload */}
             {currentStep === 1 && (
-              <ImageUploadZone
-                imageUrl={imageUrl}
-                onImageUpload={handleImageUpload}
-                onShowPrivacy={() => setShowPrivacyModal(true)}
-                position={imagePosition}
-                limits={positionLimits}
-                aspectRatio={aspectRatio}
-                imageDimensions={imageDimensions}
-                onPositionChange={setImagePosition}
-                circleSize={circleSize}
-              />
+              <ErrorBoundary
+                fallback={
+                  <div style={{ padding: '20px', textAlign: 'center' }}>
+                    <h3>Error loading image upload</h3>
+                    <p>Please refresh the page and try again.</p>
+                  </div>
+                }
+              >
+                <ImageUploadZone
+                  imageUrl={imageUrl}
+                  onImageUpload={handleImageUpload}
+                  onShowPrivacy={() => setShowPrivacyModal(true)}
+                  position={imagePosition}
+                  limits={positionLimits}
+                  aspectRatio={aspectRatio}
+                  imageDimensions={imageDimensions}
+                  onPositionChange={setImagePosition}
+                  circleSize={circleSize}
+                />
+              </ErrorBoundary>
             )}
 
             {/* Step 2: Flag Selection */}
             {currentStep === 2 && (
-              <div className="flag-selector-wrapper">
-                <FlagSelector
-                  flags={flags}
-                  selectedFlagId={flagId}
-                  onFlagChange={setFlagId}
-                />
-                <FlagPreview flag={selectedFlag} />
-              </div>
+              <ErrorBoundary
+                fallback={
+                  <div style={{ padding: '20px', textAlign: 'center' }}>
+                    <h3>Error loading flag selector</h3>
+                    <p>Please refresh the page and try again.</p>
+                  </div>
+                }
+              >
+                <div className="flag-selector-wrapper">
+                  <FlagSelector
+                    flags={flags}
+                    selectedFlagId={flagId}
+                    onFlagChange={setFlagId}
+                  />
+                  <FlagPreview flag={selectedFlag} />
+                </div>
+              </ErrorBoundary>
             )}
 
             {/* Step 3: Adjust */}
             {currentStep === 3 && (
-              <AdjustStep
-                overlayUrl={overlayUrl}
-                isRendering={isRendering}
-                selectedFlag={selectedFlag}
-                presentation={presentation}
-                onPresentationChange={setPresentation}
-                thickness={thickness}
-                onThicknessChange={setThickness}
-                flagOffsetPct={flagOffsetPct}
-                onFlagOffsetChange={setFlagOffsetPct}
-                segmentRotation={segmentRotation}
-                onSegmentRotationChange={setSegmentRotation}
-              />
+              <ErrorBoundary
+                fallback={
+                  <div style={{ padding: '20px', textAlign: 'center' }}>
+                    <h3>Error loading adjustment controls</h3>
+                    <p>Please go back and try again, or refresh the page.</p>
+                  </div>
+                }
+              >
+                <AdjustStep
+                  overlayUrl={overlayUrl}
+                  isRendering={isRendering}
+                  selectedFlag={selectedFlag}
+                  presentation={presentation}
+                  onPresentationChange={setPresentation}
+                  thickness={thickness}
+                  onThicknessChange={setThickness}
+                  flagOffsetPct={flagOffsetPct}
+                  onFlagOffsetChange={setFlagOffsetPct}
+                  segmentRotation={segmentRotation}
+                  onSegmentRotationChange={setSegmentRotation}
+                />
+              </ErrorBoundary>
             )}
           </div>
 

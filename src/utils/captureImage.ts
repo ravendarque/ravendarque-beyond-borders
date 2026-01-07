@@ -7,6 +7,7 @@
 
 import type { ImagePosition, ImageDimensions } from './imagePosition';
 import { calculatePositionLimits, positionToBackgroundPosition } from './imagePosition';
+import { IMAGE_CONSTANTS } from '@/constants';
 
 /**
  * Capture the adjusted image at the specified resolution
@@ -15,7 +16,7 @@ import { calculatePositionLimits, positionToBackgroundPosition } from './imagePo
  * @param position - Current image position (x, y, zoom)
  * @param circleSize - Size of the circular preview area in pixels (from Step 1)
  * @param imageDimensions - Natural image dimensions
- * @param outputSize - Output image size in pixels (default: 1024)
+ * @param outputSize - Output image size in pixels (default: IMAGE_CONSTANTS.DEFAULT_CAPTURE_SIZE)
  * @returns Promise that resolves to a data URL of the captured image
  */
 export async function captureAdjustedImage(
@@ -23,7 +24,7 @@ export async function captureAdjustedImage(
   position: ImagePosition,
   circleSize: number,
   imageDimensions: ImageDimensions,
-  outputSize: number = 1024
+  outputSize: number = IMAGE_CONSTANTS.DEFAULT_CAPTURE_SIZE
 ): Promise<string> {
   // Create canvas at high resolution
   const canvas = document.createElement('canvas');

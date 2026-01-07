@@ -149,7 +149,7 @@ scripts/
 ├── README.md                    # This file
 ├── fetch-flags.js               # Flag asset + TypeScript generation (CORE)
 ├── validate-flags.js            # Flag validation (CORE)
-├── get-version.js               # Version calculator
+# Note: Version calculation now uses GitVersion tool (see GitVersion.yml)
 ├── inspect-flag-raster.js       # PNG analysis tool
 ├── capture-cutout.js            # Cutout mode testing
 ├── inspect-page.js              # Page inspector

@@ -8,6 +8,7 @@ import {
   logRenderMetrics,
   type RenderMetrics,
 } from './performance';
+import { FILE_SIZE } from '@/constants';
 
 /**
  * Options for rendering an avatar with flag border
@@ -291,30 +292,6 @@ export async function renderAvatar(
       const dx = ringCenterX - flagRectWidth / 2 + offsetPx;
       const dy = r - flagRectHeight / 2;
       
-      // Debug logging (remove after verification)
-      if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
-        console.log('[Cutout] Flag rendering:', {
-          flagId: flag.id,
-          aspectRatio: flagAspectRatio,
-          flagRectHeight,
-          flagRectWidth,
-          ringOuterDiameter,
-          flagOffsetPct: flagOffsetPct,
-          bitmapWidth: options.borderImageBitmap.width,
-          bitmapHeight: options.borderImageBitmap.height,
-          bitmapAspectRatio: options.borderImageBitmap.width / options.borderImageBitmap.height,
-          canvasW,
-          canvasH,
-          r,
-          ringCenterX,
-          extraWidth,
-          dx,
-          dy,
-          flagCanvasWidth: flagCanvas.width,
-          flagCanvasHeight: flagCanvas.height,
-        });
-      }
       flagCtx.drawImage(options.borderImageBitmap, dx, dy, flagRectWidth, flagRectHeight);
     } else {
       // Draw horizontal stripes from modes.ring.colors
@@ -468,7 +445,7 @@ export async function renderAvatar(
   
   // Calculate file size
   const sizeBytes = blob.size;
-  const sizeKB = (sizeBytes / 1024).toFixed(2);
+  const sizeKB = (sizeBytes / FILE_SIZE.BYTES_PER_KB).toFixed(2);
   
   // Report progress: export complete (100%)
   if (enableTracking) {

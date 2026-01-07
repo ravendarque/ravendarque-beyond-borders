@@ -11,7 +11,7 @@ File: `.github/workflows/deploy-pr.yml`
 
 ## Process
 
-1. Determine branch & derive semantic version via `scripts/get-version.cjs`
+1. Determine branch & derive semantic version via GitVersion tool
 2. Build with `BASE_URL=/beta/<semver>/` (for custom domain)
 3. Commit build into `gh-pages` under `beta/<semver>/`
 4. Generate/refresh index page enumerating all beta versions
