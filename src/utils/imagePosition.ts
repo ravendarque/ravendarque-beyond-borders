@@ -285,12 +285,11 @@ export function calculateBackgroundSize(
   }
   
   const { width: imgWidth, height: imgHeight } = imageDimensions;
-  const circleDiameter = circleSize;
   
   // Calculate what percentage would give us the cover size
-  // For landscape: height fits, so percentage = (imgWidth * coverScale / circleDiameter) * 100
-  // For portrait: width fits, so percentage = (imgHeight * coverScale / circleDiameter) * 100
-  // Since coverScale = max(circleDiameter/imgWidth, circleDiameter/imgHeight),
+  // For landscape: height fits, so percentage = (imgWidth * coverScale / circleSize) * 100
+  // For portrait: width fits, so percentage = (imgHeight * coverScale / circleSize) * 100
+  // Since coverScale = max(circleSize/imgWidth, circleSize/imgHeight),
   // the larger ratio determines which dimension fits
   
   let basePercentage: number;
