@@ -220,7 +220,16 @@ Write-Host ""
 
 # 9. Check if production code changed and run build checks
 Write-Host "9️⃣  Checking if production code changed..." -ForegroundColor White
+# Get staged files first (for commit-time checks)
 $stagedFiles = git diff --cached --name-only 2>&1
+# If no staged files, check files being pushed (pre-push hook context)
+if (-not $stagedFiles) {
+    $currentBranch = git rev-parse --abbrev-ref HEAD 2>&1
+    $remoteBranch = git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>&1
+    if ($LASTEXITCODE -eq 0 -and $remoteBranch -and $remoteBranch -ne '') {
+        $stagedFiles = git diff --name-only --diff-filter=ACM "$remoteBranch..HEAD" 2>&1
+    }
+}
 $prodPattern = "^(src/|public/|index.html|vite.config.ts|tsconfig.json|package.json|pnpm-lock.yaml|playwright.config.ts|scripts/|.github/scripts/)"
 $prodFilesChanged = $stagedFiles | Where-Object { $_ -match $prodPattern }
 
