@@ -220,7 +220,7 @@ export function AppStepWorkflow() {
         const blob = await response.blob();
         const bitmap = await createImageBitmap(blob);
         flagImageCache.set(cacheKey, bitmap);
-      } catch (error) {
+      } catch {
         // Silent fail - preloading is best-effort
         // Errors are handled silently to avoid user-facing noise
       }
