@@ -207,6 +207,7 @@ jobs:
         run: pnpm run build
         env:
           BASE_URL: /beta/${{ steps.version.outputs.semver }}/
+          VERSION: ${{ steps.gitversion.outputs.fullSemVer }}
 
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
