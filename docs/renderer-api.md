@@ -42,15 +42,6 @@ Padding around the outer edge as percentage of canvas size.
 
 ---
 
-#### `imageInsetPx?: number`
-Inset between image edge and inner ring boundary.
-- **Positive value:** Shrinks the image (adds space)
-- **Negative value:** Expands the image (image bleeds into border)
-
-**Default:** `0`
-
----
-
 #### `imageOffsetPx?: { x: number; y: number }`
 Offset to apply to the user's image center in **ring/segment modes** (pixels).
 
@@ -219,8 +210,7 @@ const result = await renderAvatar(userImage, palestineFlag, {
   size: 1024,
   thicknessPct: 15,
   presentation: 'ring',
-  backgroundColor: '#ffffff',
-  imageInsetPx: 10 // Add 10px space around image
+  backgroundColor: '#ffffff'
 });
 
 console.log(`Export size: ${result.sizeKB} KB`); // e.g., "156.23 KB"
@@ -276,8 +266,7 @@ const result = await renderAvatar(userImage, tibetFlag, {
   thicknessPct: 15,
   presentation: 'ring',
   pngQuality: 0.85, // Reduce quality slightly for smaller file
-  imageOffsetPx: { x: -20, y: 10 }, // Fine-tune image position
-  imageInsetPx: -5
+  imageOffsetPx: { x: -20, y: 10 } // Fine-tune image position
 });
 
 console.log(`Optimized size: ${result.sizeKB} KB (${result.sizeBytes.toLocaleString()} bytes)`);
@@ -363,7 +352,6 @@ interface RenderOptions {
   thicknessPct: number;
   paddingPct?: number;
   outerStroke?: { color: string; widthPx: number };
-  imageInsetPx?: number;
   imageOffsetPx?: { x: number; y: number };
   flagOffsetPx?: { x: number; y: number };
   borderImageBitmap?: ImageBitmap | undefined;

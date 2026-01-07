@@ -25,9 +25,6 @@ export interface RenderOptions {
   /** Optional stroke around the outer edge */
   outerStroke?: { color: string; widthPx: number };
   
-  /** Inset between image edge and inner ring (positive = shrink, negative = expand) */
-  imageInsetPx?: number;
-  
   /** 
    * Offset to apply to the user's image center in ring/segment modes (pixels)
    * Note: Not used in cutout mode - use flagOffsetPx instead
@@ -184,8 +181,7 @@ export async function renderAvatar(
   const r = Math.min(canvasW, canvasH) / 2;
   const ringOuterRadius = r - Math.max(1, padding);
   const ringInnerRadius = Math.max(0, ringOuterRadius - thickness);
-  const imageInset = options.imageInsetPx ?? 0; // can be negative (outset)
-  const imageRadius = clamp(ringInnerRadius - imageInset, 0, r - 0.5);
+  const imageRadius = clamp(ringInnerRadius, 0, r - 0.5);
 
   // Get colors from modes.ring.colors (all stripes have weight 1)
   const ringColors = flag.modes?.ring?.colors ?? [];

@@ -18,10 +18,6 @@ export interface AdjustStepProps {
   thickness: number;
   /** Thickness change handler */
   onThicknessChange: (value: number) => void;
-  /** Inset/outset percentage */
-  insetPct: number;
-  /** Inset change handler */
-  onInsetChange: (value: number) => void;
   /** Flag horizontal offset */
   flagOffsetX: number;
   /** Flag offset change handler */
@@ -45,8 +41,6 @@ export function AdjustStep({
   onPresentationChange,
   thickness,
   onThicknessChange,
-  insetPct,
-  onInsetChange,
   flagOffsetX,
   onFlagOffsetChange,
   segmentRotation,
@@ -79,8 +73,6 @@ export function AdjustStep({
       <AdjustControls
         thickness={thickness}
         onThicknessChange={onThicknessChange}
-        insetPct={insetPct}
-        onInsetChange={onInsetChange}
         flagOffsetX={flagOffsetX}
         onFlagOffsetChange={onFlagOffsetChange}
         presentation={presentation}

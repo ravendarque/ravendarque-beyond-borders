@@ -20,8 +20,6 @@ describe('AdjustControls', () => {
   const defaultProps = {
     thickness: 10,
     onThicknessChange: vi.fn(),
-    insetPct: 0,
-    onInsetChange: vi.fn(),
     flagOffsetX: 0,
     onFlagOffsetChange: vi.fn(),
     presentation: 'ring' as const,
@@ -38,24 +36,10 @@ describe('AdjustControls', () => {
     expect(screen.getByText('10%')).toBeTruthy();
   });
 
-  it('should render inset/outset slider', () => {
-    render(<AdjustControls {...defaultProps} />);
-    
-    expect(screen.getByText('Inset')).toBeTruthy();
-    expect(screen.getByText('Outset')).toBeTruthy();
-    expect(screen.getByText('0%')).toBeTruthy();
-  });
-
   it('should display correct thickness value', () => {
     render(<AdjustControls {...defaultProps} thickness={15} />);
     
     expect(screen.getByText('15%')).toBeTruthy();
-  });
-
-  it('should display correct inset value', () => {
-    render(<AdjustControls {...defaultProps} insetPct={-5} />);
-    
-    expect(screen.getByText('-5%')).toBeTruthy();
   });
 
   it('should not render rotation slider when presentation is not segment', () => {
@@ -141,10 +125,8 @@ describe('AdjustControls', () => {
     render(<AdjustControls {...defaultProps} />);
     
     const thicknessSlider = screen.getByLabelText('Border thickness');
-    const insetSlider = screen.getByLabelText('Border inset/outset');
     
     expect(thicknessSlider).toBeTruthy();
-    expect(insetSlider).toBeTruthy();
   });
 
   it('should have correct ARIA label for rotation slider when in segment mode', () => {

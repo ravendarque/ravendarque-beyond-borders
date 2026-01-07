@@ -174,24 +174,6 @@ export function positionToBackgroundPosition(
   return `${x}% ${y}%`;
 }
 
-/**
- * Calculate image radius in renderer based on canvas size, thickness, and inset
- * This matches the calculation in render.ts
- */
-export function calculateRendererImageRadius(
-  canvasSize: number,
-  thicknessPct: number,
-  insetPct: number
-): number {
-  const r = canvasSize / 2;
-  const padding = 0; // No padding in current implementation
-  const thickness = Math.round((thicknessPct / 100) * canvasSize);
-  const ringOuterRadius = r - Math.max(1, padding);
-  const ringInnerRadius = Math.max(0, ringOuterRadius - thickness);
-  const imageInset = Math.round(((insetPct * -1) / 100) * canvasSize);
-  const imageRadius = Math.max(0, Math.min(ringInnerRadius - imageInset, r - 0.5));
-  return imageRadius;
-}
 
 /**
  * Calculate image overflow in renderer (how much image extends beyond circle)

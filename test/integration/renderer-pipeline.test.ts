@@ -136,22 +136,6 @@ describe('Renderer Pipeline Integration', () => {
       // Downsampling should work without errors
     });
 
-    it('should apply image inset correctly', async () => {
-      const img = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
-      const flag = flags[0];
-
-      const insets = [-10, 0, 10]; // Negative (expand), zero, positive (shrink)
-
-      for (const inset of insets) {
-        const result = await renderAvatar(img, flag, {
-          size: 512,
-          thicknessPct: 10,
-          imageInsetPx: inset,
-        });
-
-        expect(result.blob).toBeInstanceOf(Blob);
-      }
-    });
   });
 
   describe('Performance Metrics Integration', () => {

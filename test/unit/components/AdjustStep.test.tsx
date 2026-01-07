@@ -24,8 +24,6 @@ describe('AdjustStep', () => {
     onPresentationChange: vi.fn(),
     thickness: 10,
     onThicknessChange: vi.fn(),
-    insetPct: 0,
-    onInsetChange: vi.fn(),
     flagOffsetX: 0,
     onFlagOffsetChange: vi.fn(),
     segmentRotation: 0,
@@ -66,8 +64,6 @@ describe('AdjustStep', () => {
     // Check for controls that AdjustControls renders
     expect(screen.getByText('Thinner')).toBeTruthy();
     expect(screen.getByText('Thicker')).toBeTruthy();
-    expect(screen.getByText('Inset')).toBeTruthy();
-    expect(screen.getByText('Outset')).toBeTruthy();
   });
 
   it('should pass presentation mode to PresentationModeSelector', () => {
@@ -82,7 +78,6 @@ describe('AdjustStep', () => {
       <AdjustStep
         {...defaultProps}
         thickness={15}
-        insetPct={-5}
         flagOffsetX={100}
         segmentRotation={45}
         presentation="segment"
@@ -91,7 +86,6 @@ describe('AdjustStep', () => {
     
     // Verify values are displayed in controls
     expect(screen.getByText('15%')).toBeTruthy();
-    expect(screen.getByText('-5%')).toBeTruthy();
     expect(screen.getByText('45°')).toBeTruthy();
   });
 
