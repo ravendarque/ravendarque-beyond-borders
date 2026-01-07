@@ -18,7 +18,7 @@ export interface AdjustStepProps {
   thickness: number;
   /** Thickness change handler */
   onThicknessChange: (value: number) => void;
-  /** Flag horizontal offset */
+  /** Flag horizontal offset in percentage (-50 to +50) */
   flagOffsetX: number;
   /** Flag offset change handler */
   onFlagOffsetChange: (value: number) => void;

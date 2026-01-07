@@ -7,7 +7,7 @@ import { getAssetUrl } from '@/config';
 export interface RenderOptions {
   size: 512 | 1024;
   thickness: number;
-  flagOffsetX: number;
+  flagOffsetPct: number; // Percentage: -50 to +50
   presentation: 'ring' | 'segment' | 'cutout';
   segmentRotation?: number;
   bg: string | 'transparent';
@@ -43,7 +43,7 @@ export function useAvatarRenderer(
    */
   const render = useCallback(
     async (imageUrl: string, flagId: string, options: RenderOptions) => {
-      const { size, thickness, flagOffsetX, presentation, segmentRotation, bg } = options;
+      const { size, thickness, flagOffsetPct, presentation, segmentRotation, bg } = options;
 
       // Exit early if no image
       if (!imageUrl) {
@@ -104,7 +104,7 @@ export function useAvatarRenderer(
           thicknessPct: thickness,
           // No imageOffsetPx - cropped image is already centered
           // No imageZoom - cropped image is already at correct zoom
-          flagOffsetPx: { x: Math.round(flagOffsetX), y: 0 }, // Use flagOffsetPx for cutout mode
+          flagOffsetPct: { x: flagOffsetPct, y: 0 }, // Use flagOffsetPct for cutout mode
           presentation,
           segmentRotation,
           backgroundColor: bg === 'transparent' ? null : bg,
