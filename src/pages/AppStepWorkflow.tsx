@@ -4,7 +4,7 @@ import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useStepNavigation } from '@/hooks/useStepNavigation';
 import { useDebounce } from '@/hooks/usePerformance';
-import { getAssetUrl } from '@/config';
+import { getAssetUrl, config } from '@/config';
 import { FlagSelector } from '@/components/FlagSelector';
 import { FlagPreview } from '@/components/FlagPreview';
 import { ImageUploadZone } from '@/components/ImageUploadZone';
@@ -600,6 +600,17 @@ export function AppStepWorkflow() {
             <Link to="/copyright" className="footer-link" aria-label="View copyright information">
               © Nix Crabtree, 2025
             </Link>
+          </div>
+          <div className="footer-line3">
+            <a
+              href={`https://github.com/ravendarque/ravendarque-beyond-borders/releases/tag/v${config.getVersion()}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-version"
+              aria-label={`Version ${config.getVersion()} - View release on GitHub`}
+            >
+              v{config.getVersion()}
+            </a>
           </div>
         </footer>
       </main>
