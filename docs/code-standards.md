@@ -305,7 +305,7 @@ AppStepWorkflow (main orchestrator)
 │   ├── flagId state
 │   └── selectedFlag (memoized from flags.find())
 └── Step 3: Adjust controls + Avatar preview
-    ├── thickness, insetPct, flagOffsetX, presentation
+    ├── thickness, flagOffsetX, presentation
     └── render() function triggered via useEffect
 ```
 

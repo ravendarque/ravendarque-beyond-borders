@@ -9,7 +9,6 @@ export interface StepWorkflowState {
   imageName: string | null;
   flagId: string;
   thickness: number;
-  insetPct: number;
   flagOffsetX: number;
   presentation: 'ring' | 'segment' | 'cutout';
   bg: string | 'transparent';
@@ -27,7 +26,6 @@ export interface StepWorkflowActions {
   setImageName: (name: string | null) => void;
   setFlagId: (id: string) => void;
   setThickness: (value: number) => void;
-  setInsetPct: (value: number) => void;
   setFlagOffsetX: (value: number) => void;
   setPresentation: (value: 'ring' | 'segment' | 'cutout') => void;
   setBg: (value: string | 'transparent') => void;
@@ -55,7 +53,6 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
   
   // Persisted settings (survive navigation/refresh)
   const [thickness, setThickness] = usePersistedState('workflow-thickness', 7);
-  const [insetPct, setInsetPct] = usePersistedState('workflow-insetPct', 0);
   const [flagOffsetX, setFlagOffsetX] = usePersistedState('workflow-flagOffsetX', 0);
   const [presentation, setPresentation] = usePersistedState<'ring' | 'segment' | 'cutout'>(
     'workflow-presentation',
@@ -239,7 +236,6 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
     setImageName(null);
     setFlagId('');
     setThickness(7);
-    setInsetPct(0);
     setFlagOffsetX(0);
     setPresentation('ring');
     setBg('transparent');
@@ -251,13 +247,12 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
 
     // Clear persisted state (not flagId - that's session-only)
     localStorage.removeItem('workflow-thickness');
-    localStorage.removeItem('workflow-insetPct');
     localStorage.removeItem('workflow-flagOffsetX');
     localStorage.removeItem('workflow-presentation');
     localStorage.removeItem('workflow-bg');
 
     announceToScreenReader('Workflow reset. Starting over from step 1.');
-  }, [setFlagId, setThickness, setInsetPct, setFlagOffsetX, setPresentation, setBg]);
+  }, [setFlagId, setThickness, setFlagOffsetX, setPresentation, setBg]);
 
   return {
     // State
@@ -266,7 +261,6 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
     imageName,
     flagId,
     thickness,
-    insetPct,
     flagOffsetX,
     presentation,
     bg,
@@ -282,7 +276,6 @@ export function useStepWorkflow(options: UseStepWorkflowOptions = {}): StepWorkf
     setImageName,
     setFlagId,
     setThickness,
-    setInsetPct,
     setFlagOffsetX,
     setPresentation,
     setBg,

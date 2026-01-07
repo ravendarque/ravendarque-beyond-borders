@@ -14,6 +14,7 @@ import { PrivacyModal } from '@/components/PrivacyModal';
 import type { PresentationMode } from '@/components/PresentationModeSelector';
 import type { ImagePosition, ImageDimensions, ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
 import { calculatePositionLimits, getAspectRatio, positionToRendererOffset, clampPosition } from '@/utils/imagePosition';
+import { captureAdjustedImage } from '@/utils/captureImage';
 import '../styles.css';
 
 /**
@@ -58,9 +59,11 @@ export function AppStepWorkflow() {
   const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
   const [circleSize, setCircleSize] = useState(250); // Default, will be updated from CSS
   
+  // Step 1 → Step 3: Captured cropped image (Approach 2)
+  const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
+  
   // Step 3: Adjust controls state
   const [thickness, setThickness] = useState(10);
-  const [insetPct, setInsetPct] = useState(0);
   const [flagOffsetX, setFlagOffsetX] = useState(0);
   const [presentation, setPresentation] = useState<PresentationMode>('ring');
   const [segmentRotation, setSegmentRotation] = useState(0);
@@ -220,31 +223,72 @@ export function AppStepWorkflow() {
 
   // Debounce slider values for smoother rendering during drag
   const debouncedThickness = useDebounce(thickness, 50);
-  const debouncedInsetPct = useDebounce(insetPct, 50);
   const debouncedFlagOffsetX = useDebounce(flagOffsetX, 50);
   const debouncedSegmentRotation = useDebounce(segmentRotation, 50);
 
-  // Debounce position for smoother rendering
-  const debouncedImagePosition = useDebounce(imagePosition, 50);
+  // Track position when image was captured (for recapture detection)
+  const capturedPositionRef = useRef<ImagePosition | null>(null);
+  
+  // Capture adjusted image when transitioning to Step 3 (Approach 2)
+  useEffect(() => {
+    if (currentStep === 3 && imageUrl && imageDimensions) {
+      // Check if we need to capture (first time or position changed)
+      const needsCapture = !croppedImageUrl || 
+        !capturedPositionRef.current ||
+        capturedPositionRef.current.x !== imagePosition.x ||
+        capturedPositionRef.current.y !== imagePosition.y ||
+        capturedPositionRef.current.zoom !== imagePosition.zoom;
+      
+      if (needsCapture) {
+        // Capture the adjusted image at final render size (1024px)
+        captureAdjustedImage(
+          imageUrl,
+          imagePosition,
+          circleSize,
+          imageDimensions,
+          1024
+        )
+          .then((captured) => {
+            setCroppedImageUrl(captured);
+            capturedPositionRef.current = { ...imagePosition };
+          })
+          .catch((error) => {
+            // Fallback: use original image if capture fails
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.warn('[Capture] Failed to capture adjusted image, using original:', error);
+            }
+            setCroppedImageUrl(imageUrl);
+            capturedPositionRef.current = { ...imagePosition };
+          });
+      }
+    }
+    
+    // Reset cropped image when going back to Step 1 or when image changes
+    if (currentStep === 1 || !imageUrl) {
+      setCroppedImageUrl(null);
+      capturedPositionRef.current = null;
+    }
+  }, [currentStep, imageUrl, imageDimensions, imagePosition, circleSize, croppedImageUrl]);
 
   // Trigger render when parameters change (Step 3)
   useEffect(() => {
-    if (currentStep === 3 && imageUrl && flagId) {
+    if (currentStep === 3 && croppedImageUrl && flagId) {
       // Render at 1024px (2x) for preview to ensure crisp quality when scaled down
       // The preview container is 250-400px, so 1024px gives us 2.5-4x resolution
       // This eliminates blur from CSS downscaling
-      render(imageUrl, flagId, {
+      // Use cropped image - no position/zoom needed (already captured)
+      render(croppedImageUrl, flagId, {
         size: 1024,
         thickness: debouncedThickness,
-        insetPct: debouncedInsetPct,
         flagOffsetX: debouncedFlagOffsetX,
         presentation,
         segmentRotation: debouncedSegmentRotation,
         bg: 'transparent',
-        imagePosition: debouncedImagePosition,
+        // No imagePosition - the cropped image is already adjusted
       });
     }
-  }, [currentStep, imageUrl, flagId, debouncedThickness, debouncedInsetPct, debouncedFlagOffsetX, presentation, debouncedSegmentRotation, debouncedImagePosition, render]);
+  }, [currentStep, croppedImageUrl, flagId, debouncedThickness, debouncedFlagOffsetX, presentation, debouncedSegmentRotation, render]);
 
   // Persist imageUrl to sessionStorage
   useEffect(() => {
@@ -303,9 +347,9 @@ export function AppStepWorkflow() {
   const handleStartOver = () => {
     setImageUrl(null);
     setFlagId(null);
+    setCroppedImageUrl(null);
     setCurrentStep(1);
     setThickness(10);
-    setInsetPct(0);
     setFlagOffsetX(0);
     setPresentation('ring');
     setSegmentRotation(0);
@@ -389,8 +433,6 @@ export function AppStepWorkflow() {
                 onPresentationChange={setPresentation}
                 thickness={thickness}
                 onThicknessChange={setThickness}
-                insetPct={insetPct}
-                onInsetChange={setInsetPct}
                 flagOffsetX={flagOffsetX}
                 onFlagOffsetChange={setFlagOffsetX}
                 segmentRotation={segmentRotation}
