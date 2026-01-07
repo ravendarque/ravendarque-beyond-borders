@@ -2,7 +2,9 @@
 
 ## Overview
 
-The renderer module (`src/renderer/render.ts`) provides the core avatar rendering functionality with flag-themed borders. It supports three presentation modes: **ring**, **segment**, and **cutout**.
+The renderer module (`src/renderer/render.ts`) provides the core avatar
+rendering functionality with flag-themed borders. It supports three
+presentation modes: **ring**, **segment**, and **cutout**.
 
 ---
 
@@ -143,7 +145,8 @@ Enable automatic image downsampling for large images (improves performance).
 
 **Default:** `true`
 
-**Note:** Large images (>4x output size) are automatically downsampled for faster rendering.
+**Note:** Large images (>4x output size) are automatically downsampled for
+faster rendering.
 
 ---
 
@@ -173,7 +176,9 @@ PNG compression quality (0-1, higher = better quality but larger file).
 
 **Use case:** Reduce file size for social media uploads or storage constraints.
 
-**Note:** PNG compression is lossless, but this setting affects encoding efficiency and final file size. Values below 0.8 may produce noticeably larger files due to less efficient compression.
+**Note:** PNG compression is lossless, but this setting affects encoding
+efficiency and final file size. Values below 0.8 may produce noticeably
+larger files due to less efficient compression.
 
 **Example:**
 
@@ -292,7 +297,9 @@ const result = await renderAvatar(userImage, tibetFlag, {
   imageOffsetPx: { x: -20, y: 10 } // Fine-tune image position
 });
 
-console.log(`Optimized size: ${result.sizeKB} KB (${result.sizeBytes.toLocaleString()} bytes)`);
+console.log(
+  `Optimized size: ${result.sizeKB} KB (${result.sizeBytes.toLocaleString()} bytes)`
+);
 // Typical output: "Optimized size: 128.45 KB (131,532 bytes)"
 ```
 
@@ -330,7 +337,8 @@ renderAvatar(image, flag, {
 ```
 
 **Backward Compatibility:**
-The old `imageOffsetPx` in cutout mode still works (falls back to `flagOffsetPx`), but using `flagOffsetPx` is recommended for clarity.
+The old `imageOffsetPx` in cutout mode still works (falls back to
+`flagOffsetPx`), but using `flagOffsetPx` is recommended for clarity.
 
 ---
 
@@ -399,7 +407,8 @@ interface RenderResult {
 
 ## Error Handling
 
-The renderer validates flag patterns before rendering and throws `RenderError` for invalid inputs:
+The renderer validates flag patterns before rendering and throws `RenderError`
+for invalid inputs:
 
 ```typescript
 import { RenderError } from '@/types/errors';
