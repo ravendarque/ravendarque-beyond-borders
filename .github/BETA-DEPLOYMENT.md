@@ -59,12 +59,14 @@ Beta deployments use **GitVersion-standard automatic semantic versioning**:
   - `release/*`, `hotfix/*` → `rc`
   - `main` → no suffix (stable)
 
-**Example**: If you have tag `v1.0.0` and are 3 commits ahead on `feature/auth` with `feat:` commits:
+**Example**: If you have tag `v1.0.0` and are 3 commits ahead on
+`feature/auth` with `feat:` commits:
 
 - Calculated version: `1.1.0-alpha.3` (minor bump from feat: commits)
 - Beta URL: `/beta/1.1.0-alpha.3/`
 
-**Example**: If you have tag `v1.0.0` and are 3 commits ahead with only `chore:` and `docs:` commits:
+**Example**: If you have tag `v1.0.0` and are 3 commits ahead with only
+`chore:` and `docs:` commits:
 
 - Calculated version: `1.0.3-alpha.3` (patch increments only)
 - Beta URL: `/beta/1.0.3-alpha.3/`
@@ -73,7 +75,8 @@ See [VERSIONING.md](./VERSIONING.md) for complete details.
 
 ### Quick Version Check
 
-GitVersion runs automatically in CI/CD workflows. For local checking, install GitVersion:
+GitVersion runs automatically in CI/CD workflows. For local checking,
+install GitVersion:
 
 ```bash
 # Install GitVersion (one-time)
@@ -85,7 +88,8 @@ gitversion
 
 ### Creating Version Tags
 
-Tags are created automatically by the `tag-release.yml` workflow when major/minor bumps are detected. You can also manually create tags:
+Tags are created automatically by the `tag-release.yml` workflow when
+major/minor bumps are detected. You can also manually create tags:
 
 ```bash
 git tag v1.1.0

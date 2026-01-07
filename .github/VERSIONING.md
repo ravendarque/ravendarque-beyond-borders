@@ -1,6 +1,7 @@
 # Versioning Strategy
 
-This project uses **GitVersion** for automatic semantic versioning based on commit messages and git tags.
+This project uses **GitVersion** for automatic semantic versioning based on
+commit messages and git tags.
 
 ## Overview
 
@@ -13,14 +14,14 @@ Versions are calculated automatically using the **GitVersion tool** in CI/CD wor
 
 ## Version Format
 
-```
+```text
 <major>.<minor>.<patch>[-<prerelease>.<build>]
 ```
 
 ### Examples
 
 | Git Tag | Branch | Commits | Commit Messages | Calculated Version |
-|---------|--------|---------|----------------|-------------------|
+| ------- | ------ | ------- | --------------- | ------------------ |
 | `v1.0.0` | `main` | 5 | `chore:`, `docs:` (no patterns) | `1.0.5` |
 | `v1.0.0` | `feature/auth` | 3 | `feat: login`, `feat: logout` | `1.1.0-alpha.3` |
 | `v1.0.0` | `main` | 1 | `feat!: breaking change` | `2.0.0` |
@@ -34,7 +35,7 @@ Versions are calculated automatically using the **GitVersion tool** in CI/CD wor
 
 Triggers: `2.0.0` (resets minor and patch to 0)
 
-```
+```text
 +semver: breaking
 +semver: major
 feat(scope)!: ...
@@ -43,7 +44,8 @@ BREAKING CHANGE: ...
 ```
 
 **Example:**
-```
+
+```text
 feat(api)!: Refactor renderer API
 
 BREAKING CHANGE: flagOffsetX parameter removed, use flagOffsetPct instead
@@ -55,7 +57,7 @@ BREAKING CHANGE: flagOffsetX parameter removed, use flagOffsetPct instead
 
 Triggers: `1.1.0` (resets patch to 0)
 
-```
+```text
 +semver: minor
 +semver: feature
 feat(scope): ...
@@ -63,7 +65,8 @@ feature(scope): ...
 ```
 
 **Example:**
-```
+
+```text
 feat(step1): Add zoom control for profile pic adjustment
 
 +semver: minor
@@ -73,7 +76,7 @@ feat(step1): Add zoom control for profile pic adjustment
 
 Triggers: `1.0.1` (default behavior, also explicit)
 
-```
+```text
 +semver: patch
 +semver: fix
 fix(scope): ...
@@ -81,7 +84,8 @@ bugfix(scope): ...
 ```
 
 **Example:**
-```
+
+```text
 fix(workflow): Fix default flag offset calculation
 
 +semver: patch
@@ -91,7 +95,7 @@ fix(workflow): Fix default flag offset calculation
 
 These commit types default to patch increments:
 
-```
+```text
 chore: ...
 docs: ...
 style: ...
@@ -100,7 +104,8 @@ test: ...
 ```
 
 **Example:**
-```
+
+```text
 chore: Update dependencies
 docs: Update README
 refactor: Clean up code
@@ -113,10 +118,10 @@ Result: `1.0.0` → `1.0.1` → `1.0.2` → `1.0.3` (patch increments)
 | Branch Pattern | Suffix | Description |
 |----------------|--------|-------------|
 | `main`, `master` | _(none)_ | Stable releases |
-| `feature/*`, `feat/*`, `fix/*`, `bugfix/*` | `alpha` | Development features |
+| `feature/*`, `feat/*`, `fix/*`, `bugfix/*` | `alpha` | Development |
 | `beta/*` | `beta` | Beta testing |
 | `release/*`, `hotfix/*` | `rc` | Release candidates |
-| Other branches | `alpha` | Default for unlisted patterns |
+| Other branches | `alpha` | Default for unlisted |
 
 ## How Version Calculation Works
 
@@ -137,6 +142,7 @@ Commits since tag:
 ```
 
 **Analysis:**
+
 - `feat:` → Minor bump detected
 - `fix:` → Patch increment
 - `refactor:` → Patch increment (default)
@@ -164,6 +170,7 @@ Result: 1.1.0-alpha.3
 ### Automatic Tag Creation
 
 The `tag-release.yml` workflow automatically creates tags on `main` when:
+
 - Major or minor version bumps are detected
 - Commits contain `+semver:`, `feat:`, or `feat!:` patterns
 
@@ -204,6 +211,7 @@ gitversion
 ```
 
 Output includes:
+
 - `FullSemVer`: `1.1.0-alpha.3`
 - `Major`: `1`
 - `Minor`: `1`
@@ -211,7 +219,8 @@ Output includes:
 
 ### In CI/CD Workflows
 
-GitVersion is automatically installed and executed in workflows. The version is available as workflow outputs:
+GitVersion is automatically installed and executed in workflows. The version
+is available as workflow outputs:
 
 ```yaml
 - name: Calculate version
@@ -227,12 +236,14 @@ GitVersion is automatically installed and executed in workflows. The version is 
 ### Example 1: Feature Branch with New Features
 
 **Current state:**
+
 - Latest tag: `v1.0.0`
 - Branch: `feature/profile-pic-adjustment`
 - Commits: 6
 
 **Commits:**
-```
+
+```text
 feat(step1): Add zoom control
 feat(step1): Add image positioning controls
 refactor(workflow): implement image capture approach
@@ -242,7 +253,8 @@ refactor(code-review): fix all issues
 ```
 
 **Version calculation:**
-```
+
+```text
 Base: 1.0.0
 Analysis: feat: commits detected → minor bump
 Result: 1.1.0-alpha.6
@@ -251,7 +263,8 @@ Result: 1.1.0-alpha.6
 ### Example 2: Breaking Changes
 
 **Commits:**
-```
+
+```text
 feat(api)!: Refactor renderer API
 
 BREAKING CHANGE: flagOffsetX removed, use flagOffsetPct
@@ -260,7 +273,8 @@ BREAKING CHANGE: flagOffsetX removed, use flagOffsetPct
 ```
 
 **Version calculation:**
-```
+
+```text
 Base: 1.0.0
 Analysis: feat!: + BREAKING CHANGE + +semver: breaking → major bump
 Result: 2.0.0 (on main) or 2.0.0-alpha.1 (on feature branch)
@@ -269,14 +283,16 @@ Result: 2.0.0 (on main) or 2.0.0-alpha.1 (on feature branch)
 ### Example 3: Patch-Only Changes
 
 **Commits:**
-```
+
+```text
 fix(renderer): Fix flag offset calculation
 fix(ui): Fix button alignment
 chore: Update dependencies
 ```
 
 **Version calculation:**
-```
+
+```text
 Base: 1.0.0
 Analysis: Only fix: and chore: → patch increments
 Result: 1.0.3 (on main) or 1.0.3-alpha.3 (on feature branch)
@@ -285,14 +301,16 @@ Result: 1.0.3 (on main) or 1.0.3-alpha.3 (on feature branch)
 ### Example 4: No Patterns (Default Behavior)
 
 **Commits:**
-```
+
+```text
 chore: Update dependencies
 docs: Update README
 refactor: Clean up code
 ```
 
 **Version calculation:**
-```
+
+```text
 Base: 1.0.0
 Analysis: No version-bumping patterns → patch increments only
 Result: 1.0.3 (on main) or 1.0.3-alpha.3 (on feature branch)
@@ -362,7 +380,8 @@ Use standard prefixes for correct prerelease suffixes:
 
 ### 5. Tags Are Created Automatically
 
-The workflow creates tags on `main` when major/minor bumps are detected. You only need to manually tag for special releases.
+The workflow creates tags on `main` when major/minor bumps are detected. You
+only need to manually tag for special releases.
 
 ## Troubleshooting
 
@@ -399,7 +418,9 @@ Check your branch name matches the patterns:
 
 ### Same Version for Different Branches
 
-This is normal! If two branches are at the same commit count since the last tag and have the same commit message patterns, they'll have the same base version. The prerelease suffix differentiates them:
+This is normal! If two branches are at the same commit count since the last
+tag and have the same commit message patterns, they'll have the same base
+version. The prerelease suffix differentiates them:
 
 - `feature/auth`: `1.1.0-alpha.3`
 - `beta/auth`: `1.1.0-beta.3`
@@ -433,7 +454,7 @@ If you were using the old tag-based strategy:
 2. **New versioning is automatic**: Just use semantic commit messages
 3. **No manual tag creation needed**: Workflow handles it
 
-## Examples
+## Usage Examples
 
 ### Starting a New Feature
 
@@ -443,7 +464,7 @@ If you were using the old tag-based strategy:
 git checkout -b feature/user-profiles
 
 # Check version
-node scripts/get-version.js
+gitversion
 # Output: 1.0.1-alpha.1 (patch increment, no feat: commits yet)
 
 # Make commits with feat: messages
@@ -452,7 +473,7 @@ git commit -m "feat(profiles): Add profile API"
 git commit -m "feat(profiles): Add profile UI"
 
 # Check version again
-node scripts/get-version.js
+gitversion
 # Output: 1.1.0-alpha.3 (minor bump from feat: commits)
 
 # Deploy to beta
@@ -467,7 +488,7 @@ node scripts/get-version.js
 git checkout -b release/v1.1.0
 
 # Check version
-node scripts/get-version.js
+gitversion
 # Output: 1.1.0-rc.1 (release candidate)
 
 # Deploy to beta for final testing
