@@ -35,6 +35,12 @@ export interface RenderOptions {
   imageOffsetPx?: { x: number; y: number };
   
   /**
+   * Zoom level for the user's image (0-200, where 0 is no zoom, 100 is 2x, 200 is 3x)
+   * Applied to the image scale after cover sizing
+   */
+  imageZoom?: number;
+  
+  /**
    * Offset to apply to flag pattern in cutout mode (pixels)
    * Only applies when presentation is 'cutout'
    */
@@ -193,15 +199,16 @@ export async function renderAvatar(
   else borderStyle = 'concentric'; // Default to concentric (horizontal stripes)
 
   /**
-   * CUTOUT MODE: Special rendering where the user's image is centered
+   * CUTOUT MODE: Special rendering where the user's image is in the center circle
    * and the flag pattern appears only in the border/ring area
    */
   if (borderStyle === 'cutout') {
-    // Step 1: Draw the user's image in the center circle (respecting inset)
-    // Image is always centered in cutout mode (imageOffsetPx is used for flag offset instead)
+    // Step 1: Draw the user's image in the center circle (respecting inset and position)
+    // imageOffsetPx is used for image positioning, flagOffsetPx is used for flag pattern offset
     ctx.save();
     ctx.beginPath();
     // Clip to the inner circle area (where the image should appear)
+    // Clip circle stays centered - don't apply image offset to clip
     ctx.arc(r, r, imageRadius, 0, Math.PI * 2);
     ctx.closePath();
     ctx.clip();
@@ -211,11 +218,19 @@ export async function renderAvatar(
     const ih = processedImage.height;
     // Scale image to fit the inner circle (respecting inset)
     const target = imageRadius * 2;
-    const scale = Math.max(target / iw, target / ih);
+    const coverScale = Math.max(target / iw, target / ih);
+    // Apply zoom if provided
+    // Zoom is in percentage: 0% = 1x, 100% = 2x, 200% = 3x
+    const zoom = options.imageZoom ?? 0;
+    const zoomMultiplier = 1 + (zoom / 100);
+    const scale = coverScale * zoomMultiplier;
     const dw = iw * scale;
     const dh = ih * scale;
-    const cx = canvasW / 2; // Always centered
-    const cy = canvasH / 2; // Always centered
+    // Apply image offset for positioning (from imagePosition)
+    const imgOffsetX = options.imageOffsetPx?.x ?? 0;
+    const imgOffsetY = options.imageOffsetPx?.y ?? 0;
+    const cx = canvasW / 2 + imgOffsetX;
+    const cy = canvasH / 2 + imgOffsetY;
     
     ctx.drawImage(processedImage, cx - dw / 2, cy - dh / 2, dw, dh);
     ctx.restore();
@@ -263,9 +278,12 @@ export async function renderAvatar(
       // 
       // The flag extends beyond the ring by (flagRectWidth - ringOuterDiameter) / 2 on each side
       // We need to map the offset percentage to this extension range
-      // flagOffsetX is in pixels (-256 to +256), representing -50% to +50%
+      // flagOffsetX is in pixels, representing -50% to +50% of the base canvas size (512px)
+      // Scale the offset calculation based on actual canvas size
       const flagExtension = (flagRectWidth - ringOuterDiameter) / 2;
-      const offsetPx = (flagOffsetX / 256) * flagExtension;
+      const baseCanvasSize = 512; // Base size for offset calculation
+      const offsetScale = canvasW / baseCanvasSize; // Scale factor for current canvas size
+      const offsetPx = (flagOffsetX / (baseCanvasSize / 2)) * flagExtension;
       const dx = ringCenterX - flagRectWidth / 2 + offsetPx;
       const dy = r - flagRectHeight / 2;
       
@@ -331,10 +349,9 @@ export async function renderAvatar(
   // Draw circular masked image (kept inside border)
   ctx.save();
   ctx.beginPath();
-  // Apply image offset if provided (for fine-tuning centering)
-  const imgOffsetX = options.imageOffsetPx?.x ?? 0;
-  const imgOffsetY = options.imageOffsetPx?.y ?? 0;
-  ctx.arc(r + imgOffsetX, r + imgOffsetY, imageRadius, 0, Math.PI * 2);
+  // Clip circle stays centered - don't apply image offset to clip
+  // The offset only affects where the image is drawn, not the clip boundary
+  ctx.arc(r, r, imageRadius, 0, Math.PI * 2);
   ctx.closePath();
   ctx.clip();
 
@@ -343,9 +360,17 @@ export async function renderAvatar(
   const iw = processedImage.width,
     ih = processedImage.height;
   const target = imageRadius * 2;
-  const scale = Math.max(target / iw, target / ih);
+  const coverScale = Math.max(target / iw, target / ih);
+  // Apply zoom if provided
+  // Zoom is in percentage: 0% = 1x, 100% = 2x, 200% = 3x
+  const zoom = options.imageZoom ?? 0;
+  const zoomMultiplier = 1 + (zoom / 100);
+  const scale = coverScale * zoomMultiplier;
   const dw = iw * scale,
     dh = ih * scale;
+  // Apply image offset for positioning (from imagePosition)
+  const imgOffsetX = options.imageOffsetPx?.x ?? 0;
+  const imgOffsetY = options.imageOffsetPx?.y ?? 0;
   // Center in canvas (with optional offset for fine-tuning)
   const cx = canvasW / 2 + imgOffsetX,
     cy = canvasH / 2 + imgOffsetY;

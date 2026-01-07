@@ -151,7 +151,7 @@ export function ImageUploadZone({
   const backgroundStyle = imageUrl ? {
     backgroundImage: `url(${imageUrl})`,
     backgroundSize,
-    backgroundPosition: positionToBackgroundPosition({ x: position.x, y: position.y }),
+    backgroundPosition: positionToBackgroundPosition({ x: position.x, y: position.y }, limits),
     backgroundRepeat: 'no-repeat',
   } : undefined;
 
