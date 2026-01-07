@@ -50,9 +50,34 @@ export function CopyrightPage() {
               .
             </p>
             <p>
-              The specific open source license under which this software is distributed will be specified in the
-              repository's LICENSE file. Please refer to that file for the exact terms and conditions under which
-              you may use, modify, and distribute this software.
+              This software is distributed under the{' '}
+              <a
+                href="https://polyformproject.org/licenses/noncommercial/1.0.0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ethics-link"
+              >
+                Polyform Noncommercial License 1.0.0
+              </a>
+              {' '}with additional ethical use restrictions. This license:
+            </p>
+            <ul style={{ marginLeft: '20px', marginTop: '10px', marginBottom: '10px' }}>
+              <li>Allows use, modification, and distribution for <strong>non-commercial purposes only</strong></li>
+              <li><strong>Prohibits commercial use and profiteering</strong></li>
+              <li><strong>Prohibits use against oppressed groups, marginalized peoples, or stateless nations</strong></li>
+              <li><strong>Prohibits creating nationalist/racist flags or symbols of oppression</strong></li>
+            </ul>
+            <p>
+              These restrictions apply to all users, including those who fork this repository. Please refer to the{' '}
+              <a
+                href="https://github.com/ravendarque/ravendarque-beyond-borders/blob/main/LICENSE"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ethics-link"
+              >
+                LICENSE file
+              </a>{' '}
+              for the complete terms and conditions.
             </p>
           </section>
 

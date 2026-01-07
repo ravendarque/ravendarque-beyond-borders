@@ -1,0 +1,80 @@
+Polyform Noncommercial License 1.0.0
+
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
+
+Copyright (c) 2025 Nix Crabtree
+
+This software and associated documentation files (the "Software") are licensed
+under the Polyform Noncommercial License 1.0.0 (the "License"); you may not use
+this Software except in compliance with the License. You may obtain a copy of
+the License at:
+
+    https://polyformproject.org/licenses/noncommercial/1.0.0
+
+ETHICAL USE RESTRICTION
+
+Notwithstanding any other provision of this License, this Software and any
+derivative works (including forks) may not be used:
+
+1. To create flags, symbols, or imagery for purposes that promote:
+   - Nationalism that oppresses marginalized groups
+   - Racism, racial discrimination, or racial hatred
+   - Hatred against oppressed peoples or stateless nations
+   - Symbols of genocide, ethnic cleansing, or oppression
+   - Any form of discrimination against marginalized groups
+
+2. In any manner that harms, oppresses, or discriminates against:
+   - Marginalized groups
+   - Oppressed peoples
+   - Stateless nations
+   - Occupied territories
+   - Any group facing systemic oppression
+
+3. To support or enable systems of oppression or discrimination
+
+IMPORTANT CLARIFICATION:
+
+Flags themselves are not inherently harmful - many flags have legitimate uses
+for solidarity and awareness. The restriction applies to the *purpose* and
+*intent* of use, not to specific flag designs.
+
+For example, the Flag of Ireland can legitimately represent solidarity for
+occupied Northern Ireland and the 26+6=1 movement. However, using this Software
+to create the Flag of Ireland for the purpose of promoting nationalist racism
+against people of colour (whether immigrants or Irish-born) would violate this
+restriction.
+
+The same flag design may be used for legitimate solidarity purposes or misused
+for harmful purposes. This restriction prohibits the latter - using this
+Software to create flags for purposes that harm, oppress, or discriminate
+against marginalized groups.
+
+Violation of this restriction terminates your rights under this License
+immediately. This restriction is a material term of this License. By using,
+modifying, or distributing this Software (including by forking this repository),
+you agree to be bound by this restriction.
+
+CONTRIBUTOR AGREEMENT
+
+By contributing code, documentation, or other materials to this repository (via
+pull request or otherwise), you agree that:
+
+1. Your contributions will not enable or facilitate any use prohibited by the
+   Ethical Use Restriction above
+
+2. You will not submit contributions that:
+   - Add flags or symbols that promote oppression
+   - Enable creation of nationalist/racist flags
+   - Support discrimination against marginalized groups
+   - Violate the purpose and values of this project
+
+3. The maintainer reserves the right to reject any contribution that violates
+   these terms or the project's mission
+
+Violation of this agreement may result in your contributions being rejected and
+your access to the repository being revoked.
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
