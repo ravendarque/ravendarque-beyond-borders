@@ -103,30 +103,37 @@ export function AppStepWorkflow() {
     return calculatePositionLimits(imageDimensions, circleSize, imagePosition.zoom);
   }, [imageDimensions, circleSize, imagePosition.zoom]);
 
-  // Clamp position when limits change (e.g., when zoom changes)
-  const prevLimitsRef = useRef<PositionLimits | null>(null);
+  // Clamp position when image changes (not when zoom changes)
+  // Position should remain constant when zoom changes - only clamp when new image is loaded
+  // Note: When a new image is loaded, position is reset to { x: 0, y: 0, zoom: 0 } in the
+  // image detection useEffect, so this clamping is mainly a safety check
+  const prevImageDimensionsRef = useRef<ImageDimensions | null>(null);
   const positionRef = useRef<ImagePosition>(imagePosition);
-  positionRef.current = imagePosition; // Keep ref in sync
+  const limitsRef = useRef<PositionLimits>(positionLimits);
+  
+  // Keep refs in sync
+  positionRef.current = imagePosition;
+  limitsRef.current = positionLimits;
   
   useEffect(() => {
-    if (imageDimensions && prevLimitsRef.current) {
-      // Only clamp if limits actually changed (not just position)
-      const limitsChanged = 
-        prevLimitsRef.current.minX !== positionLimits.minX ||
-        prevLimitsRef.current.maxX !== positionLimits.maxX ||
-        prevLimitsRef.current.minY !== positionLimits.minY ||
-        prevLimitsRef.current.maxY !== positionLimits.maxY;
+    if (imageDimensions && prevImageDimensionsRef.current) {
+      // Only clamp if image dimensions changed (new image loaded)
+      const imageChanged = 
+        prevImageDimensionsRef.current.width !== imageDimensions.width ||
+        prevImageDimensionsRef.current.height !== imageDimensions.height;
       
-      if (limitsChanged) {
-        const clamped = clampPosition(positionRef.current, positionLimits);
+      if (imageChanged) {
+        // New image loaded - clamp position to new limits (safety check)
+        // Position is usually already reset to { x: 0, y: 0, zoom: 0 } by image detection useEffect
+        const clamped = clampPosition(positionRef.current, limitsRef.current);
         // Only update if position was actually clamped
         if (clamped.x !== positionRef.current.x || clamped.y !== positionRef.current.y) {
           setImagePosition(clamped);
         }
       }
     }
-    prevLimitsRef.current = positionLimits;
-  }, [positionLimits, imageDimensions]);
+    prevImageDimensionsRef.current = imageDimensions;
+  }, [imageDimensions]); // Only depend on imageDimensions - position should remain constant when zoom changes
 
   // Get aspect ratio
   const aspectRatio = useMemo<ImageAspectRatio | null>(() => {
