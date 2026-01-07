@@ -36,7 +36,7 @@ export function ImageUploadZone({
   onShowPrivacy,
   position,
   limits,
-  aspectRatio,
+  aspectRatio: _aspectRatio,
   imageDimensions,
   onPositionChange,
   circleSize,

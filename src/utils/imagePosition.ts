@@ -287,10 +287,6 @@ export function calculateBackgroundSize(
   const { width: imgWidth, height: imgHeight } = imageDimensions;
   const circleDiameter = circleSize;
   
-  // Calculate cover scale factor (same as in calculatePositionLimits)
-  // Cover scales so the smaller dimension fits the circle
-  const coverScale = Math.max(circleDiameter / imgWidth, circleDiameter / imgHeight);
-  
   // Calculate what percentage would give us the cover size
   // For landscape: height fits, so percentage = (imgWidth * coverScale / circleDiameter) * 100
   // For portrait: width fits, so percentage = (imgHeight * coverScale / circleDiameter) * 100

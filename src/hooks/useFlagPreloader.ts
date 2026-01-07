@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { FlagSpec } from '@/flags/schema';
-import { getAssetUrl, config } from '@/config';
+import { getAssetUrl } from '@/config';
 
 /**
  * Priority flags that should be preloaded on idle
