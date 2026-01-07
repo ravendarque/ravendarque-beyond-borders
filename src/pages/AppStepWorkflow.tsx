@@ -348,7 +348,9 @@ export function AppStepWorkflow() {
     if (!overlayUrl) return;
     const a = document.createElement('a');
     a.href = overlayUrl;
-    a.download = `beyond-borders-avatar-${Date.now()}.png`;
+    // Generate identifier: timestamp for uniqueness
+    const identifier = Date.now();
+    a.download = `wearebeyondborders-dot-com-${identifier}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
