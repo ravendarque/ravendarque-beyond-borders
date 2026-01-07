@@ -1,5 +1,5 @@
 mode: ContinuousDelivery
-major-version-bump-message: '\+semver:\s?(breaking|major)|BREAKING CHANGE|feat!?:'
+major-version-bump-message: '\+semver:\s?(breaking|major)|BREAKING CHANGE|feat!'
 minor-version-bump-message: '\+semver:\s?(feature|minor)|^(feat|feature)(\(|:)'
 patch-version-bump-message: '\+semver:\s?(fix|patch)|^(fix|bugfix)(\(|:)'
 commit-message-incrementing: Enabled
