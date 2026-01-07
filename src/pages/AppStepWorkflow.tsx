@@ -173,15 +173,19 @@ export function AppStepWorkflow() {
       const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
       if (defaultOffset !== undefined) {
         // Convert percentage (-50 to 50) to pixels
-        // For a 512px canvas, -50% = -256px, 0% = 0px, 50% = 256px
-        const defaultOffsetPx = (defaultOffset / 100) * 512;
+        // The renderer expects offset relative to base canvas size (512px)
+        // -50% = -256px, 0% = 0px, +50% = +256px at 512px base
+        // The renderer will scale this based on actual canvas size
+        const baseSize = 512; // Base size for offset calculation
+        // defaultOffset is -50 to +50, convert to -256 to +256 range
+        const defaultOffsetPx = (defaultOffset / 50) * (baseSize / 2);
         setFlagOffsetX(defaultOffsetPx);
       } else {
         // If in cutout mode but flag doesn't have cutout config, reset to 0
         setFlagOffsetX(0);
       }
     }
-  }, [flagId, presentation, selectedFlag?.modes?.cutout?.defaultOffset, setFlagOffsetX]);
+  }, [flagId, presentation, selectedFlag?.modes?.cutout?.defaultOffset]);
 
   // Preload full flag image when flag is selected (needed for cutout mode)
   useEffect(() => {

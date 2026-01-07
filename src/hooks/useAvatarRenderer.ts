@@ -3,8 +3,8 @@ import { renderAvatar } from '@/renderer/render';
 import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
 import { getAssetUrl } from '@/config';
-import type { ImagePosition } from '@/utils/imagePosition';
-import { positionToRendererOffset } from '@/utils/imagePosition';
+import type { ImagePosition, PositionLimits } from '@/utils/imagePosition';
+import { positionToRendererOffset, calculateRendererImageRadius, calculatePositionLimits } from '@/utils/imagePosition';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -78,6 +78,12 @@ export function useAvatarRenderer(
         const response = await fetch(imageUrl);
         const blob = await response.blob();
         const img = await createImageBitmap(blob);
+        
+        // Get image dimensions for position calculation
+        const imageDimensions = {
+          width: img.width,
+          height: img.height,
+        };
 
         // Transform flag data to format expected by renderAvatar
         const transformedFlag: FlagSpec = { ...flag };
@@ -101,9 +107,26 @@ export function useAvatarRenderer(
         }
 
         // Calculate image offset from position
+        // Use the EXACT same calculation as step 1
+        const imageRadius = calculateRendererImageRadius(size, thickness, insetPct);
+        const imageCircleDiameter = imageRadius * 2;
+        
+        // Calculate position limits for normalization (same as step 1)
+        const rendererLimits = calculatePositionLimits(imageDimensions, imageCircleDiameter, imagePosition.zoom);
+        
+        // Convert position using the same logic as CSS background-position
         const imageOffsetPx = imagePosition
-          ? positionToRendererOffset({ x: imagePosition.x, y: imagePosition.y }, size)
+          ? positionToRendererOffset(
+              { x: imagePosition.x, y: imagePosition.y },
+              imageDimensions,
+              imageCircleDiameter,
+              imagePosition.zoom,
+              rendererLimits
+            )
           : undefined;
+        
+        // Extract zoom from image position
+        const imageZoom = imagePosition?.zoom ?? 0;
 
         // Render avatar with flag border
         const result = await renderAvatar(img, transformedFlag, {
@@ -111,6 +134,7 @@ export function useAvatarRenderer(
           thicknessPct: thickness,
           imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
           imageOffsetPx, // Image position offset (for ring/segment modes)
+          imageZoom, // Image zoom level (0-200)
           flagOffsetPx: { x: Math.round(flagOffsetX), y: 0 }, // Use flagOffsetPx for cutout mode
           presentation,
           segmentRotation,

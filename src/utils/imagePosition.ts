@@ -126,36 +126,163 @@ export function calculatePositionLimits(
 /**
  * Convert position percentage to CSS background-position value
  * 
+ * Position is in range [-maxMove, maxMove] where maxMove is calculated from overflow.
+ * We need to normalize this to CSS percentage (0-100%) where:
+ * - position = -maxMove → CSS 0% (left edge)
+ * - position = 0 → CSS 50% (center)
+ * - position = maxMove → CSS 100% (right edge)
+ * 
  * @param position - Position object with x and y percentages
+ * @param limits - Position limits to normalize against (optional, for backward compatibility)
  * @returns CSS background-position string (e.g., "25% 30%")
  */
-export function positionToBackgroundPosition(position: { x: number; y: number }): string {
-  // CSS background-position: 0% = left/top, 50% = center, 100% = right/bottom
-  // Our position: -100 = show left/top, 0 = center, 100 = show right/bottom
-  // When position.x is positive (right), we want to show right side (CSS 100%)
-  // When position.x is negative (left), we want to show left side (CSS 0%)
-  const x = 50 + (position.x / 2); // Convert -100..100 to 0..100, then shift by 50% for center
-  const y = 50 + (position.y / 2);
+export function positionToBackgroundPosition(
+  position: { x: number; y: number },
+  limits?: PositionLimits
+): string {
+  let x: number;
+  let y: number;
+  
+  if (limits) {
+    // Normalize using actual limits
+    const maxMoveX = Math.max(Math.abs(limits.minX), Math.abs(limits.maxX));
+    const maxMoveY = Math.max(Math.abs(limits.minY), Math.abs(limits.maxY));
+    
+    if (maxMoveX > 0) {
+      // Normalize: -maxMoveX → 0%, 0 → 50%, maxMoveX → 100%
+      x = 50 + (position.x / maxMoveX) * 50;
+    } else {
+      x = 50; // Center if no movement
+    }
+    
+    if (maxMoveY > 0) {
+      y = 50 + (position.y / maxMoveY) * 50;
+    } else {
+      y = 50; // Center if no movement
+    }
+  } else {
+    // Fallback: assume position is already normalized to [-100, 100]
+    // This maintains backward compatibility
+    x = 50 + (position.x / 2);
+    y = 50 + (position.y / 2);
+  }
+  
+  // Clamp to valid CSS range
+  x = Math.max(0, Math.min(100, x));
+  y = Math.max(0, Math.min(100, y));
+  
   return `${x}% ${y}%`;
 }
 
 /**
- * Convert position percentage to pixels for renderer
+ * Calculate image radius in renderer based on canvas size, thickness, and inset
+ * This matches the calculation in render.ts
+ */
+export function calculateRendererImageRadius(
+  canvasSize: number,
+  thicknessPct: number,
+  insetPct: number
+): number {
+  const r = canvasSize / 2;
+  const padding = 0; // No padding in current implementation
+  const thickness = Math.round((thicknessPct / 100) * canvasSize);
+  const ringOuterRadius = r - Math.max(1, padding);
+  const ringInnerRadius = Math.max(0, ringOuterRadius - thickness);
+  const imageInset = Math.round(((insetPct * -1) / 100) * canvasSize);
+  const imageRadius = Math.max(0, Math.min(ringInnerRadius - imageInset, r - 0.5));
+  return imageRadius;
+}
+
+/**
+ * Calculate image overflow in renderer (how much image extends beyond circle)
+ * This is used to convert position percentages to pixel offsets
+ */
+export function calculateRendererImageOverflow(
+  imageDimensions: ImageDimensions,
+  imageRadius: number,
+  zoom: number
+): { overflowX: number; overflowY: number } {
+  const { width: imgWidth, height: imgHeight } = imageDimensions;
+  const circleDiameter = imageRadius * 2;
+  
+  // Calculate cover scale (same as in step 1)
+  const coverScale = Math.max(circleDiameter / imgWidth, circleDiameter / imgHeight);
+  
+  // Apply zoom
+  const zoomMultiplier = 1 + (zoom / 100);
+  const zoomedScale = coverScale * zoomMultiplier;
+  
+  // Calculate scaled dimensions
+  const scaledWidth = imgWidth * zoomedScale;
+  const scaledHeight = imgHeight * zoomedScale;
+  
+  // Calculate overflow (how much extends beyond circle)
+  const overflowX = (scaledWidth - circleDiameter) / 2;
+  const overflowY = (scaledHeight - circleDiameter) / 2;
+  
+  return { overflowX, overflowY };
+}
+
+/**
+ * Convert position to canvas drawing offset, using the EXACT same calculation as CSS background-position
+ * 
+ * This function replicates what CSS background-position does, but for canvas drawing.
+ * We use the same positionToBackgroundPosition conversion, then apply CSS background-position math.
  * 
  * @param position - Position object with x and y percentages
- * @param canvasSize - Size of the canvas in pixels (512 or 1024)
- * @returns Offset in pixels for renderer
+ * @param imageDimensions - Natural image dimensions  
+ * @param containerSize - Size of the container (circle diameter) in pixels
+ * @param zoom - Zoom level (0-200)
+ * @param limits - Position limits for normalization (same as used in step 1)
+ * @returns Offset in pixels for canvas drawing (relative to container center)
  */
 export function positionToRendererOffset(
   position: { x: number; y: number },
-  canvasSize: number
+  imageDimensions: ImageDimensions,
+  containerSize: number,
+  zoom: number,
+  limits: PositionLimits
 ): { x: number; y: number } {
-  // Position is in percentage (-100 to 100)
-  // Convert to pixels: percentage of radius
-  const radius = canvasSize / 2;
-  const xPx = (position.x / 100) * radius;
-  const yPx = (position.y / 100) * radius;
-  return { x: xPx, y: yPx };
+  // Safety checks
+  if (!imageDimensions || imageDimensions.width <= 0 || imageDimensions.height <= 0 || containerSize <= 0) {
+    return { x: 0, y: 0 };
+  }
+  
+  const { width: imgWidth, height: imgHeight } = imageDimensions;
+  const circleDiameter = containerSize;
+  
+  // Calculate cover scale and zoom (same as step 1)
+  const coverScale = Math.max(circleDiameter / imgWidth, circleDiameter / imgHeight);
+  const zoomMultiplier = 1 + (zoom / 100);
+  const zoomedScale = coverScale * zoomMultiplier;
+  const scaledWidth = imgWidth * zoomedScale;
+  const scaledHeight = imgHeight * zoomedScale;
+  
+  // Get CSS background-position using the SAME function as step 1
+  const cssPosition = positionToBackgroundPosition(position, limits);
+  const [cssX, cssY] = cssPosition.split(' ').map(p => parseFloat(p.replace('%', '')));
+  
+  // CSS background-position formula: leftEdge = (containerWidth - imageWidth) * (cssPercent / 100)
+  // This gives us the left edge position relative to container's left edge
+  const leftEdgeX = ((circleDiameter - scaledWidth) / 100) * cssX;
+  const topEdgeY = ((circleDiameter - scaledHeight) / 100) * cssY;
+  
+  // Convert to center-relative offset for canvas
+  // The container (circle) is centered in the canvas at canvasW/2
+  // Container's left edge is at (canvasW - circleDiameter) / 2
+  // Image's left edge in canvas coordinates: (canvasW - circleDiameter) / 2 + leftEdgeX
+  // Image's center in canvas coordinates: (canvasW - circleDiameter) / 2 + leftEdgeX + scaledWidth/2
+  // Offset from canvas center: imageCenter - canvasW/2
+  // = (canvasW - circleDiameter)/2 + leftEdgeX + scaledWidth/2 - canvasW/2
+  // = leftEdgeX + (scaledWidth - circleDiameter)/2
+  const offsetX = leftEdgeX + (scaledWidth - circleDiameter) / 2;
+  const offsetY = topEdgeY + (scaledHeight - circleDiameter) / 2;
+  
+  // Safety check for NaN/Infinity
+  const safeX = isFinite(offsetX) ? offsetX : 0;
+  const safeY = isFinite(offsetY) ? offsetY : 0;
+  
+  return { x: safeX, y: safeY };
 }
 
 /**
