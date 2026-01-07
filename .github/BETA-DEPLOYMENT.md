@@ -48,39 +48,51 @@ This ensures only validated, tested code is deployed to beta.
 
 ## Version Management
 
-Beta deployments use **GitVersion-style automatic semantic versioning**:
+Beta deployments use **GitVersion-standard automatic semantic versioning**:
 
-- **Major.Minor**: From git tags (e.g., `v0.1`, `v1.0`)
-- **Patch**: Calculated from commit count since tag
+- **Base Version**: From git tags (e.g., `v1.0.0`)
+- **Version Bumps**: From commit messages (`feat:`, `fix:`, `+semver:`, etc.)
+- **Patch**: Auto-increments from commit count (default behavior)
 - **Prerelease**: Automatic suffix based on branch name
   - `feature/*`, `fix/*` → `alpha`
   - `beta/*` → `beta`
   - `release/*`, `hotfix/*` → `rc`
   - `main` → no suffix (stable)
 
-**Example**: If you have tag `v0.2` and are 3 commits ahead on `feature/auth`:
+**Example**: If you have tag `v1.0.0` and are 3 commits ahead on `feature/auth` with `feat:` commits:
 
-- Calculated version: `0.2.3-alpha.3`
-- Beta URL: `/beta/0.2.3-alpha.3/`
+- Calculated version: `1.1.0-alpha.3` (minor bump from feat: commits)
+- Beta URL: `/beta/1.1.0-alpha.3/`
+
+**Example**: If you have tag `v1.0.0` and are 3 commits ahead with only `chore:` and `docs:` commits:
+
+- Calculated version: `1.0.3-alpha.3` (patch increments only)
+- Beta URL: `/beta/1.0.3-alpha.3/`
 
 See [VERSIONING.md](./VERSIONING.md) for complete details.
 
 ### Quick Version Check
 
+GitVersion runs automatically in CI/CD workflows. For local checking, install GitVersion:
+
 ```bash
-node scripts/get-version.cjs
+# Install GitVersion (one-time)
+dotnet tool install -g GitVersion.Tool
+
+# Check version
+gitversion
 ```
 
 ### Creating Version Tags
 
-To start a new major/minor version:
+Tags are created automatically by the `tag-release.yml` workflow when major/minor bumps are detected. You can also manually create tags:
 
 ```bash
-git tag v0.2
-git push origin v0.2
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
-Patch numbers increment automatically with each commit
+**Note:** Patch versions are calculated automatically and don't need tags.
 
 ## Use Cases
 

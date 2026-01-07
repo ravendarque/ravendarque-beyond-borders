@@ -1,14 +1,15 @@
 # Versioning Strategy
 
-This project uses **GitVersion-style automatic semantic versioning** based on git tags and commit history.
+This project uses **GitVersion** for automatic semantic versioning based on commit messages and git tags.
 
 ## Overview
 
-Versions are calculated automatically using the `scripts/get-version.cjs` script:
+Versions are calculated automatically using the **GitVersion tool** in CI/CD workflows:
 
-- **Major.Minor**: From latest git tag (e.g., `v0.1`, `v1.0`)
-- **Patch**: Commit count since the tag
-- **Prerelease**: Suffix based on branch type (alpha, beta, rc)
+- **Base Version**: From latest git tag (e.g., `v1.0.0`)
+- **Version Bumps**: From commit messages (`feat:`, `fix:`, `+semver:`, etc.)
+- **Patch**: Auto-increments from commit count (default behavior)
+- **Prerelease**: Suffix based on branch type (`alpha`, `beta`, `rc`)
 
 ## Version Format
 
@@ -18,13 +19,94 @@ Versions are calculated automatically using the `scripts/get-version.cjs` script
 
 ### Examples
 
-| Git Tag | Branch | Commits Since Tag | Calculated Version |
-|---------|--------|-------------------|-------------------|
-| `v0.1` | `main` | 5 | `0.1.5` |
-| `v0.1` | `feature/auth` | 3 | `0.1.3-alpha.3` |
-| `v0.2` | `beta/new-ui` | 7 | `0.2.7-beta.7` |
-| `v1.0` | `release/v1.0` | 2 | `1.0.2-rc.2` |
-| `v0.1` | `hotfix/security` | 1 | `0.1.1-rc.1` |
+| Git Tag | Branch | Commits | Commit Messages | Calculated Version |
+|---------|--------|---------|----------------|-------------------|
+| `v1.0.0` | `main` | 5 | `chore:`, `docs:` (no patterns) | `1.0.5` |
+| `v1.0.0` | `feature/auth` | 3 | `feat: login`, `feat: logout` | `1.1.0-alpha.3` |
+| `v1.0.0` | `main` | 1 | `feat!: breaking change` | `2.0.0` |
+| `v1.0.0` | `main` | 1 | `+semver: breaking` | `2.0.0` |
+| `v1.0.0` | `beta/testing` | 2 | `feat: new feature` | `1.1.0-beta.2` |
+| `v1.0.0` | `release/v1.1` | 1 | `fix: bug` | `1.0.1-rc.1` |
+
+## Commit Message Patterns (GitVersion Standard)
+
+### Major Version Bump
+
+Triggers: `2.0.0` (resets minor and patch to 0)
+
+```
++semver: breaking
++semver: major
+feat(scope)!: ...
+feat!: ...
+BREAKING CHANGE: ...
+```
+
+**Example:**
+```
+feat(api)!: Refactor renderer API
+
+BREAKING CHANGE: flagOffsetX parameter removed, use flagOffsetPct instead
+
++semver: breaking
+```
+
+### Minor Version Bump
+
+Triggers: `1.1.0` (resets patch to 0)
+
+```
++semver: minor
++semver: feature
+feat(scope): ...
+feature(scope): ...
+```
+
+**Example:**
+```
+feat(step1): Add zoom control for profile pic adjustment
+
++semver: minor
+```
+
+### Patch Version Bump
+
+Triggers: `1.0.1` (default behavior, also explicit)
+
+```
++semver: patch
++semver: fix
+fix(scope): ...
+bugfix(scope): ...
+```
+
+**Example:**
+```
+fix(workflow): Fix default flag offset calculation
+
++semver: patch
+```
+
+### No Version Bump (Patch Increment Only)
+
+These commit types default to patch increments:
+
+```
+chore: ...
+docs: ...
+style: ...
+refactor: ... (unless +semver: specified)
+test: ...
+```
+
+**Example:**
+```
+chore: Update dependencies
+docs: Update README
+refactor: Clean up code
+```
+
+Result: `1.0.0` → `1.0.1` → `1.0.2` → `1.0.3` (patch increments)
 
 ## Branch-Based Prerelease Suffixes
 
@@ -36,132 +118,239 @@ Versions are calculated automatically using the `scripts/get-version.cjs` script
 | `release/*`, `hotfix/*` | `rc` | Release candidates |
 | Other branches | `alpha` | Default for unlisted patterns |
 
+## How Version Calculation Works
+
+### Step 1: Get Base Version from Tag
+
+```bash
+Latest tag: v1.0.0
+Base version: 1.0.0
+```
+
+### Step 2: Analyze Commit Messages
+
+```bash
+Commits since tag:
+- feat(step1): Add zoom control
+- fix(workflow): Fix offset calculation
+- refactor: Clean up code
+```
+
+**Analysis:**
+- `feat:` → Minor bump detected
+- `fix:` → Patch increment
+- `refactor:` → Patch increment (default)
+
+**Result:** Minor bump (takes precedence)
+
+### Step 3: Calculate New Version
+
+```bash
+Base: 1.0.0
+Bump: minor
+New version: 1.1.0
+```
+
+### Step 4: Add Prerelease Suffix (if not main)
+
+```bash
+Branch: feature/profile-pic-adjustment
+Commits: 3
+Result: 1.1.0-alpha.3
+```
+
 ## Creating Version Tags
 
-### Initial Setup
+### Automatic Tag Creation
 
-If no tags exist, create the first one:
+The `tag-release.yml` workflow automatically creates tags on `main` when:
+- Major or minor version bumps are detected
+- Commits contain `+semver:`, `feat:`, or `feat!:` patterns
 
-```bash
-git tag v0.1
-git push origin v0.1
-```
+**You don't need to manually create tags** for major/minor versions.
 
-### Incrementing Major Version
+### Manual Tag Creation (Optional)
 
-When introducing breaking changes:
-
-```bash
-git tag v1.0
-git push origin v1.0
-```
-
-### Incrementing Minor Version
-
-When adding new features (backwards compatible):
+If you want to manually tag a release:
 
 ```bash
-git tag v0.2
-git push origin v0.2
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
-### Patch Version
+**Note:** Patch versions are calculated automatically and don't need tags.
 
-**Patch numbers are calculated automatically** from commit count since the last tag. You don't need to create patch tags.
+## Using GitVersion
 
-## Using the Version Script
+### Get Current Version (Local)
 
-### Get Current Version
+Install GitVersion locally:
 
 ```bash
-node scripts/get-version.cjs
+# Using dotnet tool
+dotnet tool install -g GitVersion.Tool
+
+# Or using Chocolatey (Windows)
+choco install gitversion.portable
+
+# Or using Homebrew (macOS)
+brew install gitversion
 ```
 
-Output: `0.1.5-alpha.5`
-
-### Update package.json
-
-To sync `package.json` with the calculated version:
+Then run:
 
 ```bash
-node scripts/get-version.cjs --update
+gitversion
 ```
 
-This updates `package.json` to match the calculated version.
+Output includes:
+- `FullSemVer`: `1.1.0-alpha.3`
+- `Major`: `1`
+- `Minor`: `1`
+- `Patch`: `0`
+
+### In CI/CD Workflows
+
+GitVersion is automatically installed and executed in workflows. The version is available as workflow outputs:
+
+```yaml
+- name: Calculate version
+  id: gitversion
+  uses: gittools/actions/gitversion/execute@v0.9.15
+
+- name: Use version
+  run: echo "Version: ${{ steps.gitversion.outputs.fullSemVer }}"
+```
+
+## Real-World Examples for This Codebase
+
+### Example 1: Feature Branch with New Features
+
+**Current state:**
+- Latest tag: `v1.0.0`
+- Branch: `feature/profile-pic-adjustment`
+- Commits: 6
+
+**Commits:**
+```
+feat(step1): Add zoom control
+feat(step1): Add image positioning controls
+refactor(workflow): implement image capture approach
+fix(workflow): fix default flag offset
+refactor(download): change saved filename format
+refactor(code-review): fix all issues
+```
+
+**Version calculation:**
+```
+Base: 1.0.0
+Analysis: feat: commits detected → minor bump
+Result: 1.1.0-alpha.6
+```
+
+### Example 2: Breaking Changes
+
+**Commits:**
+```
+feat(api)!: Refactor renderer API
+
+BREAKING CHANGE: flagOffsetX removed, use flagOffsetPct
+
++semver: breaking
+```
+
+**Version calculation:**
+```
+Base: 1.0.0
+Analysis: feat!: + BREAKING CHANGE + +semver: breaking → major bump
+Result: 2.0.0 (on main) or 2.0.0-alpha.1 (on feature branch)
+```
+
+### Example 3: Patch-Only Changes
+
+**Commits:**
+```
+fix(renderer): Fix flag offset calculation
+fix(ui): Fix button alignment
+chore: Update dependencies
+```
+
+**Version calculation:**
+```
+Base: 1.0.0
+Analysis: Only fix: and chore: → patch increments
+Result: 1.0.3 (on main) or 1.0.3-alpha.3 (on feature branch)
+```
+
+### Example 4: No Patterns (Default Behavior)
+
+**Commits:**
+```
+chore: Update dependencies
+docs: Update README
+refactor: Clean up code
+```
+
+**Version calculation:**
+```
+Base: 1.0.0
+Analysis: No version-bumping patterns → patch increments only
+Result: 1.0.3 (on main) or 1.0.3-alpha.3 (on feature branch)
+```
 
 ## Beta Deployment Workflow
 
 The beta deployment system uses the calculated version automatically:
 
 1. **Create feature branch**: `feature/new-feature`
-2. **Make commits**: Each commit increments the patch/build number
+2. **Make commits**: Use `feat:`, `fix:`, or `+semver:` syntax
 3. **Add deploy-beta label**: Triggers deployment
-4. **Version is calculated**: e.g., `0.1.7-alpha.7`
-5. **Deployed to**: `/beta/0.1.7-alpha.7/`
+4. **Version is calculated**: e.g., `1.1.0-alpha.3`
+5. **Deployed to**: `/beta/1.1.0-alpha.3/`
 
 ### Multiple Versions Example
 
 ```bash
-# Create v0.2 tag for new minor version
-git tag v0.2
-git push origin v0.2
-
+# Current: v1.0.0 tag exists
 # Work on feature branch
 git checkout -b feature/dashboard
 
-# After 3 commits, deploy
-# Version: 0.2.3-alpha.3
-# URL: /beta/0.2.3-alpha.3/
+# After 3 commits with feat: messages
+# Version: 1.1.0-alpha.3
+# URL: /beta/1.1.0-alpha.3/
 
 # Continue work, 2 more commits
-# Next deployment version: 0.2.5-alpha.5
-# URL: /beta/0.2.5-alpha.5/
+# Next deployment version: 1.1.0-alpha.5
+# URL: /beta/1.1.0-alpha.5/
 ```
 
 Both versions coexist for comparison!
 
-## Version Calculation Logic
-
-```javascript
-// Pseudocode
-function calculateVersion() {
-  const latestTag = getLatestTag();        // e.g., "v0.1"
-  const [major, minor] = parseTag(latestTag); // [0, 1]
-  const patch = getCommitsSinceTag();      // e.g., 7
-  const branch = getCurrentBranch();       // e.g., "feature/auth"
-  const prerelease = getPrerelease(branch); // e.g., "alpha"
-  
-  if (prerelease) {
-    return `${major}.${minor}.${patch}-${prerelease}.${patch}`;
-    // Result: "0.1.7-alpha.7"
-  } else {
-    return `${major}.${minor}.${patch}`;
-    // Result: "0.1.7" (main branch)
-  }
-}
-```
-
 ## Best Practices
 
-### 1. Tag Meaningful Milestones
+### 1. Use Semantic Commit Messages
 
-Create tags when you complete significant work:
+Always use conventional commit format:
 
-- After merging a major feature set
-- Before starting a new development phase
-- When reaching a release candidate state
+```bash
+feat(scope): Description
+fix(scope): Description
+feat(scope)!: Breaking change
+```
 
-### 2. Use Semantic Tag Names
+### 2. Use `+semver:` for Explicit Control
 
-- `v0.1` → Initial development
-- `v0.2` → First working prototype
-- `v1.0` → First production release
-- `v1.1` → New features added
-- `v2.0` → Breaking changes
+When you need explicit version control:
+
+```bash
+feat: New feature +semver: minor
+fix: Bug fix +semver: patch
+refactor: Major refactor +semver: breaking
+```
 
 ### 3. Let Patch Increment Automatically
 
-Don't create tags like `v0.1.1`, `v0.1.2`, etc. The patch number is calculated from commits.
+Don't create tags like `v1.0.1`, `v1.0.2`, etc. The patch number is calculated automatically.
 
 ### 4. Branch Naming Matters
 
@@ -171,37 +360,34 @@ Use standard prefixes for correct prerelease suffixes:
 - `beta/` → beta versions
 - `release/` → rc versions
 
-### 5. Tag from Main Branch
+### 5. Tags Are Created Automatically
 
-Create version tags on `main` branch after merging:
-
-```bash
-git checkout main
-git pull
-git tag v0.2
-git push origin v0.2
-```
+The workflow creates tags on `main` when major/minor bumps are detected. You only need to manually tag for special releases.
 
 ## Troubleshooting
 
-### "Version is 0.0.X" (No Tags)
+### "Version is 0.0.0" (No Tags)
 
 Create your first tag:
 
 ```bash
-git tag v0.1
-git push origin v0.1
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
-### Version Not Incrementing
+### Version Not Bumping as Expected
 
-Ensure you're fetching tags:
+Check your commit messages:
 
 ```bash
-git fetch --tags
-```
+# View commits since last tag
+git log $(git describe --tags --abbrev=0)..HEAD --oneline
 
-The workflow uses `fetch-depth: 0` to get full history.
+# Ensure you're using:
+# - feat: for minor bumps
+# - feat!: or +semver: breaking for major bumps
+# - fix: for patch bumps
+```
 
 ### Wrong Prerelease Suffix
 
@@ -213,20 +399,20 @@ Check your branch name matches the patterns:
 
 ### Same Version for Different Branches
 
-This is normal! If two branches are at the same commit count since the last tag, they'll have the same base version. The prerelease suffix differentiates them:
+This is normal! If two branches are at the same commit count since the last tag and have the same commit message patterns, they'll have the same base version. The prerelease suffix differentiates them:
 
-- `feature/auth`: `0.1.5-alpha.5`
-- `beta/auth`: `0.1.5-beta.5`
+- `feature/auth`: `1.1.0-alpha.3`
+- `beta/auth`: `1.1.0-beta.3`
 
 ## CI/CD Integration
 
 ### Beta Deployments
 
-The `deploy-beta.yml` workflow automatically:
+The `deploy-pr.yml` workflow automatically:
 
 1. Checks out with full git history (`fetch-depth: 0`)
-2. Runs `node scripts/get-version.cjs`
-3. Uses calculated version for deployment path
+2. Installs and runs GitVersion tool
+3. Uses calculated version (`fullSemVer`) for deployment path
 4. Deploys to `/beta/<calculated-version>/`
 
 ### Production Deployments
@@ -234,89 +420,68 @@ The `deploy-beta.yml` workflow automatically:
 For production, deploy from tagged commits on `main`:
 
 ```bash
-# Create production tag
-git checkout main
-git tag v1.0
-git push origin v1.0
-
-# Trigger production deployment
-# Version will be: 1.0.0 (no prerelease suffix)
+# Workflow automatically creates tag when merging to main
+# Tag: v1.1.0 (if feat: commits detected)
+# Version: 1.1.0 (no prerelease suffix)
 ```
 
-## Migration from Manual Versioning
+## Migration from Old Strategy
 
-If you previously used manual `package.json` versioning:
+If you were using the old tag-based strategy:
 
-1. **Create initial tag** matching current version:
-   ```bash
-   git tag v0.1  # or whatever major.minor you're on
-   git push origin v0.1
-   ```
-
-2. **Start using calculated versions**:
-   ```bash
-   node scripts/get-version.cjs --update
-   ```
-
-3. **Commit updated package.json**:
-   ```bash
-   git add package.json
-   git commit -m "chore: sync version with git tags"
-   ```
+1. **Existing tags are preserved**: `v1.0.0` tags still work
+2. **New versioning is automatic**: Just use semantic commit messages
+3. **No manual tag creation needed**: Workflow handles it
 
 ## Examples
 
 ### Starting a New Feature
 
 ```bash
-# Create tag for current state
-git tag v0.2
-git push origin v0.2
-
+# Current: v1.0.0 tag exists
 # Create feature branch
 git checkout -b feature/user-profiles
 
 # Check version
-node scripts/get-version.cjs
-# Output: 0.2.0-alpha.0
+node scripts/get-version.js
+# Output: 1.0.1-alpha.1 (patch increment, no feat: commits yet)
 
-# Make 3 commits
-git commit -m "feat: add profile model"
-git commit -m "feat: add profile API"
-git commit -m "feat: add profile UI"
+# Make commits with feat: messages
+git commit -m "feat(profiles): Add profile model"
+git commit -m "feat(profiles): Add profile API"
+git commit -m "feat(profiles): Add profile UI"
 
 # Check version again
-node scripts/get-version.cjs
-# Output: 0.2.3-alpha.3
+node scripts/get-version.js
+# Output: 1.1.0-alpha.3 (minor bump from feat: commits)
 
 # Deploy to beta
 # Adds deploy-beta label to PR
-# Deploys to: /beta/0.2.3-alpha.3/
+# Deploys to: /beta/1.1.0-alpha.3/
 ```
 
 ### Preparing a Release
 
 ```bash
 # Create release branch
-git checkout -b release/v1.0
+git checkout -b release/v1.1.0
 
 # Check version
-node scripts/get-version.cjs
-# Output: 0.9.5-rc.5 (assuming v0.9 tag, 5 commits after)
+node scripts/get-version.js
+# Output: 1.1.0-rc.1 (release candidate)
 
 # Deploy to beta for final testing
-# URL: /beta/0.9.5-rc.5/
+# URL: /beta/1.1.0-rc.1/
 
-# After approval, merge to main and tag
+# After approval, merge to main
 git checkout main
-git merge release/v1.0
-git tag v1.0
-git push origin v1.0
+git merge release/v1.1.0
 
-# Version on main is now: 1.0.0
+# Workflow automatically creates tag: v1.1.0
+# Version on main is now: 1.1.0
 ```
 
 ---
 
-**Last Updated**: November 1, 2025  
+**Last Updated**: Based on GitVersion standard approach  
 **Maintained By**: Development Team

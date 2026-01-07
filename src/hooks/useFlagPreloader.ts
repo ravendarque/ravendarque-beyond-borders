@@ -79,17 +79,10 @@ export function useFlagPreloader(
         // Add to cache
         flagImageCache.set(cacheKey, bitmap);
 
-        // Development logging
-        if (config.isDevelopment()) {
-          // eslint-disable-next-line no-console
-          console.log(`[Preload] Flag image preloaded: ${flag.id}`);
-        }
-      } catch (error) {
+        // Preload successful - no logging needed (best-effort operation)
+      } catch {
         // Silent fail - preloading is best-effort
-        if (config.isDevelopment()) {
-          // eslint-disable-next-line no-console
-          console.warn(`[Preload] Failed to preload ${flag.id}:`, error);
-        }
+        // Errors are handled silently to avoid user-facing noise
       }
     }
 
