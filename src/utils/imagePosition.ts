@@ -280,7 +280,7 @@ export function calculateBackgroundSize(
   circleSize: number,
   zoom: number
 ): string {
-  if (!imageDimensions || zoom === 0) {
+  if (!imageDimensions) {
     return 'cover';
   }
   
@@ -295,15 +295,15 @@ export function calculateBackgroundSize(
   let basePercentage: number;
   if (imgWidth > imgHeight) {
     // Landscape: height fits
-    // coverScale = circleDiameter / imgHeight
-    // scaledWidth = imgWidth * coverScale = imgWidth * circleDiameter / imgHeight
-    // percentage = (scaledWidth / circleDiameter) * 100 = (imgWidth / imgHeight) * 100
+    // coverScale = circleSize / imgHeight
+    // scaledWidth = imgWidth * coverScale = imgWidth * circleSize / imgHeight
+    // percentage = (scaledWidth / circleSize) * 100 = (imgWidth / imgHeight) * 100
     basePercentage = (imgWidth / imgHeight) * 100;
   } else if (imgHeight > imgWidth) {
     // Portrait: width fits
-    // coverScale = circleDiameter / imgWidth
-    // scaledHeight = imgHeight * coverScale = imgHeight * circleDiameter / imgWidth
-    // percentage = (scaledHeight / circleDiameter) * 100 = (imgHeight / imgWidth) * 100
+    // coverScale = circleSize / imgWidth
+    // scaledHeight = imgHeight * coverScale = imgHeight * circleSize / imgWidth
+    // percentage = (scaledHeight / circleSize) * 100 = (imgHeight / imgWidth) * 100
     basePercentage = (imgHeight / imgWidth) * 100;
   } else {
     // Square: either dimension works, base is 100%
@@ -311,6 +311,7 @@ export function calculateBackgroundSize(
   }
   
   // Apply zoom multiplier: 0% zoom = 1x, 100% zoom = 2x, 200% zoom = 3x
+  // Always calculate percentage (even at zoom 0) to ensure smooth transitions
   const zoomMultiplier = 1 + (zoom / 100);
   const finalPercentage = basePercentage * zoomMultiplier;
   
