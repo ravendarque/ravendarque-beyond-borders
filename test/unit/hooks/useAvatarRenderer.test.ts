@@ -60,7 +60,7 @@ describe('useAvatarRenderer', () => {
     await result.current.render('', 'test', {
       size: 1024,
       thickness: 7,
-      flagOffsetX: 0,
+      flagOffsetPct: 0,
       presentation: 'ring',
       bg: 'transparent',
     });
@@ -75,7 +75,7 @@ describe('useAvatarRenderer', () => {
     await result.current.render('blob:test-image', '', {
       size: 1024,
       thickness: 7,
-      flagOffsetX: 0,
+      flagOffsetPct: 0,
       presentation: 'ring',
       bg: 'transparent',
     });
@@ -91,7 +91,7 @@ describe('useAvatarRenderer', () => {
       await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
-        flagOffsetX: 0,
+        flagOffsetPct: 0,
         presentation: 'ring',
         bg: 'transparent',
       });
@@ -109,7 +109,7 @@ describe('useAvatarRenderer', () => {
       await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
-        flagOffsetX: 0,
+        flagOffsetPct: 0,
         presentation: 'cutout',
         bg: 'transparent',
       });
@@ -135,7 +135,7 @@ describe('useAvatarRenderer', () => {
       await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
-        flagOffsetX: 0,
+        flagOffsetPct: 0,
         presentation: 'cutout',
         bg: 'transparent',
       });
@@ -161,7 +161,7 @@ describe('useAvatarRenderer', () => {
       await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
-        flagOffsetX: 0,
+        flagOffsetPct: 0,
         presentation: 'cutout',
         bg: 'transparent',
       });
@@ -181,7 +181,7 @@ describe('useAvatarRenderer', () => {
       await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
-        flagOffsetX: 0,
+        flagOffsetPct: 0,
         presentation: 'ring',
         bg: 'transparent',
       });
@@ -198,7 +198,7 @@ describe('useAvatarRenderer', () => {
       await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
-        flagOffsetX: 0,
+        flagOffsetPct: 0,
         presentation: 'segment',
         bg: 'transparent',
       });
@@ -221,7 +221,7 @@ describe('useAvatarRenderer', () => {
         await result.current.render('blob:test-image', 'test', {
           size: 1024,
           thickness: 7,
-          flagOffsetX: 0,
+          flagOffsetPct: 0,
           presentation: 'ring',
           bg: 'transparent',
         });
@@ -263,7 +263,7 @@ describe('useAvatarRenderer', () => {
       await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
-        flagOffsetX: 0,
+        flagOffsetPct: 0,
         presentation: 'ring',
         bg: 'transparent',
       });
