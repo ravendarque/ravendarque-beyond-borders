@@ -40,6 +40,7 @@ jobs:
           
           # Get latest tag to compare
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
           
           if [ -z "$LATEST_TAG" ]; then
             # No tag exists, create initial tag
@@ -98,6 +99,72 @@ jobs:
             echo "Tag $NEW_TAG does not exist, will create"
           fi
 
+      - name: Generate changelog
+        id: changelog
+        if: steps.check-tag.outputs.exists == 'false' && steps.version.outputs.new_tag != ''
+        run: |
+          NEW_TAG="${{ steps.version.outputs.new_tag }}"
+          LATEST_TAG="${{ steps.version.outputs.latest_tag }}"
+          
+          # Get commits since last tag (or all commits if no tag)
+          if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          # Categorize commits by type (match after "- " prefix)
+          FEATURES=$(echo "$COMMITS" | grep -E "^- (feat|feature)" || true)
+          FIXES=$(echo "$COMMITS" | grep -E "^- (fix|bugfix)" || true)
+          BREAKING=$(echo "$COMMITS" | grep -E "(BREAKING CHANGE|feat!|!:|breaking)" || true)
+          OTHER=$(echo "$COMMITS" | grep -vE "^- (feat|feature|fix|bugfix)" || true)
+          
+          # Build changelog
+          CHANGELOG="## What's Changed"
+          
+          if [ -n "$BREAKING" ]; then
+            CHANGELOG="$CHANGELOG
+
+### ⚠️ Breaking Changes
+$BREAKING"
+          fi
+          
+          if [ -n "$FEATURES" ]; then
+            CHANGELOG="$CHANGELOG
+
+### ✨ New Features
+$FEATURES"
+          fi
+          
+          if [ -n "$FIXES" ]; then
+            CHANGELOG="$CHANGELOG
+
+### 🐛 Bug Fixes
+$FIXES"
+          fi
+          
+          if [ -n "$OTHER" ]; then
+            CHANGELOG="$CHANGELOG
+
+### 📝 Other Changes
+$OTHER"
+          fi
+          
+          # Add full commit list
+          CHANGELOG="$CHANGELOG
+
+## Full Changelog
+\`\`\`
+$COMMITS
+\`\`\`"
+          
+          # Output for GitHub release (multiline)
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
       - name: Create and push tag
         if: steps.check-tag.outputs.exists == 'false' && steps.version.outputs.new_tag != ''
         run: |
@@ -112,6 +179,18 @@ jobs:
           
           echo "Created and pushed tag: $NEW_TAG"
 
+      - name: Create GitHub Release
+        if: steps.check-tag.outputs.exists == 'false' && steps.version.outputs.new_tag != ''
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.new_tag }}
+          name: Release ${{ steps.version.outputs.new_tag }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Summary
         run: |
           BUMP_TYPE="${{ steps.version.outputs.bump_type }}"
@@ -125,10 +204,13 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Note:** Patch versions are calculated automatically by GitVersion." >> $GITHUB_STEP_SUMMARY
           elif [ "$EXISTS" = "false" ]; then
-            echo "### ✅ Tag Created" >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ Release Created" >> $GITHUB_STEP_SUMMARY
             echo "**Tag:** \`$NEW_TAG\`" >> $GITHUB_STEP_SUMMARY
             echo "**Bump Type:** $BUMP_TYPE" >> $GITHUB_STEP_SUMMARY
             echo "**Full SemVer:** \`${{ steps.gitversion.outputs.fullSemVer }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Tag created and pushed" >> $GITHUB_STEP_SUMMARY
+            echo "✅ GitHub release created with changelog" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ℹ️ Tag Already Exists" >> $GITHUB_STEP_SUMMARY
             echo "**Tag:** \`$NEW_TAG\`" >> $GITHUB_STEP_SUMMARY
