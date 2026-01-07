@@ -86,6 +86,8 @@ For pre-push validation, you may also want to install:
 
 ### Contributing
 
+**Important:** By contributing to this project, you agree to the [Contributor Agreement](CONTRIBUTING.md) and [License terms](LICENSE), which prohibit use against oppressed groups and require ethical contributions.
+
 The `main` branch is protected. All changes must be made via pull requests:
 
 1. **Create a feature branch**: `git checkout -b feature/your-feature`
@@ -230,4 +232,7 @@ All flag data is versioned in `src/flags/flags.ts` with full attribution.
 - v1.x: Additional patterns, PWA, localization
 
 ## License
-TBD
+
+This project is licensed under the **Polyform Noncommercial License 1.0.0** - see the [LICENSE](LICENSE) file for details.
+
+**Important:** This license prohibits commercial use and profiteering. The software is free to use for personal, educational, and non-commercial purposes only.

@@ -1,7 +1,8 @@
 {
   "name": "beyond-borders",
   "version": "0.1.0",
-  "private": true,
+  "license": "Polyform-Noncommercial-1.0.0",
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "vite",
