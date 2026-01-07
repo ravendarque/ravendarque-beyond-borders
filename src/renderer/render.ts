@@ -27,7 +27,7 @@ export interface RenderOptions {
   
   /** 
    * Offset to apply to the user's image center in ring/segment modes (pixels)
-   * Note: Not used in cutout mode - use flagOffsetPx instead
+   * Note: Not used in cutout mode - use flagOffsetPct instead
    */
   imageOffsetPx?: { x: number; y: number };
   
@@ -38,10 +38,13 @@ export interface RenderOptions {
   imageZoom?: number;
   
   /**
-   * Offset to apply to flag pattern in cutout mode (pixels)
+   * Offset to apply to flag pattern in cutout mode (percentage: -50 to +50)
    * Only applies when presentation is 'cutout'
+   * -50%: left edge of border touches left edge of flag
+   * 0%: center, no offset
+   * +50%: right edge of border touches right edge of flag
    */
-  flagOffsetPx?: { x: number; y: number };
+  flagOffsetPct?: { x: number; y: number };
   
   /** Optional pre-rendered flag image (PNG) for accurate flag rendering */
   borderImageBitmap?: ImageBitmap | undefined;
@@ -110,7 +113,7 @@ export interface RenderResult {
  *   size: 1024,
  *   thicknessPct: 20,
  *   presentation: 'cutout',
- *   flagOffsetPx: { x: 50, y: 0 }, // Shift flag pattern
+ *   flagOffsetPct: { x: 50, y: 0 }, // Shift flag pattern (percentage: -50 to +50)
  *   borderImageBitmap: flagPNG,
  *   pngQuality: 0.85 // Lower quality for smaller file size
  * });
@@ -200,7 +203,7 @@ export async function renderAvatar(
    */
   if (borderStyle === 'cutout') {
     // Step 1: Draw the user's image in the center circle (respecting inset and position)
-    // imageOffsetPx is used for image positioning, flagOffsetPx is used for flag pattern offset
+    // imageOffsetPx is used for image positioning, flagOffsetPct is used for flag pattern offset
     ctx.save();
     ctx.beginPath();
     // Clip to the inner circle area (where the image should appear)
@@ -235,9 +238,18 @@ export async function renderAvatar(
     options.onProgress?.(0.4);
 
     // Step 2: Create a flag texture for the ring area
-    // Use flagOffsetPx (or imageOffsetPx for backward compatibility) for flag pattern shifting
-    const flagOffsetX = options.flagOffsetPx?.x ?? options.imageOffsetPx?.x ?? 0;
-    const extraWidth = Math.abs(flagOffsetX) * 3; // Extra space for shifting
+    // Use flagOffsetPct (percentage) for flag pattern shifting
+    // Backward compatibility: also check flagOffsetPx and imageOffsetPx (convert from pixels)
+    const flagOffsetPct = options.flagOffsetPct?.x ?? 
+      (options.flagOffsetPx?.x !== undefined ? (options.flagOffsetPx.x / 256) * 50 : undefined) ??
+      (options.imageOffsetPx?.x !== undefined ? (options.imageOffsetPx.x / 256) * 50 : undefined) ??
+      0;
+    
+    // Calculate extra width needed for flag shifting
+    // Estimate based on max possible flag extension (flag could extend up to canvas width)
+    // Use 3x multiplier for safety margin
+    const estimatedMaxExtension = canvasW;
+    const extraWidth = Math.abs(flagOffsetPct / 50) * estimatedMaxExtension * 3;
     const flagCanvas = new OffscreenCanvas(canvasW + extraWidth, canvasH);
     const flagCtx = flagCanvas.getContext('2d')!;
     
@@ -273,13 +285,13 @@ export async function renderAvatar(
       //   +50%: right edge of border touches right edge of flag
       // 
       // The flag extends beyond the ring by (flagRectWidth - ringOuterDiameter) / 2 on each side
-      // We need to map the offset percentage to this extension range
-      // flagOffsetX is in pixels, representing -50% to +50% of the base canvas size (512px)
-      // Scale the offset calculation based on actual canvas size
+      // We map the offset percentage (-50 to +50) directly to this extension range
       const flagExtension = (flagRectWidth - ringOuterDiameter) / 2;
-      const baseCanvasSize = 512; // Base size for offset calculation
-      const offsetScale = canvasW / baseCanvasSize; // Scale factor for current canvas size
-      const offsetPx = (flagOffsetX / (baseCanvasSize / 2)) * flagExtension;
+      // Convert percentage (-50 to +50) to offset in pixels
+      // -50%: shift flag RIGHT so left edge of border touches left edge of flag
+      // +50%: shift flag LEFT so right edge of border touches right edge of flag
+      // So we negate the percentage to get the correct direction
+      const offsetPx = -(flagOffsetPct / 50) * flagExtension;
       const dx = ringCenterX - flagRectWidth / 2 + offsetPx;
       const dy = r - flagRectHeight / 2;
       
@@ -292,7 +304,7 @@ export async function renderAvatar(
           flagRectHeight,
           flagRectWidth,
           ringOuterDiameter,
-          flagOffsetX,
+          flagOffsetPct: flagOffsetPct,
           bitmapWidth: options.borderImageBitmap.width,
           bitmapHeight: options.borderImageBitmap.height,
           bitmapAspectRatio: options.borderImageBitmap.width / options.borderImageBitmap.height,

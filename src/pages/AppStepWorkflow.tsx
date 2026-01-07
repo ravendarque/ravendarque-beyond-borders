@@ -64,9 +64,12 @@ export function AppStepWorkflow() {
   
   // Step 3: Adjust controls state
   const [thickness, setThickness] = useState(10);
-  const [flagOffsetX, setFlagOffsetX] = useState(0);
+  const [flagOffsetPct, setFlagOffsetPct] = useState(0); // Percentage: -50 to +50
   const [presentation, setPresentation] = useState<PresentationMode>('ring');
   const [segmentRotation, setSegmentRotation] = useState(0);
+  
+  // Track previous presentation mode to detect when switching to cutout
+  const prevPresentationRef = useRef<PresentationMode>('ring');
   
   // Step navigation with URL sync
   const {
@@ -170,25 +173,32 @@ export function AppStepWorkflow() {
     return () => window.removeEventListener('resize', updateCircleSize);
   }, [imageUrl]); // Re-run when image changes to ensure element exists
 
-  // Set default offset when flag changes or when switching to cutout mode
+  // Track previous flag ID to detect flag changes
+  const prevFlagIdRef = useRef<string | null>(flagId);
+  
+  // Set default offset when flag changes, when switching to cutout mode, or when entering Step 3
   useEffect(() => {
-    if (presentation === 'cutout') {
+    if (currentStep === 3 && presentation === 'cutout') {
       const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
-      if (defaultOffset !== undefined) {
-        // Convert percentage (-50 to 50) to pixels
-        // The renderer expects offset relative to base canvas size (512px)
-        // -50% = -256px, 0% = 0px, +50% = +256px at 512px base
-        // The renderer will scale this based on actual canvas size
-        const baseSize = 512; // Base size for offset calculation
-        // defaultOffset is -50 to +50, convert to -256 to +256 range
-        const defaultOffsetPx = (defaultOffset / 50) * (baseSize / 2);
-        setFlagOffsetX(defaultOffsetPx);
-      } else {
-        // If in cutout mode but flag doesn't have cutout config, reset to 0
-        setFlagOffsetX(0);
+      const switchedToCutout = prevPresentationRef.current !== 'cutout';
+      const flagChanged = prevFlagIdRef.current !== flagId;
+      
+      // Set default when switching to cutout mode or when flag changes in cutout mode
+      if (switchedToCutout || flagChanged) {
+        if (defaultOffset !== undefined) {
+          // Use the percentage directly - no conversion needed
+          setFlagOffsetPct(defaultOffset);
+        } else {
+          // If in cutout mode but flag doesn't have cutout config, reset to 0
+          setFlagOffsetPct(0);
+        }
       }
     }
-  }, [flagId, presentation, selectedFlag?.modes?.cutout?.defaultOffset]);
+    
+    // Update refs for next render
+    prevPresentationRef.current = presentation;
+    prevFlagIdRef.current = flagId;
+  }, [currentStep, flagId, presentation, selectedFlag?.modes?.cutout?.defaultOffset]);
 
   // Preload full flag image when flag is selected (needed for cutout mode)
   useEffect(() => {
@@ -223,7 +233,7 @@ export function AppStepWorkflow() {
 
   // Debounce slider values for smoother rendering during drag
   const debouncedThickness = useDebounce(thickness, 50);
-  const debouncedFlagOffsetX = useDebounce(flagOffsetX, 50);
+  const debouncedFlagOffsetPct = useDebounce(flagOffsetPct, 50);
   const debouncedSegmentRotation = useDebounce(segmentRotation, 50);
 
   // Track position when image was captured (for recapture detection)
@@ -281,14 +291,14 @@ export function AppStepWorkflow() {
       render(croppedImageUrl, flagId, {
         size: 1024,
         thickness: debouncedThickness,
-        flagOffsetX: debouncedFlagOffsetX,
+        flagOffsetPct: debouncedFlagOffsetPct,
         presentation,
         segmentRotation: debouncedSegmentRotation,
         bg: 'transparent',
         // No imagePosition - the cropped image is already adjusted
       });
     }
-  }, [currentStep, croppedImageUrl, flagId, debouncedThickness, debouncedFlagOffsetX, presentation, debouncedSegmentRotation, render]);
+  }, [currentStep, croppedImageUrl, flagId, debouncedThickness, debouncedFlagOffsetPct, presentation, debouncedSegmentRotation, render]);
 
   // Persist imageUrl to sessionStorage
   useEffect(() => {
@@ -350,7 +360,7 @@ export function AppStepWorkflow() {
     setCroppedImageUrl(null);
     setCurrentStep(1);
     setThickness(10);
-    setFlagOffsetX(0);
+    setFlagOffsetPct(0);
     setPresentation('ring');
     setSegmentRotation(0);
     try {
@@ -433,8 +443,8 @@ export function AppStepWorkflow() {
                 onPresentationChange={setPresentation}
                 thickness={thickness}
                 onThicknessChange={setThickness}
-                flagOffsetX={flagOffsetX}
-                onFlagOffsetChange={setFlagOffsetX}
+                flagOffsetX={flagOffsetPct}
+                onFlagOffsetChange={setFlagOffsetPct}
                 segmentRotation={segmentRotation}
                 onSegmentRotationChange={setSegmentRotation}
               />
