@@ -41,7 +41,7 @@ export function ImageUploadZone({
   onPositionChange,
   circleSize,
 }: ImageUploadZoneProps) {
-  const labelRef = useRef<HTMLLabelElement>(null);
+  const labelRef = useRef<HTMLLabelElement | null>(null);
   const wasDraggingRef = useRef(false);
   const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
   
@@ -90,7 +90,7 @@ export function ImageUploadZone({
     
     // If two touches, start pinch gesture (prevent drag)
     if (e.touches.length === 2) {
-      const distance = getTouchDistance(e.touches);
+      const distance = getTouchDistance(e.touches as unknown as TouchList);
       pinchStartRef.current = { distance, zoom: position.zoom };
       e.preventDefault(); // Prevent default to avoid scrolling
       e.stopPropagation(); // Prevent drag handler from running
@@ -110,7 +110,7 @@ export function ImageUploadZone({
       e.preventDefault();
       e.stopPropagation(); // Prevent drag handler from running
       
-      const currentDistance = getTouchDistance(e.touches);
+      const currentDistance = getTouchDistance(e.touches as unknown as TouchList);
       const startDistance = pinchStartRef.current.distance;
       const startZoom = pinchStartRef.current.zoom;
       
@@ -175,7 +175,9 @@ export function ImageUploadZone({
       <div className="choose-wrapper">
         <label
           ref={(el) => {
-            labelRef.current = el;
+            if (el) {
+              labelRef.current = el;
+            }
             setElementRef(el);
           }}
           htmlFor="step1-file-upload"

@@ -24,7 +24,7 @@ describe('AdjustStep', () => {
     onPresentationChange: vi.fn(),
     thickness: 10,
     onThicknessChange: vi.fn(),
-    flagOffsetX: 0,
+    flagOffsetPct: 0, // Percentage: -50 to +50
     onFlagOffsetChange: vi.fn(),
     segmentRotation: 0,
     onSegmentRotationChange: vi.fn(),
@@ -78,7 +78,7 @@ describe('AdjustStep', () => {
       <AdjustStep
         {...defaultProps}
         thickness={15}
-        flagOffsetX={100}
+        flagOffsetPct={25} // Percentage value
         segmentRotation={45}
         presentation="segment"
       />

@@ -13,7 +13,7 @@ import { AdjustStep } from '@/components/AdjustStep';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import type { PresentationMode } from '@/components/PresentationModeSelector';
 import type { ImagePosition, ImageDimensions, ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
-import { calculatePositionLimits, getAspectRatio, positionToRendererOffset, clampPosition } from '@/utils/imagePosition';
+import { calculatePositionLimits, getAspectRatio, clampPosition } from '@/utils/imagePosition';
 import { captureAdjustedImage } from '@/utils/captureImage';
 import '../styles.css';
 
@@ -445,7 +445,7 @@ export function AppStepWorkflow() {
                 onPresentationChange={setPresentation}
                 thickness={thickness}
                 onThicknessChange={setThickness}
-                flagOffsetX={flagOffsetPct}
+                flagOffsetPct={flagOffsetPct}
                 onFlagOffsetChange={setFlagOffsetPct}
                 segmentRotation={segmentRotation}
                 onSegmentRotationChange={setSegmentRotation}

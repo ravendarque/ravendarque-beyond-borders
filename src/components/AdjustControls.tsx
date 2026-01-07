@@ -9,7 +9,7 @@ export interface AdjustControlsProps {
   /** Thickness change handler */
   onThicknessChange: (value: number) => void;
   /** Flag horizontal offset in percentage (-50 to +50) */
-  flagOffsetX: number;
+  flagOffsetPct: number;
   /** Flag offset change handler */
   onFlagOffsetChange: (value: number) => void;
   /** Current presentation mode */
@@ -32,7 +32,7 @@ export interface AdjustControlsProps {
 export function AdjustControls({
   thickness,
   onThicknessChange,
-  flagOffsetX,
+  flagOffsetPct,
   onFlagOffsetChange,
   presentation,
   segmentRotation,
@@ -125,7 +125,7 @@ export function AdjustControls({
           <div className="slider-container">
             <div className="slider-labels-row">
               <span className="slider-end-label">Flag L</span>
-              <span className="slider-value">{Math.round(flagOffsetX)}%</span>
+              <span className="slider-value">{Math.round(flagOffsetPct)}%</span>
               <span className="slider-end-label">Flag R</span>
             </div>
             <div className="slider-with-icons">
@@ -137,7 +137,7 @@ export function AdjustControls({
               </span>
               <Slider.Root
                 className="slider-root"
-                value={[flagOffsetX]}
+                value={[flagOffsetPct]}
                 onValueChange={([value]) => onFlagOffsetChange(value)}
                 min={-50}
                 max={50}

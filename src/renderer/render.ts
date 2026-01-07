@@ -239,11 +239,7 @@ export async function renderAvatar(
 
     // Step 2: Create a flag texture for the ring area
     // Use flagOffsetPct (percentage) for flag pattern shifting
-    // Backward compatibility: also check flagOffsetPx and imageOffsetPx (convert from pixels)
-    const flagOffsetPct = options.flagOffsetPct?.x ?? 
-      (options.flagOffsetPx?.x !== undefined ? (options.flagOffsetPx.x / 256) * 50 : undefined) ??
-      (options.imageOffsetPx?.x !== undefined ? (options.imageOffsetPx.x / 256) * 50 : undefined) ??
-      0;
+    const flagOffsetPct = options.flagOffsetPct?.x ?? 0;
     
     // Calculate extra width needed for flag shifting
     // Estimate based on max possible flag extension (flag could extend up to canvas width)

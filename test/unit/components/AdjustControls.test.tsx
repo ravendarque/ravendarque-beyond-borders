@@ -20,7 +20,7 @@ describe('AdjustControls', () => {
   const defaultProps = {
     thickness: 10,
     onThicknessChange: vi.fn(),
-    flagOffsetX: 0,
+    flagOffsetPct: 0, // Percentage: -50 to +50
     onFlagOffsetChange: vi.fn(),
     presentation: 'ring' as const,
     segmentRotation: 0,
@@ -115,8 +115,8 @@ describe('AdjustControls', () => {
       },
     };
     
-    // flagOffsetX of 128 pixels = 25% of 512
-    render(<AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithOffset} flagOffsetX={128} />);
+    // flagOffsetX is now a percentage value (-50 to +50)
+    render(<AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithOffset} flagOffsetPct={25} />);
     
     expect(screen.getByText('25%')).toBeTruthy();
   });

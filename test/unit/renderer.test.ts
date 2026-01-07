@@ -183,7 +183,7 @@ describe('renderer', () => {
         size: 512,
         thicknessPct: 0,
         presentation: 'cutout',
-        flagOffsetPx: { x: 15, y: 0 }
+        flagOffsetPct: { x: 15, y: 0 }
       })
       
       expect(result.blob).toBeInstanceOf(Blob)
