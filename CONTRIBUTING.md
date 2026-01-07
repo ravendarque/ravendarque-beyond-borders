@@ -67,4 +67,5 @@ please open an issue to discuss before submitting a PR.
 
 ---
 
-**Remember:** This project exists to support, not harm. All contributions must align with that mission.
+**Remember:** This project exists to support, not harm. All contributions
+must align with that mission.
