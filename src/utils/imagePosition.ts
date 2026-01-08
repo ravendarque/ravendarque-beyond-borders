@@ -138,27 +138,59 @@ export function calculatePositionLimits(
  */
 export function positionToBackgroundPosition(
   position: { x: number; y: number },
-  limits?: PositionLimits
+  limits?: PositionLimits,
+  maxLimits?: PositionLimits
 ): string {
   let x: number;
   let y: number;
   
   if (limits) {
-    // Normalize using actual limits
-    const maxMoveX = Math.max(Math.abs(limits.minX), Math.abs(limits.maxX));
-    const maxMoveY = Math.max(Math.abs(limits.minY), Math.abs(limits.maxY));
+    // Position is stored as fixed percentage (-50 to +50), independent of zoom
+    // This represents a percentage of the maximum possible movement range
+    const currentMaxMoveX = Math.max(Math.abs(limits.minX), Math.abs(limits.maxX));
+    const currentMaxMoveY = Math.max(Math.abs(limits.minY), Math.abs(limits.maxY));
     
-    if (maxMoveX > 0) {
-      // Normalize: -maxMoveX → 0%, 0 → 50%, maxMoveX → 100%
-      x = 50 + (position.x / maxMoveX) * 50;
+    if (maxLimits) {
+      // Use maxLimits as reference to ensure consistent mapping across zoom levels
+      const maxMoveX = Math.max(Math.abs(maxLimits.minX), Math.abs(maxLimits.maxX));
+      const maxMoveY = Math.max(Math.abs(maxLimits.minY), Math.abs(maxLimits.maxY));
+      
+      if (currentMaxMoveX > 0 && maxMoveX > 0) {
+        // Map from fixed range (-50 to +50) to max limits, then scale to current limits
+        const normalizedX = (position.x / 50) * maxMoveX;
+        // Scale to current limits proportionally
+        const actualX = (normalizedX / maxMoveX) * currentMaxMoveX;
+        // Normalize to CSS: -currentMaxMoveX → 0%, 0 → 50%, currentMaxMoveX → 100%
+        x = 50 + (actualX / currentMaxMoveX) * 50;
+      } else {
+        x = 50; // Center if no movement
+      }
+      
+      if (currentMaxMoveY > 0 && maxMoveY > 0) {
+        // Map from fixed range (-50 to +50) to max limits, then scale to current limits
+        const normalizedY = (position.y / 50) * maxMoveY;
+        // Scale to current limits proportionally
+        const actualY = (normalizedY / maxMoveY) * currentMaxMoveY;
+        // Normalize to CSS: -currentMaxMoveY → 0%, 0 → 50%, currentMaxMoveY → 100%
+        y = 50 + (actualY / currentMaxMoveY) * 50;
+      } else {
+        y = 50; // Center if no movement
+      }
     } else {
-      x = 50; // Center if no movement
-    }
-    
-    if (maxMoveY > 0) {
-      y = 50 + (position.y / maxMoveY) * 50;
-    } else {
-      y = 50; // Center if no movement
+      // Fallback: map directly to current limits (old behavior)
+      if (currentMaxMoveX > 0) {
+        const actualX = (position.x / 50) * currentMaxMoveX;
+        x = 50 + (actualX / currentMaxMoveX) * 50;
+      } else {
+        x = 50;
+      }
+      
+      if (currentMaxMoveY > 0) {
+        const actualY = (position.y / 50) * currentMaxMoveY;
+        y = 50 + (actualY / currentMaxMoveY) * 50;
+      } else {
+        y = 50;
+      }
     }
   } else {
     // Fallback: assume position is already normalized to [-100, 100]
