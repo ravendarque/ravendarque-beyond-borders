@@ -122,49 +122,35 @@ jobs:
           BREAKING=$(echo "$COMMITS" | grep -E "(BREAKING CHANGE|feat!|!:|breaking)" || true)
           OTHER=$(echo "$COMMITS" | grep -vE "^- (feat|feature|fix|bugfix)" || true)
           
-          # Build changelog
-          CHANGELOG="## What's Changed"
-          
-          if [ -n "$BREAKING" ]; then
-            CHANGELOG="$CHANGELOG
-
-### ⚠️ Breaking Changes
-$BREAKING"
-          fi
-          
-          if [ -n "$FEATURES" ]; then
-            CHANGELOG="$CHANGELOG
-
-### ✨ New Features
-$FEATURES"
-          fi
-          
-          if [ -n "$FIXES" ]; then
-            CHANGELOG="$CHANGELOG
-
-### 🐛 Bug Fixes
-$FIXES"
-          fi
-          
-          if [ -n "$OTHER" ]; then
-            CHANGELOG="$CHANGELOG
-
-### 📝 Other Changes
-$OTHER"
-          fi
-          
-          # Add full commit list
-          CHANGELOG="$CHANGELOG
-
-## Full Changelog
-\`\`\`
-$COMMITS
-\`\`\`"
-          
-          # Output for GitHub release (multiline)
+          # Build changelog using here-doc to avoid YAML parsing issues
           {
             echo "changelog<<EOF"
-            echo "$CHANGELOG"
+            echo "## What's Changed"
+            if [ -n "$BREAKING" ]; then
+              echo ""
+              echo "### ⚠️ Breaking Changes"
+              echo "$BREAKING"
+            fi
+            if [ -n "$FEATURES" ]; then
+              echo ""
+              echo "### ✨ New Features"
+              echo "$FEATURES"
+            fi
+            if [ -n "$FIXES" ]; then
+              echo ""
+              echo "### 🐛 Bug Fixes"
+              echo "$FIXES"
+            fi
+            if [ -n "$OTHER" ]; then
+              echo ""
+              echo "### 📝 Other Changes"
+              echo "$OTHER"
+            fi
+            echo ""
+            echo "## Full Changelog"
+            echo "\`\`\`"
+            echo "$COMMITS"
+            echo "\`\`\`"
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
