@@ -122,36 +122,32 @@ jobs:
           BREAKING=$(echo "$COMMITS" | grep -E "(BREAKING CHANGE|feat!|!:|breaking)" || true)
           OTHER=$(echo "$COMMITS" | grep -vE "^- (feat|feature|fix|bugfix)" || true)
           
-          # Build changelog using here-doc to avoid YAML parsing issues
+          # Build changelog in a variable to avoid YAML parsing issues
+          CHANGELOG="## What's Changed"
+          
+          if [ -n "$BREAKING" ]; then
+            CHANGELOG="$CHANGELOG"$'\n\n'"### ⚠️ Breaking Changes"$'\n'"$BREAKING"
+          fi
+          
+          if [ -n "$FEATURES" ]; then
+            CHANGELOG="$CHANGELOG"$'\n\n'"### ✨ New Features"$'\n'"$FEATURES"
+          fi
+          
+          if [ -n "$FIXES" ]; then
+            CHANGELOG="$CHANGELOG"$'\n\n'"### 🐛 Bug Fixes"$'\n'"$FIXES"
+          fi
+          
+          if [ -n "$OTHER" ]; then
+            CHANGELOG="$CHANGELOG"$'\n\n'"### 📝 Other Changes"$'\n'"$OTHER"
+          fi
+          
+          CHANGELOG="$CHANGELOG"$'\n\n'"## Full Changelog"$'\n'"\`\`\`"$'\n'"$COMMITS"$'\n'"\`\`\`"
+          
+          # Output using delimiter to avoid YAML parsing issues
           {
-            echo "changelog<<EOF"
-            echo "## What's Changed"
-            if [ -n "$BREAKING" ]; then
-              echo ""
-              echo "### ⚠️ Breaking Changes"
-              echo "$BREAKING"
-            fi
-            if [ -n "$FEATURES" ]; then
-              echo ""
-              echo "### ✨ New Features"
-              echo "$FEATURES"
-            fi
-            if [ -n "$FIXES" ]; then
-              echo ""
-              echo "### 🐛 Bug Fixes"
-              echo "$FIXES"
-            fi
-            if [ -n "$OTHER" ]; then
-              echo ""
-              echo "### 📝 Other Changes"
-              echo "$OTHER"
-            fi
-            echo ""
-            echo "## Full Changelog"
-            echo "\`\`\`"
-            echo "$COMMITS"
-            echo "\`\`\`"
-            echo "EOF"
+            echo "changelog<<CHANGELOG_EOF"
+            echo "$CHANGELOG"
+            echo "CHANGELOG_EOF"
           } >> $GITHUB_OUTPUT
 
       - name: Create and push tag
