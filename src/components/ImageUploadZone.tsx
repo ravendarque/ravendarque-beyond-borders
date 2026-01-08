@@ -87,6 +87,7 @@ export function ImageUploadZone({
   }, [imageUrl, isDragging, position, onPositionChange]);
 
   // Handle pinch gesture for zoom (touch devices)
+  // Use native event listeners for reliable preventDefault in Firefox Android
   const getTouchDistance = useCallback((touches: TouchList): number => {
     if (touches.length < 2) return 0;
     const touch1 = touches[0];
@@ -96,49 +97,95 @@ export function ImageUploadZone({
     return Math.sqrt(dx * dx + dy * dy);
   }, []);
 
-  // Combined touch handlers that handle both pinch and drag
+  // Use native event listeners for two-touch pinch gestures to properly prevent default in Firefox Android
+  // Single-touch events still use React synthetic events for drag handler compatibility
+  useEffect(() => {
+    const element = labelRef.current;
+    if (!element || !imageUrl) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      // If two touches, start pinch gesture (prevent drag and browser zoom)
+      if (e.touches.length === 2) {
+        const distance = getTouchDistance(e.touches);
+        pinchStartRef.current = { distance, zoom: position.zoom };
+        // CRITICAL: Prevent default to stop browser zoom in Firefox Android
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      // For single touch, let React synthetic event handler handle it (drag handler)
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      // If pinching (two touches), handle zoom
+      if (e.touches.length === 2 && pinchStartRef.current) {
+        // CRITICAL: Prevent default to stop browser zoom in Firefox Android
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const currentDistance = getTouchDistance(e.touches);
+        const startDistance = pinchStartRef.current.distance;
+        const startZoom = pinchStartRef.current.zoom;
+        
+        // Calculate zoom change based on distance change
+        const distanceRatio = currentDistance / startDistance;
+        // Scale the ratio to zoom percentage (1.0 = no change, 1.5 = 50% more zoom)
+        const zoomChange = (distanceRatio - 1) * 100;
+        const newZoom = Math.max(0, Math.min(200, startZoom + zoomChange));
+        
+        const newPosition = { ...position, zoom: newZoom };
+        onPositionChange(newPosition);
+      } else if (e.touches.length === 1) {
+        // Single touch - clear pinch state (drag will handle it)
+        pinchStartRef.current = null;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      pinchStartRef.current = null;
+    };
+
+    // Use passive: false to allow preventDefault to work
+    // These listeners run before React's synthetic events, so we can prevent default for pinch
+    element.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
+    element.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
+    element.addEventListener('touchend', handleTouchEnd, { capture: true });
+    element.addEventListener('touchcancel', handleTouchEnd, { capture: true });
+
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart, { capture: true });
+      element.removeEventListener('touchmove', handleTouchMove, { capture: true });
+      element.removeEventListener('touchend', handleTouchEnd, { capture: true });
+      element.removeEventListener('touchcancel', handleTouchEnd, { capture: true });
+    };
+  }, [imageUrl, position, onPositionChange, getTouchDistance]);
+
+  // Combined touch handlers for single-touch drag (React synthetic events)
   const combinedTouchStart = useCallback((e: React.TouchEvent) => {
     if (!imageUrl) return;
     
-    // If two touches, start pinch gesture (prevent drag)
+    // If two touches, native listener already handled it
     if (e.touches.length === 2) {
-      const distance = getTouchDistance(e.touches as unknown as TouchList);
-      pinchStartRef.current = { distance, zoom: position.zoom };
-      e.preventDefault(); // Prevent default to avoid scrolling
-      e.stopPropagation(); // Prevent drag handler from running
-    } else {
-      // Single touch - clear pinch state and let drag handler handle it
-      pinchStartRef.current = null;
-      // Call the drag handler for single touches
-      dragHandlers.onTouchStart?.(e);
+      return;
     }
-  }, [imageUrl, position.zoom, getTouchDistance, dragHandlers]);
+    
+    // Single touch - clear pinch state and let drag handler handle it
+    pinchStartRef.current = null;
+    dragHandlers.onTouchStart?.(e);
+  }, [imageUrl, dragHandlers]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!imageUrl) return;
     
-    // If pinching (two touches), handle zoom
+    // If pinching (two touches), native listener already handled it
     if (e.touches.length === 2 && pinchStartRef.current) {
-      e.preventDefault();
-      e.stopPropagation(); // Prevent drag handler from running
-      
-      const currentDistance = getTouchDistance(e.touches as unknown as TouchList);
-      const startDistance = pinchStartRef.current.distance;
-      const startZoom = pinchStartRef.current.zoom;
-      
-      // Calculate zoom change based on distance change
-      const distanceRatio = currentDistance / startDistance;
-      // Scale the ratio to zoom percentage (1.0 = no change, 1.5 = 50% more zoom)
-      const zoomChange = (distanceRatio - 1) * 100;
-      const newZoom = Math.max(0, Math.min(200, startZoom + zoomChange));
-      
-      const newPosition = { ...position, zoom: newZoom };
-      onPositionChange(newPosition);
-    } else if (e.touches.length === 1) {
-      // Single touch - clear pinch state (drag will handle it)
+      return;
+    }
+    
+    // Single touch - clear pinch state (drag will handle it)
+    if (e.touches.length === 1) {
       pinchStartRef.current = null;
     }
-  }, [imageUrl, position, onPositionChange, getTouchDistance]);
+  }, [imageUrl]);
 
   const handleTouchEnd = useCallback(() => {
     pinchStartRef.current = null;
