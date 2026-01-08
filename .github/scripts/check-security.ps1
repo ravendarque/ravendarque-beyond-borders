@@ -70,7 +70,7 @@ if (-not $trivyFound) {
 
 # Run trivy scan
 $exitCode = 0
-trivy fs . --severity CRITICAL,HIGH --exit-code 1 --quiet 2>&1 | Out-Null
+$trivyOutput = trivy fs . --severity CRITICAL,HIGH --exit-code 1 2>&1
 $exitCode = $LASTEXITCODE
 
 if ($exitCode -eq 0) {
@@ -78,6 +78,7 @@ if ($exitCode -eq 0) {
     exit 0
 } else {
     Write-Host "❌ Security vulnerabilities found" -ForegroundColor Red
+    Write-Host $trivyOutput
     exit 1
 }
 
