@@ -53,25 +53,37 @@ export function ImageUploadZone({
     enabled: !!imageUrl,
   });
 
-  // Handle scroll wheel for zoom
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (!imageUrl) return;
+  // Handle scroll wheel for zoom using native event listener for reliable preventDefault
+  useEffect(() => {
+    const element = labelRef.current;
+    if (!element || !imageUrl) return;
     
-    // Only handle zoom if not dragging
-    if (isDragging) return;
+    const handleWheel = (e: WheelEvent) => {
+      // Only handle zoom if not dragging
+      if (isDragging) return;
+      
+      // Prevent default scrolling to prevent page scroll
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Scroll down = zoom out, scroll up = zoom in
+      // Use deltaY: positive = scroll down, negative = scroll up
+      const zoomDelta = -e.deltaY * 0.1; // 10% per wheel notch
+      const newZoom = Math.max(0, Math.min(200, position.zoom + zoomDelta));
+      
+      // Update zoom and clamp position to new limits
+      const newPosition = { ...position, zoom: newZoom };
+      // Recalculate limits would happen in parent, but we need to clamp here
+      // For now, just update zoom - parent will handle clamping via limits
+      onPositionChange(newPosition);
+    };
     
-    e.preventDefault();
+    // Use passive: false to allow preventDefault to work
+    element.addEventListener('wheel', handleWheel, { passive: false });
     
-    // Scroll down = zoom out, scroll up = zoom in
-    // Use deltaY: positive = scroll down, negative = scroll up
-    const zoomDelta = -e.deltaY * 0.5; // Scale down the sensitivity
-    const newZoom = Math.max(0, Math.min(200, position.zoom + zoomDelta));
-    
-    // Update zoom and clamp position to new limits
-    const newPosition = { ...position, zoom: newZoom };
-    // Recalculate limits would happen in parent, but we need to clamp here
-    // For now, just update zoom - parent will handle clamping via limits
-    onPositionChange(newPosition);
+    return () => {
+      element.removeEventListener('wheel', handleWheel);
+    };
   }, [imageUrl, isDragging, position, onPositionChange]);
 
   // Handle pinch gesture for zoom (touch devices)
@@ -191,12 +203,15 @@ export function ImageUploadZone({
             setElementRef(el);
           }}
           htmlFor="step1-file-upload"
-          className={imageUrl ? "choose-circle has-image" : "choose-circle"}
+          className={[
+            "choose-circle",
+            imageUrl && "has-image",
+            isDragging && "is-dragging"
+          ].filter(Boolean).join(" ")}
           role="button"
           aria-label="Choose your profile picture"
           style={backgroundStyle}
           onMouseDown={dragHandlers.onMouseDown}
-          onWheel={handleWheel}
           onTouchStart={combinedTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -244,9 +259,9 @@ export function ImageUploadZone({
           <div className="control-group">
             <div className="slider-container">
               <div className="slider-labels-row">
-                <span className="slider-end-label">Left</span>
+                <span className="slider-end-label">Move left</span>
                 <span className="slider-value">{Math.round(position.x)}%</span>
-                <span className="slider-end-label">Right</span>
+                <span className="slider-end-label">Move right</span>
               </div>
               <div className="slider-with-icons">
                 <span className="slider-icon" aria-label="Move left">
@@ -288,9 +303,9 @@ export function ImageUploadZone({
           <div className="control-group">
             <div className="slider-container">
               <div className="slider-labels-row">
-                <span className="slider-end-label">Up</span>
+                <span className="slider-end-label">Move up</span>
                 <span className="slider-value">{Math.round(position.y)}%</span>
-                <span className="slider-end-label">Down</span>
+                <span className="slider-end-label">Move down</span>
               </div>
               <div className="slider-with-icons">
                 <span className="slider-icon" aria-label="Move up">
