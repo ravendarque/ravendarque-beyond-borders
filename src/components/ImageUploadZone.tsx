@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import * as Slider from '@radix-ui/react-slider';
 import type { ImagePosition, PositionLimits, ImageAspectRatio, ImageDimensions } from '@/utils/imagePosition';
 import { useImageDrag } from '@/hooks/useImageDrag';
-import { positionToBackgroundPosition, calculateBackgroundSize } from '@/utils/imagePosition';
+import { positionToBackgroundPosition, calculateBackgroundSize, calculatePositionLimits } from '@/utils/imagePosition';
 
 export interface ImageUploadZoneProps {
   /** Current uploaded image URL */
@@ -145,13 +145,23 @@ export function ImageUploadZone({
     }
   }, [isDragging]);
   
+  // Calculate maximum limits (at zoom 200%) as reference for consistent position mapping
+  // This ensures -50% always represents the same relative position regardless of current zoom
+  const maxLimits = useMemo<PositionLimits>(() => {
+    if (!imageDimensions) {
+      return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    }
+    return calculatePositionLimits(imageDimensions, circleSize, 200);
+  }, [imageDimensions, circleSize]);
+  
   // Calculate CSS values for background-image display
   // Use calculateBackgroundSize to maintain cover behavior with zoom
+  // Map position using maxLimits as reference, then scale to current limits for display
   const backgroundSize = calculateBackgroundSize(imageDimensions, circleSize, position.zoom);
   const backgroundStyle = imageUrl ? {
     backgroundImage: `url(${imageUrl})`,
     backgroundSize,
-    backgroundPosition: positionToBackgroundPosition({ x: position.x, y: position.y }, limits),
+    backgroundPosition: positionToBackgroundPosition({ x: position.x, y: position.y }, limits, maxLimits),
     backgroundRepeat: 'no-repeat',
   } : undefined;
 
@@ -249,11 +259,13 @@ export function ImageUploadZone({
                   value={[-position.x]} // Invert: slider right = negative position = show right side
                   onValueChange={([value]) => {
                     const invertedValue = -value;
-                    const clampedX = Math.max(limits.minX, Math.min(limits.maxX, invertedValue));
+                    // Position is stored as a fixed percentage (-50 to +50), independent of zoom
+                    // Clamp to fixed range, not to limits
+                    const clampedX = Math.max(-50, Math.min(50, invertedValue));
                     onPositionChange({ ...position, x: clampedX });
                   }}
-                  min={limits.minX === limits.maxX ? -100 : -limits.maxX}
-                  max={limits.minX === limits.maxX ? 100 : -limits.minX}
+                  min={-50}
+                  max={50}
                   step={1}
                   disabled={!horizontalEnabled}
                   aria-label="Horizontal position"
@@ -276,25 +288,29 @@ export function ImageUploadZone({
           <div className="control-group">
             <div className="slider-container">
               <div className="slider-labels-row">
-                <span className="slider-end-label">Down</span>
-                <span className="slider-value">{Math.round(position.y)}%</span>
                 <span className="slider-end-label">Up</span>
+                <span className="slider-value">{Math.round(position.y)}%</span>
+                <span className="slider-end-label">Down</span>
               </div>
               <div className="slider-with-icons">
-                <span className="slider-icon" aria-label="Move down">
+                <span className="slider-icon" aria-label="Move up">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M18 15L12 9L6 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </span>
                 <Slider.Root
                   className="slider-root"
-                  value={[position.y]}
+                  value={[-position.y]} // Invert: slider right = negative position = show bottom
                   onValueChange={([value]) => {
-                    const clampedY = Math.max(limits.minY, Math.min(limits.maxY, value));
+                    // Position is stored as a fixed percentage (-50 to +50), independent of zoom
+                    // Clamp to fixed range, not to limits
+                    // Invert back: slider value is inverted
+                    const invertedValue = -value;
+                    const clampedY = Math.max(-50, Math.min(50, invertedValue));
                     onPositionChange({ ...position, y: clampedY });
                   }}
-                  min={limits.minY === limits.maxY ? -100 : limits.minY}
-                  max={limits.minY === limits.maxY ? 100 : limits.maxY}
+                  min={-50}
+                  max={50}
                   step={1}
                   disabled={!verticalEnabled}
                   aria-label="Vertical position"
@@ -304,9 +320,9 @@ export function ImageUploadZone({
                   </Slider.Track>
                   <Slider.Thumb className="slider-thumb" />
                 </Slider.Root>
-                <span className="slider-icon" aria-label="Move up">
+                <span className="slider-icon" aria-label="Move down">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18 15L12 9L6 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </span>
               </div>

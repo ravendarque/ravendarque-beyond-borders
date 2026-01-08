@@ -58,9 +58,11 @@ export async function captureAdjustedImage(
 
   // Calculate position limits for normalization (same as Step 1)
   const limits = calculatePositionLimits(imageDimensions, circleSize, position.zoom);
+  // Calculate max limits (at zoom 200%) for consistent position mapping
+  const maxLimits = calculatePositionLimits(imageDimensions, circleSize, 200);
   
   // Convert position to CSS background-position (same as Step 1)
-  const cssPos = positionToBackgroundPosition({ x: position.x, y: position.y }, limits);
+  const cssPos = positionToBackgroundPosition({ x: position.x, y: position.y }, limits, maxLimits);
   const [cssX, cssY] = cssPos.split(' ').map(p => parseFloat(p.replace('%', '')));
 
   // Scale calculations for output size (convert from Step 1 circleSize to outputSize)
