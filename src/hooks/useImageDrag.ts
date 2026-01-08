@@ -94,15 +94,30 @@ export function useImageDrag({
       // Dragging left should show more of the left side (increase x)
       // Dragging down should show more of the bottom (decrease y)
       // Dragging up should show more of the top (increase y)
+      
+      // Check if axes are disabled (min === max === 0 means no movement allowed)
+      const horizontalDisabled = limits.minX === 0 && limits.maxX === 0;
+      const verticalDisabled = limits.minY === 0 && limits.maxY === 0;
+      
+      // Only update position for enabled axes
+      const newX = horizontalDisabled 
+        ? dragStartRef.current.startPosition.x 
+        : dragStartRef.current.startPosition.x - deltaXPercent;
+      const newY = verticalDisabled 
+        ? dragStartRef.current.startPosition.y 
+        : dragStartRef.current.startPosition.y - deltaYPercent;
+      
       const newPosition: ImagePosition = {
-        x: dragStartRef.current.startPosition.x - deltaXPercent,
-        y: dragStartRef.current.startPosition.y - deltaYPercent,
+        x: newX,
+        y: newY,
         zoom: dragStartRef.current.startPosition.zoom,
       };
       
-      // Clamp to limits
-      const clampedX = Math.max(limits.minX, Math.min(limits.maxX, newPosition.x));
-      const clampedY = Math.max(limits.minY, Math.min(limits.maxY, newPosition.y));
+      // Clamp to fixed range (-50 to +50), not to limits
+      // Position is stored as a fixed percentage independent of zoom
+      // Limits are only used for display mapping, not for constraining the stored value
+      const clampedX = Math.max(-50, Math.min(50, newPosition.x));
+      const clampedY = Math.max(-50, Math.min(50, newPosition.y));
       
       onPositionChange({
         x: clampedX,
@@ -134,16 +149,23 @@ export function useImageDrag({
       handleEnd();
     };
     
+    // Prevent text selection during drag
+    const handleSelectStart = (e: Event) => {
+      e.preventDefault();
+    };
+    
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('selectstart', handleSelectStart);
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('selectstart', handleSelectStart);
     };
   }, [hasDragStart, handleMove, handleEnd]);
 
