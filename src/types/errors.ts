@@ -5,6 +5,8 @@
  * with user-friendly messages and recovery suggestions.
  */
 
+import { FILE_SIZE } from '@/constants';
+
 export enum ErrorCode {
   // Network Errors (1xxx)
   NETWORK_FAILURE = 'NETWORK_FAILURE',
@@ -116,8 +118,8 @@ export class FileValidationError extends AppError {
   }
 
   static fileTooLarge(size: number, maxSize: number): FileValidationError {
-    const sizeMB = (size / (1024 * 1024)).toFixed(1);
-    const maxMB = (maxSize / (1024 * 1024)).toFixed(0);
+    const sizeMB = (size / FILE_SIZE.BYTES_PER_MB).toFixed(1);
+    const maxMB = (maxSize / FILE_SIZE.BYTES_PER_MB).toFixed(0);
     return new FileValidationError(
       ErrorCode.FILE_TOO_LARGE,
       `File size ${sizeMB}MB exceeds maximum ${maxMB}MB`,

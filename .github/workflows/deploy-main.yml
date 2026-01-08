@@ -40,6 +40,15 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.15
+        with:
+          versionSpec: '5.x'
+
+      - name: Calculate semantic version from git
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.9.15
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -48,6 +57,7 @@ jobs:
         env:
           NODE_ENV: production
           BASE_URL: /
+          VERSION: ${{ steps.gitversion.outputs.fullSemVer }}
 
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4

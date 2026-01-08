@@ -7,11 +7,11 @@ import { getAssetUrl } from '@/config';
 export interface RenderOptions {
   size: 512 | 1024;
   thickness: number;
-  insetPct: number;
-  flagOffsetX: number;
+  flagOffsetPct: number; // Percentage: -50 to +50
   presentation: 'ring' | 'segment' | 'cutout';
   segmentRotation?: number;
   bg: string | 'transparent';
+  // imagePosition is no longer needed - we use a pre-cropped image
 }
 
 /**
@@ -43,7 +43,7 @@ export function useAvatarRenderer(
    */
   const render = useCallback(
     async (imageUrl: string, flagId: string, options: RenderOptions) => {
-      const { size, thickness, insetPct, flagOffsetX, presentation, segmentRotation, bg } = options;
+      const { size, thickness, flagOffsetPct, presentation, segmentRotation, bg } = options;
 
       // Exit early if no image
       if (!imageUrl) {
@@ -71,7 +71,7 @@ export function useAvatarRenderer(
           throw FlagDataError.patternMissing(flagId);
         }
 
-        // Load image
+        // Load image (this is now a pre-cropped image from Step 1)
         const response = await fetch(imageUrl);
         const blob = await response.blob();
         const img = await createImageBitmap(blob);
@@ -98,11 +98,13 @@ export function useAvatarRenderer(
         }
 
         // Render avatar with flag border
+        // The image is already cropped and adjusted, so no position/zoom needed
         const result = await renderAvatar(img, transformedFlag, {
           size,
           thicknessPct: thickness,
-          imageInsetPx: Math.round(((insetPct * -1) / 100) * size),
-          flagOffsetPx: { x: Math.round(flagOffsetX), y: 0 }, // Use flagOffsetPx for cutout mode
+          // No imageOffsetPx - cropped image is already centered
+          // No imageZoom - cropped image is already at correct zoom
+          flagOffsetPct: { x: flagOffsetPct, y: 0 }, // Use flagOffsetPct for cutout mode
           presentation,
           segmentRotation,
           backgroundColor: bg === 'transparent' ? null : bg,

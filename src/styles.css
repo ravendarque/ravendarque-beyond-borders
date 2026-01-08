@@ -586,7 +586,7 @@ label.choose-circle:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   position: relative;
   z-index: 3;
 }
@@ -594,8 +594,16 @@ label.choose-circle:hover {
 .footer-line1,
 .footer-line2 {
   font-family: 'Segoe UI', sans-serif;
-  font-size: 11px;
-  line-height: 15px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 300;
+  text-align: center;
+}
+
+.footer-line3 {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 12px;
+  line-height: 1;
   font-weight: 300;
   text-align: center;
 }
@@ -631,6 +639,38 @@ label.choose-circle:hover {
 
 .footer-line2 {
   color: var(--color-white);
+}
+
+.footer-line3 {
+  color: var(--color-medium-gray);
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0;
+}
+
+.footer-version {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  color: var(--color-red-accent);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-version:hover {
+  color: var(--color-white);
+}
+
+.footer-version:focus-visible {
+  outline: 2px solid var(--color-red-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* Ethics Page */
@@ -1419,6 +1459,14 @@ label.choose-circle:hover {
   gap: 12px;
 }
 
+.step1-controls {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .control-group {
   display: flex;
   flex-direction: column;
@@ -1535,6 +1583,19 @@ label.choose-circle:hover {
 .slider-thumb:focus {
   outline: 2px solid var(--color-red-accent);
   outline-offset: 2px;
+}
+
+/* Disabled slider state */
+.slider-root[data-disabled] .slider-track,
+.slider-root[data-disabled] .slider-range,
+.slider-root[data-disabled] .slider-thumb {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.slider-root[data-disabled] .slider-end-label,
+.slider-root[data-disabled] .slider-value {
+  opacity: 0.6;
 }
 
 .hero {

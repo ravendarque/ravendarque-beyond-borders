@@ -1,6 +1,23 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+// Read version from package.json for local dev, or use VERSION env var for CI
+function getVersion(): string {
+  if (process.env.VERSION) {
+    return process.env.VERSION;
+  }
+  try {
+    const packageJson = JSON.parse(
+      readFileSync(resolve(__dirname, 'package.json'), 'utf-8')
+    );
+    return packageJson.version || '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,6 +28,10 @@ export default defineConfig({
   base: process.env.BASE_URL || 
         (process.env.NODE_ENV === 'production' ? '/' : '/'),
   plugins: [react()],
+  define: {
+    // Inject version at build time
+    'import.meta.env.APP_VERSION': JSON.stringify(getVersion()),
+  },
   server: {
     // Optimize static file serving
     fs: {

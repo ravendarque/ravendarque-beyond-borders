@@ -1,17 +1,22 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useStepNavigation } from '@/hooks/useStepNavigation';
 import { useDebounce } from '@/hooks/usePerformance';
-import { getAssetUrl } from '@/config';
+import { getAssetUrl, config } from '@/config';
 import { FlagSelector } from '@/components/FlagSelector';
 import { FlagPreview } from '@/components/FlagPreview';
 import { ImageUploadZone } from '@/components/ImageUploadZone';
 import { Link } from 'react-router-dom';
 import { AdjustStep } from '@/components/AdjustStep';
 import { PrivacyModal } from '@/components/PrivacyModal';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { PresentationMode } from '@/components/PresentationModeSelector';
+import type { ImagePosition, ImageDimensions, ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
+import { calculatePositionLimits, getAspectRatio, clampPosition } from '@/utils/imagePosition';
+import { captureAdjustedImage } from '@/utils/captureImage';
+import { IMAGE_CONSTANTS, RENDER_SIZES } from '@/constants';
 import '../styles.css';
 
 /**
@@ -51,12 +56,22 @@ export function AppStepWorkflow() {
   });
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   
+  // Step 1: Image position and dimensions
+  const [imagePosition, setImagePosition] = useState<ImagePosition>({ x: 0, y: 0, zoom: 0 });
+  const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
+  const [circleSize, setCircleSize] = useState<number>(IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE); // Default, will be updated from CSS
+  
+  // Step 1 → Step 3: Captured cropped image (Approach 2)
+  const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
+  
   // Step 3: Adjust controls state
   const [thickness, setThickness] = useState(10);
-  const [insetPct, setInsetPct] = useState(0);
-  const [flagOffsetX, setFlagOffsetX] = useState(0);
+  const [flagOffsetPct, setFlagOffsetPct] = useState(0); // Percentage: -50 to +50
   const [presentation, setPresentation] = useState<PresentationMode>('ring');
   const [segmentRotation, setSegmentRotation] = useState(0);
+  
+  // Track previous presentation mode to detect when switching to cutout
+  const prevPresentationRef = useRef<PresentationMode>('ring');
   
   // Step navigation with URL sync
   const {
@@ -80,21 +95,119 @@ export function AppStepWorkflow() {
     return flagId ? flags.find(f => f.id === flagId) ?? null : null;
   }, [flagId]);
 
-  // Set default offset when flag changes or when switching to cutout mode
+  // Calculate position limits based on image dimensions and zoom
+  const positionLimits = useMemo<PositionLimits>(() => {
+    if (!imageDimensions) {
+      return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    }
+    return calculatePositionLimits(imageDimensions, circleSize, imagePosition.zoom);
+  }, [imageDimensions, circleSize, imagePosition.zoom]);
+
+  // Clamp position when image changes (not when zoom changes)
+  // Position should remain constant when zoom changes - only clamp when new image is loaded
+  // Note: When a new image is loaded, position is reset to { x: 0, y: 0, zoom: 0 } in the
+  // image detection useEffect, so this clamping is mainly a safety check
+  const prevImageDimensionsRef = useRef<ImageDimensions | null>(null);
+  const positionRef = useRef<ImagePosition>(imagePosition);
+  const limitsRef = useRef<PositionLimits>(positionLimits);
+  
+  // Keep refs in sync
+  positionRef.current = imagePosition;
+  limitsRef.current = positionLimits;
+  
   useEffect(() => {
-    if (presentation === 'cutout') {
-      const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
-      if (defaultOffset !== undefined) {
-        // Convert percentage (-50 to 50) to pixels
-        // For a 512px canvas, -50% = -256px, 0% = 0px, 50% = 256px
-        const defaultOffsetPx = (defaultOffset / 100) * 512;
-        setFlagOffsetX(defaultOffsetPx);
-      } else {
-        // If in cutout mode but flag doesn't have cutout config, reset to 0
-        setFlagOffsetX(0);
+    if (imageDimensions && prevImageDimensionsRef.current) {
+      // Only clamp if image dimensions changed (new image loaded)
+      const imageChanged = 
+        prevImageDimensionsRef.current.width !== imageDimensions.width ||
+        prevImageDimensionsRef.current.height !== imageDimensions.height;
+      
+      if (imageChanged) {
+        // New image loaded - clamp position to new limits (safety check)
+        // Position is usually already reset to { x: 0, y: 0, zoom: 0 } by image detection useEffect
+        const clamped = clampPosition(positionRef.current, limitsRef.current);
+        // Only update if position was actually clamped
+        if (clamped.x !== positionRef.current.x || clamped.y !== positionRef.current.y) {
+          setImagePosition(clamped);
+        }
       }
     }
-  }, [flagId, presentation, selectedFlag?.modes?.cutout?.defaultOffset, setFlagOffsetX]);
+    prevImageDimensionsRef.current = imageDimensions;
+  }, [imageDimensions]); // Only depend on imageDimensions - position should remain constant when zoom changes
+
+  // Get aspect ratio
+  const aspectRatio = useMemo<ImageAspectRatio | null>(() => {
+    return imageDimensions ? getAspectRatio(imageDimensions) : null;
+  }, [imageDimensions]);
+
+  // Detect image dimensions when image URL changes
+  useEffect(() => {
+    if (!imageUrl) {
+      setImageDimensions(null);
+      setImagePosition({ x: 0, y: 0, zoom: 0 });
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      setImageDimensions({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+      // Reset position when new image is loaded
+      setImagePosition({ x: 0, y: 0, zoom: 0 });
+    };
+    img.onerror = () => {
+      setImageDimensions(null);
+    };
+    img.src = imageUrl;
+  }, [imageUrl]);
+
+  // Get circle size from CSS variable
+  useEffect(() => {
+    const updateCircleSize = () => {
+      const wrapper = document.querySelector('.choose-wrapper');
+      if (wrapper) {
+        const computed = window.getComputedStyle(wrapper);
+        const size = parseFloat(computed.width);
+        if (!isNaN(size)) {
+          // Circle is 80% of wrapper (inset 10% on each side)
+          setCircleSize(size * 0.8);
+        }
+      }
+    };
+    
+    updateCircleSize();
+    window.addEventListener('resize', updateCircleSize);
+    return () => window.removeEventListener('resize', updateCircleSize);
+  }, [imageUrl]); // Re-run when image changes to ensure element exists
+
+  // Track previous flag ID to detect flag changes
+  const prevFlagIdRef = useRef<string | null>(flagId);
+  
+  // Set default offset when flag changes, when switching to cutout mode, or when entering Step 3
+  useEffect(() => {
+    if (currentStep === 3 && presentation === 'cutout') {
+      const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
+      const switchedToCutout = prevPresentationRef.current !== 'cutout';
+      const flagChanged = prevFlagIdRef.current !== flagId;
+      
+      // Set default when switching to cutout mode or when flag changes in cutout mode
+      if (switchedToCutout || flagChanged) {
+        if (defaultOffset !== undefined) {
+          // Use the percentage directly - no conversion needed
+          setFlagOffsetPct(defaultOffset);
+        } else {
+          // If in cutout mode but flag doesn't have cutout config, reset to 0
+          setFlagOffsetPct(0);
+        }
+      }
+    }
+    
+    // Update refs for next render
+    prevPresentationRef.current = presentation;
+    prevFlagIdRef.current = flagId;
+  }, [currentStep, flagId, presentation, selectedFlag?.modes?.cutout?.defaultOffset]);
 
   // Preload full flag image when flag is selected (needed for cutout mode)
   useEffect(() => {
@@ -114,13 +227,9 @@ export function AppStepWorkflow() {
         const blob = await response.blob();
         const bitmap = await createImageBitmap(blob);
         flagImageCache.set(cacheKey, bitmap);
-      } catch (error) {
+      } catch {
         // Silent fail - preloading is best-effort
-        // Error logged in development via debug logging if needed
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.warn('[Preload] Failed to preload flag image:', error);
-        }
+        // Errors are handled silently to avoid user-facing noise
       }
     };
 
@@ -129,27 +238,69 @@ export function AppStepWorkflow() {
 
   // Debounce slider values for smoother rendering during drag
   const debouncedThickness = useDebounce(thickness, 50);
-  const debouncedInsetPct = useDebounce(insetPct, 50);
-  const debouncedFlagOffsetX = useDebounce(flagOffsetX, 50);
+  const debouncedFlagOffsetPct = useDebounce(flagOffsetPct, 50);
   const debouncedSegmentRotation = useDebounce(segmentRotation, 50);
+
+  // Track position when image was captured (for recapture detection)
+  const capturedPositionRef = useRef<ImagePosition | null>(null);
+  
+  // Capture adjusted image when transitioning to Step 3 (Approach 2)
+  useEffect(() => {
+    if (currentStep === 3 && imageUrl && imageDimensions) {
+      // Check if we need to capture (first time or position changed)
+      const needsCapture = !croppedImageUrl || 
+        !capturedPositionRef.current ||
+        capturedPositionRef.current.x !== imagePosition.x ||
+        capturedPositionRef.current.y !== imagePosition.y ||
+        capturedPositionRef.current.zoom !== imagePosition.zoom;
+      
+      if (needsCapture) {
+        // Capture the adjusted image at final render size (high-res for quality)
+        captureAdjustedImage(
+          imageUrl,
+          imagePosition,
+          circleSize,
+          imageDimensions,
+          IMAGE_CONSTANTS.DEFAULT_CAPTURE_SIZE
+        )
+          .then((captured) => {
+            setCroppedImageUrl(captured);
+            capturedPositionRef.current = { ...imagePosition };
+          })
+          .catch(() => {
+            // Fallback: use original image if capture fails
+            // Error is handled silently - user still gets a working image
+            setCroppedImageUrl(imageUrl);
+            capturedPositionRef.current = { ...imagePosition };
+          });
+      }
+    }
+    
+    // Reset cropped image when going back to Step 1 or when image changes
+    if (currentStep === 1 || !imageUrl) {
+      setCroppedImageUrl(null);
+      capturedPositionRef.current = null;
+    }
+  }, [currentStep, imageUrl, imageDimensions, imagePosition, circleSize, croppedImageUrl]);
 
   // Trigger render when parameters change (Step 3)
   useEffect(() => {
-    if (currentStep === 3 && imageUrl && flagId) {
-      // Render at 1024px (2x) for preview to ensure crisp quality when scaled down
-      // The preview container is 250-400px, so 1024px gives us 2.5-4x resolution
+    if (currentStep === 3 && croppedImageUrl && flagId) {
+      // Render at high-res (2x) for preview to ensure crisp quality when scaled down
+      // The preview container is 250-400px, so high-res gives us 2.5-4x resolution
       // This eliminates blur from CSS downscaling
-      render(imageUrl, flagId, {
-        size: 1024,
+      // Use cropped image - no position/zoom needed (already captured)
+      render(croppedImageUrl, flagId, {
+        size: RENDER_SIZES.HIGH_RES,
         thickness: debouncedThickness,
-        insetPct: debouncedInsetPct,
-        flagOffsetX: debouncedFlagOffsetX,
+        flagOffsetPct: debouncedFlagOffsetPct,
         presentation,
         segmentRotation: debouncedSegmentRotation,
         bg: 'transparent',
+        // No imagePosition - the cropped image is already adjusted
       });
     }
-  }, [currentStep, imageUrl, flagId, debouncedThickness, debouncedInsetPct, debouncedFlagOffsetX, presentation, debouncedSegmentRotation, render]);
+  }, [currentStep, croppedImageUrl, flagId, debouncedThickness, debouncedFlagOffsetPct, presentation, debouncedSegmentRotation, render]);
 
   // Persist imageUrl to sessionStorage
   useEffect(() => {
@@ -199,7 +350,9 @@ export function AppStepWorkflow() {
     if (!overlayUrl) return;
     const a = document.createElement('a');
     a.href = overlayUrl;
-    a.download = `beyond-borders-avatar-${Date.now()}.png`;
+    // Generate identifier: timestamp for uniqueness
+    const identifier = Date.now();
+    a.download = `wearebeyondborders-dot-com-${identifier}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -208,10 +361,10 @@ export function AppStepWorkflow() {
   const handleStartOver = () => {
     setImageUrl(null);
     setFlagId(null);
+    setCroppedImageUrl(null);
     setCurrentStep(1);
     setThickness(10);
-    setInsetPct(0);
-    setFlagOffsetX(0);
+    setFlagOffsetPct(0);
     setPresentation('ring');
     setSegmentRotation(0);
     try {
@@ -259,42 +412,73 @@ export function AppStepWorkflow() {
           <div className="content-area">
             {/* Step 1: Image Upload */}
             {currentStep === 1 && (
-              <ImageUploadZone
-                imageUrl={imageUrl}
-                onImageUpload={handleImageUpload}
-                onShowPrivacy={() => setShowPrivacyModal(true)}
-              />
+              <ErrorBoundary
+                fallback={
+                  <div style={{ padding: '20px', textAlign: 'center' }}>
+                    <h3>Error loading image upload</h3>
+                    <p>Please refresh the page and try again.</p>
+                  </div>
+                }
+              >
+                <ImageUploadZone
+                  imageUrl={imageUrl}
+                  onImageUpload={handleImageUpload}
+                  onShowPrivacy={() => setShowPrivacyModal(true)}
+                  position={imagePosition}
+                  limits={positionLimits}
+                  aspectRatio={aspectRatio}
+                  imageDimensions={imageDimensions}
+                  onPositionChange={setImagePosition}
+                  circleSize={circleSize}
+                />
+              </ErrorBoundary>
             )}
 
             {/* Step 2: Flag Selection */}
             {currentStep === 2 && (
-              <div className="flag-selector-wrapper">
-                <FlagSelector
-                  flags={flags}
-                  selectedFlagId={flagId}
-                  onFlagChange={setFlagId}
-                />
-                <FlagPreview flag={selectedFlag} />
-              </div>
+              <ErrorBoundary
+                fallback={
+                  <div style={{ padding: '20px', textAlign: 'center' }}>
+                    <h3>Error loading flag selector</h3>
+                    <p>Please refresh the page and try again.</p>
+                  </div>
+                }
+              >
+                <div className="flag-selector-wrapper">
+                  <FlagSelector
+                    flags={flags}
+                    selectedFlagId={flagId}
+                    onFlagChange={setFlagId}
+                  />
+                  <FlagPreview flag={selectedFlag} />
+                </div>
+              </ErrorBoundary>
             )}
 
             {/* Step 3: Adjust */}
             {currentStep === 3 && (
-              <AdjustStep
-                overlayUrl={overlayUrl}
-                isRendering={isRendering}
-                selectedFlag={selectedFlag}
-                presentation={presentation}
-                onPresentationChange={setPresentation}
-                thickness={thickness}
-                onThicknessChange={setThickness}
-                insetPct={insetPct}
-                onInsetChange={setInsetPct}
-                flagOffsetX={flagOffsetX}
-                onFlagOffsetChange={setFlagOffsetX}
-                segmentRotation={segmentRotation}
-                onSegmentRotationChange={setSegmentRotation}
-              />
+              <ErrorBoundary
+                fallback={
+                  <div style={{ padding: '20px', textAlign: 'center' }}>
+                    <h3>Error loading adjustment controls</h3>
+                    <p>Please go back and try again, or refresh the page.</p>
+                  </div>
+                }
+              >
+                <AdjustStep
+                  overlayUrl={overlayUrl}
+                  isRendering={isRendering}
+                  selectedFlag={selectedFlag}
+                  presentation={presentation}
+                  onPresentationChange={setPresentation}
+                  thickness={thickness}
+                  onThicknessChange={setThickness}
+                  flagOffsetPct={flagOffsetPct}
+                  onFlagOffsetChange={setFlagOffsetPct}
+                  segmentRotation={segmentRotation}
+                  onSegmentRotationChange={setSegmentRotation}
+                />
+              </ErrorBoundary>
             )}
           </div>
 
@@ -416,6 +600,17 @@ export function AppStepWorkflow() {
             <Link to="/copyright" className="footer-link" aria-label="View copyright information">
               © Nix Crabtree, 2025
             </Link>
+          </div>
+          <div className="footer-line3">
+            <a
+              href={`https://github.com/ravendarque/ravendarque-beyond-borders/releases/tag/v${config.getVersion()}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-version"
+              aria-label={`Version ${config.getVersion()} - View release on GitHub`}
+            >
+              v{config.getVersion()}
+            </a>
           </div>
         </footer>
       </main>

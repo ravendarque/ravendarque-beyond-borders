@@ -157,11 +157,8 @@ export function filterValidFlags(flags: FlagSpec[]): FlagSpec[] {
   return flags.filter((flag) => {
     const result = validateFlagSafe(flag);
     if (!result.isValid) {
-      // Log validation errors in development
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.warn('Invalid flag filtered out:', result.error?.message);
-      }
+      // Invalid flags are silently filtered out
+      // Validation errors are handled by the error result object
       return false;
     }
     return true;
