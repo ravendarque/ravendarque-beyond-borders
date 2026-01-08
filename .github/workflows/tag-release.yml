@@ -21,6 +21,9 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Fetch tags
+        run: git fetch --tags
+
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0.9.15
         with:
@@ -119,50 +122,32 @@ jobs:
           BREAKING=$(echo "$COMMITS" | grep -E "(BREAKING CHANGE|feat!|!:|breaking)" || true)
           OTHER=$(echo "$COMMITS" | grep -vE "^- (feat|feature|fix|bugfix)" || true)
           
-          # Build changelog
+          # Build changelog in a variable to avoid YAML parsing issues
           CHANGELOG="## What's Changed"
           
           if [ -n "$BREAKING" ]; then
-            CHANGELOG="$CHANGELOG
-
-### ⚠️ Breaking Changes
-$BREAKING"
+            CHANGELOG="$CHANGELOG"$'\n\n'"### ⚠️ Breaking Changes"$'\n'"$BREAKING"
           fi
           
           if [ -n "$FEATURES" ]; then
-            CHANGELOG="$CHANGELOG
-
-### ✨ New Features
-$FEATURES"
+            CHANGELOG="$CHANGELOG"$'\n\n'"### ✨ New Features"$'\n'"$FEATURES"
           fi
           
           if [ -n "$FIXES" ]; then
-            CHANGELOG="$CHANGELOG
-
-### 🐛 Bug Fixes
-$FIXES"
+            CHANGELOG="$CHANGELOG"$'\n\n'"### 🐛 Bug Fixes"$'\n'"$FIXES"
           fi
           
           if [ -n "$OTHER" ]; then
-            CHANGELOG="$CHANGELOG
-
-### 📝 Other Changes
-$OTHER"
+            CHANGELOG="$CHANGELOG"$'\n\n'"### 📝 Other Changes"$'\n'"$OTHER"
           fi
           
-          # Add full commit list
-          CHANGELOG="$CHANGELOG
-
-## Full Changelog
-\`\`\`
-$COMMITS
-\`\`\`"
+          CHANGELOG="$CHANGELOG"$'\n\n'"## Full Changelog"$'\n'"\`\`\`"$'\n'"$COMMITS"$'\n'"\`\`\`"
           
-          # Output for GitHub release (multiline)
+          # Output using delimiter to avoid YAML parsing issues
           {
-            echo "changelog<<EOF"
+            echo "changelog<<CHANGELOG_EOF"
             echo "$CHANGELOG"
-            echo "EOF"
+            echo "CHANGELOG_EOF"
           } >> $GITHUB_OUTPUT
 
       - name: Create and push tag
