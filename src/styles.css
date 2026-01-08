@@ -360,6 +360,9 @@ label.choose-circle:hover {
 
 .choose-circle.has-image {
   border: none;
+  /* Prevent ALL browser touch gestures - we handle panning and pinch-to-zoom ourselves */
+  /* This prevents Firefox Android from intercepting pinch gestures */
+  touch-action: none;
 }
 
 .choose-circle.has-image:hover {
