@@ -175,6 +175,16 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0  # Need full history for version calculation
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Debug git info
+        run: |
+          echo "Branch: ${{ github.head_ref }}"
+          echo "SHA: $(git rev-parse HEAD)"
+          echo "Tags: $(git tag -l | head -5)"
+          echo "Latest tag: $(git describe --tags --abbrev=0 2>/dev/null || echo 'none')"
+          echo "GitVersion.yml exists: $(test -f GitVersion.yml && echo 'yes' || echo 'no')"
+          echo "Commits since latest tag: $(git rev-list --count $(git describe --tags --abbrev=0 2>/dev/null || echo 'HEAD~100')..HEAD 2>/dev/null || echo 'unknown')"
 
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0.9.15
@@ -184,6 +194,9 @@ jobs:
       - name: Calculate semantic version from git
         id: gitversion
         uses: gittools/actions/gitversion/execute@v0.9.15
+        continue-on-error: false
+        with:
+          configFilePath: GitVersion.yml
 
       - name: Set version output
         id: version
