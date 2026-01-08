@@ -8,12 +8,8 @@ export interface AdjustControlsProps {
   thickness: number;
   /** Thickness change handler */
   onThicknessChange: (value: number) => void;
-  /** Inset/outset percentage (-10 to 10) */
-  insetPct: number;
-  /** Inset change handler */
-  onInsetChange: (value: number) => void;
-  /** Flag horizontal offset in pixels (full flag width range) */
-  flagOffsetX: number;
+  /** Flag horizontal offset in percentage (-50 to +50) */
+  flagOffsetPct: number;
   /** Flag offset change handler */
   onFlagOffsetChange: (value: number) => void;
   /** Current presentation mode */
@@ -31,15 +27,12 @@ export interface AdjustControlsProps {
  * 
  * Single Responsibility: Render and handle slider controls for:
  * - Border thickness
- * - Border inset/outset
  * - Flag horizontal offset (cutout mode only)
  */
 export function AdjustControls({
   thickness,
   onThicknessChange,
-  insetPct,
-  onInsetChange,
-  flagOffsetX,
+  flagOffsetPct,
   onFlagOffsetChange,
   presentation,
   segmentRotation,
@@ -79,45 +72,6 @@ export function AdjustControls({
             <span className="slider-icon" aria-label="Thicker border">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none"/>
-              </svg>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Inset Slider */}
-      <div className="control-group">
-        <div className="slider-container">
-          <div className="slider-labels-row">
-            <span className="slider-end-label">Inset</span>
-            <span className="slider-value">{insetPct}%</span>
-            <span className="slider-end-label">Outset</span>
-          </div>
-          <div className="slider-with-icons">
-            <span className="slider-icon" aria-label="Inset (inside frame)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none"/>
-                <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-              </svg>
-            </span>
-            <Slider.Root
-              className="slider-root"
-              value={[insetPct]}
-              onValueChange={([value]) => onInsetChange(value)}
-              min={-10}
-              max={10}
-              step={1}
-              aria-label="Border inset/outset"
-            >
-              <Slider.Track className="slider-track">
-                <Slider.Range className="slider-range" />
-              </Slider.Track>
-              <Slider.Thumb className="slider-thumb" />
-            </Slider.Root>
-            <span className="slider-icon" aria-label="Outset (more visible)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="1" fill="none"/>
-                <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="3" fill="none"/>
               </svg>
             </span>
           </div>
@@ -171,7 +125,7 @@ export function AdjustControls({
           <div className="slider-container">
             <div className="slider-labels-row">
               <span className="slider-end-label">Flag L</span>
-              <span className="slider-value">{Math.round((flagOffsetX / 512) * 100)}%</span>
+              <span className="slider-value">{Math.round(flagOffsetPct)}%</span>
               <span className="slider-end-label">Flag R</span>
             </div>
             <div className="slider-with-icons">
@@ -183,10 +137,10 @@ export function AdjustControls({
               </span>
               <Slider.Root
                 className="slider-root"
-                value={[flagOffsetX]}
+                value={[flagOffsetPct]}
                 onValueChange={([value]) => onFlagOffsetChange(value)}
-                min={-256}
-                max={256}
+                min={-50}
+                max={50}
                 step={1}
                 aria-label="Flag horizontal offset"
               >

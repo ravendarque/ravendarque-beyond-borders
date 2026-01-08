@@ -22,6 +22,19 @@ if ($Files.Count -eq 0) {
     # Get staged markdown files (local validation)
     $Files = git diff --cached --name-only --diff-filter=ACM 2>&1 | 
         Where-Object { $_ -match '\.md$' -and $_ -notmatch 'node_modules' -and $_ -notmatch '\.local' }
+    
+    # If no staged files, check files in commits being pushed (pre-push hook context)
+    if ($Files.Count -eq 0) {
+        # Get current branch and remote tracking branch
+        $currentBranch = git rev-parse --abbrev-ref HEAD 2>&1
+        $remoteBranch = git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>&1
+        
+        if ($LASTEXITCODE -eq 0 -and $remoteBranch -and $remoteBranch -ne '') {
+            # Get markdown files in commits that haven't been pushed yet
+            $Files = git diff --name-only --diff-filter=ACM "$remoteBranch..HEAD" 2>&1 | 
+                Where-Object { $_ -match '\.md$' -and $_ -notmatch 'node_modules' -and $_ -notmatch '\.local' }
+        }
+    }
 }
 
 if ($Files.Count -eq 0) {

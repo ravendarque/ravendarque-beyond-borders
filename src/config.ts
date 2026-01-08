@@ -22,6 +22,12 @@ interface AppConfig {
   getBaseUrl: () => string;
 
   /**
+   * Get the application version
+   * @returns Version string (e.g., '1.0.0' or '1.1.0-alpha.3')
+   */
+  getVersion: () => string;
+
+  /**
    * Check if running in development mode
    */
   isDevelopment: () => boolean;
@@ -40,6 +46,8 @@ function createConfig(): AppConfig {
   // Cache base URL to avoid repeated env var access
   const baseUrl = import.meta.env.BASE_URL || '/';
   const mode = import.meta.env.MODE || 'production';
+  // Version is injected at build time via vite.config.ts define
+  const version = (import.meta.env.APP_VERSION as string) || '0.0.0';
 
   return {
     getAssetUrl(path: string): string {
@@ -55,6 +63,10 @@ function createConfig(): AppConfig {
 
     getBaseUrl(): string {
       return baseUrl;
+    },
+
+    getVersion(): string {
+      return version;
     },
 
     isDevelopment(): boolean {

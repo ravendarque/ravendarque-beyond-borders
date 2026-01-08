@@ -3,6 +3,8 @@
  * Includes image downsampling, metrics tracking, and optimization helpers
  */
 
+import { FILE_SIZE, RENDER_SIZES } from '@/constants';
+
 /**
  * Performance metrics for a render operation
  */
@@ -221,14 +223,14 @@ export function estimateMemoryUsage(
  * @returns Formatted string (e.g., "12.5 MB")
  */
 export function formatMemorySize(bytes: number): string {
-  if (bytes < 1024) {
+  if (bytes < FILE_SIZE.BYTES_PER_KB) {
     return `${bytes} B`;
-  } else if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  } else if (bytes < 1024 * 1024 * 1024) {
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  } else if (bytes < FILE_SIZE.BYTES_PER_MB) {
+    return `${(bytes / FILE_SIZE.BYTES_PER_KB).toFixed(1)} KB`;
+  } else if (bytes < FILE_SIZE.BYTES_PER_GB) {
+    return `${(bytes / FILE_SIZE.BYTES_PER_MB).toFixed(1)} MB`;
   } else {
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+    return `${(bytes / FILE_SIZE.BYTES_PER_GB).toFixed(1)} GB`;
   }
 }
 
@@ -311,7 +313,7 @@ export function getRecommendedSettings(): {
     return {
       maxScale: 1.5, // More aggressive downsampling
       enableDownsampling: true,
-      estimatedMaxSize: 1024, // Limit to 1024x1024
+      estimatedMaxSize: RENDER_SIZES.HIGH_RES, // Limit to high-res size
     };
   }
   

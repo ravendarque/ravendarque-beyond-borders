@@ -52,7 +52,7 @@ describe('Renderer Pipeline Integration', () => {
         thicknessPct: 10,
         presentation: 'cutout',
         borderImageBitmap: mockFlagImage,
-        flagOffsetPx: { x: 0, y: 0 },
+        flagOffsetPct: { x: 0, y: 0 },
       });
 
       expect(result.blob).toBeInstanceOf(Blob);
@@ -64,8 +64,8 @@ describe('Renderer Pipeline Integration', () => {
       const flag = flags.find(f => f.modes?.cutout?.offsetEnabled) || flags[0];
       const mockFlagImage = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
 
-      // Test with different offset values
-      const offsets = [-256, 0, 256]; // -50%, 0%, +50%
+      // Test with different offset values (percentage: -50 to +50)
+      const offsets = [-50, 0, 50]; // -50%, 0%, +50%
 
       for (const offset of offsets) {
         const result = await renderAvatar(img, flag, {
@@ -73,7 +73,7 @@ describe('Renderer Pipeline Integration', () => {
           thicknessPct: 10,
           presentation: 'cutout',
           borderImageBitmap: mockFlagImage,
-          flagOffsetPx: { x: offset, y: 0 },
+          flagOffsetPct: { x: offset, y: 0 },
         });
 
         expect(result.blob).toBeInstanceOf(Blob);
@@ -109,8 +109,8 @@ describe('Renderer Pipeline Integration', () => {
           thicknessPct: 10,
           presentation: 'cutout',
           borderImageBitmap: mockFlagImage,
-          flagOffsetPx: { 
-            x: (flag.modes?.cutout?.defaultOffset || 0) / 100 * 512, 
+          flagOffsetPct: { 
+            x: flag.modes?.cutout?.defaultOffset || 0, 
             y: 0 
           },
         });
@@ -136,22 +136,6 @@ describe('Renderer Pipeline Integration', () => {
       // Downsampling should work without errors
     });
 
-    it('should apply image inset correctly', async () => {
-      const img = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
-      const flag = flags[0];
-
-      const insets = [-10, 0, 10]; // Negative (expand), zero, positive (shrink)
-
-      for (const inset of insets) {
-        const result = await renderAvatar(img, flag, {
-          size: 512,
-          thicknessPct: 10,
-          imageInsetPx: inset,
-        });
-
-        expect(result.blob).toBeInstanceOf(Blob);
-      }
-    });
   });
 
   describe('Performance Metrics Integration', () => {

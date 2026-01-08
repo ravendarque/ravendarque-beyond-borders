@@ -21,54 +21,53 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get latest tag
-        id: latest-tag
-        run: |
-          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0")
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "Latest tag: $TAG"
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.15
+        with:
+          versionSpec: '5.x'
 
-      - name: Get commits since last tag
-        id: commits
-        run: |
-          LATEST_TAG="${{ steps.latest-tag.outputs.tag }}"
-          if [ "$LATEST_TAG" = "v0.0" ]; then
-            COMMITS=$(git log --oneline)
-          else
-            COMMITS=$(git log ${LATEST_TAG}..HEAD --oneline)
-          fi
-          echo "commits<<EOF" >> $GITHUB_OUTPUT
-          echo "$COMMITS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Calculate version with GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.9.15
 
-      - name: Calculate new version
+      - name: Determine if tag should be created
         id: version
         run: |
-          LATEST_TAG="${{ steps.latest-tag.outputs.tag }}"
+          CURRENT_MAJOR="${{ steps.gitversion.outputs.major }}"
+          CURRENT_MINOR="${{ steps.gitversion.outputs.minor }}"
+          CURRENT_PATCH="${{ steps.gitversion.outputs.patch }}"
+          FULL_VERSION="${{ steps.gitversion.outputs.fullSemVer }}"
           
-          # Parse current version
-          if [[ $LATEST_TAG =~ v([0-9]+)\.([0-9]+) ]]; then
-            MAJOR=${BASH_REMATCH[1]}
-            MINOR=${BASH_REMATCH[2]}
-          else
-            MAJOR=0
-            MINOR=0
+          # Get latest tag to compare
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          
+          if [ -z "$LATEST_TAG" ]; then
+            # No tag exists, create initial tag
+            NEW_TAG="v${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}"
+            BUMP_TYPE="initial"
+            echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+            echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+            exit 0
           fi
           
-          # Check commit messages for version bump type
-          # Note: This workflow only creates major/minor tags. Patch versions are
-          # handled by get-version.js based on commit count.
-          COMMITS="${{ steps.commits.outputs.commits }}"
-          BUMP_TYPE="none"
+          # Parse latest tag
+          if [[ $LATEST_TAG =~ v([0-9]+)\.([0-9]+)(?:\.([0-9]+))? ]]; then
+            TAG_MAJOR=${BASH_REMATCH[1]}
+            TAG_MINOR=${BASH_REMATCH[2]}
+            TAG_PATCH=${BASH_REMATCH[3]:-0}
+          else
+            TAG_MAJOR=0
+            TAG_MINOR=0
+            TAG_PATCH=0
+          fi
           
-          # Match breaking changes: "BREAKING CHANGE" or conventional "type(scope)!:" / "type!:" format (e.g., "feat(api)!: ..." or "feat!: ...")
-          if echo "$COMMITS" | grep -qiE "((^|[[:space:]])BREAKING CHANGE)|([[:alnum:]_)]!:)"; then
+          # Determine bump type by comparing versions
+          BUMP_TYPE="none"
+          if [ "$CURRENT_MAJOR" -gt "$TAG_MAJOR" ]; then
             BUMP_TYPE="major"
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-          elif echo "$COMMITS" | grep -qiE "(^|[[:space:]])(feat|feature)(\(|:|[[:space:]])"; then
+          elif [ "$CURRENT_MAJOR" -eq "$TAG_MAJOR" ] && [ "$CURRENT_MINOR" -gt "$TAG_MINOR" ]; then
             BUMP_TYPE="minor"
-            MINOR=$((MINOR + 1))
           fi
           
           # Only create tag if there's a major or minor bump
@@ -79,10 +78,11 @@ jobs:
             exit 0
           fi
           
-          NEW_TAG="v${MAJOR}.${MINOR}"
+          # Create full version tag
+          NEW_TAG="v${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}"
           echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
-          echo "Calculated: $NEW_TAG ($BUMP_TYPE bump)"
+          echo "Calculated: $NEW_TAG ($BUMP_TYPE bump from $LATEST_TAG)"
 
       - name: Check if tag already exists
         id: check-tag
@@ -99,6 +99,72 @@ jobs:
             echo "Tag $NEW_TAG does not exist, will create"
           fi
 
+      - name: Generate changelog
+        id: changelog
+        if: steps.check-tag.outputs.exists == 'false' && steps.version.outputs.new_tag != ''
+        run: |
+          NEW_TAG="${{ steps.version.outputs.new_tag }}"
+          LATEST_TAG="${{ steps.version.outputs.latest_tag }}"
+          
+          # Get commits since last tag (or all commits if no tag)
+          if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          # Categorize commits by type (match after "- " prefix)
+          FEATURES=$(echo "$COMMITS" | grep -E "^- (feat|feature)" || true)
+          FIXES=$(echo "$COMMITS" | grep -E "^- (fix|bugfix)" || true)
+          BREAKING=$(echo "$COMMITS" | grep -E "(BREAKING CHANGE|feat!|!:|breaking)" || true)
+          OTHER=$(echo "$COMMITS" | grep -vE "^- (feat|feature|fix|bugfix)" || true)
+          
+          # Build changelog
+          CHANGELOG="## What's Changed"
+          
+          if [ -n "$BREAKING" ]; then
+            CHANGELOG="$CHANGELOG
+
+### ⚠️ Breaking Changes
+$BREAKING"
+          fi
+          
+          if [ -n "$FEATURES" ]; then
+            CHANGELOG="$CHANGELOG
+
+### ✨ New Features
+$FEATURES"
+          fi
+          
+          if [ -n "$FIXES" ]; then
+            CHANGELOG="$CHANGELOG
+
+### 🐛 Bug Fixes
+$FIXES"
+          fi
+          
+          if [ -n "$OTHER" ]; then
+            CHANGELOG="$CHANGELOG
+
+### 📝 Other Changes
+$OTHER"
+          fi
+          
+          # Add full commit list
+          CHANGELOG="$CHANGELOG
+
+## Full Changelog
+\`\`\`
+$COMMITS
+\`\`\`"
+          
+          # Output for GitHub release (multiline)
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
       - name: Create and push tag
         if: steps.check-tag.outputs.exists == 'false' && steps.version.outputs.new_tag != ''
         run: |
@@ -113,6 +179,18 @@ jobs:
           
           echo "Created and pushed tag: $NEW_TAG"
 
+      - name: Create GitHub Release
+        if: steps.check-tag.outputs.exists == 'false' && steps.version.outputs.new_tag != ''
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.new_tag }}
+          name: Release ${{ steps.version.outputs.new_tag }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Summary
         run: |
           BUMP_TYPE="${{ steps.version.outputs.bump_type }}"
@@ -123,13 +201,18 @@ jobs:
             echo "### ℹ️ No Version Bump" >> $GITHUB_STEP_SUMMARY
             echo "No major or minor version bump detected in commits." >> $GITHUB_STEP_SUMMARY
             echo "No tag created." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Note:** Patch versions are calculated automatically by GitVersion." >> $GITHUB_STEP_SUMMARY
           elif [ "$EXISTS" = "false" ]; then
-            echo "### ✅ Tag Created" >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ Release Created" >> $GITHUB_STEP_SUMMARY
             echo "**Tag:** \`$NEW_TAG\`" >> $GITHUB_STEP_SUMMARY
             echo "**Bump Type:** $BUMP_TYPE" >> $GITHUB_STEP_SUMMARY
+            echo "**Full SemVer:** \`${{ steps.gitversion.outputs.fullSemVer }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Tag created and pushed" >> $GITHUB_STEP_SUMMARY
+            echo "✅ GitHub release created with changelog" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ℹ️ Tag Already Exists" >> $GITHUB_STEP_SUMMARY
             echo "**Tag:** \`$NEW_TAG\`" >> $GITHUB_STEP_SUMMARY
             echo "No new tag created (tag already exists)" >> $GITHUB_STEP_SUMMARY
           fi
-

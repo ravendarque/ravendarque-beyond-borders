@@ -20,9 +20,7 @@ describe('AdjustControls', () => {
   const defaultProps = {
     thickness: 10,
     onThicknessChange: vi.fn(),
-    insetPct: 0,
-    onInsetChange: vi.fn(),
-    flagOffsetX: 0,
+    flagOffsetPct: 0, // Percentage: -50 to +50
     onFlagOffsetChange: vi.fn(),
     presentation: 'ring' as const,
     segmentRotation: 0,
@@ -38,24 +36,10 @@ describe('AdjustControls', () => {
     expect(screen.getByText('10%')).toBeTruthy();
   });
 
-  it('should render inset/outset slider', () => {
-    render(<AdjustControls {...defaultProps} />);
-    
-    expect(screen.getByText('Inset')).toBeTruthy();
-    expect(screen.getByText('Outset')).toBeTruthy();
-    expect(screen.getByText('0%')).toBeTruthy();
-  });
-
   it('should display correct thickness value', () => {
     render(<AdjustControls {...defaultProps} thickness={15} />);
     
     expect(screen.getByText('15%')).toBeTruthy();
-  });
-
-  it('should display correct inset value', () => {
-    render(<AdjustControls {...defaultProps} insetPct={-5} />);
-    
-    expect(screen.getByText('-5%')).toBeTruthy();
   });
 
   it('should not render rotation slider when presentation is not segment', () => {
@@ -131,8 +115,8 @@ describe('AdjustControls', () => {
       },
     };
     
-    // flagOffsetX of 128 pixels = 25% of 512
-    render(<AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithOffset} flagOffsetX={128} />);
+    // flagOffsetX is now a percentage value (-50 to +50)
+    render(<AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithOffset} flagOffsetPct={25} />);
     
     expect(screen.getByText('25%')).toBeTruthy();
   });
@@ -141,10 +125,8 @@ describe('AdjustControls', () => {
     render(<AdjustControls {...defaultProps} />);
     
     const thicknessSlider = screen.getByLabelText('Border thickness');
-    const insetSlider = screen.getByLabelText('Border inset/outset');
     
     expect(thicknessSlider).toBeTruthy();
-    expect(insetSlider).toBeTruthy();
   });
 
   it('should have correct ARIA label for rotation slider when in segment mode', () => {
