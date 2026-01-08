@@ -358,12 +358,6 @@ label.choose-circle:hover {
   box-shadow: 0 6px 16px rgba(180, 160, 100, 0.3);
 }
 
-.choose-circle:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
 .choose-circle.has-image {
   border: none;
 }
@@ -371,6 +365,28 @@ label.choose-circle:hover {
 .choose-circle.has-image:hover {
   transform: scale(1.03);
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+}
+
+/* Dragging state - placed after hover rules with matching specificity */
+/* When both hover and dragging are active, dragging wins due to order */
+.choose-wrapper:hover .choose-circle.is-dragging,
+label.choose-circle.is-dragging,
+.choose-circle.is-dragging {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(180, 160, 100, 0.3);
+}
+
+.choose-wrapper:hover .choose-circle.has-image.is-dragging,
+label.choose-circle.has-image.is-dragging,
+.choose-circle.has-image.is-dragging {
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+}
+
+.choose-circle:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 .choose-circle.has-image:active {
