@@ -37,6 +37,7 @@ export function mapCategoryToCode(category) {
     'Stateless People': 'stateless',
     'Oppressed Groups': 'oppressed',
     'LGBTQIA+': 'lgbtqia',
+    'Resistance Movements': 'resistance',
   };
   return mapping[category] || null;
 }
@@ -49,6 +50,7 @@ export const CATEGORY_DISPLAY_NAMES = {
   'stateless': 'Stateless People',
   'oppressed': 'Oppressed Groups',
   'lgbtqia': 'LGBTQIA+',
+  'resistance': 'Resistance Movements',
 };
 
 /**
