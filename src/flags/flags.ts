@@ -712,14 +712,17 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#e00000',
-          '#700080',
-          '#0050ff',
-          '#ff9000',
-          '#fff000',
-          '#008020',
-          '#000000',
-          '#604010'
+          '#E40303', // Red (top stripe)
+          '#FF8C00', // Orange
+          '#FFED00', // Yellow
+          '#008026', // Green
+          '#004DFF', // Blue
+          '#750787', // Purple/Violet (bottom stripe)
+          '#000000', // Black (chevron)
+          '#604010', // Brown (chevron)
+          '#5BCEFA', // Light Blue (trans chevron)
+          '#F5A9B8', // Pink (trans chevron)
+          '#FFFFFF', // White (trans chevron)
         ],
       },
       cutout: {
