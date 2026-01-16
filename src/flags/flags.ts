@@ -724,7 +724,7 @@ export const flags: FlagSpec[] = [
       },
       cutout: {
         offsetEnabled: true,
-        defaultOffset: -35,
+        defaultOffset: -25,
       },
     },
   },
@@ -769,7 +769,7 @@ export const flags: FlagSpec[] = [
       },
       cutout: {
         offsetEnabled: true,
-        defaultOffset: -35,
+        defaultOffset: -16,
       },
     },
   },
