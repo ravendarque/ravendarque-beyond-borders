@@ -7,7 +7,7 @@
 
 import { useReducer, useEffect, useCallback, useRef } from 'react';
 import type { Step } from './useStepNavigation';
-import type { WorkflowState, Step1State, Step2State, Step3State } from '@/types/workflowState';
+import type { WorkflowState } from '@/types/workflowState';
 import { createInitialWorkflowState } from '@/types/workflowState';
 import type { ImagePosition, ImageDimensions } from '@/utils/imagePosition';
 import type { PresentationMode } from '@/components/PresentationModeSelector';

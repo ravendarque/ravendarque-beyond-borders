@@ -11,10 +11,8 @@
  */
 
 import { useEffect, useRef } from 'react';
-import type { Step } from './useStepNavigation';
 import type { WorkflowState } from '@/types/workflowState';
 import type { ImagePosition, ImageDimensions } from '@/utils/imagePosition';
-import type { PresentationMode } from '@/components/PresentationModeSelector';
 import type { FlagSpec } from '@/flags/schema';
 import { captureAdjustedImage } from '@/utils/captureImage';
 import { IMAGE_CONSTANTS } from '@/constants';
