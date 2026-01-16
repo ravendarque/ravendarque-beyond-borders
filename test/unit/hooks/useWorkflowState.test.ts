@@ -4,6 +4,7 @@ import { useWorkflowState } from '@/hooks/useWorkflowState';
 import { workflowReducer } from '@/hooks/useWorkflowState';
 import { createInitialWorkflowState } from '@/types/workflowState';
 import type { WorkflowAction } from '@/hooks/useWorkflowState';
+import type { Step } from '@/hooks/useStepNavigation';
 import { IMAGE_CONSTANTS } from '@/constants';
 
 describe('workflowReducer', () => {
@@ -199,7 +200,7 @@ describe('workflowReducer', () => {
       step3: {
         thickness: 20,
         flagOffsetPct: -25,
-        presentation: 'cutout',
+        presentation: 'cutout' as const,
         segmentRotation: 45,
         configuredForFlagId: 'palestine',
       },
@@ -231,11 +232,11 @@ describe('workflowReducer', () => {
       step3: {
         thickness: 20,
         flagOffsetPct: -25,
-        presentation: 'cutout',
+        presentation: 'cutout' as const,
         segmentRotation: 45,
         configuredForFlagId: 'palestine',
       },
-      currentStep: 3,
+      currentStep: 3 as Step,
     };
     const action: WorkflowAction = { type: 'RESET_ALL' };
     
