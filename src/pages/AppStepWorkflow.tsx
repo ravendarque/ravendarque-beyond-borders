@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
@@ -188,12 +188,9 @@ export function AppStepWorkflow() {
   const prevStepRef = useRef<number>(currentStep);
   // Track the flag ID when we were last on step 3, to detect flag changes between step 2 and step 3
   const flagIdOnStep3Ref = useRef<string | null>(null);
-  // Track immediate offset value that bypasses debounce (for default offset updates)
-  const immediateOffsetRef = useRef<number | null>(null);
   
   // Set default offset when flag changes, when switching to cutout mode, or when entering Step 3
-  // Use useLayoutEffect to update offset synchronously before paint to prevent flicker
-  useLayoutEffect(() => {
+  useEffect(() => {
     // Always calculate change flags (even when not on step 3) to track flag changes on step 2
     const flagChanged = prevFlagIdRef.current !== flagId;
     const enteredStep3 = prevStepRef.current !== 3 && currentStep === 3;
@@ -215,13 +212,10 @@ export function AppStepWorkflow() {
       if (switchedToCutout || (flagChanged && currentStep === 3) || enteredStep3 || flagChangedSinceLastStep3) {
         if (defaultOffset !== undefined) {
           // Use the percentage directly - no conversion needed
-          // Set both state and immediate ref to bypass debounce and prevent flicker
           setFlagOffsetPct(defaultOffset);
-          immediateOffsetRef.current = defaultOffset;
         } else {
           // If in cutout mode but flag doesn't have cutout config, reset to 0
           setFlagOffsetPct(0);
-          immediateOffsetRef.current = 0;
         }
       }
     }
@@ -318,24 +312,10 @@ export function AppStepWorkflow() {
       // The preview container is 250-400px, so high-res gives us 2.5-4x resolution
       // This eliminates blur from CSS downscaling
       // Use cropped image - no position/zoom needed (already captured)
-      
-      // Use immediate offset if set (bypasses debounce for default offset updates to prevent flicker)
-      // Otherwise use debounced value (for smooth dragging)
-      // Clear immediate offset when debounced value has caught up to prevent stale values
-      const offsetToUse = immediateOffsetRef.current !== null 
-        ? immediateOffsetRef.current 
-        : debouncedFlagOffsetPct;
-      
-      // Clear immediate offset when debounced value matches (debounce has caught up)
-      if (immediateOffsetRef.current !== null && 
-          Math.abs(debouncedFlagOffsetPct - immediateOffsetRef.current) < 0.01) {
-        immediateOffsetRef.current = null;
-      }
-      
       render(croppedImageUrl, flagId, {
         size: RENDER_SIZES.HIGH_RES,
         thickness: debouncedThickness,
-        flagOffsetPct: offsetToUse,
+        flagOffsetPct: debouncedFlagOffsetPct,
         presentation,
         segmentRotation: debouncedSegmentRotation,
         bg: 'transparent',
