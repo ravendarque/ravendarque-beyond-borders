@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useStepNavigation } from '@/hooks/useStepNavigation';
+import { useWorkflowState } from '@/hooks/useWorkflowState';
+import { useStepTransitions } from '@/hooks/useStepTransitions';
 import { useDebounce } from '@/hooks/usePerformance';
 import { getAssetUrl, config } from '@/config';
 import { FlagSelector } from '@/components/FlagSelector';
@@ -12,11 +14,9 @@ import { Link } from 'react-router-dom';
 import { AdjustStep } from '@/components/AdjustStep';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import type { PresentationMode } from '@/components/PresentationModeSelector';
-import type { ImagePosition, ImageDimensions, ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
-import { calculatePositionLimits, getAspectRatio, clampPosition } from '@/utils/imagePosition';
-import { captureAdjustedImage } from '@/utils/captureImage';
-import { IMAGE_CONSTANTS, RENDER_SIZES } from '@/constants';
+import type { ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
+import { calculatePositionLimits, getAspectRatio } from '@/utils/imagePosition';
+import { RENDER_SIZES } from '@/constants';
 import '../styles.css';
 
 /**
@@ -32,48 +32,33 @@ import '../styles.css';
  * - Coordinate rendering pipeline
  * - Render step-specific UI
  */
-const STORAGE_KEY_IMAGE = 'beyond-borders-image';
-const STORAGE_KEY_FLAG = 'beyond-borders-flag';
 
 export function AppStepWorkflow() {
-  // Restore state from sessionStorage on mount
-  const [imageUrl, setImageUrl] = useState<string | null>(() => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY_IMAGE);
-      // If it's a data URL, use it directly; if it's a blob URL, it's invalid now
-      return stored && stored.startsWith('data:') ? stored : null;
-    } catch {
-      return null;
-    }
-  });
-  const [flagId, setFlagId] = useState<string | null>(() => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY_FLAG);
-      return stored ? stored : null;
-    } catch {
-      return null;
-    }
-  });
+  // Unified workflow state management
+  const workflow = useWorkflowState();
+  const {
+    step1,
+    step2,
+    step3,
+    currentStep: workflowStep,
+    setStep,
+    setImageUrl,
+    setImagePosition,
+    setImageDimensions,
+    setCircleSize,
+    setCroppedImageUrl,
+    setFlagId,
+    setThickness,
+    setFlagOffsetPct,
+    setPresentation,
+    setSegmentRotation,
+    resetAll,
+    updateStep3ForFlag,
+  } = workflow;
+
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-  
-  // Step 1: Image position and dimensions
-  const [imagePosition, setImagePosition] = useState<ImagePosition>({ x: 0, y: 0, zoom: 0 });
-  const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
-  const [circleSize, setCircleSize] = useState<number>(IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE); // Default, will be updated from CSS
-  
-  // Step 1 → Step 3: Captured cropped image (Approach 2)
-  const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
-  
-  // Step 3: Adjust controls state
-  const [thickness, setThickness] = useState(10);
-  const [flagOffsetPct, setFlagOffsetPct] = useState(0); // Percentage: -50 to +50
-  const [presentation, setPresentation] = useState<PresentationMode>('ring');
-  const [segmentRotation, setSegmentRotation] = useState(0);
-  
-  // Track previous presentation mode to detect when switching to cutout
-  const prevPresentationRef = useRef<PresentationMode>('ring');
-  
-  // Step navigation with URL sync
+
+  // Step navigation with URL sync (uses unified state)
   const {
     currentStep,
     setCurrentStep,
@@ -82,161 +67,56 @@ export function AppStepWorkflow() {
     canGoToStep2,
     canGoToStep3,
   } = useStepNavigation({
-    imageUrl,
-    flagId,
+    imageUrl: step1.imageUrl,
+    flagId: step2.flagId,
   });
-  
+
+  // Sync workflow step with navigation step (navigation is source of truth for URL sync)
+  useEffect(() => {
+    if (workflowStep !== currentStep) {
+      setStep(currentStep);
+    }
+  }, [currentStep, workflowStep, setStep]);
+
   // Avatar rendering
   const flagImageCache = useFlagImageCache();
   const { overlayUrl, isRendering, render } = useAvatarRenderer(flags, flagImageCache);
-  
+
   // Memoize selected flag to prevent unnecessary re-renders
   const selectedFlag = useMemo(() => {
-    return flagId ? flags.find(f => f.id === flagId) ?? null : null;
-  }, [flagId]);
+    return step2.flagId ? flags.find(f => f.id === step2.flagId) ?? null : null;
+  }, [step2.flagId]);
+
+  // Step transitions (handles image capture, flag offset resets, etc.)
+  useStepTransitions({
+    state: workflow.state,
+    selectedFlag,
+    onCroppedImageUrlChange: setCroppedImageUrl,
+    onImageDimensionsChange: setImageDimensions,
+    onCircleSizeChange: setCircleSize,
+    onFlagOffsetChange: setFlagOffsetPct,
+    onUpdateStep3ForFlag: updateStep3ForFlag,
+  });
 
   // Calculate position limits based on image dimensions and zoom
   const positionLimits = useMemo<PositionLimits>(() => {
-    if (!imageDimensions) {
+    if (!step1.imageDimensions) {
       return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
     }
-    return calculatePositionLimits(imageDimensions, circleSize, imagePosition.zoom);
-  }, [imageDimensions, circleSize, imagePosition.zoom]);
-
-  // Clamp position when image changes (not when zoom changes)
-  // Position should remain constant when zoom changes - only clamp when new image is loaded
-  // Note: When a new image is loaded, position is reset to { x: 0, y: 0, zoom: 0 } in the
-  // image detection useEffect, so this clamping is mainly a safety check
-  const prevImageDimensionsRef = useRef<ImageDimensions | null>(null);
-  const positionRef = useRef<ImagePosition>(imagePosition);
-  const limitsRef = useRef<PositionLimits>(positionLimits);
-  
-  // Keep refs in sync
-  positionRef.current = imagePosition;
-  limitsRef.current = positionLimits;
-  
-  useEffect(() => {
-    if (imageDimensions && prevImageDimensionsRef.current) {
-      // Only clamp if image dimensions changed (new image loaded)
-      const imageChanged = 
-        prevImageDimensionsRef.current.width !== imageDimensions.width ||
-        prevImageDimensionsRef.current.height !== imageDimensions.height;
-      
-      if (imageChanged) {
-        // New image loaded - clamp position to new limits (safety check)
-        // Position is usually already reset to { x: 0, y: 0, zoom: 0 } by image detection useEffect
-        const clamped = clampPosition(positionRef.current, limitsRef.current);
-        // Only update if position was actually clamped
-        if (clamped.x !== positionRef.current.x || clamped.y !== positionRef.current.y) {
-          setImagePosition(clamped);
-        }
-      }
-    }
-    prevImageDimensionsRef.current = imageDimensions;
-  }, [imageDimensions]); // Only depend on imageDimensions - position should remain constant when zoom changes
+    return calculatePositionLimits(step1.imageDimensions, step1.circleSize, step1.imagePosition.zoom);
+  }, [step1.imageDimensions, step1.circleSize, step1.imagePosition.zoom]);
 
   // Get aspect ratio
   const aspectRatio = useMemo<ImageAspectRatio | null>(() => {
-    return imageDimensions ? getAspectRatio(imageDimensions) : null;
-  }, [imageDimensions]);
-
-  // Detect image dimensions when image URL changes
-  useEffect(() => {
-    if (!imageUrl) {
-      setImageDimensions(null);
-      setImagePosition({ x: 0, y: 0, zoom: 0 });
-      return;
-    }
-
-    const img = new Image();
-    img.onload = () => {
-      setImageDimensions({
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-      });
-      // Reset position when new image is loaded
-      setImagePosition({ x: 0, y: 0, zoom: 0 });
-    };
-    img.onerror = () => {
-      setImageDimensions(null);
-    };
-    img.src = imageUrl;
-  }, [imageUrl]);
-
-  // Get circle size from CSS variable
-  useEffect(() => {
-    const updateCircleSize = () => {
-      const wrapper = document.querySelector('.choose-wrapper');
-      if (wrapper) {
-        const computed = window.getComputedStyle(wrapper);
-        const size = parseFloat(computed.width);
-        if (!isNaN(size)) {
-          // Circle is 80% of wrapper (inset 10% on each side)
-          setCircleSize(size * 0.8);
-        }
-      }
-    };
-    
-    updateCircleSize();
-    window.addEventListener('resize', updateCircleSize);
-    return () => window.removeEventListener('resize', updateCircleSize);
-  }, [imageUrl]); // Re-run when image changes to ensure element exists
-
-  // Track previous flag ID to detect flag changes
-  const prevFlagIdRef = useRef<string | null>(flagId);
-  // Track previous step to detect when entering step 3
-  const prevStepRef = useRef<number>(currentStep);
-  // Track the flag ID when we were last on step 3, to detect flag changes between step 2 and step 3
-  const flagIdOnStep3Ref = useRef<string | null>(null);
-  
-  // Set default offset when flag changes, when switching to cutout mode, or when entering Step 3
-  useEffect(() => {
-    // Always calculate change flags (even when not on step 3) to track flag changes on step 2
-    const flagChanged = prevFlagIdRef.current !== flagId;
-    const enteredStep3 = prevStepRef.current !== 3 && currentStep === 3;
-    const switchedToCutout = prevPresentationRef.current !== 'cutout' && presentation === 'cutout';
-    
-    // Set default offset when on step 3 with cutout mode
-    if (currentStep === 3 && presentation === 'cutout') {
-      const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
-      
-      // Check if flag changed since we were last on step 3 (i.e., flag changed on step 2)
-      // This check must happen BEFORE we update flagIdOnStep3Ref below
-      const flagChangedSinceLastStep3 = flagIdOnStep3Ref.current !== null && flagIdOnStep3Ref.current !== flagId;
-      
-      // Set default when:
-      // 1. Switching to cutout mode
-      // 2. Flag changes while on step 3 (even if already in cutout mode)
-      // 3. First time entering step 3 with cutout mode already selected (to set initial offset)
-      // 4. Flag changed on step 2 and we're now entering step 3 (flagChangedSinceLastStep3)
-      if (switchedToCutout || (flagChanged && currentStep === 3) || (enteredStep3 && flagIdOnStep3Ref.current === null) || flagChangedSinceLastStep3) {
-        if (defaultOffset !== undefined) {
-          // Use the percentage directly - no conversion needed
-          setFlagOffsetPct(defaultOffset);
-        } else {
-          // If in cutout mode but flag doesn't have cutout config, reset to 0
-          setFlagOffsetPct(0);
-        }
-      }
-    }
-    
-    // Update flagIdOnStep3Ref when we're on step 3 (after checking for changes above)
-    if (currentStep === 3) {
-      flagIdOnStep3Ref.current = flagId;
-    }
-    
-    // Update refs for next render (always, not just when on step 3)
-    prevPresentationRef.current = presentation;
-    prevFlagIdRef.current = flagId;
-    prevStepRef.current = currentStep;
-  }, [currentStep, flagId, presentation, selectedFlag?.modes?.cutout?.defaultOffset]);
+    return step1.imageDimensions ? getAspectRatio(step1.imageDimensions) : null;
+  }, [step1.imageDimensions]);
 
   // Preload full flag image when flag is selected (needed for cutout mode)
   useEffect(() => {
     if (!selectedFlag?.png_full) return;
 
     const cacheKey = selectedFlag.png_full;
-    
+
     // Skip if already cached
     if (flagImageCache.has(cacheKey)) return;
 
@@ -245,7 +125,7 @@ export function AppStepWorkflow() {
       try {
         const response = await fetch(getAssetUrl(`flags/${selectedFlag.png_full}`));
         if (!response.ok) return;
-        
+
         const blob = await response.blob();
         const bitmap = await createImageBitmap(blob);
         flagImageCache.set(cacheKey, bitmap);
@@ -259,101 +139,42 @@ export function AppStepWorkflow() {
   }, [selectedFlag?.png_full, flagImageCache]);
 
   // Debounce slider values for smoother rendering during drag
-  const debouncedThickness = useDebounce(thickness, 50);
-  const debouncedFlagOffsetPct = useDebounce(flagOffsetPct, 50);
-  const debouncedSegmentRotation = useDebounce(segmentRotation, 50);
-
-  // Track position when image was captured (for recapture detection)
-  const capturedPositionRef = useRef<ImagePosition | null>(null);
-  
-  // Capture adjusted image when transitioning to Step 3 (Approach 2)
-  useEffect(() => {
-    if (currentStep === 3 && imageUrl && imageDimensions) {
-      // Check if we need to capture (first time or position changed)
-      const needsCapture = !croppedImageUrl || 
-        !capturedPositionRef.current ||
-        capturedPositionRef.current.x !== imagePosition.x ||
-        capturedPositionRef.current.y !== imagePosition.y ||
-        capturedPositionRef.current.zoom !== imagePosition.zoom;
-      
-      if (needsCapture) {
-        // Capture the adjusted image at final render size (high-res for quality)
-        captureAdjustedImage(
-          imageUrl,
-          imagePosition,
-          circleSize,
-          imageDimensions,
-          IMAGE_CONSTANTS.DEFAULT_CAPTURE_SIZE
-        )
-          .then((captured) => {
-            setCroppedImageUrl(captured);
-            capturedPositionRef.current = { ...imagePosition };
-          })
-          .catch(() => {
-            // Fallback: use original image if capture fails
-            // Error is handled silently - user still gets a working image
-            setCroppedImageUrl(imageUrl);
-            capturedPositionRef.current = { ...imagePosition };
-          });
-      }
-    }
-    
-    // Reset cropped image when going back to Step 1 or when image changes
-    if (currentStep === 1 || !imageUrl) {
-      setCroppedImageUrl(null);
-      capturedPositionRef.current = null;
-    }
-  }, [currentStep, imageUrl, imageDimensions, imagePosition, circleSize, croppedImageUrl]);
+  const debouncedThickness = useDebounce(step3.thickness, 50);
+  const debouncedFlagOffsetPct = useDebounce(step3.flagOffsetPct, 50);
+  const debouncedSegmentRotation = useDebounce(step3.segmentRotation, 50);
 
   // Trigger render when parameters change (Step 3)
   useEffect(() => {
-    if (currentStep === 3 && croppedImageUrl && flagId) {
+    if (currentStep === 3 && step1.croppedImageUrl && step2.flagId) {
       // Render at high-res (2x) for preview to ensure crisp quality when scaled down
       // The preview container is 250-400px, so high-res gives us 2.5-4x resolution
       // This eliminates blur from CSS downscaling
       // Use cropped image - no position/zoom needed (already captured)
-      render(croppedImageUrl, flagId, {
+      render(step1.croppedImageUrl, step2.flagId, {
         size: RENDER_SIZES.HIGH_RES,
         thickness: debouncedThickness,
         flagOffsetPct: debouncedFlagOffsetPct,
-        presentation,
+        presentation: step3.presentation,
         segmentRotation: debouncedSegmentRotation,
         bg: 'transparent',
         // No imagePosition - the cropped image is already adjusted
       });
     }
-  }, [currentStep, croppedImageUrl, flagId, debouncedThickness, debouncedFlagOffsetPct, presentation, debouncedSegmentRotation, render]);
-
-  // Persist imageUrl to sessionStorage
-  useEffect(() => {
-    try {
-      if (imageUrl) {
-        sessionStorage.setItem(STORAGE_KEY_IMAGE, imageUrl);
-      } else {
-        sessionStorage.removeItem(STORAGE_KEY_IMAGE);
-      }
-    } catch {
-      // Ignore storage errors (e.g., private browsing)
-    }
-  }, [imageUrl]);
-
-  // Persist flagId to sessionStorage
-  useEffect(() => {
-    try {
-      if (flagId) {
-        sessionStorage.setItem(STORAGE_KEY_FLAG, flagId);
-      } else {
-        sessionStorage.removeItem(STORAGE_KEY_FLAG);
-      }
-    } catch {
-      // Ignore storage errors (e.g., private browsing)
-    }
-  }, [flagId]);
+  }, [
+    currentStep,
+    step1.croppedImageUrl,
+    step2.flagId,
+    debouncedThickness,
+    debouncedFlagOffsetPct,
+    step3.presentation,
+    debouncedSegmentRotation,
+    render,
+  ]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Convert file to data URL for persistence across navigation
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -367,7 +188,7 @@ export function AppStepWorkflow() {
     };
     reader.readAsDataURL(file);
   };
-  
+
   const handleDownload = () => {
     if (!overlayUrl) return;
     const a = document.createElement('a');
@@ -381,20 +202,8 @@ export function AppStepWorkflow() {
   };
 
   const handleStartOver = () => {
-    setImageUrl(null);
-    setFlagId(null);
-    setCroppedImageUrl(null);
+    resetAll();
     setCurrentStep(1);
-    setThickness(10);
-    setFlagOffsetPct(0);
-    setPresentation('ring');
-    setSegmentRotation(0);
-    try {
-      sessionStorage.removeItem(STORAGE_KEY_IMAGE);
-      sessionStorage.removeItem(STORAGE_KEY_FLAG);
-    } catch {
-      // Ignore storage errors
-    }
   };
 
   return (
@@ -443,15 +252,15 @@ export function AppStepWorkflow() {
                 }
               >
                 <ImageUploadZone
-                  imageUrl={imageUrl}
+                  imageUrl={step1.imageUrl}
                   onImageUpload={handleImageUpload}
                   onShowPrivacy={() => setShowPrivacyModal(true)}
-                  position={imagePosition}
+                  position={step1.imagePosition}
                   limits={positionLimits}
                   aspectRatio={aspectRatio}
-                  imageDimensions={imageDimensions}
+                  imageDimensions={step1.imageDimensions}
                   onPositionChange={setImagePosition}
-                  circleSize={circleSize}
+                  circleSize={step1.circleSize}
                 />
               </ErrorBoundary>
             )}
@@ -469,7 +278,7 @@ export function AppStepWorkflow() {
                 <div className="flag-selector-wrapper">
                   <FlagSelector
                     flags={flags}
-                    selectedFlagId={flagId}
+                    selectedFlagId={step2.flagId}
                     onFlagChange={setFlagId}
                   />
                   <FlagPreview flag={selectedFlag} />
@@ -491,13 +300,13 @@ export function AppStepWorkflow() {
                   overlayUrl={overlayUrl}
                   isRendering={isRendering}
                   selectedFlag={selectedFlag}
-                  presentation={presentation}
+                  presentation={step3.presentation}
                   onPresentationChange={setPresentation}
-                  thickness={thickness}
+                  thickness={step3.thickness}
                   onThicknessChange={setThickness}
-                  flagOffsetPct={flagOffsetPct}
+                  flagOffsetPct={step3.flagOffsetPct}
                   onFlagOffsetChange={setFlagOffsetPct}
-                  segmentRotation={segmentRotation}
+                  segmentRotation={step3.segmentRotation}
                   onSegmentRotationChange={setSegmentRotation}
                 />
               </ErrorBoundary>
