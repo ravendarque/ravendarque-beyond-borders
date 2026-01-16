@@ -115,7 +115,14 @@ for (const e of expected) {
   const basename = parts[parts.length - 1] || null;
   if (basename) {
     // Strip query/hash and extension to produce an id comparable to manifest.id
-    const cleanRaw = basename.replace(/[#?].*$/, '')
+    // URL-decode the basename first to handle encoded characters like %22
+    let decodedBasename = basename.replace(/[#?].*$/, '');
+    try {
+      decodedBasename = decodeURIComponent(decodedBasename);
+    } catch (e) {
+      // If decoding fails, use the original (might already be decoded)
+    }
+    const cleanRaw = decodedBasename
         .replace(/\.svg$/i, '')
         .replace(/^File:/i, '')
         .replace(/^file:/i, '');
