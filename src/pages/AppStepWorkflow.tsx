@@ -207,9 +207,9 @@ export function AppStepWorkflow() {
       // Set default when:
       // 1. Switching to cutout mode
       // 2. Flag changes while on step 3 (even if already in cutout mode)
-      // 3. Entering step 3 with cutout mode already selected (to update offset for current flag)
+      // 3. First time entering step 3 with cutout mode already selected (to set initial offset)
       // 4. Flag changed on step 2 and we're now entering step 3 (flagChangedSinceLastStep3)
-      if (switchedToCutout || (flagChanged && currentStep === 3) || enteredStep3 || flagChangedSinceLastStep3) {
+      if (switchedToCutout || (flagChanged && currentStep === 3) || (enteredStep3 && flagIdOnStep3Ref.current === null) || flagChangedSinceLastStep3) {
         if (defaultOffset !== undefined) {
           // Use the percentage directly - no conversion needed
           setFlagOffsetPct(defaultOffset);
