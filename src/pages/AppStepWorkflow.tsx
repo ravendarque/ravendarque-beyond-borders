@@ -184,16 +184,32 @@ export function AppStepWorkflow() {
 
   // Track previous flag ID to detect flag changes
   const prevFlagIdRef = useRef<string | null>(flagId);
+  // Track previous step to detect when entering step 3
+  const prevStepRef = useRef<number>(currentStep);
+  // Track the flag ID when we were last on step 3, to detect flag changes between step 2 and step 3
+  const flagIdOnStep3Ref = useRef<string | null>(null);
   
   // Set default offset when flag changes, when switching to cutout mode, or when entering Step 3
   useEffect(() => {
+    // Always calculate change flags (even when not on step 3) to track flag changes on step 2
+    const flagChanged = prevFlagIdRef.current !== flagId;
+    const enteredStep3 = prevStepRef.current !== 3 && currentStep === 3;
+    const switchedToCutout = prevPresentationRef.current !== 'cutout' && presentation === 'cutout';
+    
+    // Set default offset when on step 3 with cutout mode
     if (currentStep === 3 && presentation === 'cutout') {
       const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
-      const switchedToCutout = prevPresentationRef.current !== 'cutout';
-      const flagChanged = prevFlagIdRef.current !== flagId;
       
-      // Set default when switching to cutout mode or when flag changes in cutout mode
-      if (switchedToCutout || flagChanged) {
+      // Check if flag changed since we were last on step 3 (i.e., flag changed on step 2)
+      // This check must happen BEFORE we update flagIdOnStep3Ref below
+      const flagChangedSinceLastStep3 = flagIdOnStep3Ref.current !== null && flagIdOnStep3Ref.current !== flagId;
+      
+      // Set default when:
+      // 1. Switching to cutout mode
+      // 2. Flag changes while on step 3 (even if already in cutout mode)
+      // 3. Entering step 3 with cutout mode already selected (to update offset for current flag)
+      // 4. Flag changed on step 2 and we're now entering step 3 (flagChangedSinceLastStep3)
+      if (switchedToCutout || (flagChanged && currentStep === 3) || enteredStep3 || flagChangedSinceLastStep3) {
         if (defaultOffset !== undefined) {
           // Use the percentage directly - no conversion needed
           setFlagOffsetPct(defaultOffset);
@@ -204,9 +220,15 @@ export function AppStepWorkflow() {
       }
     }
     
-    // Update refs for next render
+    // Update flagIdOnStep3Ref when we're on step 3 (after checking for changes above)
+    if (currentStep === 3) {
+      flagIdOnStep3Ref.current = flagId;
+    }
+    
+    // Update refs for next render (always, not just when on step 3)
     prevPresentationRef.current = presentation;
     prevFlagIdRef.current = flagId;
+    prevStepRef.current = currentStep;
   }, [currentStep, flagId, presentation, selectedFlag?.modes?.cutout?.defaultOffset]);
 
   // Preload full flag image when flag is selected (needed for cutout mode)
