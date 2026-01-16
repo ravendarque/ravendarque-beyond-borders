@@ -592,12 +592,12 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#e00000',
-          '#fff000',
-          '#ff9000',
-          '#008020',
-          '#0050ff',
-          '#700090'
+          '#e00000', // Red
+          '#ff9000', // Orange
+          '#fff000', // Yellow
+          '#008020', // Green
+          '#0050ff', // Blue
+          '#700090'  // Purple
         ],
       },
     },
@@ -635,9 +635,9 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#60d0ff',
-          '#f0b0c0',
-          '#ffffff'
+          '#5BCEFA', // Light Blue (top)
+          '#F5A9B8', // Pink (middle)
+          '#FFFFFF'  // White (bottom)
         ],
       },
     },
@@ -675,10 +675,10 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#fff030',
-          '#303030',
-          '#ffffff',
-          '#a060d0'
+          '#FFF430', // Yellow (top)
+          '#FFFFFF', // White
+          '#9C59D1', // Purple
+          '#000000'  // Black (bottom)
         ],
       },
     },
@@ -719,9 +719,9 @@ export const flags: FlagSpec[] = [
           '#004DFF', // Blue
           '#750787', // Purple/Violet (bottom stripe)
           '#000000', // Black (chevron)
-          '#604010', // Brown (chevron)
-          '#5BCEFA', // Light Blue (trans chevron)
-          '#F5A9B8', // Pink (trans chevron)
+          '#613915', // Brown (chevron)
+          '#74D7EE', // Light Blue (trans chevron)
+          '#FFAFC8', // Pink (trans chevron)
           '#FFFFFF', // White (trans chevron)
         ],
       },
@@ -760,14 +760,19 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#702080',
-          '#e02010',
-          '#f09010',
-          '#3060a0',
-          '#ffe010',
-          '#80c030',
-          '#000000',
-          '#ffffff'
+          '#E40303', // Red (rainbow)
+          '#FF8C00', // Orange (rainbow)
+          '#FFED00', // Yellow (rainbow)
+          '#008026', // Green (rainbow)
+          '#004DFF', // Blue (rainbow)
+          '#6D2380', // Purple/Violet (rainbow stripe)
+          '#FDD817', // Yellow (intersex triangle)
+          '#7902AA', // Purple (intersex circle)
+          '#FFFFFF', // White (chevron)
+          '#F4AEC8', // Pink (chevron)
+          '#7BCCE5', // Light Blue (chevron)
+          '#945516', // Brown (chevron)
+          '#000000'  // Black (chevron)
         ],
       },
       cutout: {
@@ -805,10 +810,10 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#000000',
-          '#a0a0a0',
-          '#800080',
-          '#ffffff'
+          '#000000', // Black (top)
+          '#A0A0A0', // Grey
+          '#FFFFFF', // White
+          '#800080'  // Purple (bottom)
         ],
       },
     },
@@ -878,9 +883,9 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#d00070',
-          '#0040b0',
-          '#a05090'
+          '#D60270', // Pink (top)
+          '#9B59D0', // Purple (middle)
+          '#0038A8'  // Blue (bottom)
         ],
       },
     },
@@ -914,9 +919,9 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#ff2090',
-          '#20b0ff',
-          '#ffe000'
+          '#FF218C', // Magenta (top)
+          '#FFD700', // Yellow (middle)
+          '#21B1FF'  // Cyan (bottom)
         ],
       },
     },
