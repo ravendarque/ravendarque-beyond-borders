@@ -172,3 +172,81 @@ categories:
         cutoutMode:
           offsetEnabled: true
           defaultOffset: 50
+
+      - flagName: "Flag of Iran"
+        displayName: "Iran"
+        svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Iran.svg"
+        description: "Three horizontal bands of green, white, and red with the national emblem centered in white and the takbir repeated along the edges of the green and red bands."
+        reason: "Since 28 December 2025, Iranian security forces have responded to nationwide protests with extreme violence, including unlawful killings, mass arbitrary arrests of children as young as 14, enforced disappearances, attacks on hospitals, and a near-total internet blackout. At least 28 protesters and bystanders were killed between 31 December 2025 and 3 January 2026, with estimates reaching thousands. Security forces including the IRGC and FARAJA have used live ammunition, shotguns with metal pellets, tear gas, and beatings against largely peaceful protesters. Amnesty International and Human Rights Watch have documented patterns of violations that may constitute crimes against humanity, including summary executions, torture, and denial of medical care. This flag represents solidarity with the Iranian people demanding fundamental rights, dignity, and political change in the face of systematic state repression."
+        references:
+          - url: "https://en.wikipedia.org/wiki/Flag_of_Iran"
+            text: "Flag of Iran on Wikipedia"
+          - url: "https://www.amnesty.org/en/latest/news/2026/01/iran-deaths-injuries-authorities-protest-bloodshed/"
+            text: "Amnesty International: Iran deaths and injuries amid authorities' renewed cycle of protest bloodshed"
+          - url: "https://www.amnesty.org/en/latest/news/2026/01/iran-massacre-of-protesters-demands-global-diplomatic-action-to-signal-an-end-to-impunity/"
+            text: "Amnesty International: Iran massacre of protesters demands global diplomatic action"
+          - url: "https://www.hrw.org/news/2026/01/08/iran-authorities-renewed-cycle-of-protest-bloodshed"
+            text: "Human Rights Watch: Iran: Authorities' Renewed Cycle of Protest Bloodshed"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: 0
+
+      - flagName: "Flag of Sudan"
+        displayName: "Sudan"
+        svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Sudan.svg"
+        description: "Three horizontal bands of red, white, and black with a green triangle at the hoist."
+        reason: "Since April 2023, Sudan has been engulfed in a brutal civil war between the Sudanese Armed Forces (SAF) and the Rapid Support Forces (RSF), creating one of the world's worst humanitarian crises. Civilians have suffered mass atrocities including indiscriminate killings, sexual violence weaponized as war crimes, ethnic cleansing targeting non-Arab groups in Darfur (recognized as genocide by some authorities), deliberate attacks on medical and aid infrastructure, denial of humanitarian access, and widespread famine. Over 12 million people have been displaced, with millions at risk of starvation. UN investigators, Amnesty International, Human Rights Watch, and Oxfam have documented war crimes and crimes against humanity committed by both warring factions. This flag represents solidarity with the Sudanese people caught in a devastating conflict with insufficient international response."
+        references:
+          - url: "https://en.wikipedia.org/wiki/Flag_of_Sudan"
+            text: "Flag of Sudan on Wikipedia"
+          - url: "https://www.amnesty.org/en/location/africa/east-africa-the-horn-and-great-lakes/sudan/report-sudan/"
+            text: "Amnesty International: Human rights in Sudan"
+          - url: "https://sudan.un.org/en/301357-%E2%80%9C-war-atrocities%E2%80%9D-sudan-civilians-deliberately-targeted-un-fact-finding-mission-reports"
+            text: "UN: War atrocities in Sudan - civilians deliberately targeted"
+          - url: "https://www.oxfam.org/en/research/sudan-crisis-two-years"
+            text: "Oxfam: Sudan crisis, two years on"
+          - url: "https://www.hrw.org/world-report/2025/country-chapters/sudan"
+            text: "Human Rights Watch: World Report 2025 - Sudan"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: 0
+
+      - flagName: "Flag of the Democratic Republic of the Congo"
+        displayName: "Congo (DRC)"
+        svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_the_Democratic_Republic_of_the_Congo.svg"
+        description: "Sky blue field with a yellow-bordered red diagonal stripe from lower hoist to upper fly and a yellow five-pointed star in the upper hoist corner."
+        reason: "Eastern DRC faces escalating conflict and immense humanitarian suffering as government forces, rebel groups (notably M23), and allied militias commit serious abuses with near-total impunity. Civilians face indiscriminate attacks using unguided rockets and explosives on densely populated areas, summary executions, gang rapes, abductions, ethnic targeting, mass displacement (over 7 million internally displaced), destruction of displacement camps and infrastructure, and denial of access to medical care, food, and water. Grave violations against children have tripled since January 2025, including killing, maiming, sexual violence, and forced recruitment. Humanitarian aid is severely impeded by funding cuts and security access problems. Amnesty International, Human Rights Watch, and UN experts have documented violations that may amount to war crimes. This flag represents solidarity with the Congolese people, especially those in eastern regions facing systematic violence and displacement."
+        references:
+          - url: "https://en.wikipedia.org/wiki/Flag_of_the_Democratic_Republic_of_the_Congo"
+            text: "Flag of the Democratic Republic of the Congo on Wikipedia"
+          - url: "https://www.amnesty.org/en/latest/news/2025/08/drc-warring-factions-in-eastern-drc-commit-horrific-abuses-including-gang-rapes-summary-executions-and-abductions/"
+            text: "Amnesty International: DRC warring factions commit horrific abuses"
+          - url: "https://www.hrw.org/news/2025/05/23/dr-congo-army-backed-militias-abuse-civilians-south-kivu"
+            text: "Human Rights Watch: DR Congo - Army-backed militias abuse civilians"
+          - url: "https://www.unicef.org/press-releases/reports-grave-violations-against-children-eastern-democratic-republic-congo-tripled"
+            text: "UNICEF: Grave violations against children in eastern DRC tripled"
+          - url: "https://www.oxfam.org/en/press-releases/nearly-half-million-people-left-without-shelter-food-or-water-dr-congo-amid"
+            text: "Oxfam: Nearly half million people left without shelter, food or water in DR Congo"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: 0
+
+      - flagName: "Flag of Myanmar"
+        displayName: "Myanmar"
+        svg_url: "https://commons.wikimedia.org/wiki/File:Flag_of_Myanmar.svg"
+        description: "Three horizontal bands of yellow, green, and red with a white five-pointed star centered on the green band."
+        reason: "Since the military coup of 1 February 2021, Myanmar's junta has escalated a campaign of widespread atrocities including indiscriminate air and artillery strikes on civilians, bombings of schools and hospitals, mass displacement (over 3.5 million internally displaced), arbitrary arrests and detentions (over 20,000 detained), torture, suppression of free expression, forced recruitment including of children, and targeting of ethnic minorities including Rohingya. More than 6,000 people have been killed. Grave violations against children have increased by over 400%, including killing, maiming, abduction, and recruitment. The junta uses scorched earth tactics, cluster munitions, and landmines, while blocking humanitarian access and causing economic collapse. Amnesty International and Human Rights Watch have documented patterns of violations that amount to war crimes and crimes against humanity. This flag represents solidarity with the people of Myanmar resisting military rule and demanding democracy, not the junta regime."
+        references:
+          - url: "https://en.wikipedia.org/wiki/Flag_of_Myanmar"
+            text: "Flag of Myanmar on Wikipedia"
+          - url: "https://www.amnesty.org/en/latest/news/2025/01/myanmar-four-years-after-coup-world-must-demand-accountability-for-atrocity-crimes/"
+            text: "Amnesty International: Myanmar - Four years after coup, world must demand accountability"
+          - url: "https://www.hrw.org/world-report/2025/country-chapters/myanmar"
+            text: "Human Rights Watch: World Report 2025 - Myanmar"
+          - url: "https://childrenandarmedconflict.un.org/2025/04/myanmar-sharp-increase-in-grave-violations-against-children/"
+            text: "UN: Myanmar - Sharp increase in grave violations against children"
+          - url: "https://www.amnesty.org/en/location/asia-and-the-pacific/south-east-asia-and-the-pacific/myanmar/report-myanmar/"
+            text: "Amnesty International: Human rights in Myanmar"
+        cutoutMode:
+          offsetEnabled: true
+          defaultOffset: 0
