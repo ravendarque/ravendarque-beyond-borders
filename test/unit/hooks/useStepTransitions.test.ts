@@ -486,7 +486,7 @@ describe('useStepTransitions', () => {
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(0);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('no-cutout-flag', undefined);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('no-cutout-flag', 0);
   });
 
   it('should not handle offset logic when not in cutout mode', () => {
