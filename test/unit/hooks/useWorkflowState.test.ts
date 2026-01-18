@@ -39,6 +39,25 @@ describe('workflowReducer', () => {
     expect(result.step1.imagePosition).toEqual({ x: 0, y: 0, zoom: 0 });
   });
 
+  it('should reset position when uploading a new image (fixes issue #149)', () => {
+    // Simulate the bug: previous image had zoom > 0
+    const state = {
+      ...createInitialWorkflowState(),
+      step1: {
+        ...createInitialWorkflowState().step1,
+        imageUrl: 'data:image/png;base64,old',
+        imagePosition: { x: 10, y: -20, zoom: 50 }, // Previous image had zoom
+      },
+    };
+    const action: WorkflowAction = { type: 'SET_IMAGE_URL', imageUrl: 'data:image/png;base64,new' };
+    
+    const result = workflowReducer(state, action);
+    
+    // Position should be reset to 0 when new image is uploaded
+    expect(result.step1.imageUrl).toBe('data:image/png;base64,new');
+    expect(result.step1.imagePosition).toEqual({ x: 0, y: 0, zoom: 0 });
+  });
+
   it('should reset position when setting imageUrl to null', () => {
     const state = {
       ...createInitialWorkflowState(),
