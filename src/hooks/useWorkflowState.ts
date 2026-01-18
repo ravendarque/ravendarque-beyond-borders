@@ -203,7 +203,7 @@ function persistState(state: WorkflowState): void {
         imageUrl: state.step1.imageUrl,
         imagePosition: state.step1.imagePosition,
         // Don't persist: imageDimensions, circleSize (computed)
-        croppedImageUrl: state.step1.croppedImageUrl,
+        // Don't persist: croppedImageUrl (tied to specific position/zoom, must be recaptured)
       },
       step2: state.step2,
       step3: state.step3,
@@ -271,6 +271,8 @@ export function useWorkflowState() {
         // Don't restore computed values
         imageDimensions: null,
         circleSize: IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE,
+        // Don't restore croppedImageUrl - it's tied to specific position/zoom, must be recaptured
+        croppedImageUrl: null,
       },
       step2: {
         ...state.step2,

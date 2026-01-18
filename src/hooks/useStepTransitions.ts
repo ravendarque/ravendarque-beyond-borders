@@ -113,7 +113,8 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
   // This ensures Step 3 always captures with the current position
   useEffect(() => {
     if (currentStep === 1 && step1.croppedImageUrl) {
-      // Check if position has changed since last capture
+      // Always clear cropped image when position/zoom changes in Step 1
+      // This ensures Step 3 will recapture with the current position
       if (
         !capturedPositionRef.current ||
         capturedPositionRef.current.x !== step1.imagePosition.x ||
