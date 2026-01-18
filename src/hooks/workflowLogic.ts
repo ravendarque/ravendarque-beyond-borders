@@ -24,17 +24,23 @@ export function shouldCaptureImage(
     return false;
   }
 
-  // Capture if:
-  // 1. No cropped image exists yet
-  // 2. Position has changed since last capture
-  const needsCapture =
-    !croppedImageUrl ||
-    !lastCapturedPosition ||
+  // Always capture if no cropped image exists
+  if (!croppedImageUrl) {
+    return true;
+  }
+
+  // Capture if position has changed since last capture
+  // If lastCapturedPosition is null, we need to capture (could be from restored state)
+  if (!lastCapturedPosition) {
+    return true;
+  }
+
+  // Check if position/zoom has changed
+  return (
     lastCapturedPosition.x !== currentPosition.x ||
     lastCapturedPosition.y !== currentPosition.y ||
-    lastCapturedPosition.zoom !== currentPosition.zoom;
-
-  return needsCapture;
+    lastCapturedPosition.zoom !== currentPosition.zoom
+  );
 }
 
 /**
