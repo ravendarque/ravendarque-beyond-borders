@@ -52,8 +52,8 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
         step1: {
           ...state.step1,
           imageUrl: action.imageUrl,
-          // Reset position when image changes
-          imagePosition: action.imageUrl ? state.step1.imagePosition : { x: 0, y: 0, zoom: 0 },
+          // Reset position when image changes (new image or cleared)
+          imagePosition: { x: 0, y: 0, zoom: 0 },
           imageDimensions: action.imageUrl ? state.step1.imageDimensions : null,
           croppedImageUrl: action.imageUrl ? state.step1.croppedImageUrl : null,
         },
