@@ -24,7 +24,6 @@ export type WorkflowAction =
   | { type: 'SET_IMAGE_POSITION'; position: ImagePosition }
   | { type: 'SET_IMAGE_DIMENSIONS'; dimensions: ImageDimensions | null }
   | { type: 'SET_CIRCLE_SIZE'; size: number }
-  | { type: 'SET_CROPPED_IMAGE_URL'; url: string | null }
   | { type: 'SET_FLAG_ID'; flagId: string | null }
   | { type: 'SET_THICKNESS'; thickness: number }
   | { type: 'SET_FLAG_OFFSET_PCT'; offset: number }
@@ -55,7 +54,6 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
           // Reset position when image changes (new image or cleared)
           imagePosition: { x: 0, y: 0, zoom: 0 },
           imageDimensions: action.imageUrl ? state.step1.imageDimensions : null,
-          croppedImageUrl: action.imageUrl ? state.step1.croppedImageUrl : null,
         },
       };
 
@@ -113,15 +111,6 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
         },
       };
 
-    case 'SET_CROPPED_IMAGE_URL':
-      return {
-        ...state,
-        step1: {
-          ...state.step1,
-          croppedImageUrl: action.url,
-        },
-      };
-
     case 'SET_FLAG_ID':
       return {
         ...state,
@@ -175,7 +164,6 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
           imagePosition: { x: 0, y: 0, zoom: 0 },
           imageDimensions: null,
           circleSize: IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE,
-          croppedImageUrl: null,
         },
       };
 
@@ -292,13 +280,11 @@ export function useWorkflowState() {
       step1: {
         ...state.step1,
         ...restored.step1,
-        imageUrl: validImageUrl,
-        // Don't restore computed values
-        imageDimensions: null,
-        circleSize: IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE,
-        // Don't restore croppedImageUrl - it's tied to specific position/zoom, must be recaptured
-        croppedImageUrl: null,
-      },
+            imageUrl: validImageUrl,
+            // Don't restore computed values
+            imageDimensions: null,
+            circleSize: IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE,
+          },
       step2: {
         ...state.step2,
         ...restored.step2,
@@ -341,10 +327,6 @@ export function useWorkflowState() {
 
   const setCircleSize = useCallback((size: number) => {
     dispatch({ type: 'SET_CIRCLE_SIZE', size });
-  }, []);
-
-  const setCroppedImageUrl = useCallback((url: string | null) => {
-    dispatch({ type: 'SET_CROPPED_IMAGE_URL', url });
   }, []);
 
   const setFlagId = useCallback((flagId: string | null) => {
@@ -394,7 +376,6 @@ export function useWorkflowState() {
     setImagePosition,
     setImageDimensions,
     setCircleSize,
-    setCroppedImageUrl,
     setFlagId,
     setThickness,
     setFlagOffsetPct,

@@ -36,7 +36,7 @@ describe('useAvatarRenderer', () => {
     blob: async () => new Blob(['test'], { type: 'image/png' }),
   })) as any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     mockCache.clear();
     global.createImageBitmap = mockCreateImageBitmap;
@@ -44,6 +44,9 @@ describe('useAvatarRenderer', () => {
     // Mock URL.createObjectURL and revokeObjectURL
     global.URL.createObjectURL = vi.fn(() => 'blob:test-url');
     global.URL.revokeObjectURL = vi.fn();
+    // Reset renderAvatar mock to default success behavior
+    const { renderAvatar } = await import('@/renderer/render');
+    vi.mocked(renderAvatar).mockResolvedValue(new Blob(['test'], { type: 'image/png' }));
   });
 
   it('should initialize with null overlayUrl and not rendering', () => {
@@ -63,6 +66,8 @@ describe('useAvatarRenderer', () => {
       flagOffsetPct: 0,
       presentation: 'ring',
       bg: 'transparent',
+      imagePosition: { x: 0, y: 0, zoom: 0 },
+      imageDimensions: { width: 100, height: 100 },
     });
 
     expect(result.current.overlayUrl).toBeNull();
@@ -78,6 +83,8 @@ describe('useAvatarRenderer', () => {
       flagOffsetPct: 0,
       presentation: 'ring',
       bg: 'transparent',
+      imagePosition: { x: 0, y: 0, zoom: 0 },
+      imageDimensions: { width: 100, height: 100 },
     });
 
     expect(result.current.overlayUrl).toBeNull();
@@ -94,6 +101,8 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'ring',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
       });
     });
 
@@ -112,6 +121,8 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'cutout',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
       });
     });
 
@@ -138,6 +149,8 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'cutout',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
       });
     });
 
@@ -164,6 +177,8 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'cutout',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
       });
     });
 
@@ -184,6 +199,8 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'ring',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
       });
     });
 
@@ -201,6 +218,8 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'segment',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
       });
     });
 
@@ -224,6 +243,8 @@ describe('useAvatarRenderer', () => {
           flagOffsetPct: 0,
           presentation: 'ring',
           bg: 'transparent',
+          imagePosition: { x: 0, y: 0, zoom: 0 },
+          imageDimensions: { width: 100, height: 100 },
         });
       })
     ).rejects.toThrow('Render error');
@@ -266,6 +287,8 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'ring',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
       });
     });
 
