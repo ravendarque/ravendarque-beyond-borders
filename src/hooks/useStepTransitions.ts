@@ -1,26 +1,20 @@
 /**
  * Step transition logic hook
  * 
- * Handles complex step transition logic:
- * - Image capture when entering Step 3
+ * Handles step transition logic:
  * - Flag offset reset when flags change or mode switches
  * - Image dimension detection
  * - Circle size detection
  * 
- * This replaces the complex conditional logic and ref tracking in AppStepWorkflow.
+ * Note: Image capture has been removed - position/zoom is now passed directly to renderer.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import type { WorkflowState } from '@/types/workflowState';
-import type { ImagePosition, ImageDimensions } from '@/utils/imagePosition';
+import type { ImageDimensions } from '@/utils/imagePosition';
 import type { FlagSpec } from '@/flags/schema';
-import { captureAdjustedImage } from '@/utils/captureImage';
-import { IMAGE_CONSTANTS } from '@/constants';
 import {
-  shouldCaptureImage,
   shouldResetFlagOffset,
-  shouldClearCroppedImage,
-  shouldClearCroppedImageWhenPositionChanges,
 } from './workflowLogic';
 
 export interface UseStepTransitionsOptions {
@@ -28,8 +22,6 @@ export interface UseStepTransitionsOptions {
   state: WorkflowState;
   /** Selected flag (memoized) */
   selectedFlag: FlagSpec | null;
-  /** Callback to update cropped image URL */
-  onCroppedImageUrlChange: (url: string | null) => void;
   /** Callback to update image dimensions */
   onImageDimensionsChange: (dimensions: ImageDimensions | null) => void;
   /** Callback to update circle size */
@@ -50,7 +42,6 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
   const {
     state,
     selectedFlag,
-    onCroppedImageUrlChange,
     onImageDimensionsChange,
     onCircleSizeChange,
     onFlagOffsetChange,
@@ -58,9 +49,6 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
   } = options;
 
   const { step1, step2, step3, currentStep } = state;
-
-  // Track captured position to detect when recapture is needed
-  const capturedPositionRef = useRef<ImagePosition | null>(null);
 
   // Detect image dimensions when image URL changes
   useEffect(() => {
@@ -101,70 +89,6 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
     return () => window.removeEventListener('resize', updateCircleSize);
   }, [step1.imageUrl, onCircleSizeChange]); // Re-run when image changes to ensure element exists
 
-  // Clear cropped image when going back to Step 1 or when image is removed
-  // This ensures position/zoom changes in Step 1 trigger a fresh capture in Step 3
-  useEffect(() => {
-    if (shouldClearCroppedImage(currentStep, step1.imageUrl)) {
-      onCroppedImageUrlChange(null);
-      capturedPositionRef.current = null;
-    }
-  }, [currentStep, step1.imageUrl, onCroppedImageUrlChange]);
-
-  // Clear cropped image when position/zoom changes in Step 1
-  // This ensures Step 3 always captures with the current position
-  useEffect(() => {
-    if (shouldClearCroppedImageWhenPositionChanges(
-      currentStep,
-      step1.croppedImageUrl,
-      step1.imagePosition,
-      capturedPositionRef.current
-    )) {
-      onCroppedImageUrlChange(null);
-      capturedPositionRef.current = null;
-    }
-  }, [currentStep, step1.imagePosition, step1.croppedImageUrl, onCroppedImageUrlChange]);
-
-  // Capture adjusted image when transitioning to Step 3
-  useEffect(() => {
-    // Use business logic to determine if capture is needed
-    const needsCapture = shouldCaptureImage(
-      currentStep,
-      step1.imageUrl,
-      step1.imageDimensions,
-      step1.croppedImageUrl,
-      step1.imagePosition,
-      capturedPositionRef.current
-    );
-
-    if (needsCapture && step1.imageUrl && step1.imageDimensions) {
-      // Capture the adjusted image at final render size (high-res for quality)
-      captureAdjustedImage(
-        step1.imageUrl,
-        step1.imagePosition,
-        step1.circleSize,
-        step1.imageDimensions,
-        IMAGE_CONSTANTS.DEFAULT_CAPTURE_SIZE
-      )
-        .then((captured) => {
-          onCroppedImageUrlChange(captured);
-          capturedPositionRef.current = { ...step1.imagePosition };
-        })
-        .catch(() => {
-          // Fallback: use original image if capture fails
-          // Error is handled silently - user still gets a working image
-          onCroppedImageUrlChange(step1.imageUrl);
-          capturedPositionRef.current = { ...step1.imagePosition };
-        });
-    }
-  }, [
-    currentStep,
-    step1.imageUrl,
-    step1.imageDimensions,
-    step1.imagePosition,
-    step1.circleSize,
-    step1.croppedImageUrl,
-    onCroppedImageUrlChange,
-  ]);
 
   // Handle flag offset reset logic (consolidated - handles both flag changes and mode switches)
   useEffect(() => {

@@ -3,6 +3,8 @@ import { renderAvatar } from '@/renderer/render';
 import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
 import { getAssetUrl } from '@/config';
+import type { ImagePosition, ImageDimensions } from '@/utils/imagePosition';
+import { positionToRendererOffset, calculatePositionLimits } from '@/utils/imagePosition';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -11,7 +13,8 @@ export interface RenderOptions {
   presentation: 'ring' | 'segment' | 'cutout';
   segmentRotation?: number;
   bg: string | 'transparent';
-  // imagePosition is no longer needed - we use a pre-cropped image
+  imagePosition: ImagePosition;
+  imageDimensions: ImageDimensions;
 }
 
 /**
@@ -71,7 +74,7 @@ export function useAvatarRenderer(
           throw FlagDataError.patternMissing(flagId);
         }
 
-        // Load image (this is now a pre-cropped image from Step 1)
+        // Load original image (not cropped - renderer will apply position/zoom)
         const response = await fetch(imageUrl);
         const blob = await response.blob();
         const img = await createImageBitmap(blob);
@@ -97,13 +100,28 @@ export function useAvatarRenderer(
           }
         }
 
+        // Calculate position offset for renderer
+        // Use the same position limits calculation as Step 1 for consistency
+        const limits = calculatePositionLimits(
+          options.imageDimensions,
+          size, // Use render size as container size
+          options.imagePosition.zoom
+        );
+        const imageOffset = positionToRendererOffset(
+          { x: options.imagePosition.x, y: options.imagePosition.y },
+          options.imageDimensions,
+          size,
+          options.imagePosition.zoom,
+          limits
+        );
+
         // Render avatar with flag border
-        // The image is already cropped and adjusted, so no position/zoom needed
+        // Pass position/zoom directly to renderer - no capture needed
         const result = await renderAvatar(img, transformedFlag, {
           size,
           thicknessPct: thickness,
-          // No imageOffsetPx - cropped image is already centered
-          // No imageZoom - cropped image is already at correct zoom
+          imageOffsetPx: imageOffset,
+          imageZoom: options.imagePosition.zoom,
           flagOffsetPct: { x: flagOffsetPct, y: 0 }, // Use flagOffsetPct for cutout mode
           presentation,
           segmentRotation,

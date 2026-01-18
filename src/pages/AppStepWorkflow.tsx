@@ -46,7 +46,6 @@ export function AppStepWorkflow() {
     setImagePosition,
     setImageDimensions,
     setCircleSize,
-    setCroppedImageUrl,
     setFlagId,
     setThickness,
     setFlagOffsetPct,
@@ -87,11 +86,10 @@ export function AppStepWorkflow() {
     return step2.flagId ? flags.find(f => f.id === step2.flagId) ?? null : null;
   }, [step2.flagId]);
 
-  // Step transitions (handles image capture, flag offset resets, etc.)
+  // Step transitions (handles flag offset resets, dimension detection, etc.)
   useStepTransitions({
     state: workflow.state,
     selectedFlag,
-    onCroppedImageUrlChange: setCroppedImageUrl,
     onImageDimensionsChange: setImageDimensions,
     onCircleSizeChange: setCircleSize,
     onFlagOffsetChange: setFlagOffsetPct,
@@ -145,24 +143,27 @@ export function AppStepWorkflow() {
 
   // Trigger render when parameters change (Step 3)
   useEffect(() => {
-    if (currentStep === 3 && step1.croppedImageUrl && step2.flagId) {
+    if (currentStep === 3 && step1.imageUrl && step1.imageDimensions && step2.flagId) {
       // Render at high-res (2x) for preview to ensure crisp quality when scaled down
       // The preview container is 250-400px, so high-res gives us 2.5-4x resolution
       // This eliminates blur from CSS downscaling
-      // Use cropped image - no position/zoom needed (already captured)
-      render(step1.croppedImageUrl, step2.flagId, {
+      // Pass position/zoom directly to renderer - no capture needed
+      render(step1.imageUrl, step2.flagId, {
         size: RENDER_SIZES.HIGH_RES,
         thickness: debouncedThickness,
         flagOffsetPct: debouncedFlagOffsetPct,
         presentation: step3.presentation,
         segmentRotation: debouncedSegmentRotation,
         bg: 'transparent',
-        // No imagePosition - the cropped image is already adjusted
+        imagePosition: step1.imagePosition,
+        imageDimensions: step1.imageDimensions,
       });
     }
   }, [
     currentStep,
-    step1.croppedImageUrl,
+    step1.imageUrl,
+    step1.imageDimensions,
+    step1.imagePosition,
     step2.flagId,
     debouncedThickness,
     debouncedFlagOffsetPct,
