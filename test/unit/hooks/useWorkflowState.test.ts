@@ -340,6 +340,8 @@ describe('useWorkflowState', () => {
     // Computed values should be reset
     expect(result.current.step1.imageDimensions).toBeNull();
     expect(result.current.step1.circleSize).toBe(IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE);
+    // croppedImageUrl should not be restored (tied to position/zoom, must be recaptured)
+    expect(result.current.step1.croppedImageUrl).toBeNull();
   });
 
   it('should ignore blob URLs in stored state', () => {
