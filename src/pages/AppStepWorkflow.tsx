@@ -157,6 +157,7 @@ export function AppStepWorkflow() {
         bg: 'transparent',
         imagePosition: step1.imagePosition,
         imageDimensions: step1.imageDimensions,
+        circleSize: step1.circleSize, // Pass Step 1 circle size for accurate position/zoom
       });
     }
   }, [
@@ -164,6 +165,7 @@ export function AppStepWorkflow() {
     step1.imageUrl,
     step1.imageDimensions,
     step1.imagePosition,
+    step1.circleSize,
     step2.flagId,
     debouncedThickness,
     debouncedFlagOffsetPct,

@@ -76,6 +76,7 @@ describe('useAvatarRenderer', () => {
       bg: 'transparent',
       imagePosition: { x: 0, y: 0, zoom: 0 },
       imageDimensions: { width: 100, height: 100 },
+      circleSize: 320,
     });
 
     expect(result.current.overlayUrl).toBeNull();
@@ -93,6 +94,7 @@ describe('useAvatarRenderer', () => {
       bg: 'transparent',
       imagePosition: { x: 0, y: 0, zoom: 0 },
       imageDimensions: { width: 100, height: 100 },
+      circleSize: 320,
     });
 
     expect(result.current.overlayUrl).toBeNull();
@@ -111,6 +113,7 @@ describe('useAvatarRenderer', () => {
         bg: 'transparent',
         imagePosition: { x: 0, y: 0, zoom: 0 },
         imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -131,6 +134,7 @@ describe('useAvatarRenderer', () => {
         bg: 'transparent',
         imagePosition: { x: 0, y: 0, zoom: 0 },
         imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -159,6 +163,7 @@ describe('useAvatarRenderer', () => {
         bg: 'transparent',
         imagePosition: { x: 0, y: 0, zoom: 0 },
         imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -187,6 +192,7 @@ describe('useAvatarRenderer', () => {
         bg: 'transparent',
         imagePosition: { x: 0, y: 0, zoom: 0 },
         imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -209,6 +215,7 @@ describe('useAvatarRenderer', () => {
         bg: 'transparent',
         imagePosition: { x: 0, y: 0, zoom: 0 },
         imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -228,6 +235,7 @@ describe('useAvatarRenderer', () => {
         bg: 'transparent',
         imagePosition: { x: 0, y: 0, zoom: 0 },
         imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -253,6 +261,7 @@ describe('useAvatarRenderer', () => {
           bg: 'transparent',
           imagePosition: { x: 0, y: 0, zoom: 0 },
           imageDimensions: { width: 100, height: 100 },
+          circleSize: 320,
         });
       })
     ).rejects.toThrow('Render error');
@@ -297,6 +306,7 @@ describe('useAvatarRenderer', () => {
         bg: 'transparent',
         imagePosition: { x: 0, y: 0, zoom: 0 },
         imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
