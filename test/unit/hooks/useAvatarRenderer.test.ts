@@ -5,7 +5,11 @@ import type { FlagSpec } from '@/flags/schema';
 
 // Mock the renderAvatar function
 vi.mock('@/renderer/render', () => ({
-  renderAvatar: vi.fn(async () => new Blob(['test'], { type: 'image/png' })),
+  renderAvatar: vi.fn(async () => ({
+    blob: new Blob(['test'], { type: 'image/png' }),
+    sizeBytes: 1024,
+    sizeKB: '1.00',
+  })),
 }));
 
 describe('useAvatarRenderer', () => {
@@ -46,7 +50,11 @@ describe('useAvatarRenderer', () => {
     global.URL.revokeObjectURL = vi.fn();
     // Reset renderAvatar mock to default success behavior
     const { renderAvatar } = await import('@/renderer/render');
-    vi.mocked(renderAvatar).mockResolvedValue(new Blob(['test'], { type: 'image/png' }));
+    vi.mocked(renderAvatar).mockResolvedValue({
+      blob: new Blob(['test'], { type: 'image/png' }),
+      sizeBytes: 1024,
+      sizeKB: '1.00',
+    });
   });
 
   it('should initialize with null overlayUrl and not rendering', () => {

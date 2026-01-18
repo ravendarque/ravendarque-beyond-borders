@@ -128,7 +128,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: null,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange,
         onFlagOffsetChange: vi.fn(),
@@ -160,7 +159,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: mockFlag,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
@@ -202,7 +200,6 @@ describe('useStepTransitions', () => {
             },
           },
         } as FlagSpec,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
@@ -235,7 +232,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: mockFlag,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
@@ -271,7 +267,6 @@ describe('useStepTransitions', () => {
           id: 'no-cutout-flag',
           displayName: 'No Cutout',
         } as FlagSpec,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
@@ -303,7 +298,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: mockFlag,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
@@ -335,7 +329,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: mockFlag,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
