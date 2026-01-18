@@ -16,6 +16,11 @@ import type { ImagePosition, ImageDimensions } from '@/utils/imagePosition';
 import type { FlagSpec } from '@/flags/schema';
 import { captureAdjustedImage } from '@/utils/captureImage';
 import { IMAGE_CONSTANTS } from '@/constants';
+import {
+  shouldCaptureImage,
+  shouldResetFlagOffset,
+  shouldClearCroppedImage,
+} from './workflowLogic';
 
 export interface UseStepTransitionsOptions {
   /** Current workflow state */
@@ -97,39 +102,39 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
 
   // Capture adjusted image when transitioning to Step 3
   useEffect(() => {
-    if (currentStep === 3 && step1.imageUrl && step1.imageDimensions) {
-      // Check if we need to capture (first time or position changed)
-      const needsCapture =
-        !step1.croppedImageUrl ||
-        !capturedPositionRef.current ||
-        capturedPositionRef.current.x !== step1.imagePosition.x ||
-        capturedPositionRef.current.y !== step1.imagePosition.y ||
-        capturedPositionRef.current.zoom !== step1.imagePosition.zoom;
+    // Use business logic to determine if capture is needed
+    const needsCapture = shouldCaptureImage(
+      currentStep,
+      step1.imageUrl,
+      step1.imageDimensions,
+      step1.croppedImageUrl,
+      step1.imagePosition,
+      capturedPositionRef.current
+    );
 
-      if (needsCapture) {
-        // Capture the adjusted image at final render size (high-res for quality)
-        captureAdjustedImage(
-          step1.imageUrl,
-          step1.imagePosition,
-          step1.circleSize,
-          step1.imageDimensions,
-          IMAGE_CONSTANTS.DEFAULT_CAPTURE_SIZE
-        )
-          .then((captured) => {
-            onCroppedImageUrlChange(captured);
-            capturedPositionRef.current = { ...step1.imagePosition };
-          })
-          .catch(() => {
-            // Fallback: use original image if capture fails
-            // Error is handled silently - user still gets a working image
-            onCroppedImageUrlChange(step1.imageUrl);
-            capturedPositionRef.current = { ...step1.imagePosition };
-          });
-      }
+    if (needsCapture && step1.imageUrl && step1.imageDimensions) {
+      // Capture the adjusted image at final render size (high-res for quality)
+      captureAdjustedImage(
+        step1.imageUrl,
+        step1.imagePosition,
+        step1.circleSize,
+        step1.imageDimensions,
+        IMAGE_CONSTANTS.DEFAULT_CAPTURE_SIZE
+      )
+        .then((captured) => {
+          onCroppedImageUrlChange(captured);
+          capturedPositionRef.current = { ...step1.imagePosition };
+        })
+        .catch(() => {
+          // Fallback: use original image if capture fails
+          // Error is handled silently - user still gets a working image
+          onCroppedImageUrlChange(step1.imageUrl);
+          capturedPositionRef.current = { ...step1.imagePosition };
+        });
     }
 
-    // Reset cropped image when going back to Step 1 or when image changes
-    if (currentStep === 1 || !step1.imageUrl) {
+    // Use business logic to determine if cropped image should be cleared
+    if (shouldClearCroppedImage(currentStep, step1.imageUrl)) {
       onCroppedImageUrlChange(null);
       capturedPositionRef.current = null;
     }
@@ -143,69 +148,27 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
     onCroppedImageUrlChange,
   ]);
 
-  // Handle flag offset reset logic (replaces complex ref tracking)
+  // Handle flag offset reset logic (consolidated - handles both flag changes and mode switches)
   useEffect(() => {
-    // Only handle offset logic when on step 3 with cutout mode
-    if (currentStep !== 3 || step3.presentation !== 'cutout') {
-      return;
-    }
+    // Use business logic to determine if offset should be reset
+    const { shouldReset, defaultOffset } = shouldResetFlagOffset(
+      currentStep,
+      step3.presentation,
+      step2.flagId,
+      step3.configuredForFlagId,
+      selectedFlag
+    );
 
-    const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
-    const flagId = step2.flagId;
-    const configuredForFlagId = step3.configuredForFlagId;
-
-    // Check if flag changed (simpler than ref tracking!)
-    const flagChanged = configuredForFlagId !== null && configuredForFlagId !== flagId;
-
-    // Set default offset when:
-    // 1. Flag changed (detected via configuredForFlagId)
-    // 2. First time configuring for this flag (configuredForFlagId is null)
-    if (flagChanged || configuredForFlagId === null) {
-      if (defaultOffset !== undefined) {
-        onFlagOffsetChange(defaultOffset);
-      } else {
-        // If in cutout mode but flag doesn't have cutout config, reset to 0
-        onFlagOffsetChange(0);
-      }
-      // Update configured flag ID
-      onUpdateStep3ForFlag(flagId, defaultOffset);
+    if (shouldReset) {
+      onFlagOffsetChange(defaultOffset ?? 0);
+      onUpdateStep3ForFlag(step2.flagId, defaultOffset);
     }
   }, [
     currentStep,
     step2.flagId,
     step3.presentation,
     step3.configuredForFlagId,
-    selectedFlag?.modes?.cutout?.defaultOffset,
-    onFlagOffsetChange,
-    onUpdateStep3ForFlag,
-  ]);
-
-  // Handle presentation mode switch to cutout
-  useEffect(() => {
-    // Only handle when switching to cutout mode
-    if (currentStep !== 3 || step3.presentation !== 'cutout') {
-      return;
-    }
-
-    const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
-    const flagId = step2.flagId;
-    const configuredForFlagId = step3.configuredForFlagId;
-
-    // If switching to cutout and not yet configured for this flag, set default
-    if (configuredForFlagId !== flagId) {
-      if (defaultOffset !== undefined) {
-        onFlagOffsetChange(defaultOffset);
-      } else {
-        onFlagOffsetChange(0);
-      }
-      onUpdateStep3ForFlag(flagId, defaultOffset);
-    }
-  }, [
-    currentStep,
-    step3.presentation,
-    step2.flagId,
-    step3.configuredForFlagId,
-    selectedFlag?.modes?.cutout?.defaultOffset,
+    selectedFlag,
     onFlagOffsetChange,
     onUpdateStep3ForFlag,
   ]);
