@@ -20,6 +20,7 @@ import {
   shouldCaptureImage,
   shouldResetFlagOffset,
   shouldClearCroppedImage,
+  shouldClearCroppedImageWhenPositionChanges,
 } from './workflowLogic';
 
 export interface UseStepTransitionsOptions {
@@ -112,19 +113,14 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
   // Clear cropped image when position/zoom changes in Step 1
   // This ensures Step 3 always captures with the current position
   useEffect(() => {
-    if (currentStep === 1 && step1.croppedImageUrl) {
-      // Always clear cropped image when position/zoom changes in Step 1
-      // This ensures Step 3 will recapture with the current position
-      if (
-        !capturedPositionRef.current ||
-        capturedPositionRef.current.x !== step1.imagePosition.x ||
-        capturedPositionRef.current.y !== step1.imagePosition.y ||
-        capturedPositionRef.current.zoom !== step1.imagePosition.zoom
-      ) {
-        // Clear cropped image so Step 3 will recapture with new position
-        onCroppedImageUrlChange(null);
-        capturedPositionRef.current = null;
-      }
+    if (shouldClearCroppedImageWhenPositionChanges(
+      currentStep,
+      step1.croppedImageUrl,
+      step1.imagePosition,
+      capturedPositionRef.current
+    )) {
+      onCroppedImageUrlChange(null);
+      capturedPositionRef.current = null;
     }
   }, [currentStep, step1.imagePosition, step1.croppedImageUrl, onCroppedImageUrlChange]);
 

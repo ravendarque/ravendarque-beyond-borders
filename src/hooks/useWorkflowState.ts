@@ -69,13 +69,29 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
       };
 
     case 'SET_IMAGE_DIMENSIONS':
+      // Only reset position if dimensions are actually changing (new image) or being cleared
+      // Don't reset if dimensions are the same (e.g., re-detection of same image)
+      const hadDimensions = state.step1.imageDimensions !== null;
+      const hasDimensions = action.dimensions !== null;
+      const dimensionsChanged = 
+        (!hadDimensions && hasDimensions) || // Was null, now has dimensions (new image)
+        (hadDimensions && !hasDimensions) || // Had dimensions, now null (image cleared)
+        (hadDimensions && hasDimensions && (
+          state.step1.imageDimensions!.width !== action.dimensions!.width ||
+          state.step1.imageDimensions!.height !== action.dimensions!.height
+        )); // Dimensions changed (different image)
+      
+      // Always reset position when clearing dimensions (set to null)
+      // This ensures position is reset when image is removed
+      const shouldResetPosition = action.dimensions === null || dimensionsChanged;
+      
       return {
         ...state,
         step1: {
           ...state.step1,
           imageDimensions: action.dimensions,
-          // Reset position when dimensions change (new image loaded) or when cleared
-          imagePosition: action.dimensions ? { x: 0, y: 0, zoom: 0 } : { x: 0, y: 0, zoom: 0 },
+          // Only reset position when dimensions actually change (new image loaded) or when cleared
+          imagePosition: shouldResetPosition ? { x: 0, y: 0, zoom: 0 } : state.step1.imagePosition,
         },
       };
 

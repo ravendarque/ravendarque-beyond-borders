@@ -88,3 +88,27 @@ export function shouldClearCroppedImage(
   // Clear when going back to Step 1 or when image is removed
   return currentStep === 1 || !imageUrl;
 }
+
+/**
+ * Determine if cropped image should be cleared when position/zoom changes in Step 1.
+ * This ensures that when the user adjusts the image in Step 1, the cropped image
+ * is invalidated, forcing a fresh capture when they navigate to Step 3.
+ */
+export function shouldClearCroppedImageWhenPositionChanges(
+  currentStep: number,
+  croppedImageUrl: string | null,
+  currentPosition: ImagePosition,
+  lastCapturedPosition: ImagePosition | null
+): boolean {
+  if (currentStep === 1 && croppedImageUrl) {
+    // If there's a cropped image, and the position has changed since it was captured,
+    // or if lastCapturedPosition is null (e.g., after restore), clear the cropped image.
+    if (!lastCapturedPosition ||
+        lastCapturedPosition.x !== currentPosition.x ||
+        lastCapturedPosition.y !== currentPosition.y ||
+        lastCapturedPosition.zoom !== currentPosition.zoom) {
+      return true;
+    }
+  }
+  return false;
+}
