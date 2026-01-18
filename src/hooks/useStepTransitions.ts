@@ -100,6 +100,33 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
     return () => window.removeEventListener('resize', updateCircleSize);
   }, [step1.imageUrl, onCircleSizeChange]); // Re-run when image changes to ensure element exists
 
+  // Clear cropped image when going back to Step 1 or when image is removed
+  // This ensures position/zoom changes in Step 1 trigger a fresh capture in Step 3
+  useEffect(() => {
+    if (shouldClearCroppedImage(currentStep, step1.imageUrl)) {
+      onCroppedImageUrlChange(null);
+      capturedPositionRef.current = null;
+    }
+  }, [currentStep, step1.imageUrl, onCroppedImageUrlChange]);
+
+  // Clear cropped image when position/zoom changes in Step 1
+  // This ensures Step 3 always captures with the current position
+  useEffect(() => {
+    if (currentStep === 1 && step1.croppedImageUrl) {
+      // Check if position has changed since last capture
+      if (
+        !capturedPositionRef.current ||
+        capturedPositionRef.current.x !== step1.imagePosition.x ||
+        capturedPositionRef.current.y !== step1.imagePosition.y ||
+        capturedPositionRef.current.zoom !== step1.imagePosition.zoom
+      ) {
+        // Clear cropped image so Step 3 will recapture with new position
+        onCroppedImageUrlChange(null);
+        capturedPositionRef.current = null;
+      }
+    }
+  }, [currentStep, step1.imagePosition, step1.croppedImageUrl, onCroppedImageUrlChange]);
+
   // Capture adjusted image when transitioning to Step 3
   useEffect(() => {
     // Use business logic to determine if capture is needed
@@ -131,12 +158,6 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
           onCroppedImageUrlChange(step1.imageUrl);
           capturedPositionRef.current = { ...step1.imagePosition };
         });
-    }
-
-    // Use business logic to determine if cropped image should be cleared
-    if (shouldClearCroppedImage(currentStep, step1.imageUrl)) {
-      onCroppedImageUrlChange(null);
-      capturedPositionRef.current = null;
     }
   }, [
     currentStep,
