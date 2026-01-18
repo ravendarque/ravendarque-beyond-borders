@@ -15,6 +15,7 @@ export interface RenderOptions {
   bg: string | 'transparent';
   imagePosition: ImagePosition;
   imageDimensions: ImageDimensions;
+  circleSize: number; // Circle size from Step 1 (for accurate position/zoom calculation)
 }
 
 /**
@@ -46,7 +47,7 @@ export function useAvatarRenderer(
    */
   const render = useCallback(
     async (imageUrl: string, flagId: string, options: RenderOptions) => {
-      const { size, thickness, flagOffsetPct, presentation, segmentRotation, bg } = options;
+      const { size, thickness, flagOffsetPct, presentation, segmentRotation, bg, circleSize } = options;
 
       // Exit early if no image
       if (!imageUrl) {
@@ -101,16 +102,17 @@ export function useAvatarRenderer(
         }
 
         // Calculate position offset for renderer
-        // Use the same position limits calculation as Step 1 for consistency
+        // Use Step 1's circleSize (the circle the user actually sees and adjusts)
+        // This ensures position/zoom match what the user set in Step 1
         const limits = calculatePositionLimits(
           options.imageDimensions,
-          size, // Use render size as container size
+          circleSize, // Use Step 1 circle size (what user sees)
           options.imagePosition.zoom
         );
         const imageOffset = positionToRendererOffset(
           { x: options.imagePosition.x, y: options.imagePosition.y },
           options.imageDimensions,
-          size,
+          circleSize, // Use Step 1 circle size (what user sees)
           options.imagePosition.zoom,
           limits
         );
