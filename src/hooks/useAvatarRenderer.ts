@@ -141,11 +141,13 @@ export function useAvatarRenderer(
 
         // Render avatar with flag border
         // Pass position/zoom directly to renderer - no capture needed
+        const zoomValue = options.imagePosition.zoom;
+        console.log('[useAvatarRenderer] Passing zoom to renderer:', zoomValue, 'from imagePosition:', options.imagePosition);
         const result = await renderAvatar(img, transformedFlag, {
           size,
           thicknessPct: thickness,
           imageOffsetPx: imageOffset,
-          imageZoom: options.imagePosition.zoom,
+          imageZoom: zoomValue,
           flagOffsetPct: { x: flagOffsetPct, y: 0 }, // Use flagOffsetPct for cutout mode
           presentation,
           segmentRotation,
