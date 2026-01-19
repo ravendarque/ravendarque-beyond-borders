@@ -222,8 +222,10 @@ export async function renderAvatar(
     // Apply zoom if provided
     // Zoom is in percentage: 0% = 1x, 100% = 2x, 200% = 3x
     const zoom = options.imageZoom ?? 0;
+    console.log('[renderer CUTOUT] imageZoom received:', options.imageZoom, 'zoom value:', zoom, 'coverScale:', coverScale);
     const zoomMultiplier = 1 + (zoom / 100);
     const scale = coverScale * zoomMultiplier;
+    console.log('[renderer CUTOUT] zoomMultiplier:', zoomMultiplier, 'final scale:', scale, 'dw:', iw * scale, 'dh:', ih * scale);
     const dw = iw * scale;
     const dh = ih * scale;
     // Apply image offset for positioning (from imagePosition)
@@ -345,8 +347,10 @@ export async function renderAvatar(
   // Apply zoom if provided
   // Zoom is in percentage: 0% = 1x, 100% = 2x, 200% = 3x
   const zoom = options.imageZoom ?? 0;
+  console.log('[renderer] imageZoom received:', options.imageZoom, 'zoom value:', zoom, 'coverScale:', coverScale);
   const zoomMultiplier = 1 + (zoom / 100);
   const scale = coverScale * zoomMultiplier;
+  console.log('[renderer] zoomMultiplier:', zoomMultiplier, 'final scale:', scale, 'dw:', iw * scale, 'dh:', ih * scale);
   const dw = iw * scale,
     dh = ih * scale;
   // Apply image offset for positioning (from imagePosition)
