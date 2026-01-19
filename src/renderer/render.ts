@@ -347,18 +347,23 @@ export async function renderAvatar(
   // Apply zoom if provided
   // Zoom is in percentage: 0% = 1x, 100% = 2x, 200% = 3x
   const zoom = options.imageZoom ?? 0;
-  console.log('[renderer] imageZoom received:', options.imageZoom, 'zoom value:', zoom, 'coverScale:', coverScale);
+  console.log('[renderer RING/SEGMENT] Original image:', image.width, 'x', image.height);
+  console.log('[renderer RING/SEGMENT] Processed image:', iw, 'x', ih, 'wasDownsampled:', wasDownsampled);
+  console.log('[renderer RING/SEGMENT] imageRadius:', imageRadius, 'target:', target);
+  console.log('[renderer RING/SEGMENT] imageZoom received:', options.imageZoom, 'zoom value:', zoom, 'coverScale:', coverScale);
   const zoomMultiplier = 1 + (zoom / 100);
   const scale = coverScale * zoomMultiplier;
-  console.log('[renderer] zoomMultiplier:', zoomMultiplier, 'final scale:', scale, 'dw:', iw * scale, 'dh:', ih * scale);
   const dw = iw * scale,
     dh = ih * scale;
+  console.log('[renderer RING/SEGMENT] zoomMultiplier:', zoomMultiplier, 'final scale:', scale, 'dw:', dw, 'dh:', dh);
   // Apply image offset for positioning (from imagePosition)
   const imgOffsetX = options.imageOffsetPx?.x ?? 0;
   const imgOffsetY = options.imageOffsetPx?.y ?? 0;
+  console.log('[renderer RING/SEGMENT] imageOffset:', imgOffsetX, imgOffsetY);
   // Center in canvas (with optional offset for fine-tuning)
   const cx = canvasW / 2 + imgOffsetX,
     cy = canvasH / 2 + imgOffsetY;
+  console.log('[renderer RING/SEGMENT] Drawing at:', cx - dw / 2, cy - dh / 2, 'size:', dw, dh);
   ctx.drawImage(processedImage, cx - dw / 2, cy - dh / 2, dw, dh);
   ctx.restore();
   
