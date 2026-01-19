@@ -313,6 +313,9 @@ body {
   border-radius: 50%;
 }
 
+/* When flag border is present, replace halftone pattern with flag border */
+/* The flag border is set via inline styles in ImageUploadZone component */
+
 /* Image upload circle */
 .choose-circle {
   position: absolute;
@@ -368,6 +371,25 @@ label.choose-circle:hover {
 .choose-circle.has-image:hover {
   transform: scale(1.03);
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+}
+
+/* Disable hover and active styles in readonly mode */
+.choose-circle.readonly:hover,
+.choose-circle.readonly.has-image:hover,
+.choose-wrapper:hover .choose-circle.readonly,
+.choose-wrapper:hover .choose-circle.readonly.has-image {
+  transform: none;
+  box-shadow: 0 0 8px rgba(180, 160, 100, 0.15), 0 0 12px rgba(180, 160, 100, 0.08), 0 0 20px rgba(180, 160, 100, 0.04);
+}
+
+.choose-circle.readonly:active,
+.choose-circle.readonly.has-image:active {
+  transform: none;
+  box-shadow: 0 0 8px rgba(180, 160, 100, 0.15), 0 0 12px rgba(180, 160, 100, 0.08), 0 0 20px rgba(180, 160, 100, 0.04);
+}
+
+.choose-circle.readonly {
+  cursor: default;
 }
 
 /* Dragging state - placed after hover rules with matching specificity */
