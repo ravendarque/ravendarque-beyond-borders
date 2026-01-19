@@ -227,12 +227,15 @@ export function ImageUploadZone({
   // Use calculateBackgroundSize to maintain cover behavior with zoom
   // Map position using maxLimits as reference, then scale to current limits for display
   const backgroundSize = calculateBackgroundSize(imageDimensions, circleSize, position.zoom);
-  const backgroundStyle = imageUrl ? {
-    backgroundImage: `url(${imageUrl})`,
-    backgroundSize,
-    backgroundPosition: positionToBackgroundPosition({ x: position.x, y: position.y }, limits, maxLimits),
-    backgroundRepeat: 'no-repeat',
-  } : undefined;
+  const backgroundStyle = useMemo(() => {
+    if (!imageUrl) return undefined;
+    return {
+      backgroundImage: `url(${imageUrl})`,
+      backgroundSize,
+      backgroundPosition: positionToBackgroundPosition({ x: position.x, y: position.y }, limits, maxLimits),
+      backgroundRepeat: 'no-repeat' as const,
+    };
+  }, [imageUrl, backgroundSize, position.x, position.y, limits, maxLimits]);
 
   // Determine which controls are enabled based on whether movement is possible
   // When zoom > 0, both controls should be enabled

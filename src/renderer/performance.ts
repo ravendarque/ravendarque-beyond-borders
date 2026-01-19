@@ -267,12 +267,14 @@ export function logRenderMetrics(metrics: RenderMetrics): void {
     return;
   }
   
-  // eslint-disable-next-line no-console
-  console.group('🎨 Render Performance');
-  // eslint-disable-next-line no-console
-  console.log(formatRenderMetrics(metrics));
-  // eslint-disable-next-line no-console
-  console.groupEnd();
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.group('🎨 Render Performance');
+    // eslint-disable-next-line no-console
+    console.log(formatRenderMetrics(metrics));
+    // eslint-disable-next-line no-console
+    console.groupEnd();
+  }
 }
 
 /**
