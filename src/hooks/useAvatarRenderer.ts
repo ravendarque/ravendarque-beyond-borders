@@ -101,21 +101,43 @@ export function useAvatarRenderer(
           }
         }
 
-        // Calculate position offset for renderer
-        // Use Step 1's circleSize (the circle the user actually sees and adjusts)
-        // This ensures position/zoom match what the user set in Step 1
+        // Calculate the renderer's actual circle size (imageRadius * 2)
+        // This matches what the renderer uses as the target for image scaling
+        const base = size;
+        const thicknessPx = Math.round((thickness / 100) * base);
+        const paddingPx = 0; // Default padding
+        const r = size / 2;
+        const ringOuterRadius = r - Math.max(1, paddingPx);
+        const ringInnerRadius = Math.max(0, ringOuterRadius - thicknessPx);
+        const imageRadius = Math.max(0, Math.min(ringInnerRadius, r - 0.5));
+        const rendererCircleSize = imageRadius * 2;
+
+        // Calculate scale factor to convert from Step 1's circleSize to renderer's circleSize
+        const scaleFactor = rendererCircleSize / circleSize;
+
+        // Calculate position limits using Step 1's circleSize
+        // Position values (x, y) are percentages relative to these limits
         const limits = calculatePositionLimits(
           options.imageDimensions,
-          circleSize, // Use Step 1 circle size (what user sees)
+          circleSize, // Use Step 1's circleSize for limits (position values are relative to this)
           options.imagePosition.zoom
         );
-        const imageOffset = positionToRendererOffset(
+        
+        // Calculate offset using Step 1's circleSize, then scale to renderer's coordinate system
+        // This ensures zoom is applied correctly relative to Step 1's circleSize
+        const step1Offset = positionToRendererOffset(
           { x: options.imagePosition.x, y: options.imagePosition.y },
           options.imageDimensions,
-          circleSize, // Use Step 1 circle size (what user sees)
+          circleSize, // Use Step 1's circleSize for scale calculation (zoom base)
           options.imagePosition.zoom,
           limits
         );
+        
+        // Scale the offset to match renderer's coordinate system
+        const imageOffset = {
+          x: step1Offset.x * scaleFactor,
+          y: step1Offset.y * scaleFactor,
+        };
 
         // Render avatar with flag border
         // Pass position/zoom directly to renderer - no capture needed
