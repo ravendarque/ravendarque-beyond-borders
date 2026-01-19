@@ -316,36 +316,49 @@ export function calculateBackgroundSize(
     return 'cover';
   }
   
-  const { width: imgWidth, height: imgHeight } = imageDimensions;
-  
-  // Calculate what percentage would give us the cover size
-  // For landscape: height fits, so percentage = (imgWidth * coverScale / circleSize) * 100
-  // For portrait: width fits, so percentage = (imgHeight * coverScale / circleSize) * 100
-  // Since coverScale = max(circleSize/imgWidth, circleSize/imgHeight),
-  // the larger ratio determines which dimension fits
-  
-  let basePercentage: number;
-  if (imgWidth > imgHeight) {
-    // Landscape: height fits
-    // coverScale = circleSize / imgHeight
-    // scaledWidth = imgWidth * coverScale = imgWidth * circleSize / imgHeight
-    // percentage = (scaledWidth / circleSize) * 100 = (imgWidth / imgHeight) * 100
-    basePercentage = (imgWidth / imgHeight) * 100;
-  } else if (imgHeight > imgWidth) {
-    // Portrait: width fits
-    // coverScale = circleSize / imgWidth
-    // scaledHeight = imgHeight * coverScale = imgHeight * circleSize / imgWidth
-    // percentage = (scaledHeight / circleSize) * 100 = (imgHeight / imgWidth) * 100
-    basePercentage = (imgHeight / imgWidth) * 100;
-  } else {
-    // Square: either dimension works, base is 100%
-    basePercentage = 100;
+  // At 0% zoom, use 'cover' for proper CSS behavior
+  if (zoom === 0) {
+    return 'cover';
   }
   
-  // Apply zoom multiplier: 0% zoom = 1x, 100% zoom = 2x, 200% zoom = 3x
-  // Always calculate percentage (even at zoom 0) to ensure smooth transitions
+  const { width: imgWidth, height: imgHeight } = imageDimensions;
+  const circleDiameter = circleSize;
+  
+  // Calculate cover scale (same as in calculatePositionLimits)
+  const coverScale = Math.max(circleDiameter / imgWidth, circleDiameter / imgHeight);
+  
+  // CSS background-size percentage applies to the WIDTH of the image
+  // The height is then scaled proportionally to maintain aspect ratio
+  // 
+  // For portrait: width fits at cover, so cover width = circleSize = 100%
+  // For landscape: height fits at cover, so we need to calculate what width percentage gives us cover
+  // 
+  // At cover:
+  // - Portrait: width = circleSize, so background-size = 100%
+  // - Landscape: height = circleSize, width = imgWidth * (circleSize / imgHeight), so background-size = (imgWidth / imgHeight) * 100%
+  
+  let coverPercentage: number;
+  if (imgWidth > imgHeight) {
+    // Landscape: height fits, width extends
+    // At cover: height = circleSize, width = imgWidth * (circleSize / imgHeight)
+    // background-size percentage applies to width, so:
+    // coverPercentage = (imgWidth * coverScale / circleDiameter) * 100 = (imgWidth / imgHeight) * 100
+    const scaledWidth = imgWidth * coverScale;
+    coverPercentage = (scaledWidth / circleDiameter) * 100;
+  } else if (imgHeight > imgWidth) {
+    // Portrait: width fits, height extends
+    // At cover: width = circleSize, so background-size = 100%
+    // The height scales proportionally automatically
+    coverPercentage = 100;
+  } else {
+    // Square: both dimensions are the same, cover size is 100%
+    coverPercentage = 100;
+  }
+  
+  // Apply zoom multiplier: 0% zoom = 1x (cover), 100% zoom = 2x, 200% zoom = 3x
+  // This scales the cover size by the zoom amount
   const zoomMultiplier = 1 + (zoom / 100);
-  const finalPercentage = basePercentage * zoomMultiplier;
+  const finalPercentage = coverPercentage * zoomMultiplier;
   
   return `${finalPercentage}%`;
 }

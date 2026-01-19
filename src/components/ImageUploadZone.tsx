@@ -8,9 +8,9 @@ export interface ImageUploadZoneProps {
   /** Current uploaded image URL */
   imageUrl: string | null;
   /** Callback when image is uploaded */
-  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   /** Callback to show privacy modal */
-  onShowPrivacy: () => void;
+  onShowPrivacy?: () => void;
   /** Current image position */
   position: ImagePosition;
   /** Position limits based on aspect ratio */
@@ -20,9 +20,13 @@ export interface ImageUploadZoneProps {
   /** Image dimensions */
   imageDimensions: ImageDimensions | null;
   /** Callback when position changes */
-  onPositionChange: (position: ImagePosition) => void;
+  onPositionChange?: (position: ImagePosition) => void;
   /** Circle size in pixels */
   circleSize: number;
+  /** If true, component is readonly (no interactions) */
+  readonly?: boolean;
+  /** Optional flag border overlay URL to display on top */
+  flagBorderOverlayUrl?: string | null;
 }
 
 /**
@@ -40,23 +44,25 @@ export function ImageUploadZone({
   imageDimensions,
   onPositionChange,
   circleSize,
+  readonly = false,
+  flagBorderOverlayUrl = null,
 }: ImageUploadZoneProps) {
   const labelRef = useRef<HTMLLabelElement | null>(null);
   const wasDraggingRef = useRef(false);
   const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
   
-  // Use drag hook for panning
+  // Use drag hook for panning (disabled in readonly mode)
   const { dragHandlers, setElementRef, isDragging } = useImageDrag({
     position,
     limits,
-    onPositionChange,
-    enabled: !!imageUrl,
+    onPositionChange: onPositionChange ?? (() => {}),
+    enabled: !!imageUrl && !readonly && !!onPositionChange,
   });
 
   // Handle scroll wheel for zoom using native event listener for reliable preventDefault
   useEffect(() => {
     const element = labelRef.current;
-    if (!element || !imageUrl) return;
+    if (!element || !imageUrl || readonly) return;
     
     const handleWheel = (e: WheelEvent) => {
       // Only handle zoom if not dragging
@@ -75,7 +81,9 @@ export function ImageUploadZone({
       const newPosition = { ...position, zoom: newZoom };
       // Recalculate limits would happen in parent, but we need to clamp here
       // For now, just update zoom - parent will handle clamping via limits
-      onPositionChange(newPosition);
+      if (onPositionChange) {
+        onPositionChange(newPosition);
+      }
     };
     
     // Use passive: false to allow preventDefault to work
@@ -84,7 +92,7 @@ export function ImageUploadZone({
     return () => {
       element.removeEventListener('wheel', handleWheel);
     };
-  }, [imageUrl, isDragging, position, onPositionChange]);
+  }, [imageUrl, isDragging, position, onPositionChange, readonly]);
 
   // Handle pinch gesture for zoom (touch devices)
   // Use native event listeners for reliable preventDefault in Firefox Android
@@ -133,7 +141,9 @@ export function ImageUploadZone({
         const newZoom = Math.max(0, Math.min(200, startZoom + zoomChange));
         
         const newPosition = { ...position, zoom: newZoom };
-        onPositionChange(newPosition);
+        if (onPositionChange) {
+          onPositionChange(newPosition);
+        }
       } else if (e.touches.length === 1) {
         // Single touch - clear pinch state (drag will handle it)
         pinchStartRef.current = null;
@@ -241,7 +251,18 @@ export function ImageUploadZone({
         aria-label="Choose image file (JPG or PNG)"
       />
       
-      <div className="choose-wrapper">
+      <div 
+        className={[
+          "choose-wrapper",
+          readonly && flagBorderOverlayUrl && "has-flag-border"
+        ].filter(Boolean).join(" ")}
+        style={readonly && flagBorderOverlayUrl ? {
+          backgroundImage: `url(${flagBorderOverlayUrl})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        } : undefined}
+      >
         <label
           ref={(el) => {
             if (el) {
@@ -249,20 +270,21 @@ export function ImageUploadZone({
             }
             setElementRef(el);
           }}
-          htmlFor="step1-file-upload"
+          htmlFor={readonly ? undefined : "step1-file-upload"}
           className={[
             "choose-circle",
             imageUrl && "has-image",
-            isDragging && "is-dragging"
+            isDragging && "is-dragging",
+            readonly && "readonly"
           ].filter(Boolean).join(" ")}
-          role="button"
-          aria-label="Choose your profile picture"
+          role={readonly ? "img" : "button"}
+          aria-label={readonly ? "Profile picture preview" : "Choose your profile picture"}
           style={backgroundStyle}
-          onMouseDown={dragHandlers.onMouseDown}
-          onTouchStart={combinedTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onClick={(e) => {
+          onMouseDown={readonly ? undefined : dragHandlers.onMouseDown}
+          onTouchStart={readonly ? undefined : combinedTouchStart}
+          onTouchMove={readonly ? undefined : handleTouchMove}
+          onTouchEnd={readonly ? undefined : handleTouchEnd}
+          onClick={readonly ? undefined : (e) => {
             // Prevent file dialog only if we were dragging
             // This allows clicking to choose a new image when an image is already selected
             if (wasDraggingRef.current) {
@@ -287,7 +309,9 @@ export function ImageUploadZone({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onShowPrivacy();
+                  if (onShowPrivacy) {
+                    onShowPrivacy();
+                  }
                 }}
                 aria-label="Learn about privacy: Stays on your device"
               >
@@ -299,8 +323,8 @@ export function ImageUploadZone({
         </label>
       </div>
 
-      {/* Position Controls - Only show when image is uploaded */}
-      {imageUrl && (
+      {/* Position Controls - Only show when image is uploaded and not readonly */}
+      {imageUrl && !readonly && (
         <div className="adjust-controls step1-controls">
           {/* Horizontal Position Slider */}
           <div className="control-group">
@@ -324,7 +348,9 @@ export function ImageUploadZone({
                     // Position is stored as a fixed percentage (-50 to +50), independent of zoom
                     // Clamp to fixed range, not to limits
                     const clampedX = Math.max(-50, Math.min(50, invertedValue));
-                    onPositionChange({ ...position, x: clampedX });
+                    if (onPositionChange) {
+                      onPositionChange({ ...position, x: clampedX });
+                    }
                   }}
                   min={-50}
                   max={50}
@@ -369,7 +395,9 @@ export function ImageUploadZone({
                     // Invert back: slider value is inverted
                     const invertedValue = -value;
                     const clampedY = Math.max(-50, Math.min(50, invertedValue));
-                    onPositionChange({ ...position, y: clampedY });
+                    if (onPositionChange) {
+                      onPositionChange({ ...position, y: clampedY });
+                    }
                   }}
                   min={-50}
                   max={50}
@@ -411,7 +439,9 @@ export function ImageUploadZone({
                   value={[position.zoom]}
                   onValueChange={([value]) => {
                     const clampedZoom = Math.max(0, Math.min(200, value));
-                    onPositionChange({ ...position, zoom: clampedZoom });
+                    if (onPositionChange) {
+                      onPositionChange({ ...position, zoom: clampedZoom });
+                    }
                   }}
                   min={0}
                   max={200}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
@@ -11,7 +11,8 @@ import { FlagSelector } from '@/components/FlagSelector';
 import { FlagPreview } from '@/components/FlagPreview';
 import { ImageUploadZone } from '@/components/ImageUploadZone';
 import { Link } from 'react-router-dom';
-import { AdjustStep } from '@/components/AdjustStep';
+import { PresentationModeSelector } from '@/components/PresentationModeSelector';
+import { AdjustControls } from '@/components/AdjustControls';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
@@ -104,6 +105,64 @@ export function AppStepWorkflow() {
     return calculatePositionLimits(step1.imageDimensions, step1.circleSize, step1.imagePosition.zoom);
   }, [step1.imageDimensions, step1.circleSize, step1.imagePosition.zoom]);
 
+  // Clamp position when limits change (zoom or dimensions change)
+  // This ensures position is valid when zoom changes and axes become enabled/disabled
+  const prevLimitsRef = useRef<PositionLimits | null>(null);
+  useEffect(() => {
+    if (!step1.imageDimensions || currentStep !== 1) {
+      prevLimitsRef.current = null;
+      return;
+    }
+    
+    // Only clamp if limits actually changed (zoom changed)
+    const limitsChanged = prevLimitsRef.current === null || 
+      prevLimitsRef.current.minX !== positionLimits.minX ||
+      prevLimitsRef.current.maxX !== positionLimits.maxX ||
+      prevLimitsRef.current.minY !== positionLimits.minY ||
+      prevLimitsRef.current.maxY !== positionLimits.maxY;
+    
+    if (!limitsChanged) {
+      return;
+    }
+    
+    prevLimitsRef.current = positionLimits;
+    
+    const EPSILON = 0.001;
+    const horizontalDisabled = Math.abs(positionLimits.maxX - positionLimits.minX) < EPSILON;
+    const verticalDisabled = Math.abs(positionLimits.maxY - positionLimits.minY) < EPSILON;
+    
+    // If an axis is disabled, reset that axis to 0
+    // Otherwise, clamp to the new limits
+    let needsUpdate = false;
+    const newPosition = { ...step1.imagePosition };
+    
+    if (horizontalDisabled && Math.abs(newPosition.x) > EPSILON) {
+      newPosition.x = 0;
+      needsUpdate = true;
+    } else if (!horizontalDisabled) {
+      const clampedX = Math.max(positionLimits.minX, Math.min(positionLimits.maxX, newPosition.x));
+      if (Math.abs(clampedX - newPosition.x) > EPSILON) {
+        newPosition.x = clampedX;
+        needsUpdate = true;
+      }
+    }
+    
+    if (verticalDisabled && Math.abs(newPosition.y) > EPSILON) {
+      newPosition.y = 0;
+      needsUpdate = true;
+    } else if (!verticalDisabled) {
+      const clampedY = Math.max(positionLimits.minY, Math.min(positionLimits.maxY, newPosition.y));
+      if (Math.abs(clampedY - newPosition.y) > EPSILON) {
+        newPosition.y = clampedY;
+        needsUpdate = true;
+      }
+    }
+    
+    if (needsUpdate) {
+      setImagePosition(newPosition);
+    }
+  }, [step1.imageDimensions, positionLimits, currentStep, setImagePosition, step1.imagePosition]);
+
   // Get aspect ratio
   const aspectRatio = useMemo<ImageAspectRatio | null>(() => {
     return step1.imageDimensions ? getAspectRatio(step1.imageDimensions) : null;
@@ -157,7 +216,7 @@ export function AppStepWorkflow() {
         bg: 'transparent',
         imagePosition: step1.imagePosition,
         imageDimensions: step1.imageDimensions,
-        circleSize: step1.circleSize, // Pass Step 1 circle size for accurate position/zoom
+        circleSize: step1.circleSize, // Still needed for position calculation
       });
     }
   }, [
@@ -299,19 +358,37 @@ export function AppStepWorkflow() {
                   </div>
                 }
               >
-                <AdjustStep
-                  overlayUrl={overlayUrl}
-                  isRendering={isRendering}
-                  selectedFlag={selectedFlag}
-                  presentation={step3.presentation}
-                  onPresentationChange={setPresentation}
-                  thickness={step3.thickness}
-                  onThicknessChange={setThickness}
-                  flagOffsetPct={step3.flagOffsetPct}
-                  onFlagOffsetChange={setFlagOffsetPct}
-                  segmentRotation={step3.segmentRotation}
-                  onSegmentRotationChange={setSegmentRotation}
-                />
+                <div className="adjust-wrapper">
+                  {/* Use same ImageUploadZone component in readonly mode */}
+                  <ImageUploadZone
+                    imageUrl={step1.imageUrl}
+                    position={step1.imagePosition}
+                    limits={positionLimits}
+                    aspectRatio={aspectRatio}
+                    imageDimensions={step1.imageDimensions}
+                    circleSize={step1.circleSize}
+                    readonly={true}
+                    flagBorderOverlayUrl={overlayUrl}
+                  />
+                  
+                  {/* Presentation Mode Toggle Buttons */}
+                  <PresentationModeSelector
+                    mode={step3.presentation}
+                    onModeChange={setPresentation}
+                  />
+
+                  {/* Adjust Controls */}
+                  <AdjustControls
+                    thickness={step3.thickness}
+                    onThicknessChange={setThickness}
+                    flagOffsetPct={step3.flagOffsetPct}
+                    onFlagOffsetChange={setFlagOffsetPct}
+                    presentation={step3.presentation}
+                    segmentRotation={step3.segmentRotation}
+                    onSegmentRotationChange={setSegmentRotation}
+                    selectedFlag={selectedFlag}
+                  />
+                </div>
               </ErrorBoundary>
             )}
           </div>
