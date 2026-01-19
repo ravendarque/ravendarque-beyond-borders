@@ -39,6 +39,18 @@ export interface RenderOptions {
   imageZoom?: number;
   
   /**
+   * Circle size from Step 1 (for accurate position/zoom calculation)
+   * Used to translate Step 1's coordinate system to renderer's coordinate system
+   */
+  circleSize?: number;
+  
+  /**
+   * Original image dimensions (before downsampling)
+   * Used for accurate zoom calculation when image has been downsampled
+   */
+  originalImageDimensions?: { width: number; height: number };
+  
+  /**
    * Offset to apply to flag pattern in cutout mode (percentage: -50 to +50)
    * Only applies when presentation is 'cutout'
    * -50%: left edge of border touches left edge of flag
@@ -185,6 +197,8 @@ export async function renderAvatar(
   const r = Math.min(canvasW, canvasH) / 2;
   const ringOuterRadius = r - Math.max(1, padding);
   const ringInnerRadius = Math.max(0, ringOuterRadius - thickness);
+  // Image radius should match ringInnerRadius exactly to avoid gaps
+  // The clip path anti-aliasing will handle smooth edges
   const imageRadius = clamp(ringInnerRadius, 0, r - 0.5);
 
   // Get colors from modes.ring.colors (all stripes have weight 1)
@@ -206,33 +220,56 @@ export async function renderAvatar(
     // Step 1: Draw the user's image in the center circle (respecting inset and position)
     // imageOffsetPx is used for image positioning, flagOffsetPct is used for flag pattern offset
     ctx.save();
-    ctx.beginPath();
-    // Clip to the inner circle area (where the image should appear)
-    // Clip circle stays centered - don't apply image offset to clip
-    ctx.arc(r, r, imageRadius, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.clip();
     
-    // Use downsampled image if available
+    // Calculate image center FIRST (before clipping) so clip path matches image position
     const iw = processedImage.width;
     const ih = processedImage.height;
     // Scale image to fit the inner circle (respecting inset)
     const target = imageRadius * 2;
-    const coverScale = Math.max(target / iw, target / ih);
-    // Apply zoom if provided
-    // Zoom is in percentage: 0% = 1x, 100% = 2x, 200% = 3x
     const zoom = options.imageZoom ?? 0;
     const zoomMultiplier = 1 + (zoom / 100);
-    const scale = coverScale * zoomMultiplier;
-    const dw = iw * scale;
-    const dh = ih * scale;
+    
+    // CRITICAL: Zoom must be calculated relative to Step 1's circleSize, not renderer's circleSize
+    // Use original image dimensions for zoom calculation, not downsampled dimensions
+    const originalWidth = options.originalImageDimensions?.width ?? iw;
+    const originalHeight = options.originalImageDimensions?.height ?? ih;
+
+    let scale: number;
+    if (options.circleSize && options.circleSize > 0) {
+      // Calculate cover scale relative to Step 1's circleSize using ORIGINAL image dimensions
+      const step1CoverScale = Math.max(options.circleSize / originalWidth, options.circleSize / originalHeight);
+      const step1ZoomedScale = step1CoverScale * zoomMultiplier;
+      const scaleFactor = target / options.circleSize;
+      scale = step1ZoomedScale * scaleFactor;
+    } else {
+      // No circleSize provided - use simple calculation (fallback)
+      const rendererCoverScale = Math.max(target / originalWidth, target / originalHeight);
+      scale = rendererCoverScale * zoomMultiplier;
+    }
+    
+    // CRITICAL: If image was downsampled, adjust scale to account for downsampling ratio
+    const adjustedScale = wasDownsampled && downsampleRatio > 0 ? scale / downsampleRatio : scale;
+
+    const dw = iw * adjustedScale;
+    const dh = ih * adjustedScale;
     // Apply image offset for positioning (from imagePosition)
     const imgOffsetX = options.imageOffsetPx?.x ?? 0;
     const imgOffsetY = options.imageOffsetPx?.y ?? 0;
     const cx = canvasW / 2 + imgOffsetX;
     const cy = canvasH / 2 + imgOffsetY;
     
+    // Use mask instead of clip to avoid anti-aliasing sampling artifacts
+    // Draw image first, then apply circular mask using destination-in
     ctx.drawImage(processedImage, cx - dw / 2, cy - dh / 2, dw, dh);
+    
+    // Create circular mask at the correct position
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, imageRadius, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
     ctx.restore();
     
     // Report progress: image drawn (40%)
@@ -329,33 +366,56 @@ export async function renderAvatar(
 
   // Draw circular masked image (kept inside border)
   ctx.save();
-  ctx.beginPath();
-  // Clip circle stays centered - don't apply image offset to clip
-  // The offset only affects where the image is drawn, not the clip boundary
-  ctx.arc(r, r, imageRadius, 0, Math.PI * 2);
-  ctx.closePath();
-  ctx.clip();
-
-  // Fit image into the inner circle (cover)
-  // Use downsampled image if available
+  
+  // Calculate image center FIRST (before clipping) so clip path matches image position
   const iw = processedImage.width,
     ih = processedImage.height;
   const target = imageRadius * 2;
-  const coverScale = Math.max(target / iw, target / ih);
-  // Apply zoom if provided
-  // Zoom is in percentage: 0% = 1x, 100% = 2x, 200% = 3x
   const zoom = options.imageZoom ?? 0;
   const zoomMultiplier = 1 + (zoom / 100);
-  const scale = coverScale * zoomMultiplier;
-  const dw = iw * scale,
-    dh = ih * scale;
+  
+  // CRITICAL: Zoom must be calculated relative to Step 1's circleSize, not renderer's circleSize
+  // Use original image dimensions for zoom calculation, not downsampled dimensions
+  const originalWidth = options.originalImageDimensions?.width ?? iw;
+  const originalHeight = options.originalImageDimensions?.height ?? ih;
+
+  let scale: number;
+  if (options.circleSize && options.circleSize > 0) {
+    // Calculate cover scale relative to Step 1's circleSize using ORIGINAL image dimensions
+    const step1CoverScale = Math.max(options.circleSize / originalWidth, options.circleSize / originalHeight);
+    const step1ZoomedScale = step1CoverScale * zoomMultiplier;
+    const scaleFactor = target / options.circleSize;
+    scale = step1ZoomedScale * scaleFactor;
+  } else {
+    // No circleSize provided - use simple calculation (fallback)
+    const rendererCoverScale = Math.max(target / originalWidth, target / originalHeight);
+    scale = rendererCoverScale * zoomMultiplier;
+  }
+  
+  // CRITICAL: If image was downsampled, adjust scale to account for downsampling ratio
+  const adjustedScale = wasDownsampled && downsampleRatio > 0 ? scale / downsampleRatio : scale;
+
+  const dw = iw * adjustedScale,
+    dh = ih * adjustedScale;
   // Apply image offset for positioning (from imagePosition)
   const imgOffsetX = options.imageOffsetPx?.x ?? 0;
   const imgOffsetY = options.imageOffsetPx?.y ?? 0;
   // Center in canvas (with optional offset for fine-tuning)
   const cx = canvasW / 2 + imgOffsetX,
     cy = canvasH / 2 + imgOffsetY;
+  
+  // Use mask instead of clip to avoid anti-aliasing sampling artifacts
+  // Draw image first, then apply circular mask using destination-in
   ctx.drawImage(processedImage, cx - dw / 2, cy - dh / 2, dw, dh);
+  
+  // Create circular mask at the correct position
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(cx, cy, imageRadius, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
   ctx.restore();
   
   // Report progress: image drawn (50%)
@@ -493,7 +553,7 @@ function drawConcentricRings(
   outerR: number,
   stripes: { color: string; weight: number }[],
   totalWeight: number,
-) {
+): void {
   // Compute thickness in px
   const thickness = outerR - innerR;
   // Use floating calculation to avoid rounding errors
@@ -532,7 +592,7 @@ function drawRingArc(
   startAngle: number,
   endAngle: number,
   fill: string,
-) {
+): void {
   ctx.beginPath();
   // Outer arc
   ctx.arc(center, center, outerR, startAngle, endAngle);
@@ -543,7 +603,7 @@ function drawRingArc(
   ctx.fill();
 }
 
-function clamp(n: number, min: number, max: number) {
+function clamp(n: number, min: number, max: number): number {
   return Math.min(Math.max(n, min), max);
 }
 
@@ -553,7 +613,7 @@ function clamp(n: number, min: number, max: number) {
  * across the width (circumference) and use height as thickness.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function createStripeTexture(stripes: { color: string; weight: number }[], orientation: string, w: number, h: number) {
+function createStripeTexture(stripes: { color: string; weight: number }[], orientation: string, w: number, h: number): OffscreenCanvas {
   const canvas = new OffscreenCanvas(Math.max(1, w), Math.max(1, h));
   const ctx = canvas.getContext('2d')!;
   // Normalize weights
@@ -590,7 +650,7 @@ function drawTexturedAnnulus(
   bitmap: ImageBitmap,
   startAngle = 0,
   mode: 'normal' | 'erase' = 'normal',
-) {
+): void {
   const thickness = outerR - innerR;
   if (thickness <= 0) return;
 
