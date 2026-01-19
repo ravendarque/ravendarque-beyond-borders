@@ -112,9 +112,6 @@ export function useAvatarRenderer(
         const imageRadius = Math.max(0, Math.min(ringInnerRadius, r - 0.5));
         const rendererCircleSize = imageRadius * 2;
 
-        // Calculate scale factor to convert from Step 1's circleSize to renderer's circleSize
-        const scaleFactor = rendererCircleSize / circleSize;
-
         // Calculate position limits using Step 1's circleSize
         // Position values (x, y) are percentages relative to these limits
         const limits = calculatePositionLimits(
@@ -123,31 +120,24 @@ export function useAvatarRenderer(
           options.imagePosition.zoom
         );
         
-        // Calculate offset using Step 1's circleSize, then scale to renderer's coordinate system
-        // This ensures zoom is applied correctly relative to Step 1's circleSize
-        const step1Offset = positionToRendererOffset(
+        // Calculate offset using renderer's circleSize directly
+        // This ensures the offset matches the renderer's coordinate system
+        // We still use Step 1's limits for position mapping (since position values are relative to those limits)
+        const imageOffset = positionToRendererOffset(
           { x: options.imagePosition.x, y: options.imagePosition.y },
           options.imageDimensions,
-          circleSize, // Use Step 1's circleSize for scale calculation (zoom base)
+          rendererCircleSize, // Use renderer's circleSize for offset calculation
           options.imagePosition.zoom,
-          limits
+          limits // But use Step 1's limits for position mapping
         );
-        
-        // Scale the offset to match renderer's coordinate system
-        const imageOffset = {
-          x: step1Offset.x * scaleFactor,
-          y: step1Offset.y * scaleFactor,
-        };
 
         // Render avatar with flag border
         // Pass position/zoom directly to renderer - no capture needed
-        const zoomValue = options.imagePosition.zoom;
-        console.log('[useAvatarRenderer] Passing zoom to renderer:', zoomValue, 'from imagePosition:', options.imagePosition);
         const result = await renderAvatar(img, transformedFlag, {
           size,
           thicknessPct: thickness,
           imageOffsetPx: imageOffset,
-          imageZoom: zoomValue,
+          imageZoom: options.imagePosition.zoom,
           flagOffsetPct: { x: flagOffsetPct, y: 0 }, // Use flagOffsetPct for cutout mode
           presentation,
           segmentRotation,
