@@ -161,26 +161,30 @@ test.describe('Zoom Visual Verification', () => {
     await page.waitForSelector('.adjust-wrapper', { timeout: 20000 });
     await waitForRenderComplete(page);
     
-    // Wait for the rendered image to appear
-    await page.waitForSelector('.avatar-preview-image', { timeout: 20000 });
+    // Wait for the rendered image to appear (using choose-circle in readonly mode)
+    await page.waitForSelector('.choose-circle.has-image', { timeout: 20000 });
     
     // Wait for rendering to complete (zoom/position should be applied)
     await page.waitForTimeout(3000);
     
-    // Get the rendered image element
-    const renderedImage = page.locator('.avatar-preview-image');
+    // Get the rendered image element (choose-circle in readonly mode with flag border)
+    const renderedImage = page.locator('.choose-circle.has-image');
     await expect(renderedImage).toBeVisible();
     
-    // Verify image src is set (means rendering completed)
-    const imageSrc = await renderedImage.getAttribute('src');
-    expect(imageSrc).toBeTruthy();
-    expect(imageSrc).toContain('blob:');
+    // Verify flag border overlay is present (means rendering completed)
+    const flagBorderOverlay = page.locator('.choose-wrapper.has-flag-border');
+    await expect(flagBorderOverlay).toBeVisible();
+    
+    // Verify the wrapper has the flag border as background
+    const wrapperStyle = await flagBorderOverlay.evaluate(el => window.getComputedStyle(el).backgroundImage);
+    expect(wrapperStyle).toBeTruthy();
+    expect(wrapperStyle).toContain('blob:');
     
     // Take screenshot of Step 3 preview
     const step3Preview = page.locator('.adjust-wrapper');
     await step3Preview.screenshot({ path: 'test-results/step3-zoom10-h24-v-42.png' });
     
-    // Get image dimensions from Step 3
+    // Get image dimensions from Step 3 (choose-circle container)
     const imageBoundingBox = await renderedImage.boundingBox();
     expect(imageBoundingBox).toBeTruthy();
     expect(imageBoundingBox!.width).toBeGreaterThan(0);
