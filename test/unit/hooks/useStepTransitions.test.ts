@@ -4,13 +4,6 @@ import { useStepTransitions } from '@/hooks/useStepTransitions';
 import { createInitialWorkflowState } from '@/types/workflowState';
 import type { WorkflowState } from '@/types/workflowState';
 import type { FlagSpec } from '@/flags/schema';
-import { captureAdjustedImage } from '@/utils/captureImage';
-import { IMAGE_CONSTANTS } from '@/constants';
-
-// Mock the capture function
-vi.mock('@/utils/captureImage', () => ({
-  captureAdjustedImage: vi.fn(),
-}));
 
 // Mock getComputedStyle for circle size detection
 const mockGetComputedStyle = vi.fn(() => ({
@@ -42,9 +35,6 @@ describe('useStepTransitions', () => {
     vi.restoreAllMocks();
     sessionStorage.clear();
     
-    // Reset mocks
-    (captureAdjustedImage as any).mockResolvedValue('data:image/png;base64,cropped');
-    
     // Mock window.getComputedStyle
     Object.defineProperty(window, 'getComputedStyle', {
       value: mockGetComputedStyle,
@@ -66,7 +56,6 @@ describe('useStepTransitions', () => {
     });
 
     const onImageDimensionsChange = vi.fn();
-    const onCroppedImageUrlChange = vi.fn();
     const onCircleSizeChange = vi.fn();
     const onFlagOffsetChange = vi.fn();
     const onUpdateStep3ForFlag = vi.fn();
@@ -86,7 +75,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: null,
-        onCroppedImageUrlChange,
         onImageDimensionsChange,
         onCircleSizeChange,
         onFlagOffsetChange,
@@ -121,7 +109,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: null,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange,
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange: vi.fn(),
@@ -141,7 +128,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: null,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange,
         onFlagOffsetChange: vi.fn(),
@@ -151,199 +137,6 @@ describe('useStepTransitions', () => {
 
     // Circle size should be 80% of wrapper (400px * 0.8 = 320px)
     expect(onCircleSizeChange).toHaveBeenCalledWith(320);
-  });
-
-  it('should capture image when entering step 3', async () => {
-    const state = createState({
-      currentStep: 3,
-      step1: {
-        ...createInitialWorkflowState().step1,
-        imageUrl: 'data:image/png;base64,test',
-        imageDimensions: { width: 800, height: 600 },
-        imagePosition: { x: 10, y: -20, zoom: 50 },
-        circleSize: 300,
-      },
-    });
-
-    const onCroppedImageUrlChange = vi.fn();
-
-    (captureAdjustedImage as any).mockResolvedValue('data:image/png;base64,cropped');
-
-    renderHook(() =>
-      useStepTransitions({
-        state,
-        selectedFlag: null,
-        onCroppedImageUrlChange,
-        onImageDimensionsChange: vi.fn(),
-        onCircleSizeChange: vi.fn(),
-        onFlagOffsetChange: vi.fn(),
-        onUpdateStep3ForFlag: vi.fn(),
-      })
-    );
-
-    await waitFor(() => {
-      expect(captureAdjustedImage).toHaveBeenCalledWith(
-        'data:image/png;base64,test',
-        { x: 10, y: -20, zoom: 50 },
-        300,
-        { width: 800, height: 600 },
-        IMAGE_CONSTANTS.DEFAULT_CAPTURE_SIZE
-      );
-      expect(onCroppedImageUrlChange).toHaveBeenCalledWith('data:image/png;base64,cropped');
-    });
-  });
-
-  it('should not recapture if position has not changed', async () => {
-    // First, capture with initial position
-    const initialState = createState({
-      currentStep: 3,
-      step1: {
-        ...createInitialWorkflowState().step1,
-        imageUrl: 'data:image/png;base64,test',
-        imageDimensions: { width: 800, height: 600 },
-        imagePosition: { x: 10, y: -20, zoom: 50 },
-        circleSize: 300,
-      },
-    });
-
-    const onCroppedImageUrlChange = vi.fn();
-
-    (captureAdjustedImage as any).mockResolvedValue('data:image/png;base64,already-cropped');
-
-    const { rerender } = renderHook(
-      ({ state }) =>
-        useStepTransitions({
-          state,
-          selectedFlag: null,
-          onCroppedImageUrlChange,
-          onImageDimensionsChange: vi.fn(),
-          onCircleSizeChange: vi.fn(),
-          onFlagOffsetChange: vi.fn(),
-          onUpdateStep3ForFlag: vi.fn(),
-        }),
-      { initialProps: { state: initialState } }
-    );
-
-    // Wait for initial capture
-    await waitFor(() => {
-      expect(captureAdjustedImage).toHaveBeenCalledTimes(1);
-    });
-
-    // Clear the mock call count
-    vi.clearAllMocks();
-
-    // Now update state with same position but croppedImageUrl already set
-    const updatedState = createState({
-      currentStep: 3,
-      step1: {
-        ...initialState.step1,
-        croppedImageUrl: 'data:image/png;base64,already-cropped',
-        // Same position
-        imagePosition: { x: 10, y: -20, zoom: 50 },
-      },
-    });
-
-    rerender({ state: updatedState });
-
-    // Wait a bit to ensure no new capture happens
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    expect(captureAdjustedImage).not.toHaveBeenCalled();
-  });
-
-  it('should recapture if position changes', async () => {
-    const state = createState({
-      currentStep: 3,
-      step1: {
-        ...createInitialWorkflowState().step1,
-        imageUrl: 'data:image/png;base64,test',
-        imageDimensions: { width: 800, height: 600 },
-        imagePosition: { x: 20, y: -30, zoom: 60 }, // Different position
-        circleSize: 300,
-        croppedImageUrl: 'data:image/png;base64,old-cropped',
-      },
-    });
-
-    const onCroppedImageUrlChange = vi.fn();
-
-    (captureAdjustedImage as any).mockResolvedValue('data:image/png;base64,new-cropped');
-
-    renderHook(() =>
-      useStepTransitions({
-        state,
-        selectedFlag: null,
-        onCroppedImageUrlChange,
-        onImageDimensionsChange: vi.fn(),
-        onCircleSizeChange: vi.fn(),
-        onFlagOffsetChange: vi.fn(),
-        onUpdateStep3ForFlag: vi.fn(),
-      })
-    );
-
-    await waitFor(() => {
-      expect(captureAdjustedImage).toHaveBeenCalled();
-      expect(onCroppedImageUrlChange).toHaveBeenCalledWith('data:image/png;base64,new-cropped');
-    });
-  });
-
-  it('should reset cropped image when going back to step 1', () => {
-    const state = createState({
-      currentStep: 1,
-      step1: {
-        ...createInitialWorkflowState().step1,
-        croppedImageUrl: 'data:image/png;base64,cropped',
-      },
-    });
-
-    const onCroppedImageUrlChange = vi.fn();
-
-    renderHook(() =>
-      useStepTransitions({
-        state,
-        selectedFlag: null,
-        onCroppedImageUrlChange,
-        onImageDimensionsChange: vi.fn(),
-        onCircleSizeChange: vi.fn(),
-        onFlagOffsetChange: vi.fn(),
-        onUpdateStep3ForFlag: vi.fn(),
-      })
-    );
-
-    expect(onCroppedImageUrlChange).toHaveBeenCalledWith(null);
-  });
-
-  it('should handle capture errors gracefully', async () => {
-    const state = createState({
-      currentStep: 3,
-      step1: {
-        ...createInitialWorkflowState().step1,
-        imageUrl: 'data:image/png;base64,test',
-        imageDimensions: { width: 800, height: 600 },
-        imagePosition: { x: 10, y: -20, zoom: 50 },
-        circleSize: 300,
-      },
-    });
-
-    const onCroppedImageUrlChange = vi.fn();
-
-    (captureAdjustedImage as any).mockRejectedValue(new Error('Capture failed'));
-
-    renderHook(() =>
-      useStepTransitions({
-        state,
-        selectedFlag: null,
-        onCroppedImageUrlChange,
-        onImageDimensionsChange: vi.fn(),
-        onCircleSizeChange: vi.fn(),
-        onFlagOffsetChange: vi.fn(),
-        onUpdateStep3ForFlag: vi.fn(),
-      })
-    );
-
-    await waitFor(() => {
-      // Should fallback to original image
-      expect(onCroppedImageUrlChange).toHaveBeenCalledWith('data:image/png;base64,test');
-    });
   });
 
   it('should set default offset when entering step 3 with cutout mode and flag', () => {
@@ -366,7 +159,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: mockFlag,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
@@ -408,7 +200,6 @@ describe('useStepTransitions', () => {
             },
           },
         } as FlagSpec,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
@@ -441,7 +232,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: mockFlag,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
@@ -477,7 +267,6 @@ describe('useStepTransitions', () => {
           id: 'no-cutout-flag',
           displayName: 'No Cutout',
         } as FlagSpec,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
@@ -486,7 +275,7 @@ describe('useStepTransitions', () => {
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(0);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('no-cutout-flag', undefined);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('no-cutout-flag', 0);
   });
 
   it('should not handle offset logic when not in cutout mode', () => {
@@ -509,7 +298,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: mockFlag,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
@@ -541,7 +329,6 @@ describe('useStepTransitions', () => {
       useStepTransitions({
         state,
         selectedFlag: mockFlag,
-        onCroppedImageUrlChange: vi.fn(),
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,

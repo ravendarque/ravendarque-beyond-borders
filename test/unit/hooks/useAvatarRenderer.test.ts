@@ -5,7 +5,11 @@ import type { FlagSpec } from '@/flags/schema';
 
 // Mock the renderAvatar function
 vi.mock('@/renderer/render', () => ({
-  renderAvatar: vi.fn(async () => new Blob(['test'], { type: 'image/png' })),
+  renderAvatar: vi.fn(async () => ({
+    blob: new Blob(['test'], { type: 'image/png' }),
+    sizeBytes: 1024,
+    sizeKB: '1.00',
+  })),
 }));
 
 describe('useAvatarRenderer', () => {
@@ -36,7 +40,7 @@ describe('useAvatarRenderer', () => {
     blob: async () => new Blob(['test'], { type: 'image/png' }),
   })) as any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     mockCache.clear();
     global.createImageBitmap = mockCreateImageBitmap;
@@ -44,6 +48,13 @@ describe('useAvatarRenderer', () => {
     // Mock URL.createObjectURL and revokeObjectURL
     global.URL.createObjectURL = vi.fn(() => 'blob:test-url');
     global.URL.revokeObjectURL = vi.fn();
+    // Reset renderAvatar mock to default success behavior
+    const { renderAvatar } = await import('@/renderer/render');
+    vi.mocked(renderAvatar).mockResolvedValue({
+      blob: new Blob(['test'], { type: 'image/png' }),
+      sizeBytes: 1024,
+      sizeKB: '1.00',
+    });
   });
 
   it('should initialize with null overlayUrl and not rendering', () => {
@@ -63,6 +74,9 @@ describe('useAvatarRenderer', () => {
       flagOffsetPct: 0,
       presentation: 'ring',
       bg: 'transparent',
+      imagePosition: { x: 0, y: 0, zoom: 0 },
+      imageDimensions: { width: 100, height: 100 },
+      circleSize: 320,
     });
 
     expect(result.current.overlayUrl).toBeNull();
@@ -78,6 +92,9 @@ describe('useAvatarRenderer', () => {
       flagOffsetPct: 0,
       presentation: 'ring',
       bg: 'transparent',
+      imagePosition: { x: 0, y: 0, zoom: 0 },
+      imageDimensions: { width: 100, height: 100 },
+      circleSize: 320,
     });
 
     expect(result.current.overlayUrl).toBeNull();
@@ -94,6 +111,9 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'ring',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -112,6 +132,9 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'cutout',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -138,6 +161,9 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'cutout',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -164,6 +190,9 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'cutout',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -184,6 +213,9 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'ring',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -201,6 +233,9 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'segment',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 
@@ -224,6 +259,9 @@ describe('useAvatarRenderer', () => {
           flagOffsetPct: 0,
           presentation: 'ring',
           bg: 'transparent',
+          imagePosition: { x: 0, y: 0, zoom: 0 },
+          imageDimensions: { width: 100, height: 100 },
+          circleSize: 320,
         });
       })
     ).rejects.toThrow('Render error');
@@ -266,6 +304,9 @@ describe('useAvatarRenderer', () => {
         flagOffsetPct: 0,
         presentation: 'ring',
         bg: 'transparent',
+        imagePosition: { x: 0, y: 0, zoom: 0 },
+        imageDimensions: { width: 100, height: 100 },
+        circleSize: 320,
       });
     });
 

@@ -24,7 +24,6 @@ export type WorkflowAction =
   | { type: 'SET_IMAGE_POSITION'; position: ImagePosition }
   | { type: 'SET_IMAGE_DIMENSIONS'; dimensions: ImageDimensions | null }
   | { type: 'SET_CIRCLE_SIZE'; size: number }
-  | { type: 'SET_CROPPED_IMAGE_URL'; url: string | null }
   | { type: 'SET_FLAG_ID'; flagId: string | null }
   | { type: 'SET_THICKNESS'; thickness: number }
   | { type: 'SET_FLAG_OFFSET_PCT'; offset: number }
@@ -55,7 +54,6 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
           // Reset position when image changes (new image or cleared)
           imagePosition: { x: 0, y: 0, zoom: 0 },
           imageDimensions: action.imageUrl ? state.step1.imageDimensions : null,
-          croppedImageUrl: action.imageUrl ? state.step1.croppedImageUrl : null,
         },
       };
 
@@ -69,13 +67,38 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
       };
 
     case 'SET_IMAGE_DIMENSIONS':
+      // Only reset position if dimensions are actually changing (new image) or being cleared
+      // Don't reset if dimensions are the same (e.g., re-detection of same image)
+      const hadDimensions = state.step1.imageDimensions !== null;
+      const hasDimensions = action.dimensions !== null;
+      const dimensionsChanged = 
+        (!hadDimensions && hasDimensions) || // Was null, now has dimensions
+        (hadDimensions && !hasDimensions) || // Had dimensions, now null (image cleared)
+        (hadDimensions && hasDimensions && (
+          state.step1.imageDimensions!.width !== action.dimensions!.width ||
+          state.step1.imageDimensions!.height !== action.dimensions!.height
+        )); // Dimensions changed (different image)
+      
+      // Determine if position should be reset:
+      // - Always reset when clearing dimensions (set to null)
+      // - Reset when dimensions change AND position is at default (0,0,0) - indicates new image
+      // - Don't reset when going from null to dimensions if position is NOT default - indicates restore
+      const isDefaultPosition = 
+        state.step1.imagePosition.x === 0 && 
+        state.step1.imagePosition.y === 0 && 
+        state.step1.imagePosition.zoom === 0;
+      
+      const shouldResetPosition = 
+        action.dimensions === null || // Always reset when clearing
+        (dimensionsChanged && isDefaultPosition); // Only reset if position is at default (new image, not restore)
+      
       return {
         ...state,
         step1: {
           ...state.step1,
           imageDimensions: action.dimensions,
-          // Reset position when dimensions change (new image loaded) or when cleared
-          imagePosition: action.dimensions ? { x: 0, y: 0, zoom: 0 } : { x: 0, y: 0, zoom: 0 },
+          // Only reset position when dimensions actually change (new image loaded) or when cleared
+          imagePosition: shouldResetPosition ? { x: 0, y: 0, zoom: 0 } : state.step1.imagePosition,
         },
       };
 
@@ -85,15 +108,6 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
         step1: {
           ...state.step1,
           circleSize: action.size,
-        },
-      };
-
-    case 'SET_CROPPED_IMAGE_URL':
-      return {
-        ...state,
-        step1: {
-          ...state.step1,
-          croppedImageUrl: action.url,
         },
       };
 
@@ -150,7 +164,6 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
           imagePosition: { x: 0, y: 0, zoom: 0 },
           imageDimensions: null,
           circleSize: IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE,
-          croppedImageUrl: null,
         },
       };
 
@@ -203,7 +216,7 @@ function persistState(state: WorkflowState): void {
         imageUrl: state.step1.imageUrl,
         imagePosition: state.step1.imagePosition,
         // Don't persist: imageDimensions, circleSize (computed)
-        croppedImageUrl: state.step1.croppedImageUrl,
+        // Don't persist: croppedImageUrl (tied to specific position/zoom, must be recaptured)
       },
       step2: state.step2,
       step3: state.step3,
@@ -267,11 +280,11 @@ export function useWorkflowState() {
       step1: {
         ...state.step1,
         ...restored.step1,
-        imageUrl: validImageUrl,
-        // Don't restore computed values
-        imageDimensions: null,
-        circleSize: IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE,
-      },
+            imageUrl: validImageUrl,
+            // Don't restore computed values
+            imageDimensions: null,
+            circleSize: IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE,
+          },
       step2: {
         ...state.step2,
         ...restored.step2,
@@ -314,10 +327,6 @@ export function useWorkflowState() {
 
   const setCircleSize = useCallback((size: number) => {
     dispatch({ type: 'SET_CIRCLE_SIZE', size });
-  }, []);
-
-  const setCroppedImageUrl = useCallback((url: string | null) => {
-    dispatch({ type: 'SET_CROPPED_IMAGE_URL', url });
   }, []);
 
   const setFlagId = useCallback((flagId: string | null) => {
@@ -367,7 +376,6 @@ export function useWorkflowState() {
     setImagePosition,
     setImageDimensions,
     setCircleSize,
-    setCroppedImageUrl,
     setFlagId,
     setThickness,
     setFlagOffsetPct,

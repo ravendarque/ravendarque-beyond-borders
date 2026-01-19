@@ -21,8 +21,6 @@ export interface Step1State {
   imageDimensions: ImageDimensions | null;
   /** Circle size in pixels (computed from CSS, not persisted) */
   circleSize: number;
-  /** Cropped image URL captured when transitioning to Step 3 */
-  croppedImageUrl: string | null;
 }
 
 /**
@@ -69,7 +67,6 @@ export function createInitialWorkflowState(): WorkflowState {
       imagePosition: { x: 0, y: 0, zoom: 0 },
       imageDimensions: null,
       circleSize: 250, // Default, will be updated from CSS
-      croppedImageUrl: null,
     },
     step2: {
       flagId: null,

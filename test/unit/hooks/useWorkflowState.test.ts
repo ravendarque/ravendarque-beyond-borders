@@ -74,7 +74,6 @@ describe('workflowReducer', () => {
     expect(result.step1.imageUrl).toBeNull();
     expect(result.step1.imagePosition).toEqual({ x: 0, y: 0, zoom: 0 });
     expect(result.step1.imageDimensions).toBeNull();
-    expect(result.step1.croppedImageUrl).toBeNull();
   });
 
   it('should handle SET_IMAGE_POSITION action', () => {
@@ -121,15 +120,6 @@ describe('workflowReducer', () => {
     const result = workflowReducer(initialState, action);
     
     expect(result.step1.circleSize).toBe(300);
-  });
-
-  it('should handle SET_CROPPED_IMAGE_URL action', () => {
-    const initialState = createInitialWorkflowState();
-    const action: WorkflowAction = { type: 'SET_CROPPED_IMAGE_URL', url: 'data:image/png;base64,cropped' };
-    
-    const result = workflowReducer(initialState, action);
-    
-    expect(result.step1.croppedImageUrl).toBe('data:image/png;base64,cropped');
   });
 
   it('should handle SET_FLAG_ID action', () => {
@@ -185,7 +175,6 @@ describe('workflowReducer', () => {
         imagePosition: { x: 10, y: 20, zoom: 5 },
         imageDimensions: { width: 800, height: 600 },
         circleSize: 300,
-        croppedImageUrl: 'data:image/png;base64,cropped',
       },
     };
     const action: WorkflowAction = { type: 'RESET_STEP1' };
@@ -196,7 +185,6 @@ describe('workflowReducer', () => {
     expect(result.step1.imagePosition).toEqual({ x: 0, y: 0, zoom: 0 });
     expect(result.step1.imageDimensions).toBeNull();
     expect(result.step1.circleSize).toBe(IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE);
-    expect(result.step1.croppedImageUrl).toBeNull();
   });
 
   it('should handle RESET_STEP2 action', () => {
@@ -243,7 +231,6 @@ describe('workflowReducer', () => {
         imagePosition: { x: 10, y: 20, zoom: 5 },
         imageDimensions: { width: 800, height: 600 },
         circleSize: 300,
-        croppedImageUrl: 'data:image/png;base64,cropped',
       },
       step2: {
         flagId: 'palestine',
@@ -311,7 +298,6 @@ describe('useWorkflowState', () => {
       step1: {
         imageUrl: 'data:image/png;base64,test',
         imagePosition: { x: 10, y: -20, zoom: 50 },
-        croppedImageUrl: null,
       },
       step2: {
         flagId: 'palestine',
@@ -347,7 +333,6 @@ describe('useWorkflowState', () => {
       step1: {
         imageUrl: 'blob:http://localhost/test',
         imagePosition: { x: 0, y: 0, zoom: 0 },
-        croppedImageUrl: null,
       },
       step2: { flagId: null },
       step3: createInitialWorkflowState().step3,
@@ -410,7 +395,6 @@ describe('useWorkflowState', () => {
     expect(typeof result.current.setImagePosition).toBe('function');
     expect(typeof result.current.setImageDimensions).toBe('function');
     expect(typeof result.current.setCircleSize).toBe('function');
-    expect(typeof result.current.setCroppedImageUrl).toBe('function');
     expect(typeof result.current.setFlagId).toBe('function');
     expect(typeof result.current.setThickness).toBe('function');
     expect(typeof result.current.setFlagOffsetPct).toBe('function');
