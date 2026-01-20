@@ -1,8 +1,8 @@
 /**
  * Flag pattern utilities for UI rendering
  * 
- * These functions generate canvas-based flag patterns for the UI preview.
- * This is separate from the final renderer which creates the download image.
+ * Uses CSS gradients for ring/segment modes (instant, smooth transitions)
+ * Canvas is only used for final download render, not UI preview.
  */
 
 import type { FlagSpec } from '@/flags/schema';
@@ -46,10 +46,10 @@ export function generateCutoutPattern(options: FlagPatternOptions): string {
 }
 
 /**
- * Generate canvas-based pattern for ring mode
- * Returns data URL of concentric rings sized for the annulus
+ * Generate CSS radial-gradient for ring mode
+ * Returns CSS gradient string for concentric rings
  */
-async function generateRingPatternCanvas(options: FlagPatternOptions): Promise<string> {
+function generateRingPatternCSS(options: FlagPatternOptions): string {
   const { flag, wrapperSize, circleSize } = options;
   
   const colors = flag.modes?.ring?.colors ?? [];
@@ -66,66 +66,102 @@ async function generateRingPatternCanvas(options: FlagPatternOptions): Promise<s
     return 'transparent';
   }
   
-  // Create canvas matching the renderer's logic
-  const canvas = new OffscreenCanvas(wrapperSize, wrapperSize);
-  const ctx = canvas.getContext('2d')!;
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
+  // Generate color stops for radial gradient
+  // Each color gets equal fraction of the annulus thickness
+  // Gradient goes from center (0%) to edge (100%)
+  // We want colors to appear only in the annulus region (innerRadius% to 100%)
+  const totalColors = colors.length;
+  const center = '50%';
   
-  const center = wrapperSize / 2;
-  const innerR = circleRadius;
-  const outerR = wrapperRadius;
+  // Calculate percentage positions for each ring
+  // innerRadius% = where inner circle starts
+  // 100% = outer edge
+  const innerRadiusPct = (circleRadius / wrapperRadius) * 100;
+  const annulusPct = 100 - innerRadiusPct;
   
-  // Create stripes with equal weight (matching renderer)
-  const stripes = colors.map(color => ({ color, weight: 1 }));
-  const totalWeight = stripes.length;
+  // Build gradient stops from inner to outer
+  // Each color gets equal fraction of the annulus
+  const stops: string[] = [];
+  let currentPct = innerRadiusPct;
   
-  // Draw concentric rings from outer to inner (matching renderer's drawConcentricRings)
-  const thickness = outerR - innerR;
-  let remainingOuter = outerR;
-  
-  for (const stripe of stripes) {
-    const frac = stripe.weight / totalWeight;
-    const band = frac * thickness;
-    const bandInner = Math.max(innerR, remainingOuter - band);
+  for (let i = 0; i < colors.length; i++) {
+    const frac = 1 / totalColors;
+    const bandPct = frac * annulusPct;
+    const nextPct = Math.min(100, currentPct + bandPct);
     
-    // Draw annulus between bandInner and remainingOuter
-    ctx.beginPath();
-    ctx.arc(center, center, remainingOuter, 0, Math.PI * 2);
-    ctx.arc(center, center, bandInner, Math.PI * 2, 0, true);
-    ctx.closePath();
-    ctx.fillStyle = stripe.color;
-    ctx.fill();
+    // Each ring has hard edges (same color at start and end)
+    stops.push(`${colors[i]} ${currentPct}%`);
+    stops.push(`${colors[i]} ${nextPct}%`);
     
-    remainingOuter = bandInner;
-    if (remainingOuter <= innerR + 0.5) break;
+    currentPct = nextPct;
+    if (currentPct >= 100) break;
   }
   
-  // Fill any remaining gap with last stripe color
-  if (remainingOuter > innerR + 0.5) {
-    ctx.beginPath();
-    ctx.arc(center, center, remainingOuter, 0, Math.PI * 2);
-    ctx.arc(center, center, innerR, Math.PI * 2, 0, true);
-    ctx.closePath();
-    ctx.fillStyle = stripes[stripes.length - 1]?.color ?? '#000000';
-    ctx.fill();
+  // Ensure we reach 100% with last color
+  if (currentPct < 100) {
+    const lastColor = colors[colors.length - 1] ?? '#000000';
+    stops.push(`${lastColor} ${currentPct}%`);
+    stops.push(`${lastColor} 100%`);
   }
   
-  // Convert to data URL
-  const blob = await canvas.convertToBlob();
-  return URL.createObjectURL(blob);
+  // Everything inside innerRadius is transparent (will be covered by image circle)
+  if (innerRadiusPct > 0) {
+    stops.unshift(`transparent 0%`, `transparent ${innerRadiusPct}%`);
+  }
+  
+  return `radial-gradient(circle at ${center}, ${stops.join(', ')})`;
 }
 
 /**
- * Generate canvas-based pattern for segment mode
- * Returns data URL of angular segments as full circle
+ * Generate CSS conic-gradient for segment mode
+ * Returns CSS gradient string for angular segments
  */
-async function generateSegmentPatternCanvas(options: FlagPatternOptions): Promise<string> {
-  const { flag, wrapperSize, circleSize, segmentRotation = 0 } = options;
+function generateSegmentPatternCSS(options: FlagPatternOptions): string {
+  const { flag, segmentRotation = 0 } = options;
   
   const colors = flag.modes?.ring?.colors ?? [];
   if (colors.length === 0) {
     return 'transparent';
+  }
+  
+  // Conic gradient: starts at top (12 o'clock) = -90deg
+  // Apply rotation offset
+  const startAngle = -90 + segmentRotation;
+  
+  // Each color gets equal fraction of the circle
+  // Add a tiny transition zone (0.4deg) between segments to smooth jagged pixel edges
+  // This creates a very subtle blend that eliminates aliasing while still looking like distinct segments
+  const anglePerColor = 360 / colors.length;
+  const transitionZone = 0.4; // Small transition in degrees for anti-aliasing
+  const stops: string[] = [];
+  
+  for (let i = 0; i < colors.length; i++) {
+    const startAngleDeg = i * anglePerColor;
+    const endAngleDeg = (i + 1) * anglePerColor;
+    const currentColor = colors[i];
+    const nextColor = colors[(i + 1) % colors.length];
+    
+    // Start of segment: current color
+    stops.push(`${currentColor} ${startAngleDeg}deg`);
+    // Just before end: current color (most of segment is solid)
+    stops.push(`${currentColor} ${endAngleDeg - transitionZone}deg`);
+    // At end: transition to next color (smooth edge)
+    stops.push(`${nextColor} ${endAngleDeg}deg`);
+  }
+  
+  return `conic-gradient(from ${startAngle}deg at 50%, ${stops.join(', ')})`;
+}
+
+/**
+ * Generate canvas element for segment mode (for direct DOM rendering)
+ * Returns OffscreenCanvas that can be drawn to a regular canvas
+ */
+export async function generateSegmentPatternCanvasElement(options: FlagPatternOptions): Promise<OffscreenCanvas | null> {
+  const { flag, wrapperSize, circleSize, segmentRotation = 0 } = options;
+  
+  const colors = flag.modes?.ring?.colors ?? [];
+  if (colors.length === 0) {
+    return null;
   }
   
   // Calculate annulus dimensions
@@ -134,7 +170,7 @@ async function generateSegmentPatternCanvas(options: FlagPatternOptions): Promis
   const annulusThickness = wrapperRadius - circleRadius;
   
   if (annulusThickness <= 0) {
-    return 'transparent';
+    return null;
   }
   
   // Create canvas matching the renderer's logic
@@ -172,56 +208,60 @@ async function generateSegmentPatternCanvas(options: FlagPatternOptions): Promis
     start = end;
   }
   
-  // Convert to data URL
-  const blob = await canvas.convertToBlob();
-  return URL.createObjectURL(blob);
+  return canvas;
 }
 
 /**
- * Generate flag pattern data URL based on presentation mode
+ * Generate flag pattern CSS/style based on presentation mode
+ * Returns synchronously - no async operations needed for CSS gradients
  */
-export async function generateFlagPattern(options: FlagPatternOptions): Promise<string> {
+export function generateFlagPatternStyle(options: FlagPatternOptions): React.CSSProperties {
   switch (options.presentation) {
-    case 'cutout':
-      return Promise.resolve(generateCutoutPattern(options));
-    case 'ring':
-      return generateRingPatternCanvas(options);
-    case 'segment':
-      return generateSegmentPatternCanvas(options);
-    default:
-      return Promise.resolve('transparent');
-  }
-}
-
-/**
- * Generate flag pattern background style object
- */
-export async function generateFlagPatternStyle(options: FlagPatternOptions): Promise<React.CSSProperties> {
-  const backgroundImage = await generateFlagPattern(options);
-  
-  if (options.presentation === 'cutout' && options.flag.png_full) {
-    const { flag, flagOffsetPct = 0, wrapperSize } = options;
-    const aspectRatio = flag.aspectRatio ?? 2;
-    const flagHeight = wrapperSize;
-    const flagWidth = flagHeight * aspectRatio;
-    // Offset calculation: -50% = left edge, 0% = center, +50% = right edge
-    // We negate to match renderer semantics
-    const offsetPx = -(flagOffsetPct / 50) * (flagWidth - wrapperSize) / 2;
-    const backgroundPositionX = `calc(50% + ${offsetPx}px)`;
+    case 'cutout': {
+      const { flag, flagOffsetPct = 0, wrapperSize } = options;
+      
+      if (!flag.png_full) {
+        return { backgroundImage: 'transparent' };
+      }
+      
+      const flagUrl = getAssetUrl(`flags/${flag.png_full}`);
+      const aspectRatio = flag.aspectRatio ?? 2;
+      const flagHeight = wrapperSize;
+      const flagWidth = flagHeight * aspectRatio;
+      // Offset calculation: -50% = left edge, 0% = center, +50% = right edge
+      // We negate to match renderer semantics
+      const offsetPx = -(flagOffsetPct / 50) * (flagWidth - wrapperSize) / 2;
+      const backgroundPositionX = `calc(50% + ${offsetPx}px)`;
+      
+      return {
+        backgroundImage: `url(${flagUrl})`,
+        backgroundSize: `${flagWidth}px ${flagHeight}px`,
+        backgroundPosition: `${backgroundPositionX} center`,
+        backgroundRepeat: 'no-repeat',
+      };
+    }
     
-    return {
-      backgroundImage: `url(${backgroundImage})`,
-      backgroundSize: `${flagWidth}px ${flagHeight}px`,
-      backgroundPosition: `${backgroundPositionX} center`,
-      backgroundRepeat: 'no-repeat',
-    };
+    case 'ring': {
+      const gradient = generateRingPatternCSS(options);
+      return {
+        backgroundImage: gradient,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      };
+    }
+    
+    case 'segment': {
+      const gradient = generateSegmentPatternCSS(options);
+      return {
+        backgroundImage: gradient,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      };
+    }
+    
+    default:
+      return { backgroundImage: 'transparent' };
   }
-  
-  // For ring and segment modes, use the canvas-generated data URL
-  return {
-    backgroundImage: `url(${backgroundImage})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-  };
 }
