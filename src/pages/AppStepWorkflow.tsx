@@ -98,27 +98,27 @@ export function AppStepWorkflow() {
   });
 
   // Calculate position limits based on image dimensions and zoom
-      // Calculate effective circle size in Step 3 based on border thickness
-      // The border reduces the available space for the image
-      // In the renderer: thickness is subtracted from radius, so effective diameter = base - 2 * thickness
-      const effectiveCircleSize = useMemo(() => {
-        if (currentStep === 3) {
-          // Border thickness is a percentage of the container size
-          // The renderer calculates: ringInnerRadius = r - thickness, so effective diameter = base - 2 * thickness
-          const borderThicknessPx = (step3.thickness / 100) * step1.circleSize;
-          return Math.max(0, step1.circleSize - 2 * borderThicknessPx);
-        }
-        return step1.circleSize;
-      }, [currentStep, step1.circleSize, step3.thickness]);
+  // For Step 3, calculate effective circle size based on border thickness
+  // The circle's visual size is controlled by inset, but we need effective size for position calculations
+  const effectiveCircleSize = useMemo(() => {
+    if (currentStep === 3 && step1.circleSize) {
+      // Border thickness is a percentage of the wrapper size
+      // We need to estimate wrapper size from circle size (circle is 80% of wrapper in Step 1)
+      const estimatedWrapperSize = step1.circleSize / 0.8;
+      const borderThicknessPx = (step3.thickness / 100) * estimatedWrapperSize;
+      return Math.max(0, estimatedWrapperSize - 2 * borderThicknessPx);
+    }
+    return step1.circleSize;
+  }, [currentStep, step1.circleSize, step3.thickness]);
 
-      const positionLimits = useMemo<PositionLimits>(() => {
-        if (!step1.imageDimensions) {
-          return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
-        }
-        // Use effective circle size for Step 3, original circle size for Step 1
-        const circleSizeForLimits = currentStep === 3 ? effectiveCircleSize : step1.circleSize;
-        return calculatePositionLimits(step1.imageDimensions, circleSizeForLimits, step1.imagePosition.zoom);
-      }, [step1.imageDimensions, step1.circleSize, effectiveCircleSize, step1.imagePosition.zoom, currentStep]);
+  const positionLimits = useMemo<PositionLimits>(() => {
+    if (!step1.imageDimensions) {
+      return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    }
+    // Use effective circle size for Step 3, original circle size for Step 1
+    const circleSizeForLimits = currentStep === 3 ? effectiveCircleSize : step1.circleSize;
+    return calculatePositionLimits(step1.imageDimensions, circleSizeForLimits, step1.imagePosition.zoom);
+  }, [step1.imageDimensions, step1.circleSize, effectiveCircleSize, step1.imagePosition.zoom, currentStep]);
 
   // Clamp position when limits change (zoom or dimensions change)
   // This ensures position is valid when zoom changes and axes become enabled/disabled
@@ -382,8 +382,13 @@ export function AppStepWorkflow() {
                     aspectRatio={aspectRatio}
                     imageDimensions={step1.imageDimensions}
                     circleSize={effectiveCircleSize}
+                    baseCircleSize={step1.circleSize}
                     readonly={true}
-                    flagBorderOverlayUrl={overlayUrl}
+                    flag={selectedFlag}
+                    presentation={step3.presentation}
+                    borderThicknessPct={step3.thickness}
+                    flagOffsetPct={step3.flagOffsetPct}
+                    segmentRotation={step3.segmentRotation}
                   />
                   
                   {/* Presentation Mode Toggle Buttons */}

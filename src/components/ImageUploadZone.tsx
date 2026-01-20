@@ -1,8 +1,11 @@
-import React, { useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import * as Slider from '@radix-ui/react-slider';
 import type { ImagePosition, PositionLimits, ImageAspectRatio, ImageDimensions } from '@/utils/imagePosition';
 import { useImageDrag } from '@/hooks/useImageDrag';
 import { positionToBackgroundPosition, calculateBackgroundSize, calculatePositionLimits } from '@/utils/imagePosition';
+import type { FlagSpec } from '@/flags/schema';
+import type { PresentationMode } from '@/components/PresentationModeSelector';
+import { generateFlagPatternStyle } from '@/utils/flagPattern';
 
 export interface ImageUploadZoneProps {
   /** Current uploaded image URL */
@@ -21,12 +24,22 @@ export interface ImageUploadZoneProps {
   imageDimensions: ImageDimensions | null;
   /** Callback when position changes */
   onPositionChange?: (position: ImagePosition) => void;
-  /** Circle size in pixels */
+  /** Circle size in pixels (effective size, may be adjusted for border thickness) */
   circleSize: number;
+  /** Base circle size in pixels (original size before border thickness adjustment) */
+  baseCircleSize?: number;
   /** If true, component is readonly (no interactions) */
   readonly?: boolean;
-  /** Optional flag border overlay URL to display on top */
-  flagBorderOverlayUrl?: string | null;
+  /** Flag specification (for Step 3 flag pattern) */
+  flag?: FlagSpec | null;
+  /** Presentation mode (for Step 3 flag pattern) */
+  presentation?: PresentationMode;
+  /** Border thickness percentage (for Step 3) */
+  borderThicknessPct?: number;
+  /** Flag offset percentage for cutout mode (for Step 3) */
+  flagOffsetPct?: number;
+  /** Segment rotation in degrees (for Step 3 segment mode) */
+  segmentRotation?: number;
 }
 
 /**
@@ -44,8 +57,13 @@ export function ImageUploadZone({
   imageDimensions,
   onPositionChange,
   circleSize,
+  baseCircleSize,
   readonly = false,
-  flagBorderOverlayUrl = null,
+  flag = null,
+  presentation = 'ring',
+  borderThicknessPct = 10,
+  flagOffsetPct = 0,
+  segmentRotation = 0,
 }: ImageUploadZoneProps) {
   const labelRef = useRef<HTMLLabelElement | null>(null);
   const wasDraggingRef = useRef(false);
@@ -223,6 +241,70 @@ export function ImageUploadZone({
     return calculatePositionLimits(imageDimensions, circleSize, 200);
   }, [imageDimensions, circleSize]);
   
+  // Get wrapper size for flag pattern generation
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [wrapperSize, setWrapperSize] = useState<number | null>(null);
+  
+  useEffect(() => {
+    if (wrapperRef.current) {
+      const updateSize = () => {
+        const computed = window.getComputedStyle(wrapperRef.current!);
+        const size = parseFloat(computed.width);
+        if (!isNaN(size)) {
+          setWrapperSize(size);
+        }
+      };
+      updateSize();
+      window.addEventListener('resize', updateSize);
+      return () => window.removeEventListener('resize', updateSize);
+    }
+  }, []);
+  
+  // Calculate circle inset based on border thickness (Step 3 only)
+  // In Step 1, inset is fixed at 10% (from CSS)
+  // In Step 3, inset = border thickness
+  const circleInset = useMemo(() => {
+    if (readonly && baseCircleSize && wrapperSize) {
+      // Calculate border thickness in pixels
+      const borderThicknessPx = (borderThicknessPct / 100) * wrapperSize;
+      return `${borderThicknessPx}px`;
+    }
+    // Step 1: Use default CSS inset (10%)
+    return undefined;
+  }, [readonly, baseCircleSize, wrapperSize, borderThicknessPct]);
+  
+  // Generate flag pattern for wrapper background (Step 3 only)
+  // For ring mode, we need the effective circle size (after border) for annulus calculation
+  // For cutout/segment, we can use the wrapper size directly
+  const [wrapperStyle, setWrapperStyle] = useState<React.CSSProperties | undefined>(undefined);
+  
+  useEffect(() => {
+    if (readonly && flag && wrapperSize) {
+      // Calculate effective circle size for pattern generation
+      // This is the size the circle will be after inset is applied
+      const borderThicknessPx = (borderThicknessPct / 100) * wrapperSize;
+      const effectiveCircleSizeForPattern = wrapperSize - 2 * borderThicknessPx;
+      
+      generateFlagPatternStyle({
+        flag,
+        presentation,
+        thicknessPct: borderThicknessPct,
+        flagOffsetPct,
+        segmentRotation,
+        wrapperSize,
+        circleSize: effectiveCircleSizeForPattern, // Use calculated effective size for pattern
+      }).then((style: React.CSSProperties) => {
+        setWrapperStyle(style);
+      }).catch(() => {
+        // Fallback to transparent on error
+        setWrapperStyle(undefined);
+      });
+    } else {
+      // Step 1: Use default halftone pattern (from CSS)
+      setWrapperStyle(undefined);
+    }
+  }, [readonly, flag, wrapperSize, presentation, borderThicknessPct, flagOffsetPct, segmentRotation]);
+  
   // Calculate CSS values for background-image display
   // Use calculateBackgroundSize to maintain cover behavior with zoom
   // Map position using maxLimits as reference, then scale to current limits for display
@@ -255,16 +337,9 @@ export function ImageUploadZone({
       />
       
       <div 
-        className={[
-          "choose-wrapper",
-          readonly && flagBorderOverlayUrl && "has-flag-border"
-        ].filter(Boolean).join(" ")}
-        style={readonly && flagBorderOverlayUrl ? {
-          backgroundImage: `url(${flagBorderOverlayUrl})`,
-          backgroundSize: 'contain',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        } : undefined}
+        ref={wrapperRef}
+        className="choose-wrapper"
+        style={wrapperStyle}
       >
         <label
           ref={(el) => {
@@ -282,7 +357,10 @@ export function ImageUploadZone({
           ].filter(Boolean).join(" ")}
           role={readonly ? "img" : "button"}
           aria-label={readonly ? "Profile picture preview" : "Choose your profile picture"}
-          style={backgroundStyle}
+          style={{
+            ...backgroundStyle,
+            ...(circleInset ? { inset: circleInset } : {}),
+          }}
           onMouseDown={readonly ? undefined : dragHandlers.onMouseDown}
           onTouchStart={readonly ? undefined : combinedTouchStart}
           onTouchMove={readonly ? undefined : handleTouchMove}
