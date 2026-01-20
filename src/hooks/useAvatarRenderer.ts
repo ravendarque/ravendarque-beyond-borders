@@ -138,6 +138,8 @@ export function useAvatarRenderer(
           thicknessPct: thickness,
           imageOffsetPx: imageOffset,
           imageZoom: options.imagePosition.zoom,
+          circleSize: circleSize, // Pass Step 1's circleSize for accurate zoom calculation
+          originalImageDimensions: options.imageDimensions, // Pass original dimensions for accurate zoom
           flagOffsetPct: { x: flagOffsetPct, y: 0 }, // Use flagOffsetPct for cutout mode
           presentation,
           segmentRotation,
