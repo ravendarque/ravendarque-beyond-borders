@@ -379,17 +379,18 @@ label.choose-circle:hover {
 .choose-wrapper:hover .choose-circle.readonly,
 .choose-wrapper:hover .choose-circle.readonly.has-image {
   transform: none;
-  box-shadow: 0 0 8px rgba(180, 160, 100, 0.15), 0 0 12px rgba(180, 160, 100, 0.08), 0 0 20px rgba(180, 160, 100, 0.04);
+  box-shadow: none;
 }
 
 .choose-circle.readonly:active,
 .choose-circle.readonly.has-image:active {
   transform: none;
-  box-shadow: 0 0 8px rgba(180, 160, 100, 0.15), 0 0 12px rgba(180, 160, 100, 0.08), 0 0 20px rgba(180, 160, 100, 0.04);
+  box-shadow: none;
 }
 
 .choose-circle.readonly {
   cursor: default;
+  box-shadow: none;
 }
 
 /* Dragging state - placed after hover rules with matching specificity */
