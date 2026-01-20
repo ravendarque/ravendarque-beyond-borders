@@ -274,35 +274,26 @@ export function ImageUploadZone({
   }, [readonly, baseCircleSize, wrapperSize, borderThicknessPct]);
   
   // Generate flag pattern for wrapper background (Step 3 only)
-  // For ring mode, we need the effective circle size (after border) for annulus calculation
-  // For cutout/segment, we can use the wrapper size directly
-  const [wrapperStyle, setWrapperStyle] = useState<React.CSSProperties | undefined>(undefined);
-  
-  useEffect(() => {
-    if (readonly && flag && wrapperSize) {
-      // Calculate effective circle size for pattern generation
-      // This is the size the circle will be after inset is applied
-      const borderThicknessPx = (borderThicknessPct / 100) * wrapperSize;
-      const effectiveCircleSizeForPattern = wrapperSize - 2 * borderThicknessPx;
-      
-      generateFlagPatternStyle({
-        flag,
-        presentation,
-        thicknessPct: borderThicknessPct,
-        flagOffsetPct,
-        segmentRotation,
-        wrapperSize,
-        circleSize: effectiveCircleSizeForPattern, // Use calculated effective size for pattern
-      }).then((style: React.CSSProperties) => {
-        setWrapperStyle(style);
-      }).catch(() => {
-        // Fallback to transparent on error
-        setWrapperStyle(undefined);
-      });
-    } else {
-      // Step 1: Use default halftone pattern (from CSS)
-      setWrapperStyle(undefined);
+  // Now uses CSS gradients (synchronous, no async operations needed)
+  const patternStyle = useMemo(() => {
+    if (!readonly || !flag || !wrapperSize) {
+      return undefined;
     }
+    
+    // Calculate effective circle size for pattern generation
+    const borderThicknessPx = (borderThicknessPct / 100) * wrapperSize;
+    const effectiveCircleSizeForPattern = wrapperSize - 2 * borderThicknessPx;
+    
+    // Generate pattern synchronously (CSS gradients for ring/segment, PNG for cutout)
+    return generateFlagPatternStyle({
+      flag,
+      presentation,
+      thicknessPct: borderThicknessPct,
+      flagOffsetPct,
+      segmentRotation, // No debounce needed - CSS handles smooth transitions
+      wrapperSize,
+      circleSize: effectiveCircleSizeForPattern,
+    });
   }, [readonly, flag, wrapperSize, presentation, borderThicknessPct, flagOffsetPct, segmentRotation]);
   
   // Calculate CSS values for background-image display
@@ -339,8 +330,14 @@ export function ImageUploadZone({
       <div 
         ref={wrapperRef}
         className="choose-wrapper"
-        style={wrapperStyle}
       >
+        {/* Flag pattern layer (Step 3 only) - CSS gradients handle smooth transitions */}
+        {readonly && patternStyle && (
+          <div
+            className="choose-wrapper-pattern"
+            style={patternStyle}
+          />
+        )}
         <label
           ref={(el) => {
             if (el) {
