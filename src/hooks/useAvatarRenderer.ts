@@ -4,7 +4,7 @@ import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
 import { getAssetUrl } from '@/config';
 import type { ImagePosition, ImageDimensions } from '@/utils/imagePosition';
-import { positionToRendererOffset, calculatePositionLimits } from '@/utils/imagePosition';
+import { positionToBackgroundPosition, calculatePositionLimits, positionToRendererOffset } from '@/utils/imagePosition';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -101,35 +101,38 @@ export function useAvatarRenderer(
           }
         }
 
-        // Calculate the renderer's actual circle size (imageRadius * 2)
-        // This matches what the renderer uses as the target for image scaling
+        // Calculate the renderer's inner circle size (where the image is drawn)
+        // Simple formula: inner circle diameter = canvas size - (border thickness * 2)
         const base = size;
         const thicknessPx = Math.round((thickness / 100) * base);
-        const paddingPx = 0; // Default padding
-        const r = size / 2;
-        const ringOuterRadius = r - Math.max(1, paddingPx);
-        const ringInnerRadius = Math.max(0, ringOuterRadius - thicknessPx);
-        const imageRadius = Math.max(0, Math.min(ringInnerRadius, r - 0.5));
-        const rendererCircleSize = imageRadius * 2;
+        const rendererCircleSize = size - (thicknessPx * 2); // Inner circle diameter
 
-        // Calculate position limits using Step 1's circleSize
-        // Position values (x, y) are percentages relative to these limits
-        const limits = calculatePositionLimits(
-          options.imageDimensions,
-          circleSize, // Use Step 1's circleSize for limits (position values are relative to this)
-          options.imagePosition.zoom
-        );
+        // Image circle and border are concentric (same center)
+        // Center = canvas center = (size/2, size/2)
+        // Radius = (size/2 - thicknessPx)
+        // This automatically satisfies: top-left at (thicknessPx, thicknessPx)
+        // 
+        // imageOffsetPx is for user adjustments (panning within the circle),
+        // not for circle placement. Circle placement is always centered.
+        const imageOffset = {
+          x: 0, // Circle is centered; user pan adjustments handled separately via positionToRendererOffset
+          y: 0,
+        };
         
-        // Calculate offset using renderer's circleSize directly
-        // This ensures the offset matches the renderer's coordinate system
-        // We still use Step 1's limits for position mapping (since position values are relative to those limits)
-        const imageOffset = positionToRendererOffset(
-          { x: options.imagePosition.x, y: options.imagePosition.y },
-          options.imageDimensions,
-          rendererCircleSize, // Use renderer's circleSize for offset calculation
-          options.imagePosition.zoom,
-          limits // But use Step 1's limits for position mapping
-        );
+        // Debug logging (only in development)
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.log('Renderer offset calculation:', {
+            position: options.imagePosition,
+            circleSize,
+            rendererCircleSize,
+            thicknessPx,
+            imageOffset,
+            canvasSize: size,
+            center: { x: size / 2, y: size / 2 },
+            imageRadius: rendererCircleSize / 2,
+          });
+        }
 
         // Render avatar with flag border
         // Pass position/zoom directly to renderer - no capture needed

@@ -176,35 +176,61 @@ test.describe('Download Matches Preview', () => {
 
         let diffPixels = 0;
         let totalPixels = 0;
-        const threshold = 15; // Allow small differences due to compression/rendering
+        let imageAreaDiffPixels = 0; // Track differences in the image area (center circle)
+        let imageAreaTotalPixels = 0;
+        const threshold = 5; // Very strict threshold - images should be almost identical
+        const imageAreaRadius = comparisonSize * 0.4; // Approximate radius of inner image circle (80% of total)
+        const centerX = comparisonSize / 2;
+        const centerY = comparisonSize / 2;
 
-        for (let i = 0; i < previewData.length; i += 4) {
-          // Skip fully transparent pixels (outside the circle)
-          if (previewData[i + 3] === 0 && downloadData[i + 3] === 0) continue;
+        for (let y = 0; y < comparisonSize; y++) {
+          for (let x = 0; x < comparisonSize; x++) {
+            const idx = (y * comparisonSize + x) * 4;
+            
+            // Skip fully transparent pixels (outside the circle)
+            if (previewData[idx + 3] === 0 && downloadData[idx + 3] === 0) continue;
 
-          totalPixels++;
-          const r1 = previewData[i];
-          const g1 = previewData[i + 1];
-          const b1 = previewData[i + 2];
-          const a1 = previewData[i + 3];
+            totalPixels++;
+            
+            // Check if this pixel is in the image area (inner circle)
+            const distFromCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+            const isInImageArea = distFromCenter < imageAreaRadius;
+            if (isInImageArea) {
+              imageAreaTotalPixels++;
+            }
 
-          const r2 = downloadData[i];
-          const g2 = downloadData[i + 1];
-          const b2 = downloadData[i + 2];
-          const a2 = downloadData[i + 3];
+            const r1 = previewData[idx];
+            const g1 = previewData[idx + 1];
+            const b1 = previewData[idx + 2];
+            const a1 = previewData[idx + 3];
 
-          // Calculate color difference (including alpha)
-          const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2) + Math.abs(a1 - a2);
-          if (diff > threshold) {
-            diffPixels++;
+            const r2 = downloadData[idx];
+            const g2 = downloadData[idx + 1];
+            const b2 = downloadData[idx + 2];
+            const a2 = downloadData[idx + 3];
+
+            // Calculate color difference (including alpha)
+            const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2) + Math.abs(a1 - a2);
+            if (diff > threshold) {
+              diffPixels++;
+              if (isInImageArea) {
+                imageAreaDiffPixels++;
+              }
+            }
           }
         }
 
         const similarity = totalPixels > 0 ? ((totalPixels - diffPixels) / totalPixels) * 100 : 100;
+        const imageAreaSimilarity = imageAreaTotalPixels > 0 
+          ? ((imageAreaTotalPixels - imageAreaDiffPixels) / imageAreaTotalPixels) * 100 
+          : 100;
         return {
           similarity,
+          imageAreaSimilarity, // Similarity specifically in the image area (center circle)
           diffPixels,
+          imageAreaDiffPixels,
           totalPixels,
+          imageAreaTotalPixels,
           previewSize: { width: previewImg.width, height: previewImg.height },
           downloadSize: { width: downloadImg.width, height: downloadImg.height },
         };
@@ -215,18 +241,36 @@ test.describe('Download Matches Preview', () => {
       }
     );
 
-    // Verify images are similar (allow 85% similarity to account for compression/rendering differences)
-    expect(comparisonResult.similarity).toBeGreaterThan(85);
-    expect(comparisonResult.totalPixels).toBeGreaterThan(1000); // Ensure we're comparing actual content
-    
-    // Log comparison results for debugging
+    // Log comparison results for debugging (before assertions so we see them even on failure)
     console.log('Image comparison:', {
-      similarity: `${comparisonResult.similarity.toFixed(2)}%`,
+      overallSimilarity: `${comparisonResult.similarity.toFixed(2)}%`,
+      imageAreaSimilarity: `${comparisonResult.imageAreaSimilarity.toFixed(2)}%`,
       diffPixels: comparisonResult.diffPixels,
+      imageAreaDiffPixels: comparisonResult.imageAreaDiffPixels,
       totalPixels: comparisonResult.totalPixels,
+      imageAreaTotalPixels: comparisonResult.imageAreaTotalPixels,
       previewSize: comparisonResult.previewSize,
       downloadSize: comparisonResult.downloadSize,
     });
+
+    // Verify images are similar - they should be almost identical
+    // Note: Small differences are expected due to:
+    // - CSS gradients (preview) vs canvas rendering (download) for borders
+    // - Anti-aliasing differences between rendering methods
+    // - Compression artifacts
+    // But overall they should match very closely
+    if (comparisonResult.similarity <= 95) {
+      throw new Error(`Overall similarity ${comparisonResult.similarity.toFixed(2)}% is below 95% threshold`);
+    }
+    expect(comparisonResult.similarity).toBeGreaterThan(95);
+    // CRITICAL: Image area (center circle) must match almost perfectly - this catches positioning/zoom issues
+    // The photo itself should be rendered identically (both use canvas for the image)
+    if (comparisonResult.imageAreaSimilarity <= 98) {
+      throw new Error(`Image area similarity ${comparisonResult.imageAreaSimilarity.toFixed(2)}% is below 98% threshold. This likely indicates a positioning or zoom mismatch.`);
+    }
+    expect(comparisonResult.imageAreaSimilarity).toBeGreaterThan(98);
+    expect(comparisonResult.totalPixels).toBeGreaterThan(1000); // Ensure we're comparing actual content
+    expect(comparisonResult.imageAreaTotalPixels).toBeGreaterThan(200); // Ensure we're checking the image area
   });
 
   test('should download image that matches preview with different zoom levels', async ({ page }) => {

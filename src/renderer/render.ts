@@ -194,12 +194,15 @@ export async function renderAvatar(
   }
 
   // Geometry (circle only)
+  // Border outer edge is at canvas (0,0) - border center is at canvas center
   const r = Math.min(canvasW, canvasH) / 2;
   const ringOuterRadius = r - Math.max(1, padding);
   const ringInnerRadius = Math.max(0, ringOuterRadius - thickness);
-  // Image radius should match ringInnerRadius exactly to avoid gaps
-  // The clip path anti-aliasing will handle smooth edges
-  const imageRadius = clamp(ringInnerRadius, 0, r - 0.5);
+  // Image radius slightly larger than ringInnerRadius to prevent anti-aliasing gaps
+  // Anti-aliasing at the circular mask edge can create a semi-transparent boundary
+  // By extending the image slightly into the border area, we ensure no visible gap
+  // The border (drawn after) will cover any overlap
+  const imageRadius = ringInnerRadius + 1;
 
   // Get colors from modes.ring.colors (all stripes have weight 1)
   const ringColors = flag.modes?.ring?.colors ?? [];
@@ -450,22 +453,22 @@ export async function renderAvatar(
         ? (options.segmentRotation * Math.PI) / 180 
         : 0;
       const startAngle = -Math.PI / 2 + rotationRad;
-      drawTexturedAnnulus(ctx, r, ringInnerRadius, ringOuterRadius, bmpTex, startAngle, 'normal');
+      drawTexturedAnnulus(ctx, cx, ringInnerRadius, ringOuterRadius, bmpTex, startAngle, 'normal');
     } catch {
       // fallback: draw it directly (older behavior)
       try {
-        drawTexturedAnnulus(ctx, r, ringInnerRadius, ringOuterRadius, options.borderImageBitmap);
+        drawTexturedAnnulus(ctx, cx, ringInnerRadius, ringOuterRadius, options.borderImageBitmap);
       } catch {
         // last resort: semi-transparent concentric rings
         ctx.save();
         ctx.globalAlpha = 0.64;
-        drawConcentricRings(ctx, r, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
+        drawConcentricRings(ctx, cx, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
         ctx.restore();
       }
     }
   } else if (borderStyle === 'concentric') {
     // Map horizontal stripes to concentric annuli from outer->inner to preserve stripe order (top => outer)
-    drawConcentricRings(ctx, r, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
+    drawConcentricRings(ctx, cx, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
   } else {
     // default: angular arcs (vertical stripes map naturally around circumference)
     // Apply rotation if provided (convert degrees to radians)
@@ -477,7 +480,7 @@ export async function renderAvatar(
       const frac = stripe.weight / totalWeight;
       const sweep = Math.PI * 2 * frac;
       const end = start + sweep;
-      drawRingArc(ctx, r, ringInnerRadius, ringOuterRadius, start, end, stripe.color);
+      drawRingArc(ctx, cx, ringInnerRadius, ringOuterRadius, start, end, stripe.color);
       start = end;
     }
   }
