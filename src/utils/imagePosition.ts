@@ -276,21 +276,33 @@ export function positionToRendererOffset(
   const cssPosition = positionToBackgroundPosition(position, limits);
   const [cssX, cssY] = cssPosition.split(' ').map(p => parseFloat(p.replace('%', '')));
   
-  // CSS background-position formula: leftEdge = (containerWidth - imageWidth) * (cssPercent / 100)
-  // This gives us the left edge position relative to container's left edge
-  const leftEdgeX = ((circleDiameter - scaledWidth) / 100) * cssX;
-  const topEdgeY = ((circleDiameter - scaledHeight) / 100) * cssY;
+  // CSS background-position formula:
+  // background-position: X% Y% means the image's X% point aligns with the container's X% point
+  // For example, 50% 50% means the image's center aligns with the container's center
+  // 
+  // To find the image's left edge relative to the container's left edge:
+  // - The container's X% point is at: circleDiameter * (cssX / 100)
+  // - The image's X% point is at: scaledWidth * (cssX / 100) from the image's left edge
+  // - So the image's left edge is at: circleDiameter * (cssX / 100) - scaledWidth * (cssX / 100)
+  // - = (circleDiameter - scaledWidth) * (cssX / 100)
+  const leftEdgeX = (circleDiameter - scaledWidth) * (cssX / 100);
+  const topEdgeY = (circleDiameter - scaledHeight) * (cssY / 100);
   
   // Convert to center-relative offset for canvas
-  // The container (circle) is centered in the canvas at canvasW/2
-  // Container's left edge is at (canvasW - circleDiameter) / 2
-  // Image's left edge in canvas coordinates: (canvasW - circleDiameter) / 2 + leftEdgeX
-  // Image's center in canvas coordinates: (canvasW - circleDiameter) / 2 + leftEdgeX + scaledWidth/2
-  // Offset from canvas center: imageCenter - canvasW/2
-  // = (canvasW - circleDiameter)/2 + leftEdgeX + scaledWidth/2 - canvasW/2
-  // = leftEdgeX + (scaledWidth - circleDiameter)/2
-  const offsetX = leftEdgeX + (scaledWidth - circleDiameter) / 2;
-  const offsetY = topEdgeY + (scaledHeight - circleDiameter) / 2;
+  // The offset is the distance from the container center to the image center
+  // In CSS: image center = containerCenter + offset
+  // The offset is: (imageCenter - containerCenter)
+  //
+  // Image's left edge relative to container's left edge: leftEdgeX
+  // Image's center relative to container's left edge: leftEdgeX + scaledWidth/2
+  // Container's center relative to container's left edge: circleDiameter/2
+  // Offset = (leftEdgeX + scaledWidth/2) - (circleDiameter/2)
+  // = leftEdgeX + scaledWidth/2 - circleDiameter/2
+  // = (circleDiameter - scaledWidth) * (cssX / 100) + scaledWidth/2 - circleDiameter/2
+  // = (circleDiameter - scaledWidth) * (cssX / 100) - (circleDiameter - scaledWidth)/2
+  // = (circleDiameter - scaledWidth) * (cssX / 100 - 0.5)
+  const offsetX = (circleDiameter - scaledWidth) * (cssX / 100 - 0.5);
+  const offsetY = (circleDiameter - scaledHeight) * (cssY / 100 - 0.5);
   
   // Safety check for NaN/Infinity
   const safeX = isFinite(offsetX) ? offsetX : 0;
