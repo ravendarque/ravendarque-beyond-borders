@@ -1,8 +1,9 @@
 /**
  * Flag pattern utilities for UI rendering
  * 
- * Uses CSS gradients for ring/segment modes (instant, smooth transitions)
- * Canvas is only used for final download render, not UI preview.
+ * Ring mode: Uses canvas rendering for reliable hard-edged concentric rings
+ * Segment mode: Uses CSS conic-gradient for smooth angular segments
+ * Cutout mode: Uses flag PNG images with positioning
  */
 
 import type { FlagSpec } from '@/flags/schema';
@@ -46,15 +47,19 @@ export function generateCutoutPattern(options: FlagPatternOptions): string {
 }
 
 /**
- * Generate CSS radial-gradient for ring mode
- * Returns CSS gradient string for concentric rings
+ * Generate canvas element for ring mode
+ * 
+ * Uses the same rendering logic as the final download renderer to ensure
+ * UI preview matches the downloaded image exactly.
+ * 
+ * @returns OffscreenCanvas with concentric rings drawn from outer to inner
  */
-function generateRingPatternCSS(options: FlagPatternOptions): string {
+export async function generateRingPatternCanvasElement(options: FlagPatternOptions): Promise<OffscreenCanvas | null> {
   const { flag, wrapperSize, circleSize } = options;
   
   const colors = flag.modes?.ring?.colors ?? [];
   if (colors.length === 0) {
-    return 'transparent';
+    return null;
   }
   
   // Calculate annulus dimensions
@@ -63,58 +68,61 @@ function generateRingPatternCSS(options: FlagPatternOptions): string {
   const annulusThickness = wrapperRadius - circleRadius;
   
   if (annulusThickness <= 0) {
-    return 'transparent';
+    return null;
   }
   
-  // Generate color stops for radial gradient
-  // Each color gets equal fraction of the annulus thickness
-  // Gradient goes from center (0%) to edge (100%)
-  // We want colors to appear only in the annulus region (innerRadius% to 100%)
-  const totalColors = colors.length;
-  const center = '50%';
+  // Create canvas matching the renderer's logic
+  const canvas = new OffscreenCanvas(wrapperSize, wrapperSize);
+  const ctx = canvas.getContext('2d')!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   
-  // Calculate percentage positions for each ring
-  // innerRadius% = where inner circle starts
-  // 100% = outer edge
-  const innerRadiusPct = (circleRadius / wrapperRadius) * 100;
-  const annulusPct = 100 - innerRadiusPct;
+  const center = wrapperSize / 2;
+  const innerR = circleRadius;
+  const outerR = wrapperRadius;
   
-  // Build gradient stops from inner to outer
-  // Each color gets equal fraction of the annulus
-  const stops: string[] = [];
-  let currentPct = innerRadiusPct;
+  // Create stripes with equal weight (matching renderer)
+  const stripes = colors.map(color => ({ color, weight: 1 }));
+  const totalWeight = stripes.length;
   
-  for (let i = 0; i < colors.length; i++) {
-    const frac = 1 / totalColors;
-    const bandPct = frac * annulusPct;
-    const nextPct = Math.min(100, currentPct + bandPct);
+  // Draw concentric rings from outer to inner (matching renderer's drawConcentricRings)
+  let remainingOuter = outerR;
+  
+  for (const stripe of stripes) {
+    const frac = stripe.weight / totalWeight;
+    const band = frac * annulusThickness;
+    const bandInner = Math.max(innerR, remainingOuter - band);
     
-    // Each ring has hard edges (same color at start and end)
-    stops.push(`${colors[i]} ${currentPct}%`);
-    stops.push(`${colors[i]} ${nextPct}%`);
+    // Draw annulus between bandInner and remainingOuter
+    ctx.beginPath();
+    ctx.arc(center, center, remainingOuter, 0, Math.PI * 2);
+    ctx.arc(center, center, bandInner, Math.PI * 2, 0, true);
+    ctx.closePath();
+    ctx.fillStyle = stripe.color;
+    ctx.fill();
     
-    currentPct = nextPct;
-    if (currentPct >= 100) break;
+    remainingOuter = bandInner;
+    if (remainingOuter <= innerR + 0.5) break;
   }
   
-  // Ensure we reach 100% with last color
-  if (currentPct < 100) {
-    const lastColor = colors[colors.length - 1] ?? '#000000';
-    stops.push(`${lastColor} ${currentPct}%`);
-    stops.push(`${lastColor} 100%`);
+  // If rounding left a gap, fill inner-most with last stripe color
+  if (remainingOuter > innerR + 0.5) {
+    ctx.beginPath();
+    ctx.arc(center, center, remainingOuter, 0, Math.PI * 2);
+    ctx.arc(center, center, innerR, Math.PI * 2, 0, true);
+    ctx.closePath();
+    ctx.fillStyle = stripes[stripes.length - 1]?.color ?? '#000000';
+    ctx.fill();
   }
   
-  // Everything inside innerRadius is transparent (will be covered by image circle)
-  if (innerRadiusPct > 0) {
-    stops.unshift(`transparent 0%`, `transparent ${innerRadiusPct}%`);
-  }
-  
-  return `radial-gradient(circle at ${center}, ${stops.join(', ')})`;
+  return canvas;
 }
 
 /**
  * Generate CSS conic-gradient for segment mode
- * Returns CSS gradient string for angular segments
+ * 
+ * Creates smooth angular segments with subtle anti-aliasing transitions
+ * between color boundaries to eliminate pixel artifacts.
  */
 function generateSegmentPatternCSS(options: FlagPatternOptions): string {
   const { flag, segmentRotation = 0 } = options;
@@ -153,8 +161,10 @@ function generateSegmentPatternCSS(options: FlagPatternOptions): string {
 }
 
 /**
- * Generate canvas element for segment mode (for direct DOM rendering)
- * Returns OffscreenCanvas that can be drawn to a regular canvas
+ * Generate canvas element for segment mode
+ * 
+ * Alternative to CSS conic-gradient, matching the renderer's logic exactly.
+ * Currently unused in UI (CSS gradient is preferred for performance).
  */
 export async function generateSegmentPatternCanvasElement(options: FlagPatternOptions): Promise<OffscreenCanvas | null> {
   const { flag, wrapperSize, circleSize, segmentRotation = 0 } = options;
@@ -213,9 +223,14 @@ export async function generateSegmentPatternCanvasElement(options: FlagPatternOp
 
 /**
  * Generate flag pattern CSS/style based on presentation mode
- * Returns synchronously - no async operations needed for CSS gradients
+ * 
+ * - Ring mode: Canvas rendering (reliable for hard-edged concentric rings)
+ * - Segment mode: CSS conic-gradient (smooth angular segments)
+ * - Cutout mode: Flag PNG images with offset positioning
+ * 
+ * @returns Promise resolving to React CSS properties for background styling
  */
-export function generateFlagPatternStyle(options: FlagPatternOptions): React.CSSProperties {
+export async function generateFlagPatternStyle(options: FlagPatternOptions): Promise<React.CSSProperties> {
   switch (options.presentation) {
     case 'cutout': {
       const { flag, flagOffsetPct = 0, wrapperSize } = options;
@@ -242,9 +257,18 @@ export function generateFlagPatternStyle(options: FlagPatternOptions): React.CSS
     }
     
     case 'ring': {
-      const gradient = generateRingPatternCSS(options);
+      // Use canvas for ring mode - more reliable than CSS radial-gradient for hard-edged rings
+      const canvas = await generateRingPatternCanvasElement(options);
+      if (!canvas) {
+        return { backgroundImage: 'none' };
+      }
+      
+      // Convert OffscreenCanvas to blob URL
+      const blob = await canvas.convertToBlob();
+      const url = URL.createObjectURL(blob);
+      
       return {
-        backgroundImage: gradient,
+        backgroundImage: `url(${url})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -265,3 +289,4 @@ export function generateFlagPatternStyle(options: FlagPatternOptions): React.CSS
       return { backgroundImage: 'transparent' };
   }
 }
+
