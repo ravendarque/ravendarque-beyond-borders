@@ -274,7 +274,7 @@ export function ImageUploadZone({
   }, [readonly, baseCircleSize, wrapperSize, borderThicknessPct]);
   
   // Generate flag pattern for wrapper background (Step 3 only)
-  // Now uses CSS gradients (synchronous, no async operations needed)
+  // Uses CSS gradients for instant, smooth rendering (no flicker)
   const patternStyle = useMemo(() => {
     if (!readonly || !flag || !wrapperSize) {
       return undefined;
@@ -290,7 +290,7 @@ export function ImageUploadZone({
       presentation,
       thicknessPct: borderThicknessPct,
       flagOffsetPct,
-      segmentRotation, // No debounce needed - CSS handles smooth transitions
+      segmentRotation, // CSS handles smooth transitions
       wrapperSize,
       circleSize: effectiveCircleSizeForPattern,
     });
