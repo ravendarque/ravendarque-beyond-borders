@@ -246,18 +246,38 @@ export function ImageUploadZone({
   const [wrapperSize, setWrapperSize] = useState<number | null>(null);
   
   useEffect(() => {
-    if (wrapperRef.current) {
-      const updateSize = () => {
-        const computed = window.getComputedStyle(wrapperRef.current!);
-        const size = parseFloat(computed.width);
-        if (!isNaN(size)) {
-          setWrapperSize(size);
-        }
-      };
+    if (!wrapperRef.current) return;
+    
+    const updateSize = () => {
+      if (!wrapperRef.current) return;
+      const computed = window.getComputedStyle(wrapperRef.current);
+      const size = parseFloat(computed.width);
+      if (!isNaN(size) && size > 0) {
+        setWrapperSize(size);
+      }
+    };
+    
+    // Initial size - use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
       updateSize();
-      window.addEventListener('resize', updateSize);
-      return () => window.removeEventListener('resize', updateSize);
-    }
+      // Also try after a short delay in case CSS variables aren't ready
+      setTimeout(updateSize, 100);
+    });
+    
+    // Use ResizeObserver for more reliable size tracking
+    const resizeObserver = new ResizeObserver(() => {
+      updateSize();
+    });
+    
+    resizeObserver.observe(wrapperRef.current);
+    
+    // Fallback to window resize
+    window.addEventListener('resize', updateSize);
+    
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
   
   // Calculate circle inset based on border thickness (Step 3 only)
@@ -274,26 +294,52 @@ export function ImageUploadZone({
   }, [readonly, baseCircleSize, wrapperSize, borderThicknessPct]);
   
   // Generate flag pattern for wrapper background (Step 3 only)
-  // Uses CSS gradients for instant, smooth rendering (no flicker)
-  const patternStyle = useMemo(() => {
+  // Ring mode uses canvas rendering; segment/cutout use CSS gradients
+  const [patternStyle, setPatternStyle] = useState<React.CSSProperties | undefined>(undefined);
+  const patternBlobUrlRef = useRef<string | null>(null);
+  
+  useEffect(() => {
     if (!readonly || !flag || !wrapperSize) {
-      return undefined;
+      setPatternStyle(undefined);
+      return;
     }
     
-    // Calculate effective circle size for pattern generation
     const borderThicknessPx = (borderThicknessPct / 100) * wrapperSize;
     const effectiveCircleSizeForPattern = wrapperSize - 2 * borderThicknessPx;
     
-    // Generate pattern synchronously (CSS gradients for ring/segment, PNG for cutout)
-    return generateFlagPatternStyle({
+    generateFlagPatternStyle({
       flag,
       presentation,
       thicknessPct: borderThicknessPct,
       flagOffsetPct,
-      segmentRotation, // CSS handles smooth transitions
+      segmentRotation,
       wrapperSize,
       circleSize: effectiveCircleSizeForPattern,
-    });
+    })
+      .then((style) => {
+        // Extract and manage blob URL for cleanup (ring mode uses canvas -> blob URL)
+        const bgImage = style.backgroundImage;
+        if (bgImage && bgImage.startsWith('url(')) {
+          const urlMatch = bgImage.match(/url\(([^)]+)\)/);
+          if (urlMatch && urlMatch[1].startsWith('blob:')) {
+            if (patternBlobUrlRef.current) {
+              URL.revokeObjectURL(patternBlobUrlRef.current);
+            }
+            patternBlobUrlRef.current = urlMatch[1];
+          }
+        }
+        setPatternStyle(style);
+      })
+      .catch(() => {
+        setPatternStyle(undefined);
+      });
+    
+    return () => {
+      if (patternBlobUrlRef.current) {
+        URL.revokeObjectURL(patternBlobUrlRef.current);
+        patternBlobUrlRef.current = null;
+      }
+    };
   }, [readonly, flag, wrapperSize, presentation, borderThicknessPct, flagOffsetPct, segmentRotation]);
   
   // Calculate CSS values for background-image display
@@ -329,9 +375,9 @@ export function ImageUploadZone({
       
       <div 
         ref={wrapperRef}
-        className="choose-wrapper"
+        className={readonly ? "choose-wrapper readonly" : "choose-wrapper"}
       >
-        {/* Flag pattern layer (Step 3 only) - CSS gradients handle smooth transitions */}
+        {/* Flag pattern layer (Step 3 only) */}
         {readonly && patternStyle && (
           <div
             className="choose-wrapper-pattern"
