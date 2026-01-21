@@ -606,9 +606,7 @@ function drawRingArc(
   ctx.fill();
 }
 
-function clamp(n: number, min: number, max: number): number {
-  return Math.min(Math.max(n, min), max);
-}
+// clamp function removed - not currently used
 
 /**
  * Build a stripe texture canvas for wrapping. Returns an OffscreenCanvas.

@@ -285,8 +285,7 @@ export function positionToRendererOffset(
   // - The image's X% point is at: scaledWidth * (cssX / 100) from the image's left edge
   // - So the image's left edge is at: circleDiameter * (cssX / 100) - scaledWidth * (cssX / 100)
   // - = (circleDiameter - scaledWidth) * (cssX / 100)
-  const leftEdgeX = (circleDiameter - scaledWidth) * (cssX / 100);
-  const topEdgeY = (circleDiameter - scaledHeight) * (cssY / 100);
+  // Note: leftEdgeX and topEdgeY are intermediate calculations for the offset formula below
   
   // Convert to center-relative offset for canvas
   // The offset is the distance from the container center to the image center

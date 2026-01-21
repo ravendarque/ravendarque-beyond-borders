@@ -33,7 +33,7 @@ export interface FlagPatternOptions {
  * Returns a full circle flag pattern
  */
 export function generateCutoutPattern(options: FlagPatternOptions): string {
-  const { flag, flagOffsetPct = 0, wrapperSize } = options;
+  const { flag } = options;
   
   if (!flag.png_full) {
     // Fallback to ring colors if no PNG
@@ -86,14 +86,23 @@ export async function generateRingPatternCanvasElement(options: FlagPatternOptio
   const totalWeight = stripes.length;
   
   // Draw concentric rings from outer to inner (matching renderer's drawConcentricRings)
+  // Add a small blend zone at boundaries to smooth jagged edges (similar to segment mode)
+  const blendZone = Math.max(0.5, annulusThickness * 0.02); // 2% of annulus thickness, min 0.5px
   let remainingOuter = outerR;
   
-  for (const stripe of stripes) {
+  for (let i = 0; i < stripes.length; i++) {
+    const stripe = stripes[i];
+    const nextStripe = stripes[i + 1];
     const frac = stripe.weight / totalWeight;
     const band = frac * annulusThickness;
-    const bandInner = Math.max(innerR, remainingOuter - band);
+    const bandInnerRaw = Math.max(innerR, remainingOuter - band);
     
-    // Draw annulus between bandInner and remainingOuter
+    // Adjust bandInner to leave room for blend zone if there's a next stripe
+    const bandInner = nextStripe && bandInnerRaw > innerR + blendZone
+      ? bandInnerRaw - blendZone
+      : bandInnerRaw;
+    
+    // Draw main annulus (stops before blend zone)
     ctx.beginPath();
     ctx.arc(center, center, remainingOuter, 0, Math.PI * 2);
     ctx.arc(center, center, bandInner, Math.PI * 2, 0, true);
@@ -101,7 +110,23 @@ export async function generateRingPatternCanvasElement(options: FlagPatternOptio
     ctx.fillStyle = stripe.color;
     ctx.fill();
     
-    remainingOuter = bandInner;
+    // Add blend zone at inner edge if there's a next stripe
+    if (nextStripe && bandInnerRaw > innerR + blendZone) {
+      const blendStart = bandInner;
+      const blendEnd = bandInnerRaw;
+      const gradient = ctx.createRadialGradient(center, center, blendStart, center, center, blendEnd);
+      gradient.addColorStop(0, stripe.color);
+      gradient.addColorStop(1, nextStripe.color);
+      
+      ctx.beginPath();
+      ctx.arc(center, center, blendEnd, 0, Math.PI * 2);
+      ctx.arc(center, center, blendStart, Math.PI * 2, 0, true);
+      ctx.closePath();
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    }
+    
+    remainingOuter = nextStripe && bandInnerRaw > innerR + blendZone ? bandInnerRaw : bandInner;
     if (remainingOuter <= innerR + 0.5) break;
   }
   

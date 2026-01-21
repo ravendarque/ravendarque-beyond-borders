@@ -334,6 +334,31 @@ body {
   pointer-events: none;
   z-index: 0; /* Behind the circle (z-index: 1) but visible in annulus gap */
   background-color: transparent;
+  will-change: opacity; /* Optimize for opacity transitions */
+  backface-visibility: hidden; /* Prevent flicker during transitions */
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
+/* Current pattern (fades out when transitioning) */
+.choose-wrapper-pattern-current {
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+  z-index: 1; /* Above next pattern during transition */
+}
+
+.choose-wrapper-pattern-current.fading-out {
+  opacity: 0;
+}
+
+/* Next pattern (fades in when ready) */
+.choose-wrapper-pattern-next {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+  z-index: 0; /* Below current pattern during transition */
+}
+
+.choose-wrapper-pattern-next.fading-in {
+  opacity: 1;
 }
 
 /* Image upload circle */
