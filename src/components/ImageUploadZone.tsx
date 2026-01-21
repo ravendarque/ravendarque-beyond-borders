@@ -295,18 +295,38 @@ export function ImageUploadZone({
   
   // Generate flag pattern for wrapper background (Step 3 only)
   // Ring mode uses canvas rendering; segment/cutout use CSS gradients
-  const [patternStyle, setPatternStyle] = useState<React.CSSProperties | undefined>(undefined);
-  const patternBlobUrlRef = useRef<string | null>(null);
+  // Use double-buffering to prevent flicker: keep old pattern visible until new one is ready
+  const [currentPatternStyle, setCurrentPatternStyle] = useState<React.CSSProperties | undefined>(undefined);
+  const [nextPatternStyle, setNextPatternStyle] = useState<React.CSSProperties | undefined>(undefined);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isNextFadingIn, setIsNextFadingIn] = useState(false);
+  const currentBlobUrlRef = useRef<string | null>(null);
+  const nextBlobUrlRef = useRef<string | null>(null);
+  const transitionTimeoutRef = useRef<number | null>(null);
+  const effectIdRef = useRef<number>(0);
   
   useEffect(() => {
     if (!readonly || !flag || !wrapperSize) {
-      setPatternStyle(undefined);
+      setCurrentPatternStyle(undefined);
+      setNextPatternStyle(undefined);
+      setIsTransitioning(false);
+      setIsNextFadingIn(false);
       return;
     }
+    
+    // Cancel any pending transitions from previous effect
+    if (transitionTimeoutRef.current !== null) {
+      clearTimeout(transitionTimeoutRef.current);
+      transitionTimeoutRef.current = null;
+    }
+    
+    // Increment effect ID to track which effect is current
+    const currentEffectId = ++effectIdRef.current;
     
     const borderThicknessPx = (borderThicknessPct / 100) * wrapperSize;
     const effectiveCircleSizeForPattern = wrapperSize - 2 * borderThicknessPx;
     
+    // Generate new pattern in "next" buffer
     generateFlagPatternStyle({
       flag,
       presentation,
@@ -317,27 +337,157 @@ export function ImageUploadZone({
       circleSize: effectiveCircleSizeForPattern,
     })
       .then((style) => {
+        // Check if this effect is still current (not superseded by a newer one)
+        if (currentEffectId !== effectIdRef.current) {
+          // This effect is stale, clean up and abort
+          const bgImage = style.backgroundImage;
+          if (bgImage && bgImage.startsWith('url(')) {
+            const urlMatch = bgImage.match(/url\(([^)]+)\)/);
+            if (urlMatch && urlMatch[1].startsWith('blob:')) {
+              URL.revokeObjectURL(urlMatch[1]);
+            }
+          }
+          return;
+        }
+        
         // Extract and manage blob URL for cleanup (ring mode uses canvas -> blob URL)
         const bgImage = style.backgroundImage;
+        let imageUrl: string | null = null;
         if (bgImage && bgImage.startsWith('url(')) {
           const urlMatch = bgImage.match(/url\(([^)]+)\)/);
           if (urlMatch && urlMatch[1].startsWith('blob:')) {
-            if (patternBlobUrlRef.current) {
-              URL.revokeObjectURL(patternBlobUrlRef.current);
+            // Store in next buffer
+            if (nextBlobUrlRef.current) {
+              URL.revokeObjectURL(nextBlobUrlRef.current);
             }
-            patternBlobUrlRef.current = urlMatch[1];
+            nextBlobUrlRef.current = urlMatch[1];
+            imageUrl = urlMatch[1];
           }
         }
-        setPatternStyle(style);
+        
+        // Preload image if it's a blob URL to prevent flicker
+        // For CSS gradients (segment mode), no preloading needed
+        const startTransition = () => {
+          // Check again if effect is still current
+          if (currentEffectId !== effectIdRef.current) {
+            if (imageUrl) {
+              URL.revokeObjectURL(imageUrl);
+            }
+            return;
+          }
+          
+          // Set next pattern first (hidden, opacity 0) - keep current visible
+          setNextPatternStyle(style);
+          setIsNextFadingIn(false);
+          // Don't start fading out current yet - keep it fully visible
+          
+          // Wait for next frame to ensure DOM has updated and pattern is rendered
+          requestAnimationFrame(() => {
+            // Check again if effect is still current
+            if (currentEffectId !== effectIdRef.current) {
+              if (imageUrl) {
+                URL.revokeObjectURL(imageUrl);
+              }
+              return;
+            }
+            
+            // Wait one more frame to ensure the element is fully painted
+            requestAnimationFrame(() => {
+              // Final check if effect is still current
+              if (currentEffectId !== effectIdRef.current) {
+                if (imageUrl) {
+                  URL.revokeObjectURL(imageUrl);
+                }
+                return;
+              }
+              
+              // Now both patterns are rendered - start cross-fade
+              // Start fade-in of next pattern first
+              setIsNextFadingIn(true);
+              
+              // Wait longer before starting fade-out to ensure next pattern is significantly visible
+              // This prevents white flicker by keeping current pattern fully visible until next is well into its fade-in
+              setTimeout(() => {
+                if (currentEffectId !== effectIdRef.current) {
+                  if (imageUrl) {
+                    URL.revokeObjectURL(imageUrl);
+                  }
+                  return;
+                }
+                setIsTransitioning(true);
+              }, 80); // Longer delay to let next pattern become more visible (about 30% of transition time)
+              
+              // After transition completes, swap buffers and clean up old pattern
+              transitionTimeoutRef.current = window.setTimeout(() => {
+                // Check one more time if effect is still current
+                if (currentEffectId !== effectIdRef.current) {
+                  if (imageUrl) {
+                    URL.revokeObjectURL(imageUrl);
+                  }
+                  return;
+                }
+                
+                // Clean up old current pattern
+                if (currentBlobUrlRef.current) {
+                  URL.revokeObjectURL(currentBlobUrlRef.current);
+                }
+                
+                // Swap: next becomes current
+                currentBlobUrlRef.current = nextBlobUrlRef.current;
+                nextBlobUrlRef.current = null;
+                
+                setCurrentPatternStyle(style);
+                setNextPatternStyle(undefined);
+                setIsTransitioning(false);
+                setIsNextFadingIn(false);
+                transitionTimeoutRef.current = null;
+              }, 350); // After fade transition completes (300ms + small buffer)
+            });
+          });
+        };
+        
+        if (imageUrl) {
+          const img = new Image();
+          img.onload = () => {
+            // Image is loaded, now safe to start transition
+            startTransition();
+          };
+          img.onerror = () => {
+            // If image fails to load, still start transition (fallback)
+            startTransition();
+          };
+          img.src = imageUrl;
+        } else {
+          // For CSS gradients (segment/cutout), no preloading needed - start transition immediately
+          startTransition();
+        }
       })
       .catch(() => {
-        setPatternStyle(undefined);
+        // Only update state if this effect is still current
+        if (currentEffectId === effectIdRef.current) {
+          setNextPatternStyle(undefined);
+          setIsTransitioning(false);
+          setIsNextFadingIn(false);
+        }
       });
     
     return () => {
-      if (patternBlobUrlRef.current) {
-        URL.revokeObjectURL(patternBlobUrlRef.current);
-        patternBlobUrlRef.current = null;
+      // Cancel pending timeout
+      if (transitionTimeoutRef.current !== null) {
+        clearTimeout(transitionTimeoutRef.current);
+        transitionTimeoutRef.current = null;
+      }
+      
+      // Only clean up blob URLs if this effect is being cleaned up (not a new one starting)
+      // We'll let the new effect handle cleanup to prevent flicker
+      // Capture effectId and ref value at cleanup time to avoid stale closure warning
+      const cleanupEffectId = currentEffectId;
+      const currentEffectIdAtCleanup = effectIdRef.current;
+      if (cleanupEffectId === currentEffectIdAtCleanup) {
+        if (nextBlobUrlRef.current) {
+          URL.revokeObjectURL(nextBlobUrlRef.current);
+          nextBlobUrlRef.current = null;
+        }
       }
     };
   }, [readonly, flag, wrapperSize, presentation, borderThicknessPct, flagOffsetPct, segmentRotation]);
@@ -377,11 +527,17 @@ export function ImageUploadZone({
         ref={wrapperRef}
         className={readonly ? "choose-wrapper readonly" : "choose-wrapper"}
       >
-        {/* Flag pattern layer (Step 3 only) */}
-        {readonly && patternStyle && (
+        {/* Flag pattern layer (Step 3 only) - double-buffered for smooth transitions */}
+        {readonly && currentPatternStyle && (
           <div
-            className="choose-wrapper-pattern"
-            style={patternStyle}
+            className={`choose-wrapper-pattern choose-wrapper-pattern-current ${isTransitioning ? 'fading-out' : ''}`}
+            style={currentPatternStyle}
+          />
+        )}
+        {readonly && nextPatternStyle && (
+          <div
+            className={`choose-wrapper-pattern choose-wrapper-pattern-next ${isNextFadingIn ? 'fading-in' : ''}`}
+            style={nextPatternStyle}
           />
         )}
         <label

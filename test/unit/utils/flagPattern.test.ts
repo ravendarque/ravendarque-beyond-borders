@@ -2,11 +2,50 @@
  * Unit tests for flag pattern generation
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { generateFlagPatternStyle } from '@/utils/flagPattern';
 import type { FlagSpec } from '@/flags/schema';
 
+// Mock OffscreenCanvas
+class MockOffscreenCanvas {
+  width = 0;
+  height = 0;
+  private ctx: any;
+
+  constructor(width: number, height: number) {
+    this.width = width;
+    this.height = height;
+    this.ctx = {
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high',
+      beginPath: vi.fn(),
+      arc: vi.fn(),
+      closePath: vi.fn(),
+      fill: vi.fn(),
+      fillStyle: '',
+      createRadialGradient: vi.fn(() => ({
+        addColorStop: vi.fn(),
+      })),
+    };
+  }
+
+  getContext(_type: '2d') {
+    return this.ctx;
+  }
+
+  async convertToBlob() {
+    return new Blob(['mock'], { type: 'image/png' });
+  }
+}
+
 describe('generateFlagPatternStyle', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Mock OffscreenCanvas
+    global.OffscreenCanvas = MockOffscreenCanvas as any;
+    // Mock URL.createObjectURL
+    global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+  });
   const mockFlag: FlagSpec = {
     id: 'test',
     displayName: 'Test Flag',

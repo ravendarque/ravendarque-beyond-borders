@@ -4,7 +4,7 @@ import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
 import { getAssetUrl } from '@/config';
 import type { ImagePosition, ImageDimensions } from '@/utils/imagePosition';
-import { positionToBackgroundPosition, calculatePositionLimits, positionToRendererOffset } from '@/utils/imagePosition';
+// Position utilities imported but not directly used here - renderer handles positioning
 
 export interface RenderOptions {
   size: 512 | 1024;
