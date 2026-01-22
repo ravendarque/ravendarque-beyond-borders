@@ -30,7 +30,7 @@ Thumbs.db
 # Tests and coverage
 coverage/
 playwright-report/
-test-results/
+test/test-results/
 
 # Local working files (scripts, outputs, temp files, etc.)
 .local/

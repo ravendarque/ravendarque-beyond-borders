@@ -313,6 +313,54 @@ body {
   border-radius: 50%;
 }
 
+/* Hide hatch background in Step 3 (readonly mode) - flag pattern replaces it */
+.choose-wrapper.readonly {
+  /* Explicitly clear all background layers */
+  background: transparent;
+  background-image: none;
+  background-color: transparent;
+  /* Ensure no background shows through */
+  background-size: auto;
+  background-position: 0 0;
+  background-repeat: repeat;
+}
+
+/* When flag border is present, replace halftone pattern with flag border */
+/* The flag border is set via inline styles in ImageUploadZone component */
+.choose-wrapper-pattern {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0; /* Behind the circle (z-index: 1) but visible in annulus gap */
+  background-color: transparent;
+  will-change: opacity; /* Optimize for opacity transitions */
+  backface-visibility: hidden; /* Prevent flicker during transitions */
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
+/* Current pattern (fades out when transitioning) */
+.choose-wrapper-pattern-current {
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+  z-index: 1; /* Above next pattern during transition */
+}
+
+.choose-wrapper-pattern-current.fading-out {
+  opacity: 0;
+}
+
+/* Next pattern (fades in when ready) */
+.choose-wrapper-pattern-next {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+  z-index: 0; /* Below current pattern during transition */
+}
+
+.choose-wrapper-pattern-next.fading-in {
+  opacity: 1;
+}
+
 /* Image upload circle */
 .choose-circle {
   position: absolute;
@@ -368,6 +416,26 @@ label.choose-circle:hover {
 .choose-circle.has-image:hover {
   transform: scale(1.03);
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+}
+
+/* Disable hover and active styles in readonly mode */
+.choose-circle.readonly:hover,
+.choose-circle.readonly.has-image:hover,
+.choose-wrapper:hover .choose-circle.readonly,
+.choose-wrapper:hover .choose-circle.readonly.has-image {
+  transform: none;
+  box-shadow: none;
+}
+
+.choose-circle.readonly:active,
+.choose-circle.readonly.has-image:active {
+  transform: none;
+  box-shadow: none;
+}
+
+.choose-circle.readonly {
+  cursor: default;
+  box-shadow: none;
 }
 
 /* Dragging state - placed after hover rules with matching specificity */

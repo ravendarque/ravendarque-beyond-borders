@@ -49,12 +49,17 @@ export async function captureAdjustedImage(
   });
 
   // Calculate scale and position (same logic as Step 1)
+  // Use imageDimensions parameter to match how dimensions are detected in Step 1
+  // This ensures consistency, especially for portrait images with EXIF orientation
+  // where img.width/height might differ from naturalWidth/naturalHeight
   const circleDiameter = circleSize;
-  const coverScale = Math.max(circleDiameter / img.width, circleDiameter / img.height);
+  const imgWidth = imageDimensions.width;
+  const imgHeight = imageDimensions.height;
+  const coverScale = Math.max(circleDiameter / imgWidth, circleDiameter / imgHeight);
   const zoomMultiplier = 1 + (position.zoom / 100);
   const scale = coverScale * zoomMultiplier;
-  const scaledWidth = img.width * scale;
-  const scaledHeight = img.height * scale;
+  const scaledWidth = imgWidth * scale;
+  const scaledHeight = imgHeight * scale;
 
   // Calculate position limits for normalization (same as Step 1)
   const limits = calculatePositionLimits(imageDimensions, circleSize, position.zoom);

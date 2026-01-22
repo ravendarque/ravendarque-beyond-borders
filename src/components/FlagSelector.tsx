@@ -16,7 +16,7 @@ export interface FlagSelectorProps {
  * 
  * Single Responsibility: Flag selection UI with Radix Select primitive
  */
-export function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelectorProps) {
+export const FlagSelector = React.memo(function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelectorProps) {
   // Group flags by category and only include categories that have flags
   // Memoized to prevent recalculation on every render
   const flagsByCategory = useMemo(() => {
@@ -90,5 +90,5 @@ export function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelect
       </Select.Root>
     </div>
   );
-}
+});
 

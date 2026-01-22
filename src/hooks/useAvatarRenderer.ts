@@ -3,6 +3,8 @@ import { renderAvatar } from '@/renderer/render';
 import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
 import { getAssetUrl } from '@/config';
+import type { ImagePosition, ImageDimensions } from '@/utils/imagePosition';
+import { positionToRendererOffset, calculatePositionLimits } from '@/utils/imagePosition';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -11,7 +13,9 @@ export interface RenderOptions {
   presentation: 'ring' | 'segment' | 'cutout';
   segmentRotation?: number;
   bg: string | 'transparent';
-  // imagePosition is no longer needed - we use a pre-cropped image
+  imagePosition: ImagePosition;
+  imageDimensions: ImageDimensions;
+  circleSize: number; // Circle size from Step 1 (for accurate position/zoom calculation)
 }
 
 /**
@@ -43,7 +47,7 @@ export function useAvatarRenderer(
    */
   const render = useCallback(
     async (imageUrl: string, flagId: string, options: RenderOptions) => {
-      const { size, thickness, flagOffsetPct, presentation, segmentRotation, bg } = options;
+      const { size, thickness, flagOffsetPct, presentation, segmentRotation, bg, circleSize } = options;
 
       // Exit early if no image
       if (!imageUrl) {
@@ -71,7 +75,7 @@ export function useAvatarRenderer(
           throw FlagDataError.patternMissing(flagId);
         }
 
-        // Load image (this is now a pre-cropped image from Step 1)
+        // Load original image (not cropped - renderer will apply position/zoom)
         const response = await fetch(imageUrl);
         const blob = await response.blob();
         const img = await createImageBitmap(blob);
@@ -97,13 +101,73 @@ export function useAvatarRenderer(
           }
         }
 
+        // Calculate the renderer's inner circle size (where the image is drawn)
+        // Simple formula: inner circle diameter = canvas size - (border thickness * 2)
+        const base = size;
+        const thicknessPx = Math.round((thickness / 100) * base);
+        const rendererCircleSize = size - (thicknessPx * 2); // Inner circle diameter
+
+        // Calculate position limits using step 1's circle size
+        // Position percentages are relative to step 1's circle size, not the renderer's
+        // This ensures the position normalization matches what step 1 uses
+        const positionLimits = calculatePositionLimits(
+          options.imageDimensions,
+          circleSize, // Use step 1's circle size for limits calculation
+          options.imagePosition.zoom
+        );
+        
+        // Calculate max limits (at zoom 200%) for consistent position mapping
+        // This is needed for positionToBackgroundPosition to work correctly
+        const maxLimits = calculatePositionLimits(
+          options.imageDimensions,
+          circleSize,
+          200
+        );
+
+        // Convert step 1 position adjustments to pixel offsets
+        // IMPORTANT: Calculate offset for step 1's circle size first (where position is relative to)
+        // Then scale it to the renderer's circle size
+        const step1Offset = positionToRendererOffset(
+          { x: options.imagePosition.x, y: options.imagePosition.y },
+          options.imageDimensions,
+          circleSize, // Calculate offset for step 1's circle size
+          options.imagePosition.zoom,
+          positionLimits,
+          maxLimits
+        );
+        
+        // Scale the offset from step 1's circle size to renderer's circle size
+        // This ensures the position mapping is correct when circle sizes differ
+        const scaleFactor = rendererCircleSize / circleSize;
+        const imageOffset = {
+          x: step1Offset.x * scaleFactor,
+          y: step1Offset.y * scaleFactor,
+        };
+        
+        // Debug logging (only in development)
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.log('Renderer offset calculation:', {
+            position: options.imagePosition,
+            circleSize,
+            rendererCircleSize,
+            thicknessPx,
+            imageOffset,
+            canvasSize: size,
+            center: { x: size / 2, y: size / 2 },
+            imageRadius: rendererCircleSize / 2,
+          });
+        }
+
         // Render avatar with flag border
-        // The image is already cropped and adjusted, so no position/zoom needed
+        // Pass position/zoom directly to renderer - no capture needed
         const result = await renderAvatar(img, transformedFlag, {
           size,
           thicknessPct: thickness,
-          // No imageOffsetPx - cropped image is already centered
-          // No imageZoom - cropped image is already at correct zoom
+          imageOffsetPx: imageOffset,
+          imageZoom: options.imagePosition.zoom,
+          circleSize: circleSize, // Pass Step 1's circleSize for accurate zoom calculation
+          originalImageDimensions: options.imageDimensions, // Pass original dimensions for accurate zoom
           flagOffsetPct: { x: flagOffsetPct, y: 0 }, // Use flagOffsetPct for cutout mode
           presentation,
           segmentRotation,

@@ -13,7 +13,7 @@ export interface FlagPreviewProps {
  * 
  * Single Responsibility: Display flag preview image
  */
-export function FlagPreview({ flag }: FlagPreviewProps) {
+export const FlagPreview = React.memo(function FlagPreview({ flag }: FlagPreviewProps) {
   const flagId = flag?.id ?? null;
   const imageSrc = flag ? (flag.png_preview || flag.png_full) : null;
   const imgRef = useRef<HTMLImageElement>(null);
@@ -102,4 +102,4 @@ export function FlagPreview({ flag }: FlagPreviewProps) {
       />
     </>
   );
-}
+});

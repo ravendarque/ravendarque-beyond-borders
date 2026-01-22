@@ -255,7 +255,8 @@ export function positionToRendererOffset(
   imageDimensions: ImageDimensions,
   containerSize: number,
   zoom: number,
-  limits: PositionLimits
+  limits: PositionLimits,
+  maxLimits?: PositionLimits
 ): { x: number; y: number } {
   // Safety checks
   if (!imageDimensions || imageDimensions.width <= 0 || imageDimensions.height <= 0 || containerSize <= 0) {
@@ -273,24 +274,36 @@ export function positionToRendererOffset(
   const scaledHeight = imgHeight * zoomedScale;
   
   // Get CSS background-position using the SAME function as step 1
-  const cssPosition = positionToBackgroundPosition(position, limits);
+  // Pass maxLimits if provided for consistent position mapping across zoom levels
+  const cssPosition = positionToBackgroundPosition(position, limits, maxLimits);
   const [cssX, cssY] = cssPosition.split(' ').map(p => parseFloat(p.replace('%', '')));
   
-  // CSS background-position formula: leftEdge = (containerWidth - imageWidth) * (cssPercent / 100)
-  // This gives us the left edge position relative to container's left edge
-  const leftEdgeX = ((circleDiameter - scaledWidth) / 100) * cssX;
-  const topEdgeY = ((circleDiameter - scaledHeight) / 100) * cssY;
+  // CSS background-position formula:
+  // background-position: X% Y% means the image's X% point aligns with the container's X% point
+  // For example, 50% 50% means the image's center aligns with the container's center
+  // 
+  // To find the image's left edge relative to the container's left edge:
+  // - The container's X% point is at: circleDiameter * (cssX / 100)
+  // - The image's X% point is at: scaledWidth * (cssX / 100) from the image's left edge
+  // - So the image's left edge is at: circleDiameter * (cssX / 100) - scaledWidth * (cssX / 100)
+  // - = (circleDiameter - scaledWidth) * (cssX / 100)
+  // Note: leftEdgeX and topEdgeY are intermediate calculations for the offset formula below
   
   // Convert to center-relative offset for canvas
-  // The container (circle) is centered in the canvas at canvasW/2
-  // Container's left edge is at (canvasW - circleDiameter) / 2
-  // Image's left edge in canvas coordinates: (canvasW - circleDiameter) / 2 + leftEdgeX
-  // Image's center in canvas coordinates: (canvasW - circleDiameter) / 2 + leftEdgeX + scaledWidth/2
-  // Offset from canvas center: imageCenter - canvasW/2
-  // = (canvasW - circleDiameter)/2 + leftEdgeX + scaledWidth/2 - canvasW/2
-  // = leftEdgeX + (scaledWidth - circleDiameter)/2
-  const offsetX = leftEdgeX + (scaledWidth - circleDiameter) / 2;
-  const offsetY = topEdgeY + (scaledHeight - circleDiameter) / 2;
+  // The offset is the distance from the container center to the image center
+  // In CSS: image center = containerCenter + offset
+  // The offset is: (imageCenter - containerCenter)
+  //
+  // Image's left edge relative to container's left edge: leftEdgeX
+  // Image's center relative to container's left edge: leftEdgeX + scaledWidth/2
+  // Container's center relative to container's left edge: circleDiameter/2
+  // Offset = (leftEdgeX + scaledWidth/2) - (circleDiameter/2)
+  // = leftEdgeX + scaledWidth/2 - circleDiameter/2
+  // = (circleDiameter - scaledWidth) * (cssX / 100) + scaledWidth/2 - circleDiameter/2
+  // = (circleDiameter - scaledWidth) * (cssX / 100) - (circleDiameter - scaledWidth)/2
+  // = (circleDiameter - scaledWidth) * (cssX / 100 - 0.5)
+  const offsetX = (circleDiameter - scaledWidth) * (cssX / 100 - 0.5);
+  const offsetY = (circleDiameter - scaledHeight) * (cssY / 100 - 0.5);
   
   // Safety check for NaN/Infinity
   const safeX = isFinite(offsetX) ? offsetX : 0;
@@ -316,36 +329,49 @@ export function calculateBackgroundSize(
     return 'cover';
   }
   
-  const { width: imgWidth, height: imgHeight } = imageDimensions;
-  
-  // Calculate what percentage would give us the cover size
-  // For landscape: height fits, so percentage = (imgWidth * coverScale / circleSize) * 100
-  // For portrait: width fits, so percentage = (imgHeight * coverScale / circleSize) * 100
-  // Since coverScale = max(circleSize/imgWidth, circleSize/imgHeight),
-  // the larger ratio determines which dimension fits
-  
-  let basePercentage: number;
-  if (imgWidth > imgHeight) {
-    // Landscape: height fits
-    // coverScale = circleSize / imgHeight
-    // scaledWidth = imgWidth * coverScale = imgWidth * circleSize / imgHeight
-    // percentage = (scaledWidth / circleSize) * 100 = (imgWidth / imgHeight) * 100
-    basePercentage = (imgWidth / imgHeight) * 100;
-  } else if (imgHeight > imgWidth) {
-    // Portrait: width fits
-    // coverScale = circleSize / imgWidth
-    // scaledHeight = imgHeight * coverScale = imgHeight * circleSize / imgWidth
-    // percentage = (scaledHeight / circleSize) * 100 = (imgHeight / imgWidth) * 100
-    basePercentage = (imgHeight / imgWidth) * 100;
-  } else {
-    // Square: either dimension works, base is 100%
-    basePercentage = 100;
+  // At 0% zoom, use 'cover' for proper CSS behavior
+  if (zoom === 0) {
+    return 'cover';
   }
   
-  // Apply zoom multiplier: 0% zoom = 1x, 100% zoom = 2x, 200% zoom = 3x
-  // Always calculate percentage (even at zoom 0) to ensure smooth transitions
+  const { width: imgWidth, height: imgHeight } = imageDimensions;
+  const circleDiameter = circleSize;
+  
+  // Calculate cover scale (same as in calculatePositionLimits)
+  const coverScale = Math.max(circleDiameter / imgWidth, circleDiameter / imgHeight);
+  
+  // CSS background-size percentage applies to the WIDTH of the image
+  // The height is then scaled proportionally to maintain aspect ratio
+  // 
+  // For portrait: width fits at cover, so cover width = circleSize = 100%
+  // For landscape: height fits at cover, so we need to calculate what width percentage gives us cover
+  // 
+  // At cover:
+  // - Portrait: width = circleSize, so background-size = 100%
+  // - Landscape: height = circleSize, width = imgWidth * (circleSize / imgHeight), so background-size = (imgWidth / imgHeight) * 100%
+  
+  let coverPercentage: number;
+  if (imgWidth > imgHeight) {
+    // Landscape: height fits, width extends
+    // At cover: height = circleSize, width = imgWidth * (circleSize / imgHeight)
+    // background-size percentage applies to width, so:
+    // coverPercentage = (imgWidth * coverScale / circleDiameter) * 100 = (imgWidth / imgHeight) * 100
+    const scaledWidth = imgWidth * coverScale;
+    coverPercentage = (scaledWidth / circleDiameter) * 100;
+  } else if (imgHeight > imgWidth) {
+    // Portrait: width fits, height extends
+    // At cover: width = circleSize, so background-size = 100%
+    // The height scales proportionally automatically
+    coverPercentage = 100;
+  } else {
+    // Square: both dimensions are the same, cover size is 100%
+    coverPercentage = 100;
+  }
+  
+  // Apply zoom multiplier: 0% zoom = 1x (cover), 100% zoom = 2x, 200% zoom = 3x
+  // This scales the cover size by the zoom amount
   const zoomMultiplier = 1 + (zoom / 100);
-  const finalPercentage = basePercentage * zoomMultiplier;
+  const finalPercentage = coverPercentage * zoomMultiplier;
   
   return `${finalPercentage}%`;
 }

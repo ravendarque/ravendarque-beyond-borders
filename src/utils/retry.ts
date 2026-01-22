@@ -106,7 +106,7 @@ export async function retryWithBackoff<T>(
 export function createRetryableOperation<T>(
   fn: () => Promise<T>,
   options: RetryOptions = {}
-) {
+): { execute: () => Promise<T>; state: RetryState } {
   const state: RetryState = {
     attempt: 0,
     maxAttempts: options.maxAttempts || 3,

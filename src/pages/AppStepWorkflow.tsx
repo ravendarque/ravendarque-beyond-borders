@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
@@ -11,7 +11,8 @@ import { FlagSelector } from '@/components/FlagSelector';
 import { FlagPreview } from '@/components/FlagPreview';
 import { ImageUploadZone } from '@/components/ImageUploadZone';
 import { Link } from 'react-router-dom';
-import { AdjustStep } from '@/components/AdjustStep';
+import { PresentationModeSelector } from '@/components/PresentationModeSelector';
+import { AdjustControls } from '@/components/AdjustControls';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
@@ -46,7 +47,6 @@ export function AppStepWorkflow() {
     setImagePosition,
     setImageDimensions,
     setCircleSize,
-    setCroppedImageUrl,
     setFlagId,
     setThickness,
     setFlagOffsetPct,
@@ -87,11 +87,10 @@ export function AppStepWorkflow() {
     return step2.flagId ? flags.find(f => f.id === step2.flagId) ?? null : null;
   }, [step2.flagId]);
 
-  // Step transitions (handles image capture, flag offset resets, etc.)
+  // Step transitions (handles flag offset resets, dimension detection, etc.)
   useStepTransitions({
     state: workflow.state,
     selectedFlag,
-    onCroppedImageUrlChange: setCroppedImageUrl,
     onImageDimensionsChange: setImageDimensions,
     onCircleSizeChange: setCircleSize,
     onFlagOffsetChange: setFlagOffsetPct,
@@ -99,12 +98,85 @@ export function AppStepWorkflow() {
   });
 
   // Calculate position limits based on image dimensions and zoom
+  // For Step 3, calculate effective circle size based on border thickness
+  // The circle's visual size is controlled by inset, but we need effective size for position calculations
+  const effectiveCircleSize = useMemo(() => {
+    if (currentStep === 3 && step1.circleSize) {
+      // Border thickness is a percentage of the wrapper size
+      // We need to estimate wrapper size from circle size (circle is 80% of wrapper in Step 1)
+      const estimatedWrapperSize = step1.circleSize / 0.8;
+      const borderThicknessPx = (step3.thickness / 100) * estimatedWrapperSize;
+      return Math.max(0, estimatedWrapperSize - 2 * borderThicknessPx);
+    }
+    return step1.circleSize;
+  }, [currentStep, step1.circleSize, step3.thickness]);
+
   const positionLimits = useMemo<PositionLimits>(() => {
     if (!step1.imageDimensions) {
       return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
     }
-    return calculatePositionLimits(step1.imageDimensions, step1.circleSize, step1.imagePosition.zoom);
-  }, [step1.imageDimensions, step1.circleSize, step1.imagePosition.zoom]);
+    // Use effective circle size for Step 3, original circle size for Step 1
+    const circleSizeForLimits = currentStep === 3 ? effectiveCircleSize : step1.circleSize;
+    return calculatePositionLimits(step1.imageDimensions, circleSizeForLimits, step1.imagePosition.zoom);
+  }, [step1.imageDimensions, step1.circleSize, effectiveCircleSize, step1.imagePosition.zoom, currentStep]);
+
+  // Clamp position when limits change (zoom or dimensions change)
+  // This ensures position is valid when zoom changes and axes become enabled/disabled
+  const prevLimitsRef = useRef<PositionLimits | null>(null);
+  useEffect(() => {
+    if (!step1.imageDimensions || currentStep !== 1) {
+      prevLimitsRef.current = null;
+      return;
+    }
+    
+    // Only clamp if limits actually changed (zoom changed)
+    const limitsChanged = prevLimitsRef.current === null || 
+      prevLimitsRef.current.minX !== positionLimits.minX ||
+      prevLimitsRef.current.maxX !== positionLimits.maxX ||
+      prevLimitsRef.current.minY !== positionLimits.minY ||
+      prevLimitsRef.current.maxY !== positionLimits.maxY;
+    
+    if (!limitsChanged) {
+      return;
+    }
+    
+    prevLimitsRef.current = positionLimits;
+    
+    const EPSILON = 0.001;
+    const horizontalDisabled = Math.abs(positionLimits.maxX - positionLimits.minX) < EPSILON;
+    const verticalDisabled = Math.abs(positionLimits.maxY - positionLimits.minY) < EPSILON;
+    
+    // If an axis is disabled, reset that axis to 0
+    // Otherwise, clamp to the new limits
+    let needsUpdate = false;
+    const newPosition = { ...step1.imagePosition };
+    
+    if (horizontalDisabled && Math.abs(newPosition.x) > EPSILON) {
+      newPosition.x = 0;
+      needsUpdate = true;
+    } else if (!horizontalDisabled) {
+      const clampedX = Math.max(positionLimits.minX, Math.min(positionLimits.maxX, newPosition.x));
+      if (Math.abs(clampedX - newPosition.x) > EPSILON) {
+        newPosition.x = clampedX;
+        needsUpdate = true;
+      }
+    }
+    
+    if (verticalDisabled && Math.abs(newPosition.y) > EPSILON) {
+      newPosition.y = 0;
+      needsUpdate = true;
+    } else if (!verticalDisabled) {
+      const clampedY = Math.max(positionLimits.minY, Math.min(positionLimits.maxY, newPosition.y));
+      if (Math.abs(clampedY - newPosition.y) > EPSILON) {
+        newPosition.y = clampedY;
+        needsUpdate = true;
+      }
+    }
+    
+    if (needsUpdate) {
+      setImagePosition(newPosition);
+    }
+  }, [step1.imageDimensions, positionLimits, currentStep, setImagePosition, step1.imagePosition]);
 
   // Get aspect ratio
   const aspectRatio = useMemo<ImageAspectRatio | null>(() => {
@@ -145,24 +217,29 @@ export function AppStepWorkflow() {
 
   // Trigger render when parameters change (Step 3)
   useEffect(() => {
-    if (currentStep === 3 && step1.croppedImageUrl && step2.flagId) {
+    if (currentStep === 3 && step1.imageUrl && step1.imageDimensions && step2.flagId) {
       // Render at high-res (2x) for preview to ensure crisp quality when scaled down
       // The preview container is 250-400px, so high-res gives us 2.5-4x resolution
       // This eliminates blur from CSS downscaling
-      // Use cropped image - no position/zoom needed (already captured)
-      render(step1.croppedImageUrl, step2.flagId, {
+      // Pass position/zoom directly to renderer - no capture needed
+      render(step1.imageUrl, step2.flagId, {
         size: RENDER_SIZES.HIGH_RES,
         thickness: debouncedThickness,
         flagOffsetPct: debouncedFlagOffsetPct,
         presentation: step3.presentation,
         segmentRotation: debouncedSegmentRotation,
         bg: 'transparent',
-        // No imagePosition - the cropped image is already adjusted
+        imagePosition: step1.imagePosition,
+        imageDimensions: step1.imageDimensions,
+        circleSize: step1.circleSize, // Still needed for position calculation
       });
     }
   }, [
     currentStep,
-    step1.croppedImageUrl,
+    step1.imageUrl,
+    step1.imageDimensions,
+    step1.imagePosition,
+    step1.circleSize,
     step2.flagId,
     debouncedThickness,
     debouncedFlagOffsetPct,
@@ -296,19 +373,42 @@ export function AppStepWorkflow() {
                   </div>
                 }
               >
-                <AdjustStep
-                  overlayUrl={overlayUrl}
-                  isRendering={isRendering}
-                  selectedFlag={selectedFlag}
-                  presentation={step3.presentation}
-                  onPresentationChange={setPresentation}
-                  thickness={step3.thickness}
-                  onThicknessChange={setThickness}
-                  flagOffsetPct={step3.flagOffsetPct}
-                  onFlagOffsetChange={setFlagOffsetPct}
-                  segmentRotation={step3.segmentRotation}
-                  onSegmentRotationChange={setSegmentRotation}
-                />
+                <div className="adjust-wrapper">
+                  {/* Use same ImageUploadZone component in readonly mode */}
+                  <ImageUploadZone
+                    imageUrl={step1.imageUrl}
+                    position={step1.imagePosition}
+                    limits={positionLimits}
+                    aspectRatio={aspectRatio}
+                    imageDimensions={step1.imageDimensions}
+                    circleSize={effectiveCircleSize}
+                    baseCircleSize={step1.circleSize}
+                    readonly={true}
+                    flag={selectedFlag}
+                    presentation={step3.presentation}
+                    borderThicknessPct={step3.thickness}
+                    flagOffsetPct={step3.flagOffsetPct}
+                    segmentRotation={step3.segmentRotation}
+                  />
+                  
+                  {/* Presentation Mode Toggle Buttons */}
+                  <PresentationModeSelector
+                    mode={step3.presentation}
+                    onModeChange={setPresentation}
+                  />
+
+                  {/* Adjust Controls */}
+                  <AdjustControls
+                    thickness={step3.thickness}
+                    onThicknessChange={setThickness}
+                    flagOffsetPct={step3.flagOffsetPct}
+                    onFlagOffsetChange={setFlagOffsetPct}
+                    presentation={step3.presentation}
+                    segmentRotation={step3.segmentRotation}
+                    onSegmentRotationChange={setSegmentRotation}
+                    selectedFlag={selectedFlag}
+                  />
+                </div>
               </ErrorBoundary>
             )}
           </div>

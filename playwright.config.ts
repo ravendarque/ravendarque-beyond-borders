@@ -2,18 +2,19 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: 'test/e2e',
+  outputDir: 'test/test-results',
   timeout: 120000,
   expect: {
     timeout: 5000,
     // Configure screenshot comparison threshold
-    toHaveScreenshot: { threshold: 0.2, mode: 'strict' },
+    toHaveScreenshot: { threshold: 0.2 },
   },
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
-    ['json', { outputFile: 'test-results/results.json' }],
+    ['json', { outputFile: 'test/test-results/results.json' }],
   ],
   use: {
     baseURL: 'http://localhost:5173',
