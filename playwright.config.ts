@@ -13,7 +13,7 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
-    ['json', { outputFile: 'tests/test-results/results.json' }],
+    ['json', { outputFile: 'test/test-results/results.json' }],
   ],
   use: {
     baseURL: 'http://localhost:5173',
