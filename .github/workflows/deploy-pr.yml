@@ -13,6 +13,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write  # Required to comment on PRs
   deployments: write
   actions: read  # Required to check CI workflow status
 

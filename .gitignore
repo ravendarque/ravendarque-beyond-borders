@@ -29,8 +29,8 @@ Thumbs.db
 
 # Tests and coverage
 coverage/
-playwright-report/
-test/test-results/
+test-results/
+.playwright/
 
 # Local working files (scripts, outputs, temp files, etc.)
 .local/
