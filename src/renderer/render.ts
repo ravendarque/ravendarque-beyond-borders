@@ -255,17 +255,23 @@ export async function renderAvatar(
 
     const dw = iw * adjustedScale;
     const dh = ih * adjustedScale;
-    // Apply image offset for positioning (from imagePosition)
+    
+    // CRITICAL: Circle center is ALWAYS at canvas center - it never moves.
+    // The circle size is: canvas size - (border thickness * 2), centered on canvas.
+    // Only the IMAGE position changes based on Step 1 adjustments (via imageOffsetPx).
+    // DO NOT apply imgOffsetX/Y to cx/cy - that would move the circle itself, which is wrong.
+    const cx = canvasW / 2;
+    const cy = canvasH / 2;
+    // Apply image offset for positioning within the circle (from imagePosition)
     const imgOffsetX = options.imageOffsetPx?.x ?? 0;
     const imgOffsetY = options.imageOffsetPx?.y ?? 0;
-    const cx = canvasW / 2 + imgOffsetX;
-    const cy = canvasH / 2 + imgOffsetY;
     
     // Use mask instead of clip to avoid anti-aliasing sampling artifacts
     // Draw image first, then apply circular mask using destination-in
-    ctx.drawImage(processedImage, cx - dw / 2, cy - dh / 2, dw, dh);
+    // Image is drawn offset from circle center, but circle mask stays centered
+    ctx.drawImage(processedImage, cx - dw / 2 + imgOffsetX, cy - dh / 2 + imgOffsetY, dw, dh);
     
-    // Create circular mask at the correct position
+    // Create circular mask at the fixed center position
     ctx.globalCompositeOperation = 'destination-in';
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
@@ -400,18 +406,23 @@ export async function renderAvatar(
 
   const dw = iw * adjustedScale,
     dh = ih * adjustedScale;
-  // Apply image offset for positioning (from imagePosition)
+  
+  // CRITICAL: Circle center is ALWAYS at canvas center - it never moves.
+  // The circle size is: canvas size - (border thickness * 2), centered on canvas.
+  // Only the IMAGE position changes based on Step 1 adjustments (via imageOffsetPx).
+  // DO NOT apply imgOffsetX/Y to cx/cy - that would move the circle itself, which is wrong.
+  const cx = canvasW / 2;
+  const cy = canvasH / 2;
+  // Apply image offset for positioning within the circle (from imagePosition)
   const imgOffsetX = options.imageOffsetPx?.x ?? 0;
   const imgOffsetY = options.imageOffsetPx?.y ?? 0;
-  // Center in canvas (with optional offset for fine-tuning)
-  const cx = canvasW / 2 + imgOffsetX,
-    cy = canvasH / 2 + imgOffsetY;
   
   // Use mask instead of clip to avoid anti-aliasing sampling artifacts
   // Draw image first, then apply circular mask using destination-in
-  ctx.drawImage(processedImage, cx - dw / 2, cy - dh / 2, dw, dh);
+  // Image is drawn offset from circle center, but circle mask stays centered
+  ctx.drawImage(processedImage, cx - dw / 2 + imgOffsetX, cy - dh / 2 + imgOffsetY, dw, dh);
   
-  // Create circular mask at the correct position
+  // Create circular mask at the fixed center position
   ctx.globalCompositeOperation = 'destination-in';
   ctx.fillStyle = '#ffffff';
   ctx.beginPath();
