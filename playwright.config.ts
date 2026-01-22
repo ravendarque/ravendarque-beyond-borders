@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: 'test/e2e',
-  outputDir: 'test/test-results',
+  outputDir: 'test-results/playwright',
   timeout: 120000,
   expect: {
     timeout: 5000,
@@ -13,8 +13,8 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [
     ['list'],
-    ['html', { open: 'never' }],
-    ['json', { outputFile: 'test/test-results/results.json' }],
+    ['html', { open: 'never', outputFolder: 'test-results/playwright-report' }],
+    ['json', { outputFile: 'test-results/playwright/results.json' }],
   ],
   use: {
     baseURL: 'http://localhost:5173',
