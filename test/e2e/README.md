@@ -2,7 +2,8 @@
 
 ## Overview
 
-This directory contains end-to-end tests using Playwright. Tests are organized into subdirectories by category:
+This directory contains end-to-end tests using Playwright. Tests are
+organized into subdirectories by category:
 
 - **`workflows/`** - Complete user workflows and happy paths
 - **`responsive/`** - Mobile, tablet, and desktop viewport tests
@@ -14,16 +15,19 @@ This directory contains end-to-end tests using Playwright. Tests are organized i
 ## Running Tests
 
 ### Run All Tests
+
 ```bash
 pnpm test:e2e
 ```
 
 ### Run Specific Test File
+
 ```bash
 pnpm test:e2e test/e2e/workflows/complete-workflow.spec.ts
 ```
 
 ### Run Tests by Tag
+
 ```bash
 # Run only smoke tests
 pnpm test:e2e --grep @smoke
@@ -36,6 +40,7 @@ pnpm test:e2e --grep @slow
 ```
 
 ### Run Tests on Specific Browser
+
 ```bash
 # Run only on Chromium
 pnpm test:e2e --project=chromium
@@ -48,11 +53,13 @@ pnpm test:e2e --project=chromium-mobile
 ```
 
 ### Run Tests in UI Mode
+
 ```bash
 pnpm test:e2e --ui
 ```
 
 ### Run Tests in Debug Mode
+
 ```bash
 pnpm test:e2e --debug
 ```
@@ -71,7 +78,8 @@ Tests can be tagged for selective execution:
 
 ### Using Shared Helpers
 
-Always use shared helpers from `helpers/page-helpers.ts` instead of duplicating code:
+Always use shared helpers from `helpers/page-helpers.ts` instead of
+duplicating code:
 
 ```typescript
 import { uploadImage, selectFlag, selectPresentationMode } from '../helpers/page-helpers';
@@ -113,6 +121,7 @@ await uploadImage(page, TEST_IMAGE_PATH);
 ### Test Patterns
 
 #### Basic Test Structure
+
 ```typescript
 import { test, expect } from '@playwright/test';
 import { uploadImage, selectFlag } from '../helpers/page-helpers';
@@ -127,6 +136,7 @@ test.describe('Feature Name', () => {
 ```
 
 #### Waiting for Async Operations
+
 ```typescript
 // Wait for render to complete
 await waitForRenderComplete(page);
@@ -139,6 +149,7 @@ await page.waitForFunction(() => window.someCondition);
 ```
 
 #### Screenshots
+
 ```typescript
 // Full page screenshot
 await expect(page).toHaveScreenshot('screenshot-name.png', { fullPage: true });
@@ -148,6 +159,7 @@ await expect(element).toHaveScreenshot('element-name.png');
 ```
 
 #### Error Handling
+
 ```typescript
 // Test error states
 await page.route('**/api/endpoint', (route) => route.abort());
@@ -157,32 +169,42 @@ await page.route('**/api/endpoint', (route) => route.abort());
 ## Test Organization
 
 ### Workflows
+
 Tests for complete user journeys:
+
 - Upload → Flag Selection → Adjust → Download
 - Step navigation
 - State persistence
 
 ### Responsive
+
 Tests for different viewport sizes:
+
 - Mobile: 320px, 375px, 414px
 - Tablet: 768px, 834px, 1024px
 - Desktop: 1280px, 1440px, 1920px
 
 ### Accessibility
+
 WCAG AA compliance tests:
+
 - Keyboard navigation
 - Screen reader support
 - Color contrast
 - ARIA labels
 
 ### Visual
+
 Visual regression tests:
+
 - Screenshot comparison
 - Layout shift detection
 - Theme consistency
 
 ### Errors
+
 Error handling tests:
+
 - File validation
 - Network failures
 - Edge cases
@@ -205,30 +227,36 @@ changes carefully before committing.
 ## CI/CD
 
 Tests run automatically on:
+
 - Every pull request
 - Every push to main branch
 
-The CI runs tests on all browser projects (Chromium, Firefox, WebKit, mobile).
+The CI runs tests on all browser projects (Chromium, Firefox, WebKit,
+mobile).
 
 ## Troubleshooting
 
 ### Tests Failing Locally
 
-1. **Ensure dev server is running**: Tests require `pnpm dev` to be running on port 5173
+1. **Ensure dev server is running**: Tests require `pnpm dev` to be
+   running on port 5173
 2. **Check browser installation**: Run `pnpm exec playwright install`
 3. **Clear test results**: `rm -rf test/test-results/`
 
 ### Flaky Tests
 
 If a test is flaky:
+
 1. Add appropriate waits (don't use fixed timeouts)
-2. Use `waitForFunction` or `waitForSelector` instead of `waitForTimeout`
+2. Use `waitForFunction` or `waitForSelector` instead of
+   `waitForTimeout`
 3. Check for race conditions
 4. Consider adding retry logic in test config
 
 ### Screenshot Failures
 
 If screenshots fail:
+
 1. Review the diff carefully
 2. If change is intentional, update baseline: `--update-snapshots`
 3. Check for timing issues (wait for animations to complete)
@@ -237,10 +265,12 @@ If screenshots fail:
 
 1. **Use shared helpers** - Don't duplicate code
 2. **Use test tags** - Tag tests appropriately for selective execution
-3. **Wait properly** - Use `waitForFunction` or `waitForSelector`, not fixed timeouts
+3. **Wait properly** - Use `waitForFunction` or `waitForSelector`, not
+   fixed timeouts
 4. **Keep tests focused** - One test, one concern
 5. **Use constants** - Use `TEST_FLAGS` and other constants from helpers
-6. **Clean up** - Tests should be independent and not rely on previous test state
+6. **Clean up** - Tests should be independent and not rely on previous
+   test state
 7. **Document complex tests** - Add comments for non-obvious test logic
 
 ## Resources
