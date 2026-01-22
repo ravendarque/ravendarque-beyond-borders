@@ -6,6 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { selectFlag, waitForRenderComplete } from '../helpers/page-helpers';
 import { TEST_FLAGS } from '../helpers/test-data';
+import { getTestResultsPath } from '../helpers/test-paths';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -72,7 +73,7 @@ test.describe('Border Thickness Resize', () => {
     const initialHeight = initialBox!.height;
     
     // Take screenshot at initial thickness (default 10%)
-    await circle.screenshot({ path: 'test-results/border-thickness-10.png' });
+    await circle.screenshot({ path: getTestResultsPath('border-thickness-10.png') });
     
     // Find thickness slider
     const thicknessSlider = page.getByLabel('Border thickness').locator('[role="slider"]').first();
@@ -102,7 +103,7 @@ test.describe('Border Thickness Resize', () => {
     expect(thickerHeight).toBeLessThan(initialHeight);
     
     // Take screenshot at 20% thickness
-    await circle.screenshot({ path: 'test-results/border-thickness-20.png' });
+    await circle.screenshot({ path: getTestResultsPath('border-thickness-20.png') });
     
     // Set thickness to 5% (thinner border = larger circle)
     await thicknessSlider.focus();
@@ -124,7 +125,7 @@ test.describe('Border Thickness Resize', () => {
     expect(thinnerHeight).toBeGreaterThan(thickerHeight);
     
     // Take screenshot at 5% thickness
-    await circle.screenshot({ path: 'test-results/border-thickness-5.png' });
+    await circle.screenshot({ path: getTestResultsPath('border-thickness-5.png') });
     
     // Log the sizes for debugging
     console.log('Initial size:', initialWidth, 'x', initialHeight);

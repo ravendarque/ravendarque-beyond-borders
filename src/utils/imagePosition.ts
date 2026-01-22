@@ -255,7 +255,8 @@ export function positionToRendererOffset(
   imageDimensions: ImageDimensions,
   containerSize: number,
   zoom: number,
-  limits: PositionLimits
+  limits: PositionLimits,
+  maxLimits?: PositionLimits
 ): { x: number; y: number } {
   // Safety checks
   if (!imageDimensions || imageDimensions.width <= 0 || imageDimensions.height <= 0 || containerSize <= 0) {
@@ -273,7 +274,8 @@ export function positionToRendererOffset(
   const scaledHeight = imgHeight * zoomedScale;
   
   // Get CSS background-position using the SAME function as step 1
-  const cssPosition = positionToBackgroundPosition(position, limits);
+  // Pass maxLimits if provided for consistent position mapping across zoom levels
+  const cssPosition = positionToBackgroundPosition(position, limits, maxLimits);
   const [cssX, cssY] = cssPosition.split(' ').map(p => parseFloat(p.replace('%', '')));
   
   // CSS background-position formula:

@@ -3,6 +3,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { getTestResultsPath } from '../helpers/test-paths';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -99,7 +100,7 @@ test.describe('Ring Pattern Debug', () => {
       console.log('DOM structure:', logs);
       
       // Take screenshot for debugging
-      await page.screenshot({ path: 'test-results/ring-pattern-debug.png', fullPage: true });
+      await page.screenshot({ path: getTestResultsPath('ring-pattern-debug.png'), fullPage: true });
       throw new Error('Pattern layer not rendered - patternStyle is likely undefined');
     }
     

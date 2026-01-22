@@ -4,7 +4,7 @@ import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
 import { getAssetUrl } from '@/config';
 import type { ImagePosition, ImageDimensions } from '@/utils/imagePosition';
-// Position utilities imported but not directly used here - renderer handles positioning
+import { positionToRendererOffset, calculatePositionLimits } from '@/utils/imagePosition';
 
 export interface RenderOptions {
   size: 512 | 1024;
@@ -107,16 +107,41 @@ export function useAvatarRenderer(
         const thicknessPx = Math.round((thickness / 100) * base);
         const rendererCircleSize = size - (thicknessPx * 2); // Inner circle diameter
 
-        // Image circle and border are concentric (same center)
-        // Center = canvas center = (size/2, size/2)
-        // Radius = (size/2 - thicknessPx)
-        // This automatically satisfies: top-left at (thicknessPx, thicknessPx)
-        // 
-        // imageOffsetPx is for user adjustments (panning within the circle),
-        // not for circle placement. Circle placement is always centered.
+        // Calculate position limits using step 1's circle size
+        // Position percentages are relative to step 1's circle size, not the renderer's
+        // This ensures the position normalization matches what step 1 uses
+        const positionLimits = calculatePositionLimits(
+          options.imageDimensions,
+          circleSize, // Use step 1's circle size for limits calculation
+          options.imagePosition.zoom
+        );
+        
+        // Calculate max limits (at zoom 200%) for consistent position mapping
+        // This is needed for positionToBackgroundPosition to work correctly
+        const maxLimits = calculatePositionLimits(
+          options.imageDimensions,
+          circleSize,
+          200
+        );
+
+        // Convert step 1 position adjustments to pixel offsets
+        // IMPORTANT: Calculate offset for step 1's circle size first (where position is relative to)
+        // Then scale it to the renderer's circle size
+        const step1Offset = positionToRendererOffset(
+          { x: options.imagePosition.x, y: options.imagePosition.y },
+          options.imageDimensions,
+          circleSize, // Calculate offset for step 1's circle size
+          options.imagePosition.zoom,
+          positionLimits,
+          maxLimits
+        );
+        
+        // Scale the offset from step 1's circle size to renderer's circle size
+        // This ensures the position mapping is correct when circle sizes differ
+        const scaleFactor = rendererCircleSize / circleSize;
         const imageOffset = {
-          x: 0, // Circle is centered; user pan adjustments handled separately via positionToRendererOffset
-          y: 0,
+          x: step1Offset.x * scaleFactor,
+          y: step1Offset.y * scaleFactor,
         };
         
         // Debug logging (only in development)

@@ -6,16 +6,17 @@
 import { test, expect } from '@playwright/test';
 import { uploadImage, waitForRenderComplete } from '../helpers/page-helpers';
 import { TEST_FLAGS } from '../helpers/test-data';
+import { TEST_RESULTS_DIR, getTestResultsPath } from '../helpers/test-paths';
+import * as fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import * as fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 test.describe('Download Matches Preview', () => {
   test('should download image that matches Step 3 preview with zoom and position', async ({ page }) => {
-    const testResultsDir = path.resolve(__dirname, '../../test-results');
+    const testResultsDir = TEST_RESULTS_DIR;
     if (!fs.existsSync(testResultsDir)) {
       fs.mkdirSync(testResultsDir, { recursive: true });
     }
@@ -101,7 +102,7 @@ test.describe('Download Matches Preview', () => {
     expect(previewScreenshot).toBeTruthy();
     
     // Save preview screenshot for debugging
-    const previewPath = path.resolve(testResultsDir, 'preview-before-download.png');
+    const previewPath = getTestResultsPath('preview-before-download.png');
     fs.writeFileSync(previewPath, previewScreenshot);
 
     // Find and click download button
@@ -123,7 +124,7 @@ test.describe('Download Matches Preview', () => {
     expect(filename).toMatch(/\.(png|jpg|jpeg)$/i);
 
     // Save downloaded file
-    const downloadPath = path.resolve(testResultsDir, 'downloaded-image.png');
+    const downloadPath = getTestResultsPath('downloaded-image.png');
     await download.saveAs(downloadPath);
 
     // Verify file exists and has content
@@ -274,7 +275,7 @@ test.describe('Download Matches Preview', () => {
   });
 
   test('should download image that matches preview with different zoom levels', async ({ page }) => {
-    const testResultsDir = path.resolve(__dirname, '../../test-results');
+    const testResultsDir = TEST_RESULTS_DIR;
     if (!fs.existsSync(testResultsDir)) {
       fs.mkdirSync(testResultsDir, { recursive: true });
     }
@@ -343,7 +344,7 @@ test.describe('Download Matches Preview', () => {
     expect(filename).toMatch(/\.(png|jpg|jpeg)$/i);
     
     // Save for inspection
-    const downloadPath = path.resolve(testResultsDir, 'downloaded-zoom50.png');
+    const downloadPath = getTestResultsPath('downloaded-zoom50.png');
     await download.saveAs(downloadPath);
     expect(fs.existsSync(downloadPath)).toBe(true);
   });
