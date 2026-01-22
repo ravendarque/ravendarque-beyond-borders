@@ -6,6 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { selectFlag, waitForRenderComplete } from '../helpers/page-helpers';
 import { TEST_FLAGS } from '../helpers/test-data';
+import { getTestResultsPath } from '../helpers/test-paths';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -116,7 +117,7 @@ test.describe('Zoom Visual Verification', () => {
     
     // Take screenshot of Step 1 with these settings
     const step1Preview = page.locator('.choose-wrapper');
-    await step1Preview.screenshot({ path: 'test-results/step1-zoom10-h24-v-42.png' });
+    await step1Preview.screenshot({ path: getTestResultsPath('step1-zoom10-h24-v-42.png') });
     
     // Now navigate to Step 2 and Step 3
     // Click the "Next" button to go to Step 2
@@ -182,7 +183,7 @@ test.describe('Zoom Visual Verification', () => {
     
     // Take screenshot of Step 3 preview
     const step3Preview = page.locator('.adjust-wrapper');
-    await step3Preview.screenshot({ path: 'test-results/step3-zoom10-h24-v-42.png' });
+    await step3Preview.screenshot({ path: getTestResultsPath('step3-zoom10-h24-v-42.png') });
     
     // Get image dimensions from Step 3 (choose-circle container)
     const imageBoundingBox = await renderedImage.boundingBox();

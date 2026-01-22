@@ -6,11 +6,11 @@
 
 import fs from 'fs';
 import { chromium } from 'playwright';
-import { resolveFromScript } from './lib/paths.js';
+import { resolveTestResultsPath } from './lib/paths.js';
 import { logger } from './lib/logger.js';
 import { exitWithError, NetworkError } from './lib/errors.js';
 
-const outDir = resolveFromScript(import.meta.url, '..', 'test-results', 'inspect');
+const outDir = resolveTestResultsPath(import.meta.url, 'inspect');
 fs.mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
@@ -34,14 +34,14 @@ try {
   await page.waitForTimeout(1500);
 
   // Capture screenshot and HTML
-  const shotPath = resolveFromScript(import.meta.url, '..', 'test-results', 'inspect', 'inspect-screenshot.png');
+  const shotPath = resolveTestResultsPath(import.meta.url, 'inspect', 'inspect-screenshot.png');
   await page.screenshot({ path: shotPath, fullPage: true });
 
   const html = await page.content();
-  const domPath = resolveFromScript(import.meta.url, '..', 'test-results', 'inspect', 'inspect-dom.html');
+  const domPath = resolveTestResultsPath(import.meta.url, 'inspect', 'inspect-dom.html');
   fs.writeFileSync(domPath, html, 'utf8');
 
-  const logsPath = resolveFromScript(import.meta.url, '..', 'test-results', 'inspect', 'inspect-console.log');
+  const logsPath = resolveTestResultsPath(import.meta.url, 'inspect', 'inspect-console.log');
   fs.writeFileSync(logsPath, logs.join('\n'), 'utf8');
 
   logger.success('Wrote:', shotPath);

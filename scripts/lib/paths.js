@@ -43,3 +43,22 @@ export function resolveFromRepo(importMetaUrl, ...pathSegments) {
 export function resolveFromScript(importMetaUrl, ...pathSegments) {
   return resolve(getScriptDir(importMetaUrl), ...pathSegments);
 }
+
+/**
+ * Get the test results directory path
+ * @param {string} importMetaUrl - The import.meta.url from the calling script
+ * @returns {string} Test results directory path
+ */
+export function getTestResultsDir(importMetaUrl) {
+  return resolveFromRepo(importMetaUrl, 'test', 'test-results');
+}
+
+/**
+ * Resolve a path within the test results directory
+ * @param {string} importMetaUrl - The import.meta.url from the calling script
+ * @param {...string} pathSegments - Path segments to join within test-results
+ * @returns {string} Resolved absolute path
+ */
+export function resolveTestResultsPath(importMetaUrl, ...pathSegments) {
+  return resolve(getTestResultsDir(importMetaUrl), ...pathSegments);
+}

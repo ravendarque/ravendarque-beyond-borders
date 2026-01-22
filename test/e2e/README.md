@@ -199,7 +199,8 @@ pnpm test:e2e --update-snapshots
 pnpm test:e2e test/e2e/visual/flag-rendering.spec.ts --update-snapshots
 ```
 
-**Note**: Baselines are stored in `test-results/` directory. Review changes carefully before committing.
+**Note**: Baselines are stored in `test/test-results/` directory. Review
+changes carefully before committing.
 
 ## CI/CD
 
@@ -215,7 +216,7 @@ The CI runs tests on all browser projects (Chromium, Firefox, WebKit, mobile).
 
 1. **Ensure dev server is running**: Tests require `pnpm dev` to be running on port 5173
 2. **Check browser installation**: Run `pnpm exec playwright install`
-3. **Clear test results**: `rm -rf test-results/`
+3. **Clear test results**: `rm -rf test/test-results/`
 
 ### Flaky Tests
 
