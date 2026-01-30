@@ -37,6 +37,30 @@ node scripts/fetch-flags.js --ci
 
 ---
 
+### `generate-favicons.js`
+
+**Purpose:** Generate multi-size favicons from `data/logo.png` (highest-res
+source) so the icon looks sharp on browser tabs, Android home screen shortcuts,
+and Apple touch icons.
+
+**What it does:**
+
+- Reads high-res source `public/logo-icon.png`
+- Outputs PNGs at 16×16, 32×32, 48×48, 180×180 (apple-touch), 192×192, 512×512
+- Fixes poor quality when scaled (e.g. Android shortcut icon)
+
+**Usage:**
+
+```bash
+pnpm run generate-favicons
+# or
+node scripts/generate-favicons.js
+```
+
+**Requirements:** sharp (devDependency)
+
+---
+
 ### `validate-flags.js`
 
 **Purpose:** Validates flag data integrity and PNG quality.
