@@ -103,10 +103,10 @@ export function validateFlagMetadata(flag: FlagSpec): void {
     );
   }
   
-  const validCategories = ['marginalized', 'national', 'other'];
-  if (!validCategories.includes(flag.category)) {
+  // Category must be a non-empty string; actual values come from flag-data.yaml (no fixed enum)
+  if (typeof flag.category !== 'string' || !/^[a-z0-9-]+$/.test(flag.category)) {
     throw new FlagValidationError(
-      `Flag "${flag.id}" has invalid category: "${flag.category}"`,
+      `Flag "${flag.id}" has invalid category: "${flag.category}" (expected slug-like string)`,
       flag.id,
       'category'
     );

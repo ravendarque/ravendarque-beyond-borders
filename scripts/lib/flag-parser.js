@@ -27,31 +27,29 @@ export function canonicalizeId(name) {
 }
 
 /**
- * Map category display name to code
- * @param {string} category - Category display name
- * @returns {string|null} - Category code or null
+ * Slugify a category display name into a stable key (lowercase, spaces/slashes → hyphens, no special chars).
+ * All category codes are derived from YAML categoryName this way; no fixed list.
+ * @param {string} name - Category display name
+ * @returns {string} - Slug suitable as category key
  */
-export function mapCategoryToCode(category) {
-  const mapping = {
-    'Occupied / Disputed Territory': 'occupied',
-    'Stateless People': 'stateless',
-    'Oppressed Groups': 'oppressed',
-    'LGBTQIA+': 'lgbtqia',
-    'Resistance Movements': 'resistance',
-  };
-  return mapping[category] || null;
+function slugifyCategoryName(name) {
+  if (!name || typeof name !== 'string') return 'other';
+  return name
+    .toLowerCase()
+    .replace(/\s*\/\s*/g, '-')
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'other';
 }
 
 /**
- * Reverse mapping: code to display name
+ * Map category display name to code. Always slugifies; no fixed category list.
+ * @param {string} category - Category display name from YAML
+ * @returns {string} - Category code (never null)
  */
-export const CATEGORY_DISPLAY_NAMES = {
-  'occupied': 'Occupied / Disputed Territory',
-  'stateless': 'Stateless People',
-  'oppressed': 'Oppressed Groups',
-  'lgbtqia': 'LGBTQIA+',
-  'resistance': 'Resistance Movements',
-};
+export function mapCategoryToCode(category) {
+  return slugifyCategoryName(category);
+}
 
 /**
  * Parse flags from YAML content

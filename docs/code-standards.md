@@ -294,20 +294,19 @@ src/
 ### Flag Data Flow
 
 1. **Source of Truth**: `data/flag-data.yaml`
-   - Categories defined in `categories` section (lookup)
-   - Flags reference categories by key
-   - Display names come from category lookup
+   - Categories are blocks with `categoryName`, `displayOrder`, and nested `flags`
+   - You can add new categories by adding a new block; no need to edit the fetch script
+   - Display names and order come from each category block
 
-2. **Processing**: `scripts/fetch-flags.cjs`
-   - Reads YAML
-   - Resolves category keys to display names
-   - Maps display names to category codes
-   - Generates `src/flags/flags.ts` with both `category` and `categoryDisplayName`
+2. **Processing**: `scripts/fetch-flags.js`
+   - Reads YAML, flattens flags from category blocks
+   - Derives `category` code from `categoryName`: known names use a stable code (e.g. 'Occupied / Disputed Territory' → 'occupied'), any other name is slugified (e.g. 'Movements / Organisations' → 'movements')
+   - Generates `src/flags/flags.ts` with `category`, `categoryDisplayName`, and `categoryDisplayOrder`
 
 3. **Usage**: Components use `flags.ts`
-   - `category`: Code for filtering/grouping (e.g., 'occupied')
-   - `categoryDisplayName`: Display name from source of truth
-     (e.g., 'Occupied / Disputed Territory')
+   - `category`: Slug for filtering/grouping (e.g. 'occupied', 'movements')
+   - `categoryDisplayName`: Display name from source of truth (e.g. 'Occupied / Disputed Territory')
+   - `categoryDisplayOrder`: Order for the dropdown (from YAML `displayOrder`)
 
 ### State Flow in AppStepWorkflow
 
@@ -360,7 +359,7 @@ When reviewing pull requests, verify the following:
 ### Data & State
 
 - [ ] Flag data changes go through `data/flag-data.yaml` (source of truth)
-- [ ] Category keys validated against category lookup
+- [ ] Category codes derived from YAML category names (known mapping or slug); new categories need no script change
 - [ ] `flags.ts` is generated (not manually edited)
 - [ ] Asset URLs use `getAssetUrl()` for GitHub Pages compatibility
 - [ ] State management follows [Data Flow](#data-flow--state-management) patterns
@@ -398,11 +397,10 @@ When reviewing pull requests, verify the following:
 ### Adding a New Flag
 
 1. Edit `data/flag-data.yaml`:
-   - Add flag entry with category key (e.g., `category: occupied`)
-   - Category must exist in `categories` lookup
-2. Run `node scripts/fetch-flags.cjs` to regenerate `flags.ts`
-3. Validate: `node scripts/validate-flags.cjs`
-4. Commit both YAML and generated `flags.ts`
+   - Either add a flag under an existing category block, or add a new category block (`categoryName`, `displayOrder`, `flags: [...]`) and put the flag there. New category names are slugified automatically (no script change needed).
+2. Run `pnpm run fetch-flags` (or `node scripts/fetch-flags.js`) to regenerate `src/flags/flags.ts`.
+3. Validate: `pnpm run validate-flags` (or `node scripts/validate-flags.js`).
+4. Commit both YAML and generated `flags.ts`.
 
 ### Adding a New UI Component
 

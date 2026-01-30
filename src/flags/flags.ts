@@ -204,48 +204,6 @@ export const flags: FlagSpec[] = [
     },
   },
   {
-    id: 'irish-traveller-movement',
-    name: 'Irish Traveller Movement',
-    displayName: 'Irish Traveller Movement',
-    png_full: 'irish-traveller-movement.png',
-    png_preview: 'irish-traveller-movement.preview.png',
-    aspectRatio: 1.530241935483871,
-    svgFilename: 'irish-traveller-movement.svg',
-    category: 'oppressed',
-    categoryDisplayName: 'Oppressed Groups',
-    categoryDisplayOrder: 3,
-    reason: 'Represents the Irish Traveller community which faces discrimination, social exclusion, and economic disadvantage. Irish Travellers are an ethnic minority group in Ireland and the UK who face systemic discrimination in housing, employment, education, and healthcare. They experience high rates of poverty, poor health outcomes, and limited access to services. Travellers face prejudice, hate speech, and exclusion from mainstream society, with their traditional nomadic way of life often criminalized or restricted. Despite recognition as an ethnic group in some jurisdictions, Travellers continue to face barriers to equality and cultural recognition.',
-    references: [
-      {
-        url: 'https://en.wikipedia.org/wiki/Irish_Traveller_Movement',
-        text: 'Irish Traveller Movement on Wikipedia',
-      },
-      {
-        url: 'https://www.amnesty.org/en/location/europe-and-central-asia/united-kingdom/report-united-kingdom/',
-        text: 'Amnesty International: Human rights in United Kingdom',
-      },
-      {
-        url: 'https://www.hrw.org/world-report/2025/country-chapters/united-kingdom',
-        text: 'Human Rights Watch: World Report 2025 - United Kingdom'
-      }
-    ],
-    modes: {
-      ring: {
-        colors: [
-          '#005000',
-          '#3030d0',
-          '#ffff00',
-          '#ffffff',
-          '#000000'
-        ],
-      },
-      cutout: {
-        offsetEnabled: true,
-        defaultOffset: 0,
-      },
-    },
-  },
-  {
     id: 'the-romani-people',
     name: 'Flag of the Romani people',
     displayName: 'Romani',
@@ -517,49 +475,6 @@ export const flags: FlagSpec[] = [
     },
   },
   {
-    id: 'visually-safe-disability-pride',
-    name: 'Disability Pride Flag',
-    displayName: 'Disability Pride',
-    png_full: 'visually-safe-disability-pride.png',
-    png_preview: 'visually-safe-disability-pride.preview.png',
-    aspectRatio: 1.3333333333333333,
-    svgFilename: 'visually-safe-disability-pride.svg',
-    category: 'oppressed',
-    categoryDisplayName: 'Oppressed Groups',
-    categoryDisplayOrder: 3,
-    reason: 'Designed by Ann Magill and refined in 2021, this flag represents the disability community and Disability Pride movement. Disabled people face systemic discrimination, ableism, and human rights violations including forced institutionalization, denial of autonomy, barriers to healthcare and education, employment discrimination, and violence. The charcoal grey background represents mourning for disabled people lost to ableist violence, neglect, and eugenics. The diagonal stripes represent cutting across barriers, with each color representing different disability communities: red for physical disabilities, gold for neurodiversity, white for invisible/undiagnosed disabilities, light blue for psychiatric/emotional disabilities, and green for sensory disabilities. Disabled people continue to fight for accessibility, inclusion, and the right to live independently with dignity.',
-    references: [
-      {
-        url: 'https://en.wikipedia.org/wiki/Disability_flag',
-        text: 'Disability Pride Flag on Wikipedia',
-      },
-      {
-        url: 'https://www.amnesty.org/en/what-we-do/discrimination/',
-        text: 'Amnesty International: Discrimination',
-      },
-      {
-        url: 'https://www.hrw.org/topic/disability-rights',
-        text: 'Human Rights Watch: Disability rights'
-      }
-    ],
-    modes: {
-      ring: {
-        colors: [
-          '#606060',
-          '#f0f0f0',
-          '#80c0e0',
-          '#f0e070',
-          '#40b080',
-          '#d07080'
-        ],
-      },
-      cutout: {
-        offsetEnabled: true,
-        defaultOffset: -5,
-      },
-    },
-  },
-  {
     id: 'gay-pride',
     name: 'Rainbow Flag',
     displayName: 'Pride',
@@ -592,12 +507,12 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#e00000', // Red
-          '#ff9000', // Orange
-          '#fff000', // Yellow
-          '#008020', // Green
-          '#0050ff', // Blue
-          '#700090'  // Purple
+          '#e00000',
+          '#fff000',
+          '#ff9000',
+          '#008020',
+          '#0050ff',
+          '#700090'
         ],
       },
     },
@@ -635,9 +550,9 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#5BCEFA', // Light Blue (top)
-          '#F5A9B8', // Pink (middle)
-          '#FFFFFF'  // White (bottom)
+          '#60d0ff',
+          '#f0b0c0',
+          '#ffffff'
         ],
       },
     },
@@ -675,10 +590,10 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#FFF430', // Yellow (top)
-          '#FFFFFF', // White
-          '#9C59D1', // Purple
-          '#000000'  // Black (bottom)
+          '#fff030',
+          '#303030',
+          '#ffffff',
+          '#a060d0'
         ],
       },
     },
@@ -712,17 +627,14 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#E40303', // Red (top stripe)
-          '#FF8C00', // Orange
-          '#FFED00', // Yellow
-          '#008026', // Green
-          '#004DFF', // Blue
-          '#750787', // Purple/Violet (bottom stripe)
-          '#000000', // Black (chevron)
-          '#613915', // Brown (chevron)
-          '#74D7EE', // Light Blue (trans chevron)
-          '#FFAFC8', // Pink (trans chevron)
-          '#FFFFFF', // White (trans chevron)
+          '#e00000',
+          '#700080',
+          '#0050ff',
+          '#ff9000',
+          '#fff000',
+          '#008020',
+          '#000000',
+          '#604010'
         ],
       },
       cutout: {
@@ -737,7 +649,7 @@ export const flags: FlagSpec[] = [
     displayName: 'Pride Progress (Intersex-Inclusive)',
     png_full: 'intersex-inclusive-pride.png',
     png_preview: 'intersex-inclusive-pride.preview.png',
-    aspectRatio: 1.5733333333333333,
+    aspectRatio: 1.5748031496062993,
     svgFilename: 'intersex-inclusive-pride.svg',
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
@@ -760,19 +672,14 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#E40303', // Red (rainbow)
-          '#FF8C00', // Orange (rainbow)
-          '#FFED00', // Yellow (rainbow)
-          '#008026', // Green (rainbow)
-          '#004DFF', // Blue (rainbow)
-          '#6D2380', // Purple/Violet (rainbow stripe)
-          '#FDD817', // Yellow (intersex triangle)
-          '#7902AA', // Purple (intersex circle)
-          '#FFFFFF', // White (chevron)
-          '#F4AEC8', // Pink (chevron)
-          '#7BCCE5', // Light Blue (chevron)
-          '#945516', // Brown (chevron)
-          '#000000'  // Black (chevron)
+          '#e00000',
+          '#700090',
+          '#0000ff',
+          '#ff9000',
+          '#ffe000',
+          '#008000',
+          '#000000',
+          '#ffffff'
         ],
       },
       cutout: {
@@ -810,10 +717,10 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#000000', // Black (top)
-          '#A0A0A0', // Grey
-          '#FFFFFF', // White
-          '#800080'  // Purple (bottom)
+          '#000000',
+          '#a0a0a0',
+          '#800080',
+          '#ffffff'
         ],
       },
     },
@@ -883,9 +790,9 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#D60270', // Pink (top)
-          '#9B59D0', // Purple (middle)
-          '#0038A8'  // Blue (bottom)
+          '#d00070',
+          '#0040b0',
+          '#a05090'
         ],
       },
     },
@@ -919,10 +826,95 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#FF218C', // Magenta (top)
-          '#FFD700', // Yellow (middle)
-          '#21B1FF'  // Cyan (bottom)
+          '#ff2090',
+          '#20b0ff',
+          '#ffe000'
         ],
+      },
+    },
+  },
+  {
+    id: 'visually-safe-disability-pride',
+    name: 'Disability Pride Flag',
+    displayName: 'Disability Pride',
+    png_full: 'visually-safe-disability-pride.png',
+    png_preview: 'visually-safe-disability-pride.preview.png',
+    aspectRatio: 1.3333333333333333,
+    svgFilename: 'visually-safe-disability-pride.svg',
+    category: 'movements',
+    categoryDisplayName: 'Movements / Organisations',
+    categoryDisplayOrder: 5,
+    reason: 'Designed by Ann Magill and refined in 2021, this flag represents the disability community and Disability Pride movement. Disabled people face systemic discrimination, ableism, and human rights violations including forced institutionalization, denial of autonomy, barriers to healthcare and education, employment discrimination, and violence. The charcoal grey background represents mourning for disabled people lost to ableist violence, neglect, and eugenics. The diagonal stripes represent cutting across barriers, with each color representing different disability communities: red for physical disabilities, gold for neurodiversity, white for invisible/undiagnosed disabilities, light blue for psychiatric/emotional disabilities, and green for sensory disabilities. Disabled people continue to fight for accessibility, inclusion, and the right to live independently with dignity.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Disability_flag',
+        text: 'Disability Pride Flag on Wikipedia',
+      },
+      {
+        url: 'https://www.amnesty.org/en/what-we-do/discrimination/',
+        text: 'Amnesty International: Discrimination',
+      },
+      {
+        url: 'https://www.hrw.org/topic/disability-rights',
+        text: 'Human Rights Watch: Disability rights'
+      }
+    ],
+    modes: {
+      ring: {
+        colors: [
+          '#606060',
+          '#f0f0f0',
+          '#80c0e0',
+          '#f0e070',
+          '#40b080',
+          '#d07080'
+        ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: -5,
+      },
+    },
+  },
+  {
+    id: 'irish-traveller-movement',
+    name: 'Irish Traveller Movement',
+    displayName: 'Irish Traveller Movement',
+    png_full: 'irish-traveller-movement.png',
+    png_preview: 'irish-traveller-movement.preview.png',
+    aspectRatio: 1.530241935483871,
+    svgFilename: 'irish-traveller-movement.svg',
+    category: 'movements',
+    categoryDisplayName: 'Movements / Organisations',
+    categoryDisplayOrder: 5,
+    reason: 'Represents the Irish Traveller community which faces discrimination, social exclusion, and economic disadvantage. Irish Travellers are an ethnic minority group in Ireland and the UK who face systemic discrimination in housing, employment, education, and healthcare. They experience high rates of poverty, poor health outcomes, and limited access to services. Travellers face prejudice, hate speech, and exclusion from mainstream society, with their traditional nomadic way of life often criminalized or restricted. Despite recognition as an ethnic group in some jurisdictions, Travellers continue to face barriers to equality and cultural recognition.',
+    references: [
+      {
+        url: 'https://en.wikipedia.org/wiki/Irish_Traveller_Movement',
+        text: 'Irish Traveller Movement on Wikipedia',
+      },
+      {
+        url: 'https://www.amnesty.org/en/location/europe-and-central-asia/united-kingdom/report-united-kingdom/',
+        text: 'Amnesty International: Human rights in United Kingdom',
+      },
+      {
+        url: 'https://www.hrw.org/world-report/2025/country-chapters/united-kingdom',
+        text: 'Human Rights Watch: World Report 2025 - United Kingdom'
+      }
+    ],
+    modes: {
+      ring: {
+        colors: [
+          '#005000',
+          '#3030d0',
+          '#ffff00',
+          '#ffffff',
+          '#000000'
+        ],
+      },
+      cutout: {
+        offsetEnabled: true,
+        defaultOffset: 0,
       },
     },
   },
@@ -934,8 +926,8 @@ export const flags: FlagSpec[] = [
     png_preview: 'antifa-logo.preview.png',
     aspectRatio: 1,
     svgFilename: 'antifa-logo.svg',
-    category: 'resistance',
-    categoryDisplayName: 'Resistance Movements',
+    category: 'movements',
+    categoryDisplayName: 'Movements / Organisations',
     categoryDisplayOrder: 5,
     reason: 'Symbol of anti-fascist resistance and opposition to authoritarianism, white supremacy, and far-right extremism. The logo represents the unity of socialist and anarchist movements in opposition to fascism, with roots in historical anti-fascist movements including the German Antifaschistische Aktion of the 1930s. Anti-fascist activists face surveillance, criminalization, and violence from state authorities and far-right groups. In many countries, anti-fascist organizing is met with repression, while fascist and far-right movements receive protection or support from state institutions. This symbol represents solidarity with those resisting fascism, racism, and authoritarianism worldwide.',
     references: [

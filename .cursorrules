@@ -242,7 +242,7 @@ The project uses CI/CD for:
 Run locally before pushing:
 ```powershell
 # Validate flags
-node scripts/validate-flags.cjs
+node scripts/validate-flags.js
 
 # Run tests
 pnpm test
@@ -258,15 +258,15 @@ pnpm type-check
 
 ### Adding New Flags
 1. Add flag metadata to `data/flag-data.yaml`
-2. Run `node scripts/fetch-flags.cjs` to generate assets and TypeScript
-3. Run validation: `node scripts/validate-flags.cjs`
+2. Run `node scripts/fetch-flags.js` to generate assets and TypeScript
+3. Run validation: `node scripts/validate-flags.js`
 4. Test the flag in the UI
 
 ### Flag Data Validation
 - All flags must have valid Zod schemas
 - SVG files must exist in `public/flags/`
 - Flag IDs must be unique
-- Categories must match defined types
+- Categories come from YAML category blocks; new category names are slugified (no fixed enum)
 
 ## Project-Specific Guidelines
 
