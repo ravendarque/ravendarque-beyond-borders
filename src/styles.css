@@ -687,6 +687,33 @@ label.choose-circle.has-image.is-dragging,
   text-align: center;
 }
 
+.footer-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.footer-social-link:hover,
+.footer-social-link:focus-visible {
+  color: var(--color-white);
+}
+
+.footer-social-icon {
+  display: block;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+}
+
 .footer-line3 {
   font-family: 'Segoe UI', sans-serif;
   font-size: 12px;
