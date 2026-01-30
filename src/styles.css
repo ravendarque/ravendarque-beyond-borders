@@ -1482,7 +1482,8 @@ label.choose-circle.has-image.is-dragging,
 /* Presentation Mode Toggle Buttons */
 .presentation-controls {
   width: 100%;
-  max-width: 320px;
+  max-width: min(320px, 100%);
+  min-width: 0;
   display: flex;
   justify-content: center;
 }
@@ -1567,15 +1568,20 @@ label.choose-circle.has-image.is-dragging,
 
 .adjust-controls {
   width: 100%;
-  max-width: 320px;
+  max-width: min(320px, 100%);
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-sizing: border-box;
 }
 
 .step1-controls {
   width: 100%;
-  max-width: 320px;
+  max-width: min(320px, 100%);
+  min-width: 0;
+  padding-inline: 16px; /* gap from display edge */
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1608,6 +1614,7 @@ label.choose-circle.has-image.is-dragging,
   flex-direction: column;
   gap: 8px;
   width: 100%;
+  min-width: 0;
 }
 
 .slider-labels-row {
@@ -1643,6 +1650,7 @@ label.choose-circle.has-image.is-dragging,
   align-items: center;
   gap: 8px;
   width: 100%;
+  min-width: 0;
 }
 
 .slider-icon {
@@ -1660,6 +1668,7 @@ label.choose-circle.has-image.is-dragging,
   user-select: none;
   touch-action: none;
   flex: 1;
+  min-width: 0;
   height: 20px;
 }
 
