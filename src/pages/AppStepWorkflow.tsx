@@ -508,6 +508,38 @@ export function AppStepWorkflow() {
 
         {/* Footer */}
         <footer className="footer">
+          <div className="footer-line1 footer-social">
+            <a
+              href="https://share.upscrolled.com/en/user/845379f2-90be-4e4f-85db-35a62d99ef7e"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-link footer-social-link"
+              aria-label="Find us on UpScrolled"
+            >
+              <img
+                src={getAssetUrl('upscrolled-icon.png')}
+                alt=""
+                width={28}
+                height={28}
+                className="footer-social-icon"
+              />
+            </a>
+            <a
+              href="https://www.instagram.com/wearebeyondbordersapp"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-link footer-social-link"
+              aria-label="Follow us on Instagram"
+            >
+              <img
+                src={getAssetUrl('instagram-icon.svg')}
+                alt=""
+                width={28}
+                height={28}
+                className="footer-social-icon"
+              />
+            </a>
+          </div>
           <div className="footer-line1">
             <Link
               to="/ethics"
