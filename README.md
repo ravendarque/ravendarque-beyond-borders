@@ -186,16 +186,16 @@ git push --no-verify
 - Run the validator locally:
 
   ```bash
-  node scripts/validate-flags.cjs
+  node scripts/validate-flags.js
   ```
 
 - Fetch or refresh flags (recommended to run from CI or with `--push` to
   commit the results):
 
   ```bash
-  node scripts/fetch-flags.cjs --ci
+  node scripts/fetch-flags.js --ci
   # or for interactive/local run that commits/pushes:
-  node scripts/fetch-flags.cjs --push
+  node scripts/fetch-flags.js --push
   ```
 
   This script fetches SVG flags, generates PNG assets, and creates the
@@ -223,8 +223,8 @@ test/
 └── fixtures/          # Test fixtures and data
 
 scripts/
-├── fetch-flags.cjs        # Fetch flags, generate PNGs, create TypeScript manifest
-└── validate-flags.cjs     # Validate flag data integrity
+├── fetch-flags.js         # Fetch flags, generate PNGs, create TypeScript manifest
+└── validate-flags.js      # Validate flag data integrity
 
 docs/
 ├── code-standards.md       # Code standards and review guidelines (for AI agents)

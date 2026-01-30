@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Flag Data Schema",
-  "description": "Schema for flag-data.yaml - the source of truth for all flags in the application, processed by the fetch-flags.cjs script to generate the flags.ts file.",
+  "description": "Schema for flag-data.yaml - the source of truth for all flags in the application, processed by the fetch-flags.js script to generate the flags.ts file.",
   "type": "object",
   "required": ["categories"],
   "properties": {

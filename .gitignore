@@ -31,6 +31,9 @@ Thumbs.db
 coverage/
 test-results/
 .playwright/
+# Playwright visual baseline snapshots (local only; regenerate with --update-snapshots)
+*-snapshots/
+test/e2e/**/*.spec.ts-snapshots/
 
 # Local working files (scripts, outputs, temp files, etc.)
 .local/
