@@ -13,6 +13,7 @@ import { ImageUploadZone } from '@/components/ImageUploadZone';
 import { Link } from 'react-router-dom';
 import { PresentationModeSelector } from '@/components/PresentationModeSelector';
 import { AdjustControls } from '@/components/AdjustControls';
+import { StepLayout } from '@/components/StepLayout';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
@@ -328,16 +329,20 @@ export function AppStepWorkflow() {
                   </div>
                 }
               >
-                <ImageUploadZone
-                  imageUrl={step1.imageUrl}
-                  onImageUpload={handleImageUpload}
-                  onShowPrivacy={() => setShowPrivacyModal(true)}
-                  position={step1.imagePosition}
-                  limits={positionLimits}
-                  aspectRatio={aspectRatio}
-                  imageDimensions={step1.imageDimensions}
-                  onPositionChange={setImagePosition}
-                  circleSize={step1.circleSize}
+                <StepLayout
+                  mainContent={
+                    <ImageUploadZone
+                      imageUrl={step1.imageUrl}
+                      onImageUpload={handleImageUpload}
+                      onShowPrivacy={() => setShowPrivacyModal(true)}
+                      position={step1.imagePosition}
+                      limits={positionLimits}
+                      aspectRatio={aspectRatio}
+                      imageDimensions={step1.imageDimensions}
+                      onPositionChange={setImagePosition}
+                      circleSize={step1.circleSize}
+                    />
+                  }
                 />
               </ErrorBoundary>
             )}
@@ -352,14 +357,18 @@ export function AppStepWorkflow() {
                   </div>
                 }
               >
-                <div className="flag-selector-wrapper">
-                  <FlagSelector
-                    flags={flags}
-                    selectedFlagId={step2.flagId}
-                    onFlagChange={setFlagId}
-                  />
-                  <FlagPreview flag={selectedFlag} />
-                </div>
+                <StepLayout
+                  mainContent={
+                    <div className="flag-selector-wrapper">
+                      <FlagSelector
+                        flags={flags}
+                        selectedFlagId={step2.flagId}
+                        onFlagChange={setFlagId}
+                      />
+                      <FlagPreview flag={selectedFlag} />
+                    </div>
+                  }
+                />
               </ErrorBoundary>
             )}
 
@@ -373,42 +382,43 @@ export function AppStepWorkflow() {
                   </div>
                 }
               >
-                <div className="adjust-wrapper">
-                  {/* Use same ImageUploadZone component in readonly mode */}
-                  <ImageUploadZone
-                    imageUrl={step1.imageUrl}
-                    position={step1.imagePosition}
-                    limits={positionLimits}
-                    aspectRatio={aspectRatio}
-                    imageDimensions={step1.imageDimensions}
-                    circleSize={effectiveCircleSize}
-                    baseCircleSize={step1.circleSize}
-                    readonly={true}
-                    flag={selectedFlag}
-                    presentation={step3.presentation}
-                    borderThicknessPct={step3.thickness}
-                    flagOffsetPct={step3.flagOffsetPct}
-                    segmentRotation={step3.segmentRotation}
-                  />
-                  
-                  {/* Presentation Mode Toggle Buttons */}
-                  <PresentationModeSelector
-                    mode={step3.presentation}
-                    onModeChange={setPresentation}
-                  />
-
-                  {/* Adjust Controls */}
-                  <AdjustControls
-                    thickness={step3.thickness}
-                    onThicknessChange={setThickness}
-                    flagOffsetPct={step3.flagOffsetPct}
-                    onFlagOffsetChange={setFlagOffsetPct}
-                    presentation={step3.presentation}
-                    segmentRotation={step3.segmentRotation}
-                    onSegmentRotationChange={setSegmentRotation}
-                    selectedFlag={selectedFlag}
-                  />
-                </div>
+                <StepLayout
+                  mainContent={
+                    <ImageUploadZone
+                      imageUrl={step1.imageUrl}
+                      position={step1.imagePosition}
+                      limits={positionLimits}
+                      aspectRatio={aspectRatio}
+                      imageDimensions={step1.imageDimensions}
+                      circleSize={effectiveCircleSize}
+                      baseCircleSize={step1.circleSize}
+                      readonly={true}
+                      flag={selectedFlag}
+                      presentation={step3.presentation}
+                      borderThicknessPct={step3.thickness}
+                      flagOffsetPct={step3.flagOffsetPct}
+                      segmentRotation={step3.segmentRotation}
+                    />
+                  }
+                  controls={
+                    <>
+                      <PresentationModeSelector
+                        mode={step3.presentation}
+                        onModeChange={setPresentation}
+                      />
+                      <AdjustControls
+                        thickness={step3.thickness}
+                        onThicknessChange={setThickness}
+                        flagOffsetPct={step3.flagOffsetPct}
+                        onFlagOffsetChange={setFlagOffsetPct}
+                        presentation={step3.presentation}
+                        segmentRotation={step3.segmentRotation}
+                        onSegmentRotationChange={setSegmentRotation}
+                        selectedFlag={selectedFlag}
+                      />
+                    </>
+                  }
+                />
               </ErrorBoundary>
             )}
           </div>

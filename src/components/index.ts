@@ -7,6 +7,7 @@ export { ImageUploadZone } from './ImageUploadZone';
 export { PresentationModeSelector } from './PresentationModeSelector';
 export { AdjustControls } from './AdjustControls';
 export { AdjustStep } from './AdjustStep';
+export { StepLayout } from './StepLayout';
 export { PrivacyModal } from './PrivacyModal';
 
 // Type exports
@@ -17,5 +18,6 @@ export type { ImageUploadZoneProps } from './ImageUploadZone';
 export type { PresentationModeSelectorProps, PresentationMode } from './PresentationModeSelector';
 export type { AdjustControlsProps } from './AdjustControls';
 export type { AdjustStepProps } from './AdjustStep';
+export type { StepLayoutProps } from './StepLayout';
 export type { PrivacyModalProps } from './PrivacyModal';
 export type { FlagDetailsModalProps } from './FlagDetailsModal';
