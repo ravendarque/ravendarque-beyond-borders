@@ -21,26 +21,39 @@ export const FlagSpec = z.object({
   categoryDisplayName: z.string().optional().nullable(), // Original display name from source of truth
   categoryDisplayOrder: z.number().optional().nullable(), // Order for displaying categories in UI
   reason: z.string().optional().nullable(), // Why this flag is included
-  references: z.array(z.object({
-    url: z.string().url(),
-    text: z.string(),
-  })).optional().nullable(),
+  references: z
+    .array(
+      z.object({
+        url: z.string().url(),
+        text: z.string(),
+      }),
+    )
+    .optional()
+    .nullable(),
   colors: z.array(z.string()).optional().nullable(),
   size: z.number().optional().nullable(),
   stripe_order: z.any().optional(),
   horizontalInvariant: z.boolean().optional(), // True if flag is invariant under horizontal translation (e.g. horizontal stripes only)
-  modes: z.object({
-    ring: z.object({
-      colors: z.array(z.string()).optional(),
-    }).optional(),
-    segment: z.object({
-      // Future segment mode config
-    }).optional(),
-    cutout: z.object({
-      offsetEnabled: z.boolean(),
-      defaultOffset: z.number().min(-50).max(50),
-    }).optional(),
-  }).optional(),
+  modes: z
+    .object({
+      ring: z
+        .object({
+          colors: z.array(z.string()).optional(),
+        })
+        .optional(),
+      segment: z
+        .object({
+          // Future segment mode config
+        })
+        .optional(),
+      cutout: z
+        .object({
+          offsetEnabled: z.boolean(),
+          defaultOffset: z.number().min(-50).max(50),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 export type FlagSpec = z.infer<typeof FlagSpec>;

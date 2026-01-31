@@ -10,7 +10,7 @@ stateless nations. We use flag imagery to show solidarity and raise awareness.
 
 **Important:** Flags themselves are not inherently harmful - many flags have
 legitimate uses for solidarity and awareness. The restriction applies to the
-*purpose* and *intent* of use, not to specific flag designs.
+_purpose_ and _intent_ of use, not to specific flag designs.
 
 **This project explicitly prohibits:**
 

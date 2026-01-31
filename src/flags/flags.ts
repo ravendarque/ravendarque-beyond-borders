@@ -16,7 +16,8 @@ export const flags: FlagSpec[] = [
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
-    reason: 'Unlawful occupation since 1967 and ongoing genocide in Gaza. The Israeli government has imposed a total siege, cut off essential supplies, and launched military attacks resulting in catastrophic civilian deaths.',
+    reason:
+      'Unlawful occupation since 1967 and ongoing genocide in Gaza. The Israeli government has imposed a total siege, cut off essential supplies, and launched military attacks resulting in catastrophic civilian deaths.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_Palestine',
@@ -32,17 +33,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/world-report/2025/country-chapters/israel/palestine',
-        text: 'Human Rights Watch: World Report 2025 - Israel/Palestine'
-      }
+        text: 'Human Rights Watch: World Report 2025 - Israel/Palestine',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#000000',
-          '#009040',
-          '#ffffff',
-          '#f03040'
-        ],
+        colors: ['#000000', '#009040', '#ffffff', '#f03040'],
       },
       cutout: {
         offsetEnabled: true,
@@ -61,7 +57,8 @@ export const flags: FlagSpec[] = [
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
-    reason: 'The military action on 3rd January 2026 by the US Trump Administration in Venezuela, which resulted in the capture of Nicolás Maduro and Cilia Flores, raises grave concerns for the human rights of the Venezuelan population. It most likely constitutes a violation of international law, including the UN Charter, as does the stated US intention to run Venezuela and control its oil resources.',
+    reason:
+      'The military action on 3rd January 2026 by the US Trump Administration in Venezuela, which resulted in the capture of Nicolás Maduro and Cilia Flores, raises grave concerns for the human rights of the Venezuelan population. It most likely constitutes a violation of international law, including the UN Charter, as does the stated US intention to run Venezuela and control its oil resources.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_Venezuela',
@@ -69,16 +66,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.amnesty.org/en/latest/news/2026/01/amnesty-raises-concerns-following-us-military-action-in-venezuela/',
-        text: 'Amnesty International news article'
-      }
+        text: 'Amnesty International news article',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#ffd000',
-          '#d01030',
-          '#002080'
-        ],
+        colors: ['#ffd000', '#d01030', '#002080'],
       },
       cutout: {
         offsetEnabled: true,
@@ -97,7 +90,8 @@ export const flags: FlagSpec[] = [
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
-    reason: 'Banned in Tibet since Chinese control; symbol of Tibetan cultural and political resistance. Tibetans face systematic repression including restrictions on religious freedom, cultural expression, language rights, and political dissent under Chinese rule. The flag represents Tibetan identity and aspirations for self-determination in the face of ongoing human rights violations and cultural assimilation policies.',
+    reason:
+      'Banned in Tibet since Chinese control; symbol of Tibetan cultural and political resistance. Tibetans face systematic repression including restrictions on religious freedom, cultural expression, language rights, and political dissent under Chinese rule. The flag represents Tibetan identity and aspirations for self-determination in the face of ongoing human rights violations and cultural assimilation policies.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_Tibet',
@@ -109,17 +103,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/world-report/2025/country-chapters/china',
-        text: 'Human Rights Watch: World Report 2025 - China'
-      }
+        text: 'Human Rights Watch: World Report 2025 - China',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#e02020',
-          '#301070',
-          '#f0e010',
-          '#ffffff'
-        ],
+        colors: ['#e02020', '#301070', '#f0e010', '#ffffff'],
       },
       cutout: {
         offsetEnabled: true,
@@ -138,7 +127,8 @@ export const flags: FlagSpec[] = [
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
-    reason: 'Territory with partial recognition; long-running dispute and displacement of Sahrawi people. Western Sahara remains a disputed territory with the Sahrawi people denied self-determination. Many Sahrawi live in refugee camps in Algeria, while those in the occupied territory face restrictions on freedom of expression, assembly, and movement. Human rights defenders and activists face arbitrary detention, torture, and enforced disappearances.',
+    reason:
+      'Territory with partial recognition; long-running dispute and displacement of Sahrawi people. Western Sahara remains a disputed territory with the Sahrawi people denied self-determination. Many Sahrawi live in refugee camps in Algeria, while those in the occupied territory face restrictions on freedom of expression, assembly, and movement. Human rights defenders and activists face arbitrary detention, torture, and enforced disappearances.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_Western_Sahara',
@@ -150,17 +140,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/world-report/2025/country-chapters/western-sahara',
-        text: 'Human Rights Watch: World Report 2025 - Western Sahara'
-      }
+        text: 'Human Rights Watch: World Report 2025 - Western Sahara',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#000000',
-          '#008040',
-          '#ffffff',
-          '#c01020'
-        ],
+        colors: ['#000000', '#008040', '#ffffff', '#c01020'],
       },
       cutout: {
         offsetEnabled: true,
@@ -179,7 +164,8 @@ export const flags: FlagSpec[] = [
     category: 'occupied',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
-    reason: 'Ongoing military occupation and territorial aggression since 2014; symbol of sovereignty and resistance. Since Russia\'s full-scale invasion in February 2022, Ukraine has faced widespread war crimes including indiscriminate attacks on civilians, torture, sexual violence, forced disappearances, and destruction of civilian infrastructure. Millions have been displaced, and thousands of civilians killed. Russian forces have committed atrocities that amount to war crimes and crimes against humanity.',
+    reason:
+      "Ongoing military occupation and territorial aggression since 2014; symbol of sovereignty and resistance. Since Russia's full-scale invasion in February 2022, Ukraine has faced widespread war crimes including indiscriminate attacks on civilians, torture, sexual violence, forced disappearances, and destruction of civilian infrastructure. Millions have been displaced, and thousands of civilians killed. Russian forces have committed atrocities that amount to war crimes and crimes against humanity.",
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_Ukraine',
@@ -191,15 +177,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/world-report/2025/country-chapters/ukraine',
-        text: 'Human Rights Watch: World Report 2025 - Ukraine'
-      }
+        text: 'Human Rights Watch: World Report 2025 - Ukraine',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#ffd000',
-          '#0050b0'
-        ],
+        colors: ['#ffd000', '#0050b0'],
       },
     },
   },
@@ -214,7 +197,8 @@ export const flags: FlagSpec[] = [
     category: 'oppressed',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
-    reason: 'Represents the Romani people, a minority concentrated in Europe who face widespread discrimination, social exclusion, and persecution across many countries. Romani people (also known as Roma, Sinti, and other subgroups) are Europe\'s largest ethnic minority, estimated at 10-12 million people. They face systemic discrimination in education, employment, housing, and healthcare, with many living in segregated settlements and facing forced evictions. Romani people experience high rates of poverty, police violence, hate crimes, and political scapegoating. Despite EU anti-discrimination laws, Romani communities continue to face barriers to integration and equal treatment, with their culture and language often marginalized or suppressed.',
+    reason:
+      "Represents the Romani people, a minority concentrated in Europe who face widespread discrimination, social exclusion, and persecution across many countries. Romani people (also known as Roma, Sinti, and other subgroups) are Europe's largest ethnic minority, estimated at 10-12 million people. They face systemic discrimination in education, employment, housing, and healthcare, with many living in segregated settlements and facing forced evictions. Romani people experience high rates of poverty, police violence, hate crimes, and political scapegoating. Despite EU anti-discrimination laws, Romani communities continue to face barriers to integration and equal treatment, with their culture and language often marginalized or suppressed.",
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_the_Romani_people',
@@ -226,16 +210,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/topic/discrimination',
-        text: 'Human Rights Watch: Discrimination'
-      }
+        text: 'Human Rights Watch: Discrimination',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#008000',
-          '#0080ff',
-          '#ff0000'
-        ],
+        colors: ['#008000', '#0080ff', '#ff0000'],
       },
       cutout: {
         offsetEnabled: true,
@@ -254,7 +234,8 @@ export const flags: FlagSpec[] = [
     category: 'oppressed',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
-    reason: 'Represents Aboriginal peoples of Australia and is used as a symbol of identity, cultural resilience, and political rights. Aboriginal and Torres Strait Islander peoples face ongoing discrimination, dispossession, and inequality in Australia. They experience significantly higher rates of incarceration, poorer health outcomes, lower life expectancy, and barriers to education and employment. Despite constitutional recognition efforts, Aboriginal peoples continue to face systemic racism, land rights disputes, and the ongoing impacts of colonization including forced removal policies and cultural suppression. The flag represents resistance, cultural pride, and the ongoing struggle for self-determination and rights.',
+    reason:
+      'Represents Aboriginal peoples of Australia and is used as a symbol of identity, cultural resilience, and political rights. Aboriginal and Torres Strait Islander peoples face ongoing discrimination, dispossession, and inequality in Australia. They experience significantly higher rates of incarceration, poorer health outcomes, lower life expectancy, and barriers to education and employment. Despite constitutional recognition efforts, Aboriginal peoples continue to face systemic racism, land rights disputes, and the ongoing impacts of colonization including forced removal policies and cultural suppression. The flag represents resistance, cultural pride, and the ongoing struggle for self-determination and rights.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Aboriginal_flag',
@@ -266,16 +247,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/world-report/2025/country-chapters/australia',
-        text: 'Human Rights Watch: World Report 2025 - Australia'
-      }
+        text: 'Human Rights Watch: World Report 2025 - Australia',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#d00000',
-          '#000000',
-          '#ffff00'
-        ],
+        colors: ['#d00000', '#000000', '#ffff00'],
       },
       cutout: {
         offsetEnabled: true,
@@ -294,7 +271,8 @@ export const flags: FlagSpec[] = [
     category: 'oppressed',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
-    reason: 'Since 28 December 2025, Iranian security forces have responded to nationwide protests with extreme violence, including unlawful killings, mass arbitrary arrests of children as young as 14, enforced disappearances, attacks on hospitals, and a near-total internet blackout. At least 28 protesters and bystanders were killed between 31 December 2025 and 3 January 2026, with estimates reaching thousands. Security forces including the IRGC and FARAJA have used live ammunition, shotguns with metal pellets, tear gas, and beatings against largely peaceful protesters. Amnesty International and Human Rights Watch have documented patterns of violations that may constitute crimes against humanity, including summary executions, torture, and denial of medical care. This flag represents solidarity with the Iranian people demanding fundamental rights, dignity, and political change in the face of systematic state repression.',
+    reason:
+      'Since 28 December 2025, Iranian security forces have responded to nationwide protests with extreme violence, including unlawful killings, mass arbitrary arrests of children as young as 14, enforced disappearances, attacks on hospitals, and a near-total internet blackout. At least 28 protesters and bystanders were killed between 31 December 2025 and 3 January 2026, with estimates reaching thousands. Security forces including the IRGC and FARAJA have used live ammunition, shotguns with metal pellets, tear gas, and beatings against largely peaceful protesters. Amnesty International and Human Rights Watch have documented patterns of violations that may constitute crimes against humanity, including summary executions, torture, and denial of medical care. This flag represents solidarity with the Iranian people demanding fundamental rights, dignity, and political change in the face of systematic state repression.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_Iran',
@@ -302,7 +280,7 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.amnesty.org/en/latest/news/2026/01/iran-deaths-injuries-authorities-protest-bloodshed/',
-        text: 'Amnesty International: Iran deaths and injuries amid authorities\' renewed cycle of protest bloodshed',
+        text: "Amnesty International: Iran deaths and injuries amid authorities' renewed cycle of protest bloodshed",
       },
       {
         url: 'https://www.amnesty.org/en/latest/news/2026/01/iran-massacre-of-protesters-demands-global-diplomatic-action-to-signal-an-end-to-impunity/',
@@ -310,17 +288,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/news/2026/01/08/iran-authorities-renewed-cycle-of-protest-bloodshed',
-        text: 'Human Rights Watch: Iran: Authorities\' Renewed Cycle of Protest Bloodshed'
-      }
+        text: "Human Rights Watch: Iran: Authorities' Renewed Cycle of Protest Bloodshed",
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#ffffff',
-          '#e00000',
-          '#20a040',
-          '#e05050'
-        ],
+        colors: ['#ffffff', '#e00000', '#20a040', '#e05050'],
       },
       cutout: {
         offsetEnabled: true,
@@ -339,7 +312,8 @@ export const flags: FlagSpec[] = [
     category: 'oppressed',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
-    reason: 'Since April 2023, Sudan has been engulfed in a brutal civil war between the Sudanese Armed Forces (SAF) and the Rapid Support Forces (RSF), creating one of the world\'s worst humanitarian crises. Civilians have suffered mass atrocities including indiscriminate killings, sexual violence weaponized as war crimes, ethnic cleansing targeting non-Arab groups in Darfur (recognized as genocide by some authorities), deliberate attacks on medical and aid infrastructure, denial of humanitarian access, and widespread famine. Over 12 million people have been displaced, with millions at risk of starvation. UN investigators, Amnesty International, Human Rights Watch, and Oxfam have documented war crimes and crimes against humanity committed by both warring factions. This flag represents solidarity with the Sudanese people caught in a devastating conflict with insufficient international response.',
+    reason:
+      "Since April 2023, Sudan has been engulfed in a brutal civil war between the Sudanese Armed Forces (SAF) and the Rapid Support Forces (RSF), creating one of the world's worst humanitarian crises. Civilians have suffered mass atrocities including indiscriminate killings, sexual violence weaponized as war crimes, ethnic cleansing targeting non-Arab groups in Darfur (recognized as genocide by some authorities), deliberate attacks on medical and aid infrastructure, denial of humanitarian access, and widespread famine. Over 12 million people have been displaced, with millions at risk of starvation. UN investigators, Amnesty International, Human Rights Watch, and Oxfam have documented war crimes and crimes against humanity committed by both warring factions. This flag represents solidarity with the Sudanese people caught in a devastating conflict with insufficient international response.",
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_Sudan',
@@ -359,17 +333,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/world-report/2025/country-chapters/sudan',
-        text: 'Human Rights Watch: World Report 2025 - Sudan'
-      }
+        text: 'Human Rights Watch: World Report 2025 - Sudan',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#000000',
-          '#d01030',
-          '#ffffff',
-          '#007030'
-        ],
+        colors: ['#000000', '#d01030', '#ffffff', '#007030'],
       },
       cutout: {
         offsetEnabled: true,
@@ -388,7 +357,8 @@ export const flags: FlagSpec[] = [
     category: 'oppressed',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
-    reason: 'Eastern DRC faces escalating conflict and immense humanitarian suffering as government forces, rebel groups (notably M23), and allied militias commit serious abuses with near-total impunity. Civilians face indiscriminate attacks using unguided rockets and explosives on densely populated areas, summary executions, gang rapes, abductions, ethnic targeting, mass displacement (over 7 million internally displaced), destruction of displacement camps and infrastructure, and denial of access to medical care, food, and water. Grave violations against children have tripled since January 2025, including killing, maiming, sexual violence, and forced recruitment. Humanitarian aid is severely impeded by funding cuts and security access problems. Amnesty International, Human Rights Watch, and UN experts have documented violations that may amount to war crimes. This flag represents solidarity with the Congolese people, especially those in eastern regions facing systematic violence and displacement.',
+    reason:
+      'Eastern DRC faces escalating conflict and immense humanitarian suffering as government forces, rebel groups (notably M23), and allied militias commit serious abuses with near-total impunity. Civilians face indiscriminate attacks using unguided rockets and explosives on densely populated areas, summary executions, gang rapes, abductions, ethnic targeting, mass displacement (over 7 million internally displaced), destruction of displacement camps and infrastructure, and denial of access to medical care, food, and water. Grave violations against children have tripled since January 2025, including killing, maiming, sexual violence, and forced recruitment. Humanitarian aid is severely impeded by funding cuts and security access problems. Amnesty International, Human Rights Watch, and UN experts have documented violations that may amount to war crimes. This flag represents solidarity with the Congolese people, especially those in eastern regions facing systematic violence and displacement.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_the_Democratic_Republic_of_the_Congo',
@@ -408,16 +378,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.oxfam.org/en/press-releases/nearly-half-million-people-left-without-shelter-food-or-water-dr-congo-amid',
-        text: 'Oxfam: Nearly half million people left without shelter, food or water in DR Congo'
-      }
+        text: 'Oxfam: Nearly half million people left without shelter, food or water in DR Congo',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#0080ff',
-          '#d01020',
-          '#f0d020'
-        ],
+        colors: ['#0080ff', '#d01020', '#f0d020'],
       },
       cutout: {
         offsetEnabled: true,
@@ -436,7 +402,8 @@ export const flags: FlagSpec[] = [
     category: 'oppressed',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
-    reason: 'Since the military coup of 1 February 2021, Myanmar\'s junta has escalated a campaign of widespread atrocities including indiscriminate air and artillery strikes on civilians, bombings of schools and hospitals, mass displacement (over 3.5 million internally displaced), arbitrary arrests and detentions (over 20,000 detained), torture, suppression of free expression, forced recruitment including of children, and targeting of ethnic minorities including Rohingya. More than 6,000 people have been killed. Grave violations against children have increased by over 400%, including killing, maiming, abduction, and recruitment. The junta uses scorched earth tactics, cluster munitions, and landmines, while blocking humanitarian access and causing economic collapse. Amnesty International and Human Rights Watch have documented patterns of violations that amount to war crimes and crimes against humanity. This flag represents solidarity with the people of Myanmar resisting military rule and demanding democracy, not the junta regime.',
+    reason:
+      "Since the military coup of 1 February 2021, Myanmar's junta has escalated a campaign of widespread atrocities including indiscriminate air and artillery strikes on civilians, bombings of schools and hospitals, mass displacement (over 3.5 million internally displaced), arbitrary arrests and detentions (over 20,000 detained), torture, suppression of free expression, forced recruitment including of children, and targeting of ethnic minorities including Rohingya. More than 6,000 people have been killed. Grave violations against children have increased by over 400%, including killing, maiming, abduction, and recruitment. The junta uses scorched earth tactics, cluster munitions, and landmines, while blocking humanitarian access and causing economic collapse. Amnesty International and Human Rights Watch have documented patterns of violations that amount to war crimes and crimes against humanity. This flag represents solidarity with the people of Myanmar resisting military rule and demanding democracy, not the junta regime.",
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_Myanmar',
@@ -456,17 +423,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.amnesty.org/en/location/asia-and-the-pacific/south-east-asia-and-the-pacific/myanmar/report-myanmar/',
-        text: 'Amnesty International: Human rights in Myanmar'
-      }
+        text: 'Amnesty International: Human rights in Myanmar',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#ffd000',
-          '#f03040',
-          '#30b030',
-          '#ffffff'
-        ],
+        colors: ['#ffd000', '#f03040', '#30b030', '#ffffff'],
       },
       cutout: {
         offsetEnabled: true,
@@ -485,7 +447,8 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 4,
-    reason: 'Represents LGBTQIA+ communities worldwide. In many countries, LGBTQIA+ people face criminalisation of consensual same-sex relations (including death penalty in some jurisdictions), widespread discrimination, violence, hate crimes, denial of healthcare and legal recognition, and social exclusion. About 67 countries still criminalise same-sex relations between consenting adults. LGBTQIA+ people face systemic barriers to employment, housing, education, and protection under the law, with rising anti-LGBTQ legislation in multiple regions targeting gender-affirming care, identity recognition, and public expression.',
+    reason:
+      'Represents LGBTQIA+ communities worldwide. In many countries, LGBTQIA+ people face criminalisation of consensual same-sex relations (including death penalty in some jurisdictions), widespread discrimination, violence, hate crimes, denial of healthcare and legal recognition, and social exclusion. About 67 countries still criminalise same-sex relations between consenting adults. LGBTQIA+ people face systemic barriers to employment, housing, education, and protection under the law, with rising anti-LGBTQ legislation in multiple regions targeting gender-affirming care, identity recognition, and public expression.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Rainbow_flag',
@@ -501,19 +464,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://ilga.org/state-sponsored-homophobia-report',
-        text: 'ILGA World: State-Sponsored Homophobia report'
-      }
+        text: 'ILGA World: State-Sponsored Homophobia report',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#e00000',
-          '#fff000',
-          '#ff9000',
-          '#008020',
-          '#0050ff',
-          '#700090'
-        ],
+        colors: ['#e00000', '#fff000', '#ff9000', '#008020', '#0050ff', '#700090'],
       },
     },
   },
@@ -528,7 +484,8 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 4,
-    reason: 'Symbol of transgender visibility and rights. Transgender people face severe discrimination, violence, and legal obstacles globally. In many countries, trans people are denied legal gender recognition, face barriers to healthcare including gender-affirming care, experience high rates of violence (particularly trans women of color), and are excluded from public facilities, employment, and education. Recent legal rulings in some jurisdictions have rolled back protections, forcing trans people to use facilities aligned with birth-assigned sex rather than gender identity, undermining dignity and safety. Trans people face disproportionate rates of homelessness, poverty, and suicide due to systemic discrimination and lack of legal protection.',
+    reason:
+      'Symbol of transgender visibility and rights. Transgender people face severe discrimination, violence, and legal obstacles globally. In many countries, trans people are denied legal gender recognition, face barriers to healthcare including gender-affirming care, experience high rates of violence (particularly trans women of color), and are excluded from public facilities, employment, and education. Recent legal rulings in some jurisdictions have rolled back protections, forcing trans people to use facilities aligned with birth-assigned sex rather than gender identity, undermining dignity and safety. Trans people face disproportionate rates of homelessness, poverty, and suicide due to systemic discrimination and lack of legal protection.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Transgender_flag',
@@ -544,16 +501,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.stonewall.org.uk/resources',
-        text: 'Stonewall: LGBTQ+ resources and advocacy'
-      }
+        text: 'Stonewall: LGBTQ+ resources and advocacy',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#60d0ff',
-          '#f0b0c0',
-          '#ffffff'
-        ],
+        colors: ['#60d0ff', '#f0b0c0', '#ffffff'],
       },
     },
   },
@@ -568,7 +521,8 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 4,
-    reason: 'Represents non-binary people and their visibility. Non-binary people face erasure, discrimination, and legal obstacles in many jurisdictions where legal systems only recognize binary gender categories. They are often denied accurate identity documents, face barriers to healthcare, experience high rates of discrimination and violence, and lack legal recognition of their gender identity. Non-binary people are frequently excluded from legal protections and face challenges accessing services, employment, and public facilities that respect their gender identity.',
+    reason:
+      'Represents non-binary people and their visibility. Non-binary people face erasure, discrimination, and legal obstacles in many jurisdictions where legal systems only recognize binary gender categories. They are often denied accurate identity documents, face barriers to healthcare, experience high rates of discrimination and violence, and lack legal recognition of their gender identity. Non-binary people are frequently excluded from legal protections and face challenges accessing services, employment, and public facilities that respect their gender identity.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Non-binary_gender#Flags',
@@ -584,17 +538,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.stonewall.org.uk/resources',
-        text: 'Stonewall: LGBTQ+ resources and advocacy'
-      }
+        text: 'Stonewall: LGBTQ+ resources and advocacy',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#fff030',
-          '#303030',
-          '#ffffff',
-          '#a060d0'
-        ],
+        colors: ['#fff030', '#303030', '#ffffff', '#a060d0'],
       },
     },
   },
@@ -609,7 +558,8 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 4,
-    reason: 'Designed in 2018 by Daniel Quasar to emphasize progress and inclusion within LGBTQIA+ communities. The chevron arrow represents forward movement, while the additional stripes highlight marginalized groups: black and brown for LGBTQ+ people of color and those lost to or living with HIV/AIDS, and light blue, pink, and white for the transgender community. This flag acknowledges that while progress has been made, many within the LGBTQIA+ community still face disproportionate discrimination, violence, and exclusion, particularly trans people and people of color.',
+    reason:
+      'Designed in 2018 by Daniel Quasar to emphasize progress and inclusion within LGBTQIA+ communities. The chevron arrow represents forward movement, while the additional stripes highlight marginalized groups: black and brown for LGBTQ+ people of color and those lost to or living with HIV/AIDS, and light blue, pink, and white for the transgender community. This flag acknowledges that while progress has been made, many within the LGBTQIA+ community still face disproportionate discrimination, violence, and exclusion, particularly trans people and people of color.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Progress_Pride_flag',
@@ -621,8 +571,8 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/topic/lgbt-rights',
-        text: 'Human Rights Watch: LGBT rights'
-      }
+        text: 'Human Rights Watch: LGBT rights',
+      },
     ],
     modes: {
       ring: {
@@ -634,7 +584,7 @@ export const flags: FlagSpec[] = [
           '#fff000',
           '#008020',
           '#000000',
-          '#604010'
+          '#604010',
         ],
       },
       cutout: {
@@ -654,7 +604,8 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 4,
-    reason: 'Updated in 2021 by Valentino Vecchietti to explicitly include intersex people in the Progress Pride design. Intersex people face severe human rights violations including non-consensual medical interventions, forced sterilization, lack of legal recognition, and discrimination. The intersex symbol (purple circle on yellow) integrated into the Progress Pride flag highlights the need for bodily autonomy, visibility, and rights for intersex people alongside other marginalized LGBTQIA+ communities. Intersex people are often subjected to \'normalizing\' surgeries in infancy without consent, violating their right to bodily integrity.',
+    reason:
+      "Updated in 2021 by Valentino Vecchietti to explicitly include intersex people in the Progress Pride design. Intersex people face severe human rights violations including non-consensual medical interventions, forced sterilization, lack of legal recognition, and discrimination. The intersex symbol (purple circle on yellow) integrated into the Progress Pride flag highlights the need for bodily autonomy, visibility, and rights for intersex people alongside other marginalized LGBTQIA+ communities. Intersex people are often subjected to 'normalizing' surgeries in infancy without consent, violating their right to bodily integrity.",
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Progress_Pride_flag',
@@ -666,8 +617,8 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/topic/lgbt-rights',
-        text: 'Human Rights Watch: LGBT rights'
-      }
+        text: 'Human Rights Watch: LGBT rights',
+      },
     ],
     modes: {
       ring: {
@@ -679,7 +630,7 @@ export const flags: FlagSpec[] = [
           '#ffe000',
           '#008000',
           '#000000',
-          '#ffffff'
+          '#ffffff',
         ],
       },
       cutout: {
@@ -699,7 +650,8 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 4,
-    reason: 'Represents asexual people who experience little or no sexual attraction. Asexual people face erasure, invalidation, and discrimination, often being told their orientation doesn\'t exist or is a medical condition. They face pressure to conform to allonormative expectations, experience corrective sexual violence, and are frequently excluded from LGBTQIA+ spaces and discussions. Asexual people also face discrimination in healthcare, relationships, and social settings, with their identity often pathologized or dismissed.',
+    reason:
+      "Represents asexual people who experience little or no sexual attraction. Asexual people face erasure, invalidation, and discrimination, often being told their orientation doesn't exist or is a medical condition. They face pressure to conform to allonormative expectations, experience corrective sexual violence, and are frequently excluded from LGBTQIA+ spaces and discussions. Asexual people also face discrimination in healthcare, relationships, and social settings, with their identity often pathologized or dismissed.",
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Asexuality',
@@ -711,17 +663,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/topic/lgbt-rights',
-        text: 'Human Rights Watch: LGBT rights'
-      }
+        text: 'Human Rights Watch: LGBT rights',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#000000',
-          '#a0a0a0',
-          '#800080',
-          '#ffffff'
-        ],
+        colors: ['#000000', '#a0a0a0', '#800080', '#ffffff'],
       },
     },
   },
@@ -736,7 +683,8 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 4,
-    reason: 'Designed by Marilyn Roxie in 2010 to represent genderqueer people whose gender identity exists outside or rejects the gender binary. Genderqueer people face erasure, discrimination, and lack of legal recognition in many jurisdictions. They are often denied accurate identity documents, face barriers to healthcare, experience high rates of violence and discrimination, and lack legal protections. The flag represents resistance to binary gender norms and visibility for those whose gender identity is fluid, non-binary, or outside traditional categories.',
+    reason:
+      'Designed by Marilyn Roxie in 2010 to represent genderqueer people whose gender identity exists outside or rejects the gender binary. Genderqueer people face erasure, discrimination, and lack of legal recognition in many jurisdictions. They are often denied accurate identity documents, face barriers to healthcare, experience high rates of violence and discrimination, and lack legal protections. The flag represents resistance to binary gender norms and visibility for those whose gender identity is fluid, non-binary, or outside traditional categories.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Genderqueer',
@@ -748,16 +696,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/topic/lgbt-rights',
-        text: 'Human Rights Watch: LGBT rights'
-      }
+        text: 'Human Rights Watch: LGBT rights',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#b080e0',
-          '#ffffff',
-          '#508020'
-        ],
+        colors: ['#b080e0', '#ffffff', '#508020'],
       },
     },
   },
@@ -772,7 +716,8 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 4,
-    reason: 'Designed by Michael Page in 1998 to increase bisexual visibility. Bisexual people face unique forms of discrimination including biphobia, erasure, and invalidation from both heterosexual and LGBTQ+ communities. They are often told their orientation is a phase, face higher rates of mental health issues, and experience discrimination in relationships, healthcare, and social settings. Bisexual people, particularly bisexual women, face disproportionately high rates of sexual violence and intimate partner violence. The flag represents the overlap of attraction to same and different genders.',
+    reason:
+      'Designed by Michael Page in 1998 to increase bisexual visibility. Bisexual people face unique forms of discrimination including biphobia, erasure, and invalidation from both heterosexual and LGBTQ+ communities. They are often told their orientation is a phase, face higher rates of mental health issues, and experience discrimination in relationships, healthcare, and social settings. Bisexual people, particularly bisexual women, face disproportionately high rates of sexual violence and intimate partner violence. The flag represents the overlap of attraction to same and different genders.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Bisexual_flag',
@@ -784,16 +729,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/topic/lgbt-rights',
-        text: 'Human Rights Watch: LGBT rights'
-      }
+        text: 'Human Rights Watch: LGBT rights',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#d00070',
-          '#0040b0',
-          '#a05090'
-        ],
+        colors: ['#d00070', '#0040b0', '#a05090'],
       },
     },
   },
@@ -808,7 +749,8 @@ export const flags: FlagSpec[] = [
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
     categoryDisplayOrder: 4,
-    reason: 'Created around 2010 by Jasper V. to represent pansexual people who experience attraction regardless of gender identity. Pansexual people face erasure, invalidation, and discrimination similar to bisexual people, often being told their orientation doesn\'t exist or is confused with bisexuality. They face pressure to conform to binary understandings of attraction, experience exclusion from LGBTQIA+ spaces, and lack visibility in media and representation. Pansexual people also face discrimination in relationships and social settings, with their identity often dismissed or misunderstood.',
+    reason:
+      "Created around 2010 by Jasper V. to represent pansexual people who experience attraction regardless of gender identity. Pansexual people face erasure, invalidation, and discrimination similar to bisexual people, often being told their orientation doesn't exist or is confused with bisexuality. They face pressure to conform to binary understandings of attraction, experience exclusion from LGBTQIA+ spaces, and lack visibility in media and representation. Pansexual people also face discrimination in relationships and social settings, with their identity often dismissed or misunderstood.",
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Pansexual_flag',
@@ -820,16 +762,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/topic/lgbt-rights',
-        text: 'Human Rights Watch: LGBT rights'
-      }
+        text: 'Human Rights Watch: LGBT rights',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#ff2090',
-          '#20b0ff',
-          '#ffe000'
-        ],
+        colors: ['#ff2090', '#20b0ff', '#ffe000'],
       },
     },
   },
@@ -844,7 +782,8 @@ export const flags: FlagSpec[] = [
     category: 'movements',
     categoryDisplayName: 'Movements / Organisations',
     categoryDisplayOrder: 5,
-    reason: 'Designed by Ann Magill and refined in 2021, this flag represents the disability community and Disability Pride movement. Disabled people face systemic discrimination, ableism, and human rights violations including forced institutionalization, denial of autonomy, barriers to healthcare and education, employment discrimination, and violence. The charcoal grey background represents mourning for disabled people lost to ableist violence, neglect, and eugenics. The diagonal stripes represent cutting across barriers, with each color representing different disability communities: red for physical disabilities, gold for neurodiversity, white for invisible/undiagnosed disabilities, light blue for psychiatric/emotional disabilities, and green for sensory disabilities. Disabled people continue to fight for accessibility, inclusion, and the right to live independently with dignity.',
+    reason:
+      'Designed by Ann Magill and refined in 2021, this flag represents the disability community and Disability Pride movement. Disabled people face systemic discrimination, ableism, and human rights violations including forced institutionalization, denial of autonomy, barriers to healthcare and education, employment discrimination, and violence. The charcoal grey background represents mourning for disabled people lost to ableist violence, neglect, and eugenics. The diagonal stripes represent cutting across barriers, with each color representing different disability communities: red for physical disabilities, gold for neurodiversity, white for invisible/undiagnosed disabilities, light blue for psychiatric/emotional disabilities, and green for sensory disabilities. Disabled people continue to fight for accessibility, inclusion, and the right to live independently with dignity.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Disability_flag',
@@ -856,19 +795,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/topic/disability-rights',
-        text: 'Human Rights Watch: Disability rights'
-      }
+        text: 'Human Rights Watch: Disability rights',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#606060',
-          '#f0f0f0',
-          '#80c0e0',
-          '#f0e070',
-          '#40b080',
-          '#d07080'
-        ],
+        colors: ['#606060', '#f0f0f0', '#80c0e0', '#f0e070', '#40b080', '#d07080'],
       },
       cutout: {
         offsetEnabled: true,
@@ -887,7 +819,8 @@ export const flags: FlagSpec[] = [
     category: 'movements',
     categoryDisplayName: 'Movements / Organisations',
     categoryDisplayOrder: 5,
-    reason: 'Represents the Irish Traveller community which faces discrimination, social exclusion, and economic disadvantage. Irish Travellers are an ethnic minority group in Ireland and the UK who face systemic discrimination in housing, employment, education, and healthcare. They experience high rates of poverty, poor health outcomes, and limited access to services. Travellers face prejudice, hate speech, and exclusion from mainstream society, with their traditional nomadic way of life often criminalized or restricted. Despite recognition as an ethnic group in some jurisdictions, Travellers continue to face barriers to equality and cultural recognition.',
+    reason:
+      'Represents the Irish Traveller community which faces discrimination, social exclusion, and economic disadvantage. Irish Travellers are an ethnic minority group in Ireland and the UK who face systemic discrimination in housing, employment, education, and healthcare. They experience high rates of poverty, poor health outcomes, and limited access to services. Travellers face prejudice, hate speech, and exclusion from mainstream society, with their traditional nomadic way of life often criminalized or restricted. Despite recognition as an ethnic group in some jurisdictions, Travellers continue to face barriers to equality and cultural recognition.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Irish_Traveller_Movement',
@@ -899,18 +832,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/world-report/2025/country-chapters/united-kingdom',
-        text: 'Human Rights Watch: World Report 2025 - United Kingdom'
-      }
+        text: 'Human Rights Watch: World Report 2025 - United Kingdom',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#005000',
-          '#3030d0',
-          '#ffff00',
-          '#ffffff',
-          '#000000'
-        ],
+        colors: ['#005000', '#3030d0', '#ffff00', '#ffffff', '#000000'],
       },
       cutout: {
         offsetEnabled: true,
@@ -929,7 +856,8 @@ export const flags: FlagSpec[] = [
     category: 'movements',
     categoryDisplayName: 'Movements / Organisations',
     categoryDisplayOrder: 5,
-    reason: 'Symbol of anti-fascist resistance and opposition to authoritarianism, white supremacy, and far-right extremism. The logo represents the unity of socialist and anarchist movements in opposition to fascism, with roots in historical anti-fascist movements including the German Antifaschistische Aktion of the 1930s. Anti-fascist activists face surveillance, criminalization, and violence from state authorities and far-right groups. In many countries, anti-fascist organizing is met with repression, while fascist and far-right movements receive protection or support from state institutions. This symbol represents solidarity with those resisting fascism, racism, and authoritarianism worldwide.',
+    reason:
+      'Symbol of anti-fascist resistance and opposition to authoritarianism, white supremacy, and far-right extremism. The logo represents the unity of socialist and anarchist movements in opposition to fascism, with roots in historical anti-fascist movements including the German Antifaschistische Aktion of the 1930s. Anti-fascist activists face surveillance, criminalization, and violence from state authorities and far-right groups. In many countries, anti-fascist organizing is met with repression, while fascist and far-right movements receive protection or support from state institutions. This symbol represents solidarity with those resisting fascism, racism, and authoritarianism worldwide.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Antifa_(United_States)',
@@ -945,16 +873,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/topic/free-speech',
-        text: 'Human Rights Watch: Free speech'
-      }
+        text: 'Human Rights Watch: Free speech',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#000000',
-          '#ffffff',
-          '#ff0000'
-        ],
+        colors: ['#000000', '#ffffff', '#ff0000'],
       },
       cutout: {
         offsetEnabled: true,
@@ -973,7 +897,8 @@ export const flags: FlagSpec[] = [
     category: 'stateless',
     categoryDisplayName: 'Stateless People',
     categoryDisplayOrder: 6,
-    reason: 'Represents Kurdish identity and independence aspirations; Kurds face repression and denial of rights across multiple states. Kurds are the largest stateless nation, divided across Turkey, Iran, Iraq, and Syria. They face systematic discrimination, restrictions on language and cultural expression, arbitrary detention, torture, and in some cases military attacks. Kurdish political parties and activists are frequently targeted, and Kurdish regions often lack adequate representation and resources.',
+    reason:
+      'Represents Kurdish identity and independence aspirations; Kurds face repression and denial of rights across multiple states. Kurds are the largest stateless nation, divided across Turkey, Iran, Iraq, and Syria. They face systematic discrimination, restrictions on language and cultural expression, arbitrary detention, torture, and in some cases military attacks. Kurdish political parties and activists are frequently targeted, and Kurdish regions often lack adequate representation and resources.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_Kurdistan',
@@ -985,17 +910,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/world-report/2025/country-chapters/turkey',
-        text: 'Human Rights Watch: World Report 2025 - Turkey'
-      }
+        text: 'Human Rights Watch: World Report 2025 - Turkey',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#f02020',
-          '#209040',
-          '#ffffff',
-          '#ffc010'
-        ],
+        colors: ['#f02020', '#209040', '#ffffff', '#ffc010'],
       },
       cutout: {
         offsetEnabled: true,
@@ -1014,7 +934,8 @@ export const flags: FlagSpec[] = [
     category: 'stateless',
     categoryDisplayName: 'Stateless People',
     categoryDisplayOrder: 6,
-    reason: 'Used by Uyghur activists and diaspora; Uyghurs face mass detention, cultural repression, and rights abuses in Xinjiang. Since 2017, Chinese authorities have detained over one million Uyghurs and other Turkic Muslims in internment camps, subjecting them to forced labor, torture, forced sterilization, and cultural erasure. Uyghurs face systematic surveillance, restrictions on religious practice, language suppression, and separation from families. These actions may constitute crimes against humanity and genocide.',
+    reason:
+      'Used by Uyghur activists and diaspora; Uyghurs face mass detention, cultural repression, and rights abuses in Xinjiang. Since 2017, Chinese authorities have detained over one million Uyghurs and other Turkic Muslims in internment camps, subjecting them to forced labor, torture, forced sterilization, and cultural erasure. Uyghurs face systematic surveillance, restrictions on religious practice, language suppression, and separation from families. These actions may constitute crimes against humanity and genocide.',
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Flag_of_East_Turkestan',
@@ -1026,15 +947,12 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/world-report/2025/country-chapters/china',
-        text: 'Human Rights Watch: World Report 2025 - China'
-      }
+        text: 'Human Rights Watch: World Report 2025 - China',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#50a0e0',
-          '#ffffff'
-        ],
+        colors: ['#50a0e0', '#ffffff'],
       },
     },
   },
@@ -1049,7 +967,8 @@ export const flags: FlagSpec[] = [
     category: 'stateless',
     categoryDisplayName: 'Stateless People',
     categoryDisplayOrder: 6,
-    reason: 'Rohingya have faced ethnic cleansing, statelessness, and severe persecution in Myanmar. Since 2017, over 700,000 Rohingya were forced to flee to Bangladesh following a military campaign that included mass killings, rape, and village burnings. Rohingya in Myanmar face apartheid-like conditions with restrictions on movement, education, healthcare, and citizenship. Those remaining in Myanmar continue to face systematic discrimination, arbitrary detention, and violence. The Rohingya are denied citizenship and basic rights, making them one of the world\'s largest stateless populations.',
+    reason:
+      "Rohingya have faced ethnic cleansing, statelessness, and severe persecution in Myanmar. Since 2017, over 700,000 Rohingya were forced to flee to Bangladesh following a military campaign that included mass killings, rape, and village burnings. Rohingya in Myanmar face apartheid-like conditions with restrictions on movement, education, healthcare, and citizenship. Those remaining in Myanmar continue to face systematic discrimination, arbitrary detention, and violence. The Rohingya are denied citizenship and basic rights, making them one of the world's largest stateless populations.",
     references: [
       {
         url: 'https://en.wikipedia.org/wiki/Rohingya_flag',
@@ -1061,21 +980,17 @@ export const flags: FlagSpec[] = [
       },
       {
         url: 'https://www.hrw.org/world-report/2025/country-chapters/myanmar',
-        text: 'Human Rights Watch: World Report 2025 - Myanmar'
-      }
+        text: 'Human Rights Watch: World Report 2025 - Myanmar',
+      },
     ],
     modes: {
       ring: {
-        colors: [
-          '#106020',
-          '#d0b030',
-          '#ffffff'
-        ],
+        colors: ['#106020', '#d0b030', '#ffffff'],
       },
       cutout: {
         offsetEnabled: true,
         defaultOffset: 50,
       },
     },
-  }
+  },
 ];

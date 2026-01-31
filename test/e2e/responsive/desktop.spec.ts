@@ -21,7 +21,7 @@ for (const viewport of desktopViewports) {
 
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
       const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
-      
+
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
     });
 
@@ -35,7 +35,7 @@ for (const viewport of desktopViewports) {
 
       // All controls should be visible
       await expect(page.getByText('Presentation Style')).toBeVisible();
-      
+
       // Sliders should be accessible
       const sliders = page.locator('input[type="range"]');
       const sliderCount = await sliders.count();
@@ -47,7 +47,7 @@ for (const viewport of desktopViewports) {
 
       // Check content doesn't stretch too wide
       const mainContent = page.locator('main, [role="main"], .container').first();
-      if (await mainContent.count() > 0) {
+      if ((await mainContent.count()) > 0) {
         const width = await mainContent.evaluate((el) => el.clientWidth);
         // Content should have max-width constraint on large screens
         if (viewport.width >= 1440) {

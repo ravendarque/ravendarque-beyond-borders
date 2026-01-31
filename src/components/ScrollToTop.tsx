@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 
 /**
  * ScrollToTop - Scrolls to top of page on route change
- * 
+ *
  * Single Responsibility: Restore scroll position to top when navigating between routes
  */
 export function ScrollToTop() {
@@ -15,4 +15,3 @@ export function ScrollToTop() {
 
   return null;
 }
-

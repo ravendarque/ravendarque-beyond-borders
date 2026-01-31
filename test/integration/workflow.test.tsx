@@ -80,7 +80,7 @@ describe('Workflow Integration', () => {
       writable: true,
       configurable: true,
     });
-    
+
     // Reset mocks
     vi.clearAllMocks();
   });
@@ -90,7 +90,7 @@ describe('Workflow Integration', () => {
       const { container } = render(
         <BrowserRouter>
           <AppStepWorkflow />
-        </BrowserRouter>
+        </BrowserRouter>,
       );
 
       // Step 1: Should show image upload
@@ -108,7 +108,7 @@ describe('Workflow Integration', () => {
       const { rerender } = render(
         <BrowserRouter>
           <AppStepWorkflow />
-        </BrowserRouter>
+        </BrowserRouter>,
       );
 
       // Set some state
@@ -119,7 +119,7 @@ describe('Workflow Integration', () => {
       rerender(
         <BrowserRouter>
           <AppStepWorkflow />
-        </BrowserRouter>
+        </BrowserRouter>,
       );
 
       // State should be restored from sessionStorage
@@ -141,7 +141,7 @@ describe('Workflow Integration', () => {
       render(
         <BrowserRouter>
           <AppStepWorkflow />
-        </BrowserRouter>
+        </BrowserRouter>,
       );
 
       // Should read step from URL and navigate accordingly
@@ -155,7 +155,7 @@ describe('Workflow Integration', () => {
       render(
         <BrowserRouter>
           <AppStepWorkflow />
-        </BrowserRouter>
+        </BrowserRouter>,
       );
 
       // This would test that selecting a flag updates both FlagSelector and FlagPreview
@@ -171,7 +171,7 @@ describe('Workflow Integration', () => {
       render(
         <BrowserRouter>
           <AppStepWorkflow />
-        </BrowserRouter>
+        </BrowserRouter>,
       );
 
       // Verify state was set
@@ -183,10 +183,10 @@ describe('Workflow Integration', () => {
       const startOverButton = screen.queryByText(/start over/i);
       if (startOverButton) {
         startOverButton.click();
-        
+
         // Wait a bit for state cleanup
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         // Verify state is cleared (if startOver was actually triggered)
         // Note: This test verifies the integration, actual cleanup depends on component implementation
       }
@@ -198,7 +198,7 @@ describe('Workflow Integration', () => {
       render(
         <BrowserRouter>
           <AppStepWorkflow />
-        </BrowserRouter>
+        </BrowserRouter>,
       );
 
       // Navigate to step 2
@@ -210,7 +210,7 @@ describe('Workflow Integration', () => {
       render(
         <BrowserRouter>
           <AppStepWorkflow />
-        </BrowserRouter>
+        </BrowserRouter>,
       );
 
       // Navigate to step 3

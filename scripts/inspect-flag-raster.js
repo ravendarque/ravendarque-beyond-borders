@@ -41,7 +41,10 @@ await page.setContent(html);
 await page.waitForSelector('#img');
 const res = await page.evaluate(async () => {
   const img = document.getElementById('img');
-  await new Promise((r) => { if (img.complete) r(); else img.onload = r; });
+  await new Promise((r) => {
+    if (img.complete) r();
+    else img.onload = r;
+  });
   const canvas = document.createElement('canvas');
   canvas.width = img.naturalWidth;
   canvas.height = img.naturalHeight;
@@ -49,7 +52,10 @@ const res = await page.evaluate(async () => {
   ctx.drawImage(img, 0, 0);
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
-  let minX = canvas.width, minY = canvas.height, maxX = 0, maxY = 0;
+  let minX = canvas.width,
+    minY = canvas.height,
+    maxX = 0,
+    maxY = 0;
   let hasNonTransparent = false;
   for (let y = 0; y < canvas.height; y++) {
     for (let x = 0; x < canvas.width; x++) {
@@ -71,11 +77,24 @@ const res = await page.evaluate(async () => {
   const usedH = maxY - minY + 1;
   const pctW = (usedW / canvas.width) * 100;
   const pctH = (usedH / canvas.height) * 100;
-  return { usedW, usedH, pctW, pctH, canvasW: canvas.width, canvasH: canvas.height, minX, minY, maxX, maxY };
+  return {
+    usedW,
+    usedH,
+    pctW,
+    pctH,
+    canvasW: canvas.width,
+    canvasH: canvas.height,
+    minX,
+    minY,
+    maxX,
+    maxY,
+  };
 });
 
 logger.info(`Canvas: ${res.canvasW}×${res.canvasH}`);
-logger.info(`Used area: ${res.usedW}×${res.usedH} (${res.pctW.toFixed(1)}% width, ${res.pctH.toFixed(1)}% height)`);
+logger.info(
+  `Used area: ${res.usedW}×${res.usedH} (${res.pctW.toFixed(1)}% width, ${res.pctH.toFixed(1)}% height)`,
+);
 if (res.minX !== undefined) {
   logger.info(`Bounding box: (${res.minX}, ${res.minY}) to (${res.maxX}, ${res.maxY})`);
 }

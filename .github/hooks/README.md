@@ -9,6 +9,7 @@ This directory contains Git hooks for the Beyond Borders project.
 Runs validation checks before allowing a push to proceed. This helps catch issues locally before they reach CI.
 
 **Checks performed:**
+
 - Secret scanning (TruffleHog)
 - Security audit (Trivy)
 - Markdown linting
@@ -17,6 +18,7 @@ Runs validation checks before allowing a push to proceed. This helps catch issue
 - File permission validation
 - Large file detection (>1MB warning)
 - Privacy check (Google Fonts, tracking scripts, external CDNs)
+- **Lint (ESLint)** and **format check (Prettier)** when production code changed
 - Conditional build/test (if production code changed)
 
 ## Installation
@@ -24,6 +26,7 @@ Runs validation checks before allowing a push to proceed. This helps catch issue
 To install the pre-push hook, run from the repository root:
 
 ### Windows (PowerShell):
+
 ```powershell
 # Create hooks directory if it doesn't exist
 New-Item -Path .git\hooks -ItemType Directory -Force
@@ -36,6 +39,7 @@ git update-index --chmod=+x .git/hooks/pre-push
 ```
 
 ### Linux/macOS:
+
 ```bash
 # Create hooks directory if it doesn't exist
 mkdir -p .git/hooks
@@ -60,11 +64,13 @@ git push --no-verify
 You can also run validation manually without pushing:
 
 ### All platforms (PowerShell Core - required):
+
 ```powershell
 pwsh .github/scripts/local-ci.ps1
 ```
 
 ### Windows (Windows PowerShell):
+
 ```powershell
 .\.github\scripts\local-ci.ps1
 ```
@@ -80,7 +86,7 @@ The validation scripts will check for required tools and provide installation in
 - **Trivy** - Security audit
 - **markdownlint-cli2** - Markdown linting
 - **yamllint** - YAML linting
-- **Node.js & pnpm** - For build/test (conditional)
+- **Node.js & pnpm** - Lint (ESLint), format check (Prettier), build/test (conditional)
 
 ## Troubleshooting
 

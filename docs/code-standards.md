@@ -9,7 +9,7 @@ to properly review pull requests and ensure consistency.
 1. [Component Architecture](#component-architecture)
 2. [UI/UX Standards](#uiux-standards)
 3. [Code Patterns](#code-patterns)
-4. [File Organization](#file-organization)
+4. [File Organization](#file-organization) (includes [Formatting (Prettier)](#formatting-prettier))
 5. [Data Flow & State Management](#data-flow--state-management)
 6. [Review Checklist](#review-checklist)
 
@@ -38,9 +38,9 @@ export interface ComponentNameProps {
 
 /**
  * ComponentName - Brief description
- * 
+ *
  * Single Responsibility: What this component does (one clear purpose)
- * 
+ *
  * Additional context if needed:
  * - Usage notes
  * - Important behaviors
@@ -48,16 +48,16 @@ export interface ComponentNameProps {
 export function ComponentName({ propName, optionalProp }: ComponentNameProps) {
   // Hooks first
   const [state, setState] = useState();
-  
+
   // Derived values
   const computed = useMemo(() => ..., [deps]);
-  
+
   // Event handlers
   const handleClick = () => { ... };
-  
+
   // Early returns
   if (!propName) return null;
-  
+
   // Main render
   return (
     <div className="component-name">
@@ -204,6 +204,14 @@ The application uses CSS custom properties for consistent spacing:
 - Charcoal borders for click/hover states
 - No background color changes on interaction
 
+#### Shared Step Layout (all steps)
+
+- **StepLayout** wraps each step’s content with a main slot and an optional controls slot.
+- Step 1 (Image): main = `ImageUploadZone`; controls = `Step1PositionControls` (position/zoom sliders) when an image is present.
+- Step 2 (Flag): main = flag selector + preview; no controls slot.
+- Step 3 (Adjust): main = readonly `ImageUploadZone` (preview); controls = `PresentationModeSelector` + `AdjustControls`.
+- Layout and spacing (e.g. `.step-layout`, `.step-layout__controls`) are defined once in CSS.
+
 ---
 
 ## Code Patterns
@@ -286,6 +294,12 @@ src/
 - **Utils**: kebab-case (`flag-utils.ts`)
 - **Types**: kebab-case (`flag-types.ts`)
 - **Config**: kebab-case (`config.ts`)
+
+### Formatting (Prettier)
+
+- **Prettier** is the source of truth for code style. Config: `.prettierrc` (printWidth 100, singleQuote, trailingComma all, semi).
+- **ESLint** uses `eslint-config-prettier` so it does not enforce style rules that conflict with Prettier.
+- **Scripts**: `pnpm run format` (fix), `pnpm run format:check` (CI/pre-push). Format check runs when production code changes.
 
 ---
 

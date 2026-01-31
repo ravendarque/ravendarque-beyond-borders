@@ -19,7 +19,7 @@ const PRIORITY_FLAGS = [
 /**
  * Preload flag PNG images on browser idle time
  * Uses requestIdleCallback to avoid blocking main thread
- * 
+ *
  * @param flags Available flags
  * @param flagImageCache Cache to store preloaded images
  * @param currentFlagId Currently selected flag (don't preload this one)
@@ -27,7 +27,7 @@ const PRIORITY_FLAGS = [
 export function useFlagPreloader(
   flags: FlagSpec[],
   flagImageCache: Map<string, ImageBitmap>,
-  currentFlagId: string
+  currentFlagId: string,
 ) {
   const preloadedRef = useRef(new Set<string>());
 
@@ -75,7 +75,7 @@ export function useFlagPreloader(
 
         const blob = await response.blob();
         const bitmap = await createImageBitmap(blob);
-        
+
         // Add to cache
         flagImageCache.set(cacheKey, bitmap);
 
@@ -91,10 +91,9 @@ export function useFlagPreloader(
      */
     function preloadOnIdle() {
       // Get priority flags in order
-      const flagsToPreload = PRIORITY_FLAGS
-        .map(id => flags.find(f => f.id === id))
+      const flagsToPreload = PRIORITY_FLAGS.map((id) => flags.find((f) => f.id === id))
         .filter((f): f is FlagSpec => f !== undefined)
-        .filter(f => f.id !== currentFlagId); // Skip current flag
+        .filter((f) => f.id !== currentFlagId); // Skip current flag
 
       // Preload one flag at a time on idle
       let currentIndex = 0;

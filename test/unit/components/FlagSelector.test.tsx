@@ -35,7 +35,7 @@ describe('FlagSelector', () => {
   it('should render label', () => {
     const onFlagChange = vi.fn();
     render(<FlagSelector selectedFlagId={null} flags={mockFlags} onFlagChange={onFlagChange} />);
-    
+
     // Radix Select renders "Choose a flag" as the trigger text
     const trigger = screen.getByLabelText(/choose a flag/i);
     expect(trigger).toBeTruthy();
@@ -44,7 +44,7 @@ describe('FlagSelector', () => {
   it('should render with empty value', () => {
     const onFlagChange = vi.fn();
     render(<FlagSelector selectedFlagId={null} flags={mockFlags} onFlagChange={onFlagChange} />);
-    
+
     // Radix Select renders the trigger
     const trigger = screen.getByRole('combobox');
     expect(trigger).toBeTruthy();
@@ -53,7 +53,7 @@ describe('FlagSelector', () => {
   it('should render with selected value', () => {
     const onFlagChange = vi.fn();
     render(<FlagSelector selectedFlagId="flag1" flags={mockFlags} onFlagChange={onFlagChange} />);
-    
+
     // The selected flag display name should be shown
     expect(screen.getByText('Flag One')).toBeTruthy();
   });
@@ -62,11 +62,11 @@ describe('FlagSelector', () => {
     const user = userEvent.setup();
     const onFlagChange = vi.fn();
     render(<FlagSelector selectedFlagId={null} flags={mockFlags} onFlagChange={onFlagChange} />);
-    
+
     // Open the dropdown
     const trigger = screen.getByRole('combobox');
     await user.click(trigger);
-    
+
     // Check for all flags
     expect(screen.getByText('Flag One')).toBeTruthy();
     expect(screen.getByText('Flag Two')).toBeTruthy();
@@ -76,15 +76,15 @@ describe('FlagSelector', () => {
     const user = userEvent.setup();
     const onFlagChange = vi.fn();
     render(<FlagSelector selectedFlagId={null} flags={mockFlags} onFlagChange={onFlagChange} />);
-    
+
     // Open the dropdown
     const trigger = screen.getByRole('combobox');
     await user.click(trigger);
-    
+
     // Select a flag
     const flag1Option = screen.getByText('Flag One');
     await user.click(flag1Option);
-    
+
     expect(onFlagChange).toHaveBeenCalledWith('flag1');
   });
 
@@ -92,11 +92,11 @@ describe('FlagSelector', () => {
     const user = userEvent.setup();
     const onFlagChange = vi.fn();
     render(<FlagSelector selectedFlagId="flag1" flags={mockFlags} onFlagChange={onFlagChange} />);
-    
+
     // Open the dropdown
     const trigger = screen.getByRole('combobox');
     await user.click(trigger);
-    
+
     // Select None (if available) or clear selection
     const clearOption = screen.queryByText(/none|clear/i);
     if (clearOption) {
@@ -108,7 +108,7 @@ describe('FlagSelector', () => {
   it('should handle empty flags array', () => {
     const onFlagChange = vi.fn();
     render(<FlagSelector selectedFlagId={null} flags={[]} onFlagChange={onFlagChange} />);
-    
+
     // Radix Select renders the trigger
     const trigger = screen.getByRole('combobox');
     expect(trigger).toBeTruthy();
@@ -118,11 +118,11 @@ describe('FlagSelector', () => {
     const user = userEvent.setup();
     const onFlagChange = vi.fn();
     render(<FlagSelector selectedFlagId={null} flags={mockFlags} onFlagChange={onFlagChange} />);
-    
+
     // Open the dropdown
     const trigger = screen.getByRole('combobox');
     await user.click(trigger);
-    
+
     // Should have 2 flags
     const options = screen.getAllByRole('option');
     expect(options.length).toBe(2);
@@ -132,11 +132,11 @@ describe('FlagSelector', () => {
     const user = userEvent.setup();
     const onFlagChange = vi.fn();
     render(<FlagSelector selectedFlagId={null} flags={mockFlags} onFlagChange={onFlagChange} />);
-    
+
     // Open the dropdown
     const select = document.querySelector('[role="combobox"]') as HTMLElement;
     await user.click(select);
-    
+
     // Check that options have the correct value
     const flag1Option = screen.getByText('Flag One');
     expect(flag1Option).toBeTruthy();

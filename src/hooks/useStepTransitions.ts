@@ -1,11 +1,11 @@
 /**
  * Step transition logic hook
- * 
+ *
  * Handles step transition logic:
  * - Flag offset reset when flags change or mode switches
  * - Image dimension detection
  * - Circle size detection
- * 
+ *
  * Note: Image capture has been removed - position/zoom is now passed directly to renderer.
  */
 
@@ -13,9 +13,7 @@ import { useEffect } from 'react';
 import type { WorkflowState } from '@/types/workflowState';
 import type { ImageDimensions } from '@/utils/imagePosition';
 import type { FlagSpec } from '@/flags/schema';
-import {
-  shouldResetFlagOffset,
-} from './workflowLogic';
+import { shouldResetFlagOffset } from './workflowLogic';
 
 export interface UseStepTransitionsOptions {
   /** Current workflow state */
@@ -34,7 +32,7 @@ export interface UseStepTransitionsOptions {
 
 /**
  * Hook for handling step transitions and side effects
- * 
+ *
  * This hook encapsulates all the complex transition logic that was previously
  * scattered across multiple useEffects with ref tracking.
  */
@@ -89,7 +87,6 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
     return () => window.removeEventListener('resize', updateCircleSize);
   }, [step1.imageUrl, onCircleSizeChange]); // Re-run when image changes to ensure element exists
 
-
   // Handle flag offset reset logic (consolidated - handles both flag changes and mode switches)
   useEffect(() => {
     // Use business logic to determine if offset should be reset
@@ -98,7 +95,7 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
       step3.presentation,
       step2.flagId,
       step3.configuredForFlagId,
-      selectedFlag
+      selectedFlag,
     );
 
     if (shouldReset) {

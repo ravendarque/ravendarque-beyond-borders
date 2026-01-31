@@ -46,26 +46,27 @@ pwsh .github/scripts/setup-dev-env.ps1
 
 ### Development & Validation Scripts
 
-| Script | Purpose |
-|--------|---------|
+| Script                     | Purpose                                                  |
+| -------------------------- | -------------------------------------------------------- |
 | **`setup-dev-env.ps1`** 🆕 | **One-command setup for new developers (all platforms)** |
-| **`local-ci.ps1`** 🆕 | **Pre-push validation (secrets, security, linting)** |
-| `sync-labels.ps1` | Sync standard labels to GitHub repository |
+| **`local-ci.ps1`** 🆕      | **Pre-push validation (secrets, security, linting)**     |
+| `sync-labels.ps1`          | Sync standard labels to GitHub repository                |
 
 📖 **Setup Guide**: [SETUP.md](./SETUP.md)
 
 ### Issue & PR Management Scripts
 
-| Script | Purpose |
-|--------|---------|
-| **`github-helper.ps1`** | **Simple, error-resistant commands (recommended)** ⭐ |
-| `commands/create-tracked-issue.ps1` | Create issues and add to project board |
-| `commands/update-issue.ps1` | Update issue Status/Priority/Size fields |
-| `commands/list-issues.ps1` | Query and filter issues with project fields |
-| `commands/create-pr.ps1` | Create pull requests with proper formatting |
-| `commands/get-pr-template.ps1` | Generate PR body templates |
+| Script                              | Purpose                                               |
+| ----------------------------------- | ----------------------------------------------------- |
+| **`github-helper.ps1`**             | **Simple, error-resistant commands (recommended)** ⭐ |
+| `commands/create-tracked-issue.ps1` | Create issues and add to project board                |
+| `commands/update-issue.ps1`         | Update issue Status/Priority/Size fields              |
+| `commands/list-issues.ps1`          | Query and filter issues with project fields           |
+| `commands/create-pr.ps1`            | Create pull requests with proper formatting           |
+| `commands/get-pr-template.ps1`      | Generate PR body templates                            |
 
 **Common Workflows (Using github-helper.ps1 - Recommended):**
+
 ```powershell
 # Create and track an issue from body file
 .\github-helper.ps1 issue-create -Title "Fix bug" -BodyFile ".local/issue.md" -Priority P1 -Size M
@@ -84,6 +85,7 @@ pwsh .github/scripts/setup-dev-env.ps1
 ```
 
 **Traditional Workflows (Direct script calls):**
+
 ```powershell
 # Create and track an issue
 .\commands\create-tracked-issue.ps1 -Title "Fix bug" -Body "Description" -Priority P1 -Size S
@@ -142,6 +144,7 @@ $body = Get-Content "pr-body.md" -Raw
 **Purpose:** Simplified, error-resistant commands for common operations.
 
 **Why use this?**
+
 - ✅ Works from any directory
 - ✅ Automatic retry on transient network errors
 - ✅ Handles body file loading for you
@@ -149,6 +152,7 @@ $body = Get-Content "pr-body.md" -Raw
 - ✅ No PowerShell parsing issues
 
 **Usage:**
+
 ```powershell
 # Create issue from file
 .\github-helper.ps1 issue-create `
@@ -179,12 +183,14 @@ $body = Get-Content "pr-body.md" -Raw
 ```
 
 **Commands:**
+
 - `issue-create` - Create and track new issue
 - `issue-update` - Update existing issue fields
 - `issue-list` - Query and filter issues
 - `pr-create` - Create pull request
 
 **Benefits over direct script calls:**
+
 - No need to load body files manually (`$body = Get-Content...`)
 - No PowerShell variable assignment errors
 - Auto-retries on network failures (EOF, timeout, 5xx errors)
@@ -198,6 +204,7 @@ $body = Get-Content "pr-body.md" -Raw
 **Purpose:** Create a new issue and add it to the project board with fields set.
 
 **Usage:**
+
 ```powershell
 # Minimal (uses defaults: Priority=P1, Size=M, Status=Ready)
 .\create-tracked-issue.ps1 `
@@ -215,6 +222,7 @@ $body = Get-Content "pr-body.md" -Raw
 ```
 
 **Parameters:**
+
 - `Title` (required) - Issue title
 - `Body` (required) - Issue description (markdown supported)
 - `Priority` (optional) - `P0`, `P1`, `P2` (default: `P1`)
@@ -223,6 +231,7 @@ $body = Get-Content "pr-body.md" -Raw
 - `Labels` (optional) - Array of label names (validated against repo)
 
 **Key Improvements:**
+
 - ✅ Validates labels against repository before using them
 - ✅ Clear error messages with helpful suggestions
 - ✅ Comprehensive status output with emojis
@@ -235,6 +244,7 @@ $body = Get-Content "pr-body.md" -Raw
 **Purpose:** Update Status, Priority, or Size fields on an existing issue.
 
 **Usage:**
+
 ```powershell
 # Update single field
 .\update-issue.ps1 -IssueNumber 87 -Status InProgress
@@ -247,6 +257,7 @@ $body = Get-Content "pr-body.md" -Raw
 ```
 
 **Parameters:**
+
 - `IssueNumber` (required) - Issue number to update
 - `Status` (optional) - New status value
 - `Priority` (optional) - New priority value
@@ -261,6 +272,7 @@ $body = Get-Content "pr-body.md" -Raw
 **Purpose:** Query and display issues with their project field values.
 
 **Usage:**
+
 ```powershell
 # List all open issues
 .\list-issues.ps1
@@ -279,6 +291,7 @@ $body = Get-Content "pr-body.md" -Raw
 ```
 
 **Parameters:**
+
 - `State` (optional) - `open`, `closed`, `all` (default: `open`)
 - `Status` (optional) - Filter by status field
 - `Priority` (optional) - Filter by priority field
@@ -294,6 +307,7 @@ $body = Get-Content "pr-body.md" -Raw
 **Purpose:** Create a GitHub Pull Request with proper formatting and validation.
 
 **Usage:**
+
 ```powershell
 # Create PR with inline body
 .\create-pr.ps1 `
@@ -310,6 +324,7 @@ $body = Get-Content "pr-body.md" -Raw
 ```
 
 **Parameters:**
+
 - `Title` (required) - PR title
 - `Body` (required) - PR description (markdown supported)
 - `Base` (optional) - Base branch (default: `main`)
@@ -317,6 +332,7 @@ $body = Get-Content "pr-body.md" -Raw
 - `IssueNumber` (optional) - Issue to link (adds "Closes #N")
 
 **Key Features:**
+
 - ✅ Handles multi-line bodies and special characters
 - ✅ Uses temp file to avoid escaping issues
 - ✅ Automatically links issues
@@ -329,6 +345,7 @@ $body = Get-Content "pr-body.md" -Raw
 **Purpose:** Generate PR body template for common PR types.
 
 **Usage:**
+
 ```powershell
 # Generate feature PR template
 $body = .\get-pr-template.ps1 `
@@ -349,6 +366,7 @@ $body = .\get-pr-template.ps1 `
 ```
 
 **Parameters:**
+
 - `Type` (required) - `Feature`, `Fix`, `Refactor`, `Hotfix`, `Chore`, `Docs`, `Test`
 - `Description` (required) - Brief description
 - `Changes` (optional) - Array of changes made
@@ -366,6 +384,7 @@ $body = .\get-pr-template.ps1 `
 **Purpose:** Single source of truth for all project configuration.
 
 **Exports:**
+
 - `Get-ProjectConfig()` - Returns project number, owner, repo, project ID
 - `Get-FieldIds()` - Returns status, priority, size field IDs
 - `Get-StatusOptionId($Status)` - Maps status name to option ID
@@ -384,6 +403,7 @@ $body = .\get-pr-template.ps1 `
 **Purpose:** Reusable GitHub API interaction functions.
 
 **Functions:**
+
 - `Write-StatusMessage($Message, $Type)` - Consistent status output with icons
 - `Test-GitHubCLI()` - Verifies gh is installed and authenticated
 - `Get-RepoLabels()` - Fetches available labels from repository
@@ -399,6 +419,7 @@ $body = .\get-pr-template.ps1 `
 ## Valid Values Reference
 
 ### Status
+
 - `Backlog` - Not yet started, in backlog
 - `Ready` - Ready to be worked on
 - `InProgress` - Currently being worked on (note: **no space**)
@@ -406,11 +427,13 @@ $body = .\get-pr-template.ps1 `
 - `Done` - Completed and merged
 
 ### Priority
+
 - `P0` - Critical (security, production breaking, blocking)
 - `P1` - High (important features, bugs, UX improvements)
 - `P2` - Low (nice-to-have, refactoring, documentation)
 
 ### Size
+
 - `XS` - < 1 hour
 - `S` - 1-2 hours
 - `M` - 2-4 hours
@@ -424,6 +447,7 @@ $body = .\get-pr-template.ps1 `
 ### Creating a New Issue
 
 **For a bug:**
+
 ```powershell
 .\create-tracked-issue.ps1 `
   -Title "Fix: Users can't login on mobile" `
@@ -434,6 +458,7 @@ $body = .\get-pr-template.ps1 `
 ```
 
 **For a feature:**
+
 ```powershell
 .\create-tracked-issue.ps1 `
   -Title "Feature: Add dark mode support" `
@@ -444,6 +469,7 @@ $body = .\get-pr-template.ps1 `
 ```
 
 **For a critical hotfix:**
+
 ```powershell
 .\create-tracked-issue.ps1 `
   -Title "CRITICAL: Production app broken" `
@@ -511,36 +537,44 @@ $body = .\get-pr-template.ps1 `
 ## Troubleshooting
 
 ### "GitHub CLI is not installed"
+
 Install from: https://cli.github.com/
 
 ### "GitHub CLI is not authenticated"
+
 Run: `gh auth login`
 
 ### "Label 'xyz' does not exist"
+
 - Check available labels: `gh label list --repo ravendarque/ravendarque-beyond-borders`
 - Or omit the Labels parameter (it's optional)
 
 ### "Issue not found in project"
+
 - Make sure the issue exists: `gh issue view <number>`
 - Verify it's in the project board on GitHub
 - The issue must be added to the project before updating fields
 
 ### "Failed to update field"
+
 - Check that you have correct permissions on the repository
 - Verify project ID and field IDs in `lib/config.ps1` are current
 - Check GitHub status page for API issues
 
 ### "EOF" or "timeout" errors
+
 - **Now handled automatically!** Scripts retry up to 3 times on transient errors
 - If still failing after retries, check your internet connection
 - Check GitHub API status: https://www.githubstatus.com/
 
 ### PowerShell parsing errors with `&&` or `=`
+
 - **Solution:** Use `github-helper.ps1` instead - it handles path navigation internally
 - Or run commands separately (don't chain with `&&`)
 - Example: Instead of `cd scripts && $body = ...`, use `github-helper.ps1`
 
 ### "Could not find project root"
+
 - Make sure you're inside the repository directory
 - The script looks for `.git` directory to find the root
 - If needed, navigate to the project root first: `cd d:\git\nix\beyond-borders`
@@ -580,14 +614,18 @@ Run: `gh auth login`
 ## Important Notes
 
 ### Status Parameter Format
+
 Status values must **not** have spaces:
+
 - ✅ Correct: `InProgress`, `InReview`
 - ❌ Wrong: `"In Progress"`, `"In Review"`
 
 ### Label Validation
+
 Labels are validated against the repository before use. If a label doesn't exist, you'll get a helpful error message with available labels.
 
 ### Example: Correct Usage
+
 ```powershell
 .\create-tracked-issue.ps1 `
   -Title "Task" `
@@ -610,6 +648,7 @@ Labels are validated against the repository before use. If a label doesn't exist
 ## Support
 
 For issues or questions:
+
 1. Check this README first
 2. Review the error message carefully
 3. Check GitHub CLI authentication: `gh auth status`

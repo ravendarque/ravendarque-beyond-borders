@@ -148,7 +148,7 @@ describe('useAvatarRenderer', () => {
     // Start with a fresh cache and clear all mocks
     mockCache.clear();
     vi.clearAllMocks();
-    
+
     const mockBitmap = { width: 100, height: 100, close: vi.fn() } as unknown as ImageBitmap;
     mockCache.set('test.png', mockBitmap);
 
@@ -263,7 +263,7 @@ describe('useAvatarRenderer', () => {
           imageDimensions: { width: 100, height: 100 },
           circleSize: 320,
         });
-      })
+      }),
     ).rejects.toThrow('Render error');
 
     // Should clear rendering state even when error occurs

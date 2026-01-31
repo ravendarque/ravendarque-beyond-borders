@@ -25,7 +25,14 @@
             "description": "List of flags in this category",
             "items": {
               "type": "object",
-              "required": ["flagName", "displayName", "svg_url", "description", "reason", "references"],
+              "required": [
+                "flagName",
+                "displayName",
+                "svg_url",
+                "description",
+                "reason",
+                "references"
+              ],
               "properties": {
                 "flagName": {
                   "type": "string",
@@ -98,4 +105,3 @@
   },
   "additionalProperties": false
 }
-

@@ -5,7 +5,9 @@ import { chromium } from 'playwright';
   const context = await browser.newContext();
   // seed localStorage before any script runs
   await context.addInitScript(() => {
-    try { window.localStorage.setItem('bb_selectedFlag', 'ps'); } catch (e) {}
+    try {
+      window.localStorage.setItem('bb_selectedFlag', 'ps');
+    } catch (e) {}
   });
   const page = await context.newPage();
   try {
@@ -14,7 +16,11 @@ import { chromium } from 'playwright';
     await page.goto(url, { waitUntil: 'load', timeout: 30000 });
     // Ensure localStorage is set in-page and reload so the app's effect picks it up
     try {
-      await page.evaluate(() => { try { window.localStorage.setItem('bb_selectedFlag', 'ps'); } catch {} });
+      await page.evaluate(() => {
+        try {
+          window.localStorage.setItem('bb_selectedFlag', 'ps');
+        } catch {}
+      });
       await page.reload({ waitUntil: 'load' });
     } catch (e) {
       // ignore
@@ -26,17 +32,24 @@ import { chromium } from 'playwright';
     // report some app state to help diagnose why draw() may not run
     const state = await page.evaluate(() => {
       try {
-        const inputMode = (window && window.__bb_internal_inputMode) ? window.__bb_internal_inputMode : (document.querySelector('[aria-label="Flag selection"]') ? 'unknown' : null);
-        const flagId = (window && window.localStorage) ? window.localStorage.getItem('bb_selectedFlag') : null;
+        const inputMode =
+          window && window.__bb_internal_inputMode
+            ? window.__bb_internal_inputMode
+            : document.querySelector('[aria-label="Flag selection"]')
+              ? 'unknown'
+              : null;
+        const flagId =
+          window && window.localStorage ? window.localStorage.getItem('bb_selectedFlag') : null;
         let selected = null;
         try {
           const el = document.querySelector('img[alt]');
           if (el && el.src) selected = el.src;
-          else if (el && (el).currentSrc) selected = (el).currentSrc;
-        } catch {
-        }
+          else if (el && el.currentSrc) selected = el.currentSrc;
+        } catch {}
         return { inputMode, flagId, selectedFlag_src: selected };
-      } catch (e) { return { inputMode: null, flagId: null, selectedFlag_src: null }; }
+      } catch (e) {
+        return { inputMode: null, flagId: null, selectedFlag_src: null };
+      }
     });
     console.log('initial page state:', JSON.stringify(state));
     // Interact with the UI to ensure flag mode + selection active

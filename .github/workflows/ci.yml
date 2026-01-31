@@ -55,7 +55,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better secret scanning
+          fetch-depth: 0 # Full history for better secret scanning
 
       - name: Check for secrets
         uses: trufflesecurity/trufflehog@main
@@ -112,7 +112,6 @@ jobs:
       - name: Check stale references
         run: pwsh .github/scripts/check-stale-references.ps1
 
-
   # Full build and test suite - runs after validation passes
   build-and-test:
     needs: [check-changes, validate]
@@ -144,6 +143,9 @@ jobs:
       - name: Lint code
         run: pnpm run lint
 
+      - name: Check format (Prettier)
+        run: pnpm run format:check
+
       - name: Typecheck and build
         run: pnpm run build
 
@@ -157,4 +159,3 @@ jobs:
           name: coverage
           path: coverage
           if-no-files-found: ignore
-

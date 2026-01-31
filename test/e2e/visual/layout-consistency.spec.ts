@@ -49,9 +49,7 @@ test.describe('Layout Consistency', () => {
     // Get layout shift values
     const shifts = await page.evaluate(() => {
       const entries = performance.getEntriesByType('layout-shift') as any[];
-      return entries
-        .filter((e) => !e.hadRecentInput)
-        .map((e) => e.value);
+      return entries.filter((e) => !e.hadRecentInput).map((e) => e.value);
     });
 
     // Cumulative Layout Shift should be low (< 0.1 is good)

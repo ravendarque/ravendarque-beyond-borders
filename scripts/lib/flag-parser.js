@@ -34,12 +34,14 @@ export function canonicalizeId(name) {
  */
 function slugifyCategoryName(name) {
   if (!name || typeof name !== 'string') return 'other';
-  return name
-    .toLowerCase()
-    .replace(/\s*\/\s*/g, '-')
-    .replace(/[^a-z0-9-]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '') || 'other';
+  return (
+    name
+      .toLowerCase()
+      .replace(/\s*\/\s*/g, '-')
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '') || 'other'
+  );
 }
 
 /**
@@ -69,27 +71,31 @@ export function parseFlagsFromYaml(yaml) {
  */
 export function parseFlagsFromDoc(doc) {
   if (!doc || !Array.isArray(doc.categories)) {
-    throw new FlagDataError('YAML structure is invalid. Expected { categories: [{ categoryName: "...", displayOrder: n, flags: [...] }] }');
+    throw new FlagDataError(
+      'YAML structure is invalid. Expected { categories: [{ categoryName: "...", displayOrder: n, flags: [...] }] }',
+    );
   }
-  
+
   // Flags are nested under categories - flatten them
   const flattenedFlags = [];
-  
+
   for (const category of doc.categories) {
     if (!category.categoryName || !Array.isArray(category.flags)) {
-      throw new FlagDataError(`Invalid category structure. Expected { categoryName: "...", displayOrder: n, flags: [...] }`);
+      throw new FlagDataError(
+        `Invalid category structure. Expected { categoryName: "...", displayOrder: n, flags: [...] }`,
+      );
     }
-    
+
     for (const flag of category.flags) {
       flattenedFlags.push({
         ...flag,
         category: mapCategoryToCode(category.categoryName),
         categoryDisplayName: category.categoryName,
         categoryDisplayOrder: category.displayOrder,
-        cutoutMode: flag.cutoutMode || null
+        cutoutMode: flag.cutoutMode || null,
       });
     }
   }
-  
+
   return flattenedFlags;
 }

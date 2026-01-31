@@ -26,43 +26,43 @@ export function generateTypeScriptSource(manifest) {
     lines.push('  {');
     lines.push(`    id: '${entry.id}',`);
     lines.push(`    name: '${(entry.name || entry.displayName).replace(/'/g, "\\'")}',`);
-    
+
     if (entry.displayName) {
       lines.push(`    displayName: '${entry.displayName.replace(/'/g, "\\'")}',`);
     }
-    
+
     if (entry.png_full) {
       lines.push(`    png_full: '${entry.png_full}',`);
     }
-    
+
     if (entry.png_preview) {
       lines.push(`    png_preview: '${entry.png_preview}',`);
     }
-    
+
     if (entry.aspectRatio !== null && entry.aspectRatio !== undefined) {
       lines.push(`    aspectRatio: ${entry.aspectRatio},`);
     }
-    
+
     if (entry.svgFilename) {
       lines.push(`    svgFilename: '${entry.svgFilename}',`);
     }
-    
+
     if (entry.category) {
       lines.push(`    category: '${entry.category}',`);
     }
-    
+
     if (entry.categoryDisplayName) {
       lines.push(`    categoryDisplayName: '${entry.categoryDisplayName.replace(/'/g, "\\'")}',`);
     }
-    
+
     if (entry.categoryDisplayOrder !== null && entry.categoryDisplayOrder !== undefined) {
       lines.push(`    categoryDisplayOrder: ${entry.categoryDisplayOrder},`);
     }
-    
+
     if (entry.reason) {
       lines.push(`    reason: '${entry.reason.replace(/'/g, "\\'")}',`);
     }
-    
+
     // Generate references field
     if (entry.references && Array.isArray(entry.references) && entry.references.length > 0) {
       lines.push('    references: [');
@@ -76,14 +76,14 @@ export function generateTypeScriptSource(manifest) {
       }
       lines.push('    ],');
     }
-    
+
     // Generate modes object
     const hasModes = entry.cutoutMode || (entry.layouts && entry.layouts.length > 0);
     if (hasModes) {
       lines.push('    modes: {');
-      
+
       // Ring mode config from layouts
-      const ringLayout = entry.layouts?.find(l => l.type === 'ring');
+      const ringLayout = entry.layouts?.find((l) => l.type === 'ring');
       if (ringLayout && ringLayout.colors && ringLayout.colors.length > 0) {
         lines.push('      ring: {');
         lines.push('        colors: [');
@@ -95,7 +95,7 @@ export function generateTypeScriptSource(manifest) {
         lines.push('        ],');
         lines.push('      },');
       }
-      
+
       // Cutout mode config
       if (entry.cutoutMode) {
         lines.push('      cutout: {');
@@ -103,10 +103,10 @@ export function generateTypeScriptSource(manifest) {
         lines.push(`        defaultOffset: ${entry.cutoutMode.defaultOffset},`);
         lines.push('      },');
       }
-      
+
       lines.push('    },');
     }
-    
+
     lines.push(`  }${isLast ? '' : ','}`);
   }
 

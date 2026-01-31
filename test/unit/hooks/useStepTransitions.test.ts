@@ -34,13 +34,13 @@ describe('useStepTransitions', () => {
     vi.clearAllMocks();
     vi.restoreAllMocks();
     sessionStorage.clear();
-    
+
     // Mock window.getComputedStyle
     Object.defineProperty(window, 'getComputedStyle', {
       value: mockGetComputedStyle,
       writable: true,
     });
-    
+
     // Mock document.querySelector for circle size
     vi.spyOn(document, 'querySelector').mockReturnValue({
       // Mock element with computed style
@@ -79,7 +79,7 @@ describe('useStepTransitions', () => {
         onCircleSizeChange,
         onFlagOffsetChange,
         onUpdateStep3ForFlag,
-      })
+      }),
     );
 
     // Trigger image load
@@ -113,7 +113,7 @@ describe('useStepTransitions', () => {
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange: vi.fn(),
         onUpdateStep3ForFlag: vi.fn(),
-      })
+      }),
     );
 
     expect(onImageDimensionsChange).toHaveBeenCalledWith(null);
@@ -132,7 +132,7 @@ describe('useStepTransitions', () => {
         onCircleSizeChange,
         onFlagOffsetChange: vi.fn(),
         onUpdateStep3ForFlag: vi.fn(),
-      })
+      }),
     );
 
     // Circle size should be 80% of wrapper (400px * 0.8 = 320px)
@@ -163,7 +163,7 @@ describe('useStepTransitions', () => {
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
         onUpdateStep3ForFlag,
-      })
+      }),
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(-50);
@@ -204,7 +204,7 @@ describe('useStepTransitions', () => {
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
         onUpdateStep3ForFlag,
-      })
+      }),
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(0);
@@ -236,7 +236,7 @@ describe('useStepTransitions', () => {
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
         onUpdateStep3ForFlag,
-      })
+      }),
     );
 
     // Should not be called since flag hasn't changed
@@ -271,7 +271,7 @@ describe('useStepTransitions', () => {
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
         onUpdateStep3ForFlag,
-      })
+      }),
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(0);
@@ -302,7 +302,7 @@ describe('useStepTransitions', () => {
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
         onUpdateStep3ForFlag,
-      })
+      }),
     );
 
     expect(onFlagOffsetChange).not.toHaveBeenCalled();
@@ -333,7 +333,7 @@ describe('useStepTransitions', () => {
         onCircleSizeChange: vi.fn(),
         onFlagOffsetChange,
         onUpdateStep3ForFlag,
-      })
+      }),
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(-50);

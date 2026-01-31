@@ -38,7 +38,7 @@ export async function renderSvgWithResvgSharp(svgText, dstPath, width, height, m
   if (!SharpModule) {
     throw new Error('sharp not available');
   }
-  
+
   let srcPngBuf = null;
   try {
     const { Resvg: ResvgModule } = await initDeps();
@@ -49,8 +49,8 @@ export async function renderSvgWithResvgSharp(svgText, dstPath, width, height, m
         const resvgOptions = {
           fitTo: {
             mode: 'width',
-            value: width
-          }
+            value: width,
+          },
         };
         const inst = new ResvgModule(svgText, resvgOptions);
         const pngData = inst.render();
@@ -77,11 +77,25 @@ export async function renderSvgWithResvgSharp(svgText, dstPath, width, height, m
       }
       // For 'slice' mode or if dimensions don't match, use Sharp to resize
       const fit = mode === 'slice' ? 'cover' : 'contain';
-      await SharpModule(srcPngBuf).resize(width, height, { fit, position: 'centre', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toFile(dstPath);
+      await SharpModule(srcPngBuf)
+        .resize(width, height, {
+          fit,
+          position: 'centre',
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        })
+        .png()
+        .toFile(dstPath);
     } else {
       // resvg failed, fall back to Sharp-only rendering
       const fit = mode === 'slice' ? 'cover' : 'contain';
-      await SharpModule(Buffer.from(svgText)).resize(width, height, { fit, position: 'centre', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toFile(dstPath);
+      await SharpModule(Buffer.from(svgText))
+        .resize(width, height, {
+          fit,
+          position: 'centre',
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        })
+        .png()
+        .toFile(dstPath);
     }
     return true;
   } catch (e) {
@@ -99,14 +113,21 @@ export async function analyzePngUsage(pngPath) {
   if (!SharpModule) {
     return { pctW: 1, pctH: 1, usedW: null, usedH: null };
   }
-  
+
   try {
-    const { data, info } = await SharpModule(pngPath).raw().ensureAlpha().toBuffer({ resolveWithObject: true });
+    const { data, info } = await SharpModule(pngPath)
+      .raw()
+      .ensureAlpha()
+      .toBuffer({ resolveWithObject: true });
     const w = info.width;
     const h = info.height;
     const bytes = data;
-    let minX = w, minY = h, maxX = 0, maxY = 0, any = false;
-    
+    let minX = w,
+      minY = h,
+      maxX = 0,
+      maxY = 0,
+      any = false;
+
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
         const i = (y * w + x) * info.channels;
@@ -124,11 +145,11 @@ export async function analyzePngUsage(pngPath) {
         }
       }
     }
-    
+
     if (!any) {
       return { pctW: 0, pctH: 0, usedW: 0, usedH: 0 };
     }
-    
+
     const usedW = maxX - minX + 1;
     const usedH = maxY - minY + 1;
     return { pctW: usedW / w, pctH: usedH / h, usedW, usedH };

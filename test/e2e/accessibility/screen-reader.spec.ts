@@ -9,7 +9,9 @@ test.describe('Screen Reader Support', () => {
     await page.goto('/');
 
     // Should have live region for announcements
-    const announcer = page.locator('[role="status"][aria-live], [aria-live="polite"], [aria-live="assertive"]');
+    const announcer = page.locator(
+      '[role="status"][aria-live], [aria-live="polite"], [aria-live="assertive"]',
+    );
     const count = await announcer.count();
     expect(count).toBeGreaterThan(0);
   });
@@ -45,14 +47,14 @@ test.describe('Screen Reader Support', () => {
     // Check for aria-describedby usage
     const elementsWithDescription = page.locator('[aria-describedby]');
     const count = await elementsWithDescription.count();
-    
+
     // Should have some elements with descriptions (sliders, inputs, etc.)
     if (count > 0) {
       for (let i = 0; i < count; i++) {
         const el = elementsWithDescription.nth(i);
         const describedBy = await el.getAttribute('aria-describedby');
         expect(describedBy).toBeTruthy();
-        
+
         // Check that the description element exists
         const descId = describedBy?.split(' ')[0];
         if (descId) {
@@ -69,7 +71,7 @@ test.describe('Screen Reader Support', () => {
 
     // Check for skip links
     const skipLinks = page.locator('a[href^="#"], [href="#main"], [href="#content"]').filter({
-      hasText: /skip|jump|main content/i
+      hasText: /skip|jump|main content/i,
     });
 
     const count = await skipLinks.count();

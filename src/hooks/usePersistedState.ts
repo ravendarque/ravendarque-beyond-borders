@@ -6,10 +6,7 @@ import { useState, useEffect } from 'react';
  * @param initialValue - The initial value if nothing is stored
  * @returns A tuple of [value, setValue] similar to useState
  */
-export function usePersistedState<T>(
-  key: string,
-  initialValue: T
-): [T, (value: T) => void] {
+export function usePersistedState<T>(key: string, initialValue: T): [T, (value: T) => void] {
   const [value, setValue] = useState<T>(() => {
     try {
       const stored = localStorage.getItem(key);

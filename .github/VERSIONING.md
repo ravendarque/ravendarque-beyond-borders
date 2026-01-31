@@ -20,14 +20,14 @@ Versions are calculated automatically using the **GitVersion tool** in CI/CD wor
 
 ### Examples
 
-| Git Tag | Branch | Commits | Commit Messages | Calculated Version |
-| ------- | ------ | ------- | --------------- | ------------------ |
-| `v1.0.0` | `main` | 5 | `chore:`, `docs:` (no patterns) | `1.0.5` |
-| `v1.0.0` | `feature/auth` | 3 | `feat:` commits | `1.1.0-alpha.3` |
-| `v1.0.0` | `main` | 1 | `feat!: breaking change` | `2.0.0` |
-| `v1.0.0` | `main` | 1 | `+semver: breaking` | `2.0.0` |
-| `v1.0.0` | `beta/testing` | 2 | `feat: new feature` | `1.1.0-beta.2` |
-| `v1.0.0` | `release/v1.1` | 1 | `fix: bug` | `1.0.1-rc.1` |
+| Git Tag  | Branch         | Commits | Commit Messages                 | Calculated Version |
+| -------- | -------------- | ------- | ------------------------------- | ------------------ |
+| `v1.0.0` | `main`         | 5       | `chore:`, `docs:` (no patterns) | `1.0.5`            |
+| `v1.0.0` | `feature/auth` | 3       | `feat:` commits                 | `1.1.0-alpha.3`    |
+| `v1.0.0` | `main`         | 1       | `feat!: breaking change`        | `2.0.0`            |
+| `v1.0.0` | `main`         | 1       | `+semver: breaking`             | `2.0.0`            |
+| `v1.0.0` | `beta/testing` | 2       | `feat: new feature`             | `1.1.0-beta.2`     |
+| `v1.0.0` | `release/v1.1` | 1       | `fix: bug`                      | `1.0.1-rc.1`       |
 
 ## Commit Message Patterns (GitVersion Standard)
 
@@ -115,13 +115,13 @@ Result: `1.0.0` → `1.0.1` → `1.0.2` → `1.0.3` (patch increments)
 
 ## Branch-Based Prerelease Suffixes
 
-| Branch Pattern | Suffix | Description |
-| -------------- | ------ | ----------- |
-| `main`, `master` | _(none)_ | Stable releases |
-| `feature/*`, `feat/*`, `fix/*`, `bugfix/*` | `alpha` | Development |
-| `beta/*` | `beta` | Beta testing |
-| `release/*`, `hotfix/*` | `rc` | Release candidates |
-| Other branches | `alpha` | Default for unlisted |
+| Branch Pattern                             | Suffix   | Description          |
+| ------------------------------------------ | -------- | -------------------- |
+| `main`, `master`                           | _(none)_ | Stable releases      |
+| `feature/*`, `feat/*`, `fix/*`, `bugfix/*` | `alpha`  | Development          |
+| `beta/*`                                   | `beta`   | Beta testing         |
+| `release/*`, `hotfix/*`                    | `rc`     | Release candidates   |
+| Other branches                             | `alpha`  | Default for unlisted |
 
 ## How Version Calculation Works
 

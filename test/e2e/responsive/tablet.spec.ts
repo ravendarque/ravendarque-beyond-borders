@@ -21,7 +21,7 @@ for (const viewport of tabletViewports) {
 
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
       const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
-      
+
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
     });
 
@@ -33,7 +33,9 @@ for (const viewport of tabletViewports) {
       await selectFlag(page, TEST_FLAGS.PALESTINE);
 
       // Wait for step 3
-      await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, { timeout: 30000 });
+      await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, {
+        timeout: 30000,
+      });
 
       // Check layout elements
       await expect(page.getByText('Presentation Style')).toBeVisible();
@@ -52,7 +54,7 @@ for (const viewport of tabletViewports) {
 
       // Should work with both
       const dropdown = page.locator('[role="listbox"]');
-      if (await dropdown.count() > 0) {
+      if ((await dropdown.count()) > 0) {
         await expect(dropdown).toBeVisible();
       }
     });

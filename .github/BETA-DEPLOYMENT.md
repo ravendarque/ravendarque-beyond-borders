@@ -200,9 +200,9 @@ version. The configuration in `vite.config.ts`:
 
 ```typescript
 export default defineConfig({
-  base: process.env.BASE_URL ||
-        (process.env.NODE_ENV === 'production' ?
-          '/ravendarque-beyond-borders/' : '/'),
+  base:
+    process.env.BASE_URL ||
+    (process.env.NODE_ENV === 'production' ? '/ravendarque-beyond-borders/' : '/'),
   // ... rest of config
 });
 ```

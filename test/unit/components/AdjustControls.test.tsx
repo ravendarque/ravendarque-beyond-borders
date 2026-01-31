@@ -30,7 +30,7 @@ describe('AdjustControls', () => {
 
   it('should render thickness slider', () => {
     render(<AdjustControls {...defaultProps} />);
-    
+
     expect(screen.getByText('Thinner')).toBeTruthy();
     expect(screen.getByText('Thicker')).toBeTruthy();
     expect(screen.getByText('10%')).toBeTruthy();
@@ -38,19 +38,19 @@ describe('AdjustControls', () => {
 
   it('should display correct thickness value', () => {
     render(<AdjustControls {...defaultProps} thickness={15} />);
-    
+
     expect(screen.getByText('15%')).toBeTruthy();
   });
 
   it('should not render rotation slider when presentation is not segment', () => {
     render(<AdjustControls {...defaultProps} presentation="ring" />);
-    
+
     expect(screen.queryByText(/rotate/i)).toBeFalsy();
   });
 
   it('should render rotation slider when presentation is segment', () => {
     render(<AdjustControls {...defaultProps} presentation="segment" />);
-    
+
     expect(screen.getByText('Rotate R')).toBeTruthy();
     expect(screen.getByText('Rotate L')).toBeTruthy();
     expect(screen.getByText('0°')).toBeTruthy();
@@ -58,13 +58,13 @@ describe('AdjustControls', () => {
 
   it('should display correct rotation value', () => {
     render(<AdjustControls {...defaultProps} presentation="segment" segmentRotation={45} />);
-    
+
     expect(screen.getByText('45°')).toBeTruthy();
   });
 
   it('should not render flag offset slider when presentation is not cutout', () => {
     render(<AdjustControls {...defaultProps} presentation="ring" />);
-    
+
     expect(screen.queryByText(/flag [lr]/i)).toBeFalsy();
   });
 
@@ -79,9 +79,11 @@ describe('AdjustControls', () => {
         },
       },
     };
-    
-    render(<AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithoutOffset} />);
-    
+
+    render(
+      <AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithoutOffset} />,
+    );
+
     expect(screen.queryByText(/flag [lr]/i)).toBeFalsy();
   });
 
@@ -96,9 +98,11 @@ describe('AdjustControls', () => {
         },
       },
     };
-    
-    render(<AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithOffset} />);
-    
+
+    render(
+      <AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithOffset} />,
+    );
+
     expect(screen.getByText('Flag L')).toBeTruthy();
     expect(screen.getByText('Flag R')).toBeTruthy();
   });
@@ -114,24 +118,31 @@ describe('AdjustControls', () => {
         },
       },
     };
-    
+
     // flagOffsetX is now a percentage value (-50 to +50)
-    render(<AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithOffset} flagOffsetPct={25} />);
-    
+    render(
+      <AdjustControls
+        {...defaultProps}
+        presentation="cutout"
+        selectedFlag={flagWithOffset}
+        flagOffsetPct={25}
+      />,
+    );
+
     expect(screen.getByText('25%')).toBeTruthy();
   });
 
   it('should have correct ARIA labels for sliders', () => {
     render(<AdjustControls {...defaultProps} />);
-    
+
     const thicknessSlider = screen.getByLabelText('Border thickness');
-    
+
     expect(thicknessSlider).toBeTruthy();
   });
 
   it('should have correct ARIA label for rotation slider when in segment mode', () => {
     render(<AdjustControls {...defaultProps} presentation="segment" />);
-    
+
     const rotationSlider = screen.getByLabelText('Segment rotation');
     expect(rotationSlider).toBeTruthy();
   });
@@ -147,11 +158,12 @@ describe('AdjustControls', () => {
         },
       },
     };
-    
-    render(<AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithOffset} />);
-    
+
+    render(
+      <AdjustControls {...defaultProps} presentation="cutout" selectedFlag={flagWithOffset} />,
+    );
+
     const offsetSlider = screen.getByLabelText('Flag horizontal offset');
     expect(offsetSlider).toBeTruthy();
   });
 });
-

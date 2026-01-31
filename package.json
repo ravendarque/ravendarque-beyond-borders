@@ -8,6 +8,8 @@
     "dev": "vite",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "fetch-flags": "node scripts/fetch-flags.js",
     "validate-flags": "node scripts/validate-flags.js",
     "generate-favicons": "node scripts/generate-favicons.js",

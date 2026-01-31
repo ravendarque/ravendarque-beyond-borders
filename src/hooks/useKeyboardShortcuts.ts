@@ -19,9 +19,9 @@ export interface KeyboardShortcut {
 
 /**
  * Hook for registering keyboard shortcuts
- * 
+ *
  * @param shortcuts Array of keyboard shortcuts to register
- * 
+ *
  * @example
  * ```tsx
  * useKeyboardShortcuts([
@@ -52,9 +52,9 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
 
         // Check if key matches
         const keyMatches = event.key.toLowerCase() === shortcut.key.toLowerCase();
-        
+
         // Check modifier keys
-        const ctrlMatches = shortcut.ctrlKey ? (event.ctrlKey || event.metaKey) : true;
+        const ctrlMatches = shortcut.ctrlKey ? event.ctrlKey || event.metaKey : true;
         const shiftMatches = shortcut.shiftKey ? event.shiftKey : !event.shiftKey;
         const altMatches = shortcut.altKey ? event.altKey : !event.altKey;
 
@@ -72,23 +72,23 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
 
 /**
  * Get a formatted string representation of a keyboard shortcut
- * 
+ *
  * @param shortcut The shortcut to format
  * @returns Formatted string (e.g., "Ctrl+S", "Shift+D")
  */
 export function formatShortcut(shortcut: KeyboardShortcut): string {
   const parts: string[] = [];
-  
+
   if (shortcut.ctrlKey) {
     // Use "Cmd" on Mac, "Ctrl" elsewhere
     const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
     parts.push(isMac ? 'Cmd' : 'Ctrl');
   }
-  
+
   if (shortcut.shiftKey) parts.push('Shift');
   if (shortcut.altKey) parts.push('Alt');
-  
+
   parts.push(shortcut.key.toUpperCase());
-  
+
   return parts.join('+');
 }

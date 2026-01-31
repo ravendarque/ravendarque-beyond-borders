@@ -13,15 +13,15 @@ import { useState, useRef, useEffect, useCallback } from 'react';
  */
 export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  
+
   return function debounced(...args: Parameters<T>) {
     if (timeoutId !== null) {
       clearTimeout(timeoutId);
     }
-    
+
     timeoutId = setTimeout(() => {
       func(...args);
       timeoutId = null;
@@ -37,10 +37,10 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
  */
 export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle = false;
-  
+
   return function throttled(...args: Parameters<T>) {
     if (!inThrottle) {
       func(...args);
@@ -55,43 +55,43 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
 /**
  * React hook for debounced value
  * Returns a debounced version of the value that only updates after the delay
- * 
+ *
  * @param value Value to debounce
  * @param delay Delay in milliseconds
  * @returns Debounced value
- * 
+ *
  * @example
  * const [searchTerm, setSearchTerm] = useState('');
  * const debouncedSearch = useDebounce(searchTerm, 300);
- * 
+ *
  * useEffect(() => {
  *   // API call with debouncedSearch
  * }, [debouncedSearch]);
  */
 export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
-  
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
-    
+
     return () => {
       clearTimeout(timeoutId);
     };
   }, [value, delay]);
-  
+
   return debouncedValue;
 }
 
 /**
  * React hook for debounced callback
  * Returns a memoized debounced version of the callback
- * 
+ *
  * @param callback Callback to debounce
  * @param delay Delay in milliseconds
  * @returns Debounced callback
- * 
+ *
  * @example
  * const handleSearch = useDebouncedCallback(
  *   (term: string) => {
@@ -102,16 +102,16 @@ export function useDebounce<T>(value: T, delay: number): T {
  */
 export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => void {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callbackRef = useRef(callback);
-  
+
   // Update callback ref when it changes
   useEffect(() => {
     callbackRef.current = callback;
   }, [callback]);
-  
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -120,42 +120,42 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
       }
     };
   }, []);
-  
+
   return useCallback(
     (...args: Parameters<T>) => {
       if (timeoutRef.current !== null) {
         clearTimeout(timeoutRef.current);
       }
-      
+
       timeoutRef.current = setTimeout(() => {
         callbackRef.current(...args);
         timeoutRef.current = null;
       }, delay);
     },
-    [delay]
+    [delay],
   );
 }
 
 /**
  * React hook for throttled callback
  * Returns a memoized throttled version of the callback
- * 
+ *
  * @param callback Callback to throttle
  * @param limit Time limit in milliseconds
  * @returns Throttled callback
  */
 export function useThrottledCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   const inThrottleRef = useRef(false);
   const callbackRef = useRef(callback);
-  
+
   // Update callback ref when it changes
   useEffect(() => {
     callbackRef.current = callback;
   }, [callback]);
-  
+
   return useCallback(
     (...args: Parameters<T>) => {
       if (!inThrottleRef.current) {
@@ -166,7 +166,7 @@ export function useThrottledCallback<T extends (...args: unknown[]) => unknown>(
         }, limit);
       }
     },
-    [limit]
+    [limit],
   );
 }
 
@@ -190,18 +190,19 @@ export function cancelFrame(id: number): void {
  * React hook for animation frame callback
  * Batches updates to next animation frame
  */
-export function useAnimationFrame(
-  callback: (deltaTime: number) => void
-): { start: () => void; stop: () => void } {
+export function useAnimationFrame(callback: (deltaTime: number) => void): {
+  start: () => void;
+  stop: () => void;
+} {
   const requestRef = useRef<number | null>(null);
   const previousTimeRef = useRef<number | null>(null);
   const callbackRef = useRef(callback);
-  
+
   // Update callback ref when it changes
   useEffect(() => {
     callbackRef.current = callback;
   }, [callback]);
-  
+
   const animate = useCallback((time: number) => {
     if (previousTimeRef.current !== null) {
       const deltaTime = time - previousTimeRef.current;
@@ -210,13 +211,13 @@ export function useAnimationFrame(
     previousTimeRef.current = time;
     requestRef.current = requestAnimationFrame(animate);
   }, []);
-  
+
   const start = useCallback(() => {
     if (requestRef.current === null) {
       requestRef.current = requestAnimationFrame(animate);
     }
   }, [animate]);
-  
+
   const stop = useCallback(() => {
     if (requestRef.current !== null) {
       cancelAnimationFrame(requestRef.current);
@@ -224,12 +225,12 @@ export function useAnimationFrame(
       previousTimeRef.current = null;
     }
   }, []);
-  
+
   useEffect(() => {
     return () => {
       stop();
     };
   }, [stop]);
-  
+
   return { start, stop };
 }

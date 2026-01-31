@@ -10,7 +10,7 @@ export class FlagValidationError extends Error {
   constructor(
     message: string,
     public readonly flagId: string,
-    public readonly field?: string
+    public readonly field?: string,
   ) {
     super(message);
     this.name = 'FlagValidationError';
@@ -27,28 +27,28 @@ export function validateFlagPattern(flag: FlagSpec): void {
     throw new FlagValidationError(
       `Flag "${flag.id}" is missing modes.ring.colors`,
       flag.id,
-      'modes.ring.colors'
+      'modes.ring.colors',
     );
   }
-  
+
   // Check minimum color count
   if (flag.modes.ring.colors.length < 1) {
     throw new FlagValidationError(
       `Flag "${flag.id}" must have at least 1 color, got ${flag.modes.ring.colors.length}`,
       flag.id,
-      'modes.ring.colors'
+      'modes.ring.colors',
     );
   }
-  
+
   // Check maximum color count (practical limit for rendering)
   if (flag.modes.ring.colors.length > 50) {
     throw new FlagValidationError(
       `Flag "${flag.id}" has too many colors (${flag.modes.ring.colors.length}), maximum is 50`,
       flag.id,
-      'modes.ring.colors'
+      'modes.ring.colors',
     );
   }
-  
+
   // Validate each color
   flag.modes.ring.colors.forEach((color, index) => {
     // Check color exists
@@ -56,16 +56,16 @@ export function validateFlagPattern(flag: FlagSpec): void {
       throw new FlagValidationError(
         `Flag "${flag.id}" color ${index} is missing`,
         flag.id,
-        `modes.ring.colors[${index}]`
+        `modes.ring.colors[${index}]`,
       );
     }
-    
+
     // Check color is valid hex
     if (!isValidHexColor(color)) {
       throw new FlagValidationError(
         `Flag "${flag.id}" color ${index} has invalid hex color: "${color}"`,
         flag.id,
-        `modes.ring.colors[${index}]`
+        `modes.ring.colors[${index}]`,
       );
     }
   });
@@ -78,37 +78,29 @@ export function validateFlagPattern(flag: FlagSpec): void {
 export function validateFlagMetadata(flag: FlagSpec): void {
   // Check ID
   if (!flag.id || typeof flag.id !== 'string') {
-    throw new FlagValidationError(
-      'Flag is missing valid ID',
-      flag.id || 'unknown',
-      'id'
-    );
+    throw new FlagValidationError('Flag is missing valid ID', flag.id || 'unknown', 'id');
   }
-  
+
   // Check display name
   if (!flag.displayName || typeof flag.displayName !== 'string') {
     throw new FlagValidationError(
       `Flag "${flag.id}" is missing displayName`,
       flag.id,
-      'displayName'
+      'displayName',
     );
   }
-  
+
   // Check category
   if (!flag.category) {
-    throw new FlagValidationError(
-      `Flag "${flag.id}" is missing category`,
-      flag.id,
-      'category'
-    );
+    throw new FlagValidationError(`Flag "${flag.id}" is missing category`, flag.id, 'category');
   }
-  
+
   // Category must be a non-empty string; actual values come from flag-data.yaml (no fixed enum)
   if (typeof flag.category !== 'string' || !/^[a-z0-9-]+$/.test(flag.category)) {
     throw new FlagValidationError(
       `Flag "${flag.id}" has invalid category: "${flag.category}" (expected slug-like string)`,
       flag.id,
-      'category'
+      'category',
     );
   }
 }
@@ -140,10 +132,7 @@ export function validateFlagSafe(flag: FlagSpec): {
     // Unexpected error type
     return {
       isValid: false,
-      error: new FlagValidationError(
-        `Unexpected validation error: ${error}`,
-        flag.id || 'unknown'
-      ),
+      error: new FlagValidationError(`Unexpected validation error: ${error}`, flag.id || 'unknown'),
     };
   }
 }

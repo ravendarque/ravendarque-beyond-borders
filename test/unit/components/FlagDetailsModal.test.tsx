@@ -25,25 +25,21 @@ describe('FlagDetailsModal', () => {
 
   it('should not render when flag is null', () => {
     const { container } = render(
-      <FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={null} />
+      <FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={null} />,
     );
-    
+
     expect(container.firstChild).toBeNull();
   });
 
   it('should not render when open is false', () => {
-    render(
-      <FlagDetailsModal open={false} onOpenChange={vi.fn()} flag={mockFlag} />
-    );
-    
+    render(<FlagDetailsModal open={false} onOpenChange={vi.fn()} flag={mockFlag} />);
+
     expect(screen.queryByText('Test Flag Name')).toBeFalsy();
   });
 
   it('should render flag name as title', () => {
-    render(
-      <FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />
-    );
-    
+    render(<FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />);
+
     expect(screen.getByText('Test Flag Name')).toBeTruthy();
   });
 
@@ -52,19 +48,15 @@ describe('FlagDetailsModal', () => {
       ...mockFlag,
       name: undefined,
     };
-    
-    render(
-      <FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={flagWithoutName} />
-    );
-    
+
+    render(<FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={flagWithoutName} />);
+
     expect(screen.getByText('Test Flag')).toBeTruthy();
   });
 
   it('should render reason when available', () => {
-    render(
-      <FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />
-    );
-    
+    render(<FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />);
+
     expect(screen.getByText('This is a test flag reason')).toBeTruthy();
   });
 
@@ -73,19 +65,15 @@ describe('FlagDetailsModal', () => {
       ...mockFlag,
       reason: null,
     };
-    
-    render(
-      <FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={flagWithoutReason} />
-    );
-    
+
+    render(<FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={flagWithoutReason} />);
+
     expect(screen.queryByText('This is a test flag reason')).toBeFalsy();
   });
 
   it('should render references when available', () => {
-    render(
-      <FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />
-    );
-    
+    render(<FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />);
+
     expect(screen.getByText('Further reading')).toBeTruthy();
     expect(screen.getByText('Reference 1')).toBeTruthy();
     expect(screen.getByText('Reference 2')).toBeTruthy();
@@ -96,19 +84,15 @@ describe('FlagDetailsModal', () => {
       ...mockFlag,
       references: null,
     };
-    
-    render(
-      <FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={flagWithoutReferences} />
-    );
-    
+
+    render(<FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={flagWithoutReferences} />);
+
     expect(screen.queryByText('Further reading')).toBeFalsy();
   });
 
   it('should render close button', () => {
-    render(
-      <FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />
-    );
-    
+    render(<FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />);
+
     const closeButton = screen.getByLabelText(/close dialog/i);
     expect(closeButton).toBeTruthy();
   });
@@ -116,26 +100,21 @@ describe('FlagDetailsModal', () => {
   it('should call onOpenChange with false when close button is clicked', async () => {
     const user = userEvent.setup();
     const onOpenChange = vi.fn();
-    
-    render(
-      <FlagDetailsModal open={true} onOpenChange={onOpenChange} flag={mockFlag} />
-    );
-    
+
+    render(<FlagDetailsModal open={true} onOpenChange={onOpenChange} flag={mockFlag} />);
+
     const closeButton = screen.getByLabelText(/close dialog/i);
     await user.click(closeButton);
-    
+
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it('should render reference links with correct attributes', () => {
-    render(
-      <FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />
-    );
-    
+    render(<FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />);
+
     const link1 = screen.getByText('Reference 1') as HTMLAnchorElement;
     expect(link1.href).toBe('https://example.com/ref1');
     expect(link1.target).toBe('_blank');
     expect(link1.rel).toBe('noopener noreferrer');
   });
 });
-

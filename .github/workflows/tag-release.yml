@@ -40,11 +40,11 @@ jobs:
           CURRENT_MINOR="${{ steps.gitversion.outputs.minor }}"
           CURRENT_PATCH="${{ steps.gitversion.outputs.patch }}"
           FULL_VERSION="${{ steps.gitversion.outputs.fullSemVer }}"
-          
+
           # Get latest tag to compare
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          
+
           if [ -z "$LATEST_TAG" ]; then
             # No tag exists, create initial tag
             NEW_TAG="v${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}"
@@ -53,7 +53,7 @@ jobs:
             echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           # Parse latest tag
           if [[ $LATEST_TAG =~ v([0-9]+)\.([0-9]+)(?:\.([0-9]+))? ]]; then
             TAG_MAJOR=${BASH_REMATCH[1]}
@@ -64,7 +64,7 @@ jobs:
             TAG_MINOR=0
             TAG_PATCH=0
           fi
-          
+
           # Determine bump type by comparing versions
           BUMP_TYPE="none"
           if [ "$CURRENT_MAJOR" -gt "$TAG_MAJOR" ]; then
@@ -72,7 +72,7 @@ jobs:
           elif [ "$CURRENT_MAJOR" -eq "$TAG_MAJOR" ] && [ "$CURRENT_MINOR" -gt "$TAG_MINOR" ]; then
             BUMP_TYPE="minor"
           fi
-          
+
           # Only create tag if there's a major or minor bump
           if [ "$BUMP_TYPE" = "none" ]; then
             echo "No major or minor version bump detected. Skipping tag creation."
@@ -80,7 +80,7 @@ jobs:
             echo "new_tag=" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           # Create full version tag
           NEW_TAG="v${CURRENT_MAJOR}.${CURRENT_MINOR}.${CURRENT_PATCH}"
           echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
@@ -108,41 +108,41 @@ jobs:
         run: |
           NEW_TAG="${{ steps.version.outputs.new_tag }}"
           LATEST_TAG="${{ steps.version.outputs.latest_tag }}"
-          
+
           # Get commits since last tag (or all commits if no tag)
           if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "v0.0.0" ]; then
             COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
           else
             COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
           fi
-          
+
           # Categorize commits by type (match after "- " prefix)
           FEATURES=$(echo "$COMMITS" | grep -E "^- (feat|feature)" || true)
           FIXES=$(echo "$COMMITS" | grep -E "^- (fix|bugfix)" || true)
           BREAKING=$(echo "$COMMITS" | grep -E "(BREAKING CHANGE|feat!|!:|breaking)" || true)
           OTHER=$(echo "$COMMITS" | grep -vE "^- (feat|feature|fix|bugfix)" || true)
-          
+
           # Build changelog in a variable to avoid YAML parsing issues
           CHANGELOG="## What's Changed"
-          
+
           if [ -n "$BREAKING" ]; then
             CHANGELOG="$CHANGELOG"$'\n\n'"### ⚠️ Breaking Changes"$'\n'"$BREAKING"
           fi
-          
+
           if [ -n "$FEATURES" ]; then
             CHANGELOG="$CHANGELOG"$'\n\n'"### ✨ New Features"$'\n'"$FEATURES"
           fi
-          
+
           if [ -n "$FIXES" ]; then
             CHANGELOG="$CHANGELOG"$'\n\n'"### 🐛 Bug Fixes"$'\n'"$FIXES"
           fi
-          
+
           if [ -n "$OTHER" ]; then
             CHANGELOG="$CHANGELOG"$'\n\n'"### 📝 Other Changes"$'\n'"$OTHER"
           fi
-          
+
           CHANGELOG="$CHANGELOG"$'\n\n'"## Full Changelog"$'\n'"\`\`\`"$'\n'"$COMMITS"$'\n'"\`\`\`"
-          
+
           # Output using delimiter to avoid YAML parsing issues
           {
             echo "changelog<<CHANGELOG_EOF"
@@ -155,13 +155,13 @@ jobs:
         run: |
           NEW_TAG="${{ steps.version.outputs.new_tag }}"
           BUMP_TYPE="${{ steps.version.outputs.bump_type }}"
-          
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           git tag -a "$NEW_TAG" -m "Release $NEW_TAG ($BUMP_TYPE bump)"
           git push origin "$NEW_TAG"
-          
+
           echo "Created and pushed tag: $NEW_TAG"
 
       - name: Create GitHub Release
@@ -181,7 +181,7 @@ jobs:
           BUMP_TYPE="${{ steps.version.outputs.bump_type }}"
           NEW_TAG="${{ steps.version.outputs.new_tag }}"
           EXISTS="${{ steps.check-tag.outputs.exists }}"
-          
+
           if [ "$BUMP_TYPE" = "none" ] || [ -z "$NEW_TAG" ]; then
             echo "### ℹ️ No Version Bump" >> $GITHUB_STEP_SUMMARY
             echo "No major or minor version bump detected in commits." >> $GITHUB_STEP_SUMMARY

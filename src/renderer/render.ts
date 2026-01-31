@@ -16,40 +16,40 @@ import { FILE_SIZE } from '@/constants';
 export interface RenderOptions {
   /** Output size in pixels (512 or 1024) */
   size: 512 | 1024;
-  
+
   /** Border thickness as percentage of canvas size (5-20) */
   thicknessPct: number;
-  
+
   /** Padding around the outer edge as percentage of canvas size */
   paddingPct?: number;
-  
+
   /** Optional stroke around the outer edge */
   outerStroke?: { color: string; widthPx: number };
-  
-  /** 
+
+  /**
    * Offset to apply to the user's image center in ring/segment modes (pixels)
    * Note: Not used in cutout mode - use flagOffsetPct instead
    */
   imageOffsetPx?: { x: number; y: number };
-  
+
   /**
    * Zoom level for the user's image (0-200, where 0 is no zoom, 100 is 2x, 200 is 3x)
    * Applied to the image scale after cover sizing
    */
   imageZoom?: number;
-  
+
   /**
    * Circle size from Step 1 (for accurate position/zoom calculation)
    * Used to translate Step 1's coordinate system to renderer's coordinate system
    */
   circleSize?: number;
-  
+
   /**
    * Original image dimensions (before downsampling)
    * Used for accurate zoom calculation when image has been downsampled
    */
   originalImageDimensions?: { width: number; height: number };
-  
+
   /**
    * Offset to apply to flag pattern in cutout mode (percentage: -50 to +50)
    * Only applies when presentation is 'cutout'
@@ -58,29 +58,29 @@ export interface RenderOptions {
    * +50%: right edge of border touches right edge of flag
    */
   flagOffsetPct?: { x: number; y: number };
-  
+
   /** Optional pre-rendered flag image (PNG) for accurate flag rendering */
   borderImageBitmap?: ImageBitmap | undefined;
-  
+
   /** Border presentation style */
   presentation?: 'ring' | 'segment' | 'cutout';
-  
+
   /** Rotation angle for segment mode in degrees (0-360) */
   segmentRotation?: number;
-  
+
   /** Background color (null or 'transparent' for transparent background) */
   backgroundColor?: string | null;
-  
+
   /** Enable performance metrics logging (default: development mode only) */
   enablePerformanceTracking?: boolean;
-  
+
   /** Enable automatic image downsampling for large images (default: true) */
   enableDownsampling?: boolean;
-  
+
   /** Progress callback for loading indicators (0-1) */
   onProgress?: (progress: number) => void;
-  
-  /** 
+
+  /**
    * PNG compression quality (0-1, higher = better quality but larger file)
    * Default: 0.92 (optimal balance between quality and file size)
    * Note: PNG compression is lossless, but this affects encoding time and size
@@ -104,12 +104,12 @@ export interface RenderResult {
 
 /**
  * Renders an avatar with a flag-themed border
- * 
+ *
  * @param image - The user's image as an ImageBitmap
  * @param flag - Flag specification with colors, pattern, and metadata
  * @param options - Rendering options (size, style, offsets, etc.)
  * @returns A Promise that resolves to a Blob containing the rendered PNG image
- * 
+ *
  * @example
  * ```typescript
  * // Ring mode with flag border
@@ -120,7 +120,7 @@ export interface RenderResult {
  *   backgroundColor: '#ffffff'
  * });
  * console.log(`File size: ${result.sizeKB} KB`); // e.g., "156.23 KB"
- * 
+ *
  * // Cutout mode with flag offset and custom compression
  * const result = await renderAvatar(userImage, kurdistanFlag, {
  *   size: 1024,
@@ -139,36 +139,36 @@ export async function renderAvatar(
 ): Promise<RenderResult> {
   // Performance tracking
   const tracker = new RenderPerformanceTracker();
-  const enableTracking = options.enablePerformanceTracking ?? (import.meta.env.DEV);
+  const enableTracking = options.enablePerformanceTracking ?? import.meta.env.DEV;
   if (enableTracking) {
     tracker.start();
     tracker.mark('start');
   }
-  
+
   // Image downsampling for large images
   const enableDownsampling = options.enableDownsampling ?? true;
   let processedImage = image;
   let wasDownsampled = false;
   let downsampleRatio = 1;
-  
+
   if (enableDownsampling && shouldDownsample(image.width, image.height, options.size)) {
     const downsampleSize = calculateDownsampleSize(image.width, image.height, options.size);
     processedImage = await downsampleImage(image, downsampleSize.width, downsampleSize.height);
     wasDownsampled = true;
     downsampleRatio = downsampleSize.scale;
-    
+
     if (enableTracking) {
       tracker.mark('imageDownsampled');
     }
   }
-  
+
   if (enableTracking) {
     tracker.mark('imageLoaded');
   }
-  
+
   // Report progress: image loaded (20%)
   options.onProgress?.(0.2);
-  
+
   const size = options.size;
   const canvasW = size;
   const canvasH = size;
@@ -180,7 +180,7 @@ export async function renderAvatar(
 
   // Create canvas (with OffscreenCanvas fallback and size validation)
   const { canvas, ctx } = createCanvas(canvasW, canvasH);
-  
+
   // Enable high-quality image smoothing for crisp rendering
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
@@ -206,7 +206,7 @@ export async function renderAvatar(
 
   // Get colors from modes.ring.colors (all stripes have weight 1)
   const ringColors = flag.modes?.ring?.colors ?? [];
-  const stripes = ringColors.map(color => ({ color, weight: 1 }));
+  const stripes = ringColors.map((color) => ({ color, weight: 1 }));
   const totalWeight = stripes.length;
   const presentation = options.presentation as 'ring' | 'segment' | 'cutout' | undefined;
   let borderStyle: 'concentric' | 'angular' | 'cutout';
@@ -223,15 +223,15 @@ export async function renderAvatar(
     // Step 1: Draw the user's image in the center circle (respecting inset and position)
     // imageOffsetPx is used for image positioning, flagOffsetPct is used for flag pattern offset
     ctx.save();
-    
+
     // Calculate image center FIRST (before clipping) so clip path matches image position
     const iw = processedImage.width;
     const ih = processedImage.height;
     // Scale image to fit the inner circle (respecting inset)
     const target = imageRadius * 2;
     const zoom = options.imageZoom ?? 0;
-    const zoomMultiplier = 1 + (zoom / 100);
-    
+    const zoomMultiplier = 1 + zoom / 100;
+
     // CRITICAL: Zoom must be calculated relative to Step 1's circleSize, not renderer's circleSize
     // Use original image dimensions for zoom calculation, not downsampled dimensions
     const originalWidth = options.originalImageDimensions?.width ?? iw;
@@ -240,7 +240,10 @@ export async function renderAvatar(
     let scale: number;
     if (options.circleSize && options.circleSize > 0) {
       // Calculate cover scale relative to Step 1's circleSize using ORIGINAL image dimensions
-      const step1CoverScale = Math.max(options.circleSize / originalWidth, options.circleSize / originalHeight);
+      const step1CoverScale = Math.max(
+        options.circleSize / originalWidth,
+        options.circleSize / originalHeight,
+      );
       const step1ZoomedScale = step1CoverScale * zoomMultiplier;
       const scaleFactor = target / options.circleSize;
       scale = step1ZoomedScale * scaleFactor;
@@ -249,13 +252,13 @@ export async function renderAvatar(
       const rendererCoverScale = Math.max(target / originalWidth, target / originalHeight);
       scale = rendererCoverScale * zoomMultiplier;
     }
-    
+
     // CRITICAL: If image was downsampled, adjust scale to account for downsampling ratio
     const adjustedScale = wasDownsampled && downsampleRatio > 0 ? scale / downsampleRatio : scale;
 
     const dw = iw * adjustedScale;
     const dh = ih * adjustedScale;
-    
+
     // CRITICAL: Circle center is ALWAYS at canvas center - it never moves.
     // The circle size is: canvas size - (border thickness * 2), centered on canvas.
     // Only the IMAGE position changes based on Step 1 adjustments (via imageOffsetPx).
@@ -265,12 +268,12 @@ export async function renderAvatar(
     // Apply image offset for positioning within the circle (from imagePosition)
     const imgOffsetX = options.imageOffsetPx?.x ?? 0;
     const imgOffsetY = options.imageOffsetPx?.y ?? 0;
-    
+
     // Use mask instead of clip to avoid anti-aliasing sampling artifacts
     // Draw image first, then apply circular mask using destination-in
     // Image is drawn offset from circle center, but circle mask stays centered
     ctx.drawImage(processedImage, cx - dw / 2 + imgOffsetX, cy - dh / 2 + imgOffsetY, dw, dh);
-    
+
     // Create circular mask at the fixed center position
     ctx.globalCompositeOperation = 'destination-in';
     ctx.fillStyle = '#ffffff';
@@ -280,14 +283,14 @@ export async function renderAvatar(
     ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
     ctx.restore();
-    
+
     // Report progress: image drawn (40%)
     options.onProgress?.(0.4);
 
     // Step 2: Create a flag texture for the ring area
     // Use flagOffsetPct (percentage) for flag pattern shifting
     const flagOffsetPct = options.flagOffsetPct?.x ?? 0;
-    
+
     // Calculate extra width needed for flag shifting
     // Estimate based on max possible flag extension (flag could extend up to canvas width)
     // Use 3x multiplier for safety margin
@@ -295,38 +298,38 @@ export async function renderAvatar(
     const extraWidth = Math.abs(flagOffsetPct / 50) * estimatedMaxExtension * 3;
     const flagCanvas = new OffscreenCanvas(canvasW + extraWidth, canvasH);
     const flagCtx = flagCanvas.getContext('2d')!;
-    
+
     // Enable high-quality image smoothing for crisp flag rendering
     flagCtx.imageSmoothingEnabled = true;
     flagCtx.imageSmoothingQuality = 'high';
-    
+
     // The ring center on the flagCanvas (accounting for extraWidth)
     const ringCenterX = extraWidth / 2 + r;
-    
+
     // If a border image (PNG) is provided, use it for accurate flag rendering
     if (options.borderImageBitmap) {
       // Draw the flag PNG image with FIXED size based on ring height (diameter) and flag aspect ratio
       // The flag should NOT scale based on offset - offset only shifts position
-      
+
       // Flag rectangle height = ring outer diameter
       // This matches the full height of the outer circle
       // This is constant regardless of offset
       const ringOuterDiameter = ringOuterRadius * 2;
       const flagRectHeight = ringOuterDiameter;
-      
+
       // Flag rectangle width = height * aspect ratio from flags.ts (maintains flag's natural proportions)
       // Use the aspect ratio from the flag data, not from the bitmap dimensions
       // Note: The flag will extend beyond the circle's edges horizontally, but the circular clipping will cut it off
       const flagAspectRatio = flag.aspectRatio ?? 2; // Default to 2:1 if not specified
       const flagRectWidth = flagRectHeight * flagAspectRatio;
-      
+
       // Position flag with offset
       // The ring center on flagCanvas is at ringCenterX
       // Offset semantics (from schema):
       //   -50%: left edge of border touches left edge of flag
       //   0%: center, no offset
       //   +50%: right edge of border touches right edge of flag
-      // 
+      //
       // The flag extends beyond the ring by (flagRectWidth - ringOuterDiameter) / 2 on each side
       // We map the offset percentage (-50 to +50) directly to this extension range
       const flagExtension = (flagRectWidth - ringOuterDiameter) / 2;
@@ -337,7 +340,7 @@ export async function renderAvatar(
       const offsetPx = -(flagOffsetPct / 50) * flagExtension;
       const dx = ringCenterX - flagRectWidth / 2 + offsetPx;
       const dy = r - flagRectHeight / 2;
-      
+
       flagCtx.drawImage(options.borderImageBitmap, dx, dy, flagRectWidth, flagRectHeight);
     } else {
       // Draw horizontal stripes from modes.ring.colors
@@ -350,7 +353,7 @@ export async function renderAvatar(
         y += h;
       }
     }
-    
+
     // Clip the flag to only the ring area (annulus)
     // The ring is centered at ringCenterX on the flagCanvas
     flagCtx.globalCompositeOperation = 'destination-in';
@@ -359,7 +362,7 @@ export async function renderAvatar(
     flagCtx.arc(ringCenterX, r, ringOuterRadius, 0, Math.PI * 2);
     flagCtx.arc(ringCenterX, r, ringInnerRadius, Math.PI * 2, 0, true); // Cut out the inner circle
     flagCtx.fill();
-    
+
     // Step 3: Draw the flag ring on top of the image
     // Offset the drawing position to account for the extra canvas width
     // This aligns the ring center on flagCanvas (ringCenterX) with the ring center on main canvas (r)
@@ -373,130 +376,139 @@ export async function renderAvatar(
      * Note: imageOffsetPx can be used to shift image center if needed
      */
 
-  // Draw circular masked image (kept inside border)
-  ctx.save();
-  
-  // Calculate image center FIRST (before clipping) so clip path matches image position
-  const iw = processedImage.width,
-    ih = processedImage.height;
-  const target = imageRadius * 2;
-  const zoom = options.imageZoom ?? 0;
-  const zoomMultiplier = 1 + (zoom / 100);
-  
-  // CRITICAL: Zoom must be calculated relative to Step 1's circleSize, not renderer's circleSize
-  // Use original image dimensions for zoom calculation, not downsampled dimensions
-  const originalWidth = options.originalImageDimensions?.width ?? iw;
-  const originalHeight = options.originalImageDimensions?.height ?? ih;
+    // Draw circular masked image (kept inside border)
+    ctx.save();
 
-  let scale: number;
-  if (options.circleSize && options.circleSize > 0) {
-    // Calculate cover scale relative to Step 1's circleSize using ORIGINAL image dimensions
-    const step1CoverScale = Math.max(options.circleSize / originalWidth, options.circleSize / originalHeight);
-    const step1ZoomedScale = step1CoverScale * zoomMultiplier;
-    const scaleFactor = target / options.circleSize;
-    scale = step1ZoomedScale * scaleFactor;
-  } else {
-    // No circleSize provided - use simple calculation (fallback)
-    const rendererCoverScale = Math.max(target / originalWidth, target / originalHeight);
-    scale = rendererCoverScale * zoomMultiplier;
-  }
-  
-  // CRITICAL: If image was downsampled, adjust scale to account for downsampling ratio
-  const adjustedScale = wasDownsampled && downsampleRatio > 0 ? scale / downsampleRatio : scale;
+    // Calculate image center FIRST (before clipping) so clip path matches image position
+    const iw = processedImage.width,
+      ih = processedImage.height;
+    const target = imageRadius * 2;
+    const zoom = options.imageZoom ?? 0;
+    const zoomMultiplier = 1 + zoom / 100;
 
-  const dw = iw * adjustedScale,
-    dh = ih * adjustedScale;
-  
-  // CRITICAL: Circle center is ALWAYS at canvas center - it never moves.
-  // The circle size is: canvas size - (border thickness * 2), centered on canvas.
-  // Only the IMAGE position changes based on Step 1 adjustments (via imageOffsetPx).
-  // DO NOT apply imgOffsetX/Y to cx/cy - that would move the circle itself, which is wrong.
-  const cx = canvasW / 2;
-  const cy = canvasH / 2;
-  // Apply image offset for positioning within the circle (from imagePosition)
-  const imgOffsetX = options.imageOffsetPx?.x ?? 0;
-  const imgOffsetY = options.imageOffsetPx?.y ?? 0;
-  
-  // Use mask instead of clip to avoid anti-aliasing sampling artifacts
-  // Draw image first, then apply circular mask using destination-in
-  // Image is drawn offset from circle center, but circle mask stays centered
-  ctx.drawImage(processedImage, cx - dw / 2 + imgOffsetX, cy - dh / 2 + imgOffsetY, dw, dh);
-  
-  // Create circular mask at the fixed center position
-  ctx.globalCompositeOperation = 'destination-in';
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.arc(cx, cy, imageRadius, 0, Math.PI * 2);
-  ctx.closePath();
-  ctx.fill();
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.restore();
-  
-  // Report progress: image drawn (50%)
-  options.onProgress?.(0.5);
+    // CRITICAL: Zoom must be calculated relative to Step 1's circleSize, not renderer's circleSize
+    // Use original image dimensions for zoom calculation, not downsampled dimensions
+    const originalWidth = options.originalImageDimensions?.width ?? iw;
+    const originalHeight = options.originalImageDimensions?.height ?? ih;
 
-  // Draw ring segments for the flag
-  // If a border image bitmap is provided, prefer rendering it wrapped around the annulus.
-  // (Not used for cutout mode which has its own rendering path above)
-  if (options.borderImageBitmap && presentation !== 'cutout') {
-    // If the caller provided an SVG (or any) bitmap, generate a texture mapped to the ring
-    const thickness = Math.max(1, Math.round(ringOuterRadius - ringInnerRadius));
-    const midR = (ringInnerRadius + ringOuterRadius) / 2;
-    const circumference = Math.max(2, Math.round(2 * Math.PI * midR));
-    const texW = circumference;
-    const texH = thickness;
-    try {
-      const tex = new OffscreenCanvas(texW, texH);
-      const tctx = tex.getContext('2d')!;
-      // draw the provided bitmap into the texture using cover semantics
-      const bw = options.borderImageBitmap.width;
-      const bh = options.borderImageBitmap.height;
-      const scale = Math.max(texW / bw, texH / bh);
-      const dw = Math.round(bw * scale);
-      const dh = Math.round(bh * scale);
-      const dx = Math.round((texW - dw) / 2);
-      const dy = Math.round((texH - dh) / 2);
-      tctx.clearRect(0, 0, texW, texH);
-      tctx.drawImage(options.borderImageBitmap, 0, 0, bw, bh, dx, dy, dw, dh);
-      const bmpTex = await createImageBitmap(tex);
-      // Map left-edge -> top of ring, apply rotation if provided
-      const rotationRad = options.segmentRotation !== undefined 
-        ? (options.segmentRotation * Math.PI) / 180 
-        : 0;
-      const startAngle = -Math.PI / 2 + rotationRad;
-      drawTexturedAnnulus(ctx, cx, ringInnerRadius, ringOuterRadius, bmpTex, startAngle, 'normal');
-    } catch {
-      // fallback: draw it directly (older behavior)
+    let scale: number;
+    if (options.circleSize && options.circleSize > 0) {
+      // Calculate cover scale relative to Step 1's circleSize using ORIGINAL image dimensions
+      const step1CoverScale = Math.max(
+        options.circleSize / originalWidth,
+        options.circleSize / originalHeight,
+      );
+      const step1ZoomedScale = step1CoverScale * zoomMultiplier;
+      const scaleFactor = target / options.circleSize;
+      scale = step1ZoomedScale * scaleFactor;
+    } else {
+      // No circleSize provided - use simple calculation (fallback)
+      const rendererCoverScale = Math.max(target / originalWidth, target / originalHeight);
+      scale = rendererCoverScale * zoomMultiplier;
+    }
+
+    // CRITICAL: If image was downsampled, adjust scale to account for downsampling ratio
+    const adjustedScale = wasDownsampled && downsampleRatio > 0 ? scale / downsampleRatio : scale;
+
+    const dw = iw * adjustedScale,
+      dh = ih * adjustedScale;
+
+    // CRITICAL: Circle center is ALWAYS at canvas center - it never moves.
+    // The circle size is: canvas size - (border thickness * 2), centered on canvas.
+    // Only the IMAGE position changes based on Step 1 adjustments (via imageOffsetPx).
+    // DO NOT apply imgOffsetX/Y to cx/cy - that would move the circle itself, which is wrong.
+    const cx = canvasW / 2;
+    const cy = canvasH / 2;
+    // Apply image offset for positioning within the circle (from imagePosition)
+    const imgOffsetX = options.imageOffsetPx?.x ?? 0;
+    const imgOffsetY = options.imageOffsetPx?.y ?? 0;
+
+    // Use mask instead of clip to avoid anti-aliasing sampling artifacts
+    // Draw image first, then apply circular mask using destination-in
+    // Image is drawn offset from circle center, but circle mask stays centered
+    ctx.drawImage(processedImage, cx - dw / 2 + imgOffsetX, cy - dh / 2 + imgOffsetY, dw, dh);
+
+    // Create circular mask at the fixed center position
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, imageRadius, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
+
+    // Report progress: image drawn (50%)
+    options.onProgress?.(0.5);
+
+    // Draw ring segments for the flag
+    // If a border image bitmap is provided, prefer rendering it wrapped around the annulus.
+    // (Not used for cutout mode which has its own rendering path above)
+    if (options.borderImageBitmap && presentation !== 'cutout') {
+      // If the caller provided an SVG (or any) bitmap, generate a texture mapped to the ring
+      const thickness = Math.max(1, Math.round(ringOuterRadius - ringInnerRadius));
+      const midR = (ringInnerRadius + ringOuterRadius) / 2;
+      const circumference = Math.max(2, Math.round(2 * Math.PI * midR));
+      const texW = circumference;
+      const texH = thickness;
       try {
-        drawTexturedAnnulus(ctx, cx, ringInnerRadius, ringOuterRadius, options.borderImageBitmap);
+        const tex = new OffscreenCanvas(texW, texH);
+        const tctx = tex.getContext('2d')!;
+        // draw the provided bitmap into the texture using cover semantics
+        const bw = options.borderImageBitmap.width;
+        const bh = options.borderImageBitmap.height;
+        const scale = Math.max(texW / bw, texH / bh);
+        const dw = Math.round(bw * scale);
+        const dh = Math.round(bh * scale);
+        const dx = Math.round((texW - dw) / 2);
+        const dy = Math.round((texH - dh) / 2);
+        tctx.clearRect(0, 0, texW, texH);
+        tctx.drawImage(options.borderImageBitmap, 0, 0, bw, bh, dx, dy, dw, dh);
+        const bmpTex = await createImageBitmap(tex);
+        // Map left-edge -> top of ring, apply rotation if provided
+        const rotationRad =
+          options.segmentRotation !== undefined ? (options.segmentRotation * Math.PI) / 180 : 0;
+        const startAngle = -Math.PI / 2 + rotationRad;
+        drawTexturedAnnulus(
+          ctx,
+          cx,
+          ringInnerRadius,
+          ringOuterRadius,
+          bmpTex,
+          startAngle,
+          'normal',
+        );
       } catch {
-        // last resort: semi-transparent concentric rings
-        ctx.save();
-        ctx.globalAlpha = 0.64;
-        drawConcentricRings(ctx, cx, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
-        ctx.restore();
+        // fallback: draw it directly (older behavior)
+        try {
+          drawTexturedAnnulus(ctx, cx, ringInnerRadius, ringOuterRadius, options.borderImageBitmap);
+        } catch {
+          // last resort: semi-transparent concentric rings
+          ctx.save();
+          ctx.globalAlpha = 0.64;
+          drawConcentricRings(ctx, cx, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
+          ctx.restore();
+        }
+      }
+    } else if (borderStyle === 'concentric') {
+      // Map horizontal stripes to concentric annuli from outer->inner to preserve stripe order (top => outer)
+      drawConcentricRings(ctx, cx, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
+    } else {
+      // default: angular arcs (vertical stripes map naturally around circumference)
+      // Apply rotation if provided (convert degrees to radians)
+      const rotationRad =
+        options.segmentRotation !== undefined ? (options.segmentRotation * Math.PI) / 180 : 0;
+      let start = -Math.PI / 2 + rotationRad; // start at top center, apply rotation
+      for (const stripe of stripes) {
+        const frac = stripe.weight / totalWeight;
+        const sweep = Math.PI * 2 * frac;
+        const end = start + sweep;
+        drawRingArc(ctx, cx, ringInnerRadius, ringOuterRadius, start, end, stripe.color);
+        start = end;
       }
     }
-  } else if (borderStyle === 'concentric') {
-    // Map horizontal stripes to concentric annuli from outer->inner to preserve stripe order (top => outer)
-    drawConcentricRings(ctx, cx, ringInnerRadius, ringOuterRadius, stripes, totalWeight);
-  } else {
-    // default: angular arcs (vertical stripes map naturally around circumference)
-    // Apply rotation if provided (convert degrees to radians)
-    const rotationRad = options.segmentRotation !== undefined 
-      ? (options.segmentRotation * Math.PI) / 180 
-      : 0;
-    let start = -Math.PI / 2 + rotationRad; // start at top center, apply rotation
-    for (const stripe of stripes) {
-      const frac = stripe.weight / totalWeight;
-      const sweep = Math.PI * 2 * frac;
-      const end = start + sweep;
-      drawRingArc(ctx, cx, ringInnerRadius, ringOuterRadius, start, end, stripe.color);
-      start = end;
-    }
-  }
   } // Close the else block for non-cutout mode
-  
+
   // Report progress: rendering complete (80%)
   if (enableTracking) {
     tracker.mark('renderComplete');
@@ -516,47 +528,47 @@ export async function renderAvatar(
   // PNG compression quality: 0.92 is optimal balance between quality and file size
   const pngQuality = options.pngQuality ?? 0.92;
   const blob = await canvasToBlob(canvas, 'image/png', pngQuality);
-  
+
   // Calculate file size
   const sizeBytes = blob.size;
   const sizeKB = (sizeBytes / FILE_SIZE.BYTES_PER_KB).toFixed(2);
-  
+
   // Report progress: export complete (100%)
   if (enableTracking) {
     tracker.mark('exportComplete');
-    
+
     // Generate and log metrics
     const metrics = tracker.complete(
       { width: image.width, height: image.height },
       { width: canvasW, height: canvasH },
       wasDownsampled,
-      downsampleRatio
+      downsampleRatio,
     );
-    
+
     logRenderMetrics(metrics);
-    
+
     // Log file size in development
     if (import.meta.env.DEV) {
       // eslint-disable-next-line no-console
       console.log(`📦 Export size: ${sizeKB} KB (${sizeBytes.toLocaleString()} bytes)`);
     }
-    
+
     options.onProgress?.(1.0);
-    
+
     return {
       blob,
       sizeBytes,
       sizeKB,
-      metrics
+      metrics,
     };
   }
-  
+
   options.onProgress?.(1.0);
-  
+
   return {
     blob,
     sizeBytes,
-    sizeKB
+    sizeKB,
   };
 }
 
@@ -625,7 +637,12 @@ function drawRingArc(
  * across the width (circumference) and use height as thickness.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function createStripeTexture(stripes: { color: string; weight: number }[], orientation: string, w: number, h: number): OffscreenCanvas {
+function createStripeTexture(
+  stripes: { color: string; weight: number }[],
+  orientation: string,
+  w: number,
+  h: number,
+): OffscreenCanvas {
   const canvas = new OffscreenCanvas(Math.max(1, w), Math.max(1, h));
   const ctx = canvas.getContext('2d')!;
   // Normalize weights
@@ -731,7 +748,7 @@ function drawTexturedAnnulus(
       while (angle >= twoPI) angle -= twoPI;
 
       // Map to texture coordinates
-      const u = (angle * invTwoPI) * texW; // horizontal position in texture
+      const u = angle * invTwoPI * texW; // horizontal position in texture
       const v = ((radius - innerR) / thickness) * texH; // vertical position in texture
 
       // Nearest-neighbour sample (fast and avoids weighted blending)

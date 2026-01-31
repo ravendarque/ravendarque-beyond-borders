@@ -1,6 +1,6 @@
 /**
  * Application-wide constants
- * 
+ *
  * Centralized location for magic numbers and configuration values
  * to improve maintainability and consistency.
  */
@@ -44,4 +44,4 @@ export const FILE_SIZE = {
 /**
  * Type for render size options
  */
-export type RenderSize = typeof RENDER_SIZES[keyof typeof RENDER_SIZES];
+export type RenderSize = (typeof RENDER_SIZES)[keyof typeof RENDER_SIZES];

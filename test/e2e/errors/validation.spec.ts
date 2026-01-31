@@ -12,12 +12,12 @@ test.describe('File Upload Validation', () => {
     await page.goto('/');
 
     const fileInput = page.locator('input[type="file"]').first();
-    
+
     // Check accept attribute restricts to images
     const accept = await fileInput.getAttribute('accept');
     expect(accept).toBeTruthy();
     expect(accept).toMatch(/image\//);
-    
+
     // Verify the input type is file
     const type = await fileInput.getAttribute('type');
     expect(type).toBe('file');
@@ -45,7 +45,7 @@ test.describe('File Upload Validation', () => {
         break;
       }
     }
-    
+
     // Error handling may be implemented via toast library or other means
     // This test verifies the UI is set up for error display
     expect(hasErrorHandling || true).toBe(true); // Always pass - just checking structure

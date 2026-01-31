@@ -16,9 +16,9 @@ interface ErrorBoundaryState {
 
 /**
  * ErrorBoundary - Catches React errors in child components and displays fallback UI
- * 
+ *
  * Single Responsibility: Error boundary for graceful error handling
- * 
+ *
  * Usage:
  * ```tsx
  * <ErrorBoundary fallback={<div>Something went wrong</div>}>
@@ -65,18 +65,19 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       // Default fallback UI
       return (
-        <div className="error-boundary-fallback" style={{
-          padding: '20px',
-          textAlign: 'center',
-          color: 'var(--color-dark-gray)',
-          fontFamily: "'Segoe UI', sans-serif",
-        }}>
+        <div
+          className="error-boundary-fallback"
+          style={{
+            padding: '20px',
+            textAlign: 'center',
+            color: 'var(--color-dark-gray)',
+            fontFamily: "'Segoe UI', sans-serif",
+          }}
+        >
           <h2 style={{ margin: '0 0 10px 0', color: 'var(--color-red-accent)' }}>
             Something went wrong
           </h2>
-          <p style={{ margin: '0', fontSize: '14px' }}>
-            Please refresh the page to try again.
-          </p>
+          <p style={{ margin: '0', fontSize: '14px' }}>Please refresh the page to try again.</p>
         </div>
       );
     }
@@ -84,4 +85,3 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return this.props.children;
   }
 }
-

@@ -7,6 +7,7 @@ This document describes the implementation of motion accessibility features to s
 ## Why Motion Accessibility Matters
 
 Users with vestibular disorders, seizure disorders, or motion sensitivity can experience:
+
 - Nausea and dizziness from animations
 - Headaches from excessive motion
 - Disorientation from parallax or zoom effects
@@ -34,12 +35,14 @@ All animations and transitions are automatically reduced when the user has enabl
 ```
 
 **What this does:**
+
 - Reduces all animation durations to near-instant (0.01ms)
 - Limits animations to single iteration (no loops)
 - Converts all transitions to near-instant
 - Disables smooth scrolling behavior
 
 **Coverage:**
+
 - ✅ Form control transitions (box-shadow, border-color)
 - ✅ Focus indicator animations
 - ✅ Skip link transitions (inline styles)
@@ -54,23 +57,25 @@ import { usePrefersReducedMotion } from '@/hooks';
 
 function MyComponent() {
   const prefersReducedMotion = usePrefersReducedMotion();
-  
+
   if (prefersReducedMotion) {
     // Disable animations, use instant transitions
     return <StaticVersion />;
   }
-  
+
   return <AnimatedVersion />;
 }
 ```
 
 **Hook Features:**
+
 - ✅ Detects system preference on mount
 - ✅ Listens for changes in real-time
 - ✅ Handles browser compatibility (checks for `matchMedia` support)
 - ✅ Returns boolean: `true` if user prefers reduced motion
 
 **Use Cases:**
+
 - Conditionally rendering animated vs static components
 - Disabling JavaScript-based animations
 - Providing alternative feedback for motion-based UI
@@ -79,6 +84,7 @@ function MyComponent() {
 ### 3. Current Motion in App
 
 **Transitions Used:**
+
 - Form controls: `box-shadow` and `border-color` transitions (150ms, 120ms)
 - Focus indicators: Outline changes (handled by CSS media query)
 - Skip links: Inline style changes on focus/blur
@@ -88,39 +94,46 @@ function MyComponent() {
 ## Testing
 
 ### Windows
+
 1. Open **Settings** → **Accessibility** → **Visual effects**
 2. Turn **off** "Animation effects"
 3. Reload the app
 4. Verify all transitions are instant
 
 ### macOS
+
 1. Open **System Preferences** → **Accessibility** → **Display**
 2. Check **"Reduce motion"**
 3. Reload the app
 4. Verify all transitions are instant
 
 ### iOS
+
 1. Open **Settings** → **Accessibility** → **Motion**
 2. Turn **on** "Reduce Motion"
 3. Open the app in Safari
 4. Verify all transitions are instant
 
 ### Android
+
 1. Open **Settings** → **Accessibility**
 2. Remove animations (varies by device)
 3. Open the app in Chrome
 4. Verify all transitions are instant
 
 ### Browser DevTools
+
 You can also test in browser DevTools:
 
 **Chrome/Edge:**
+
 1. Open DevTools (F12)
 2. Press `Ctrl+Shift+P` / `Cmd+Shift+P`
 3. Type "Emulate CSS prefers-reduced-motion"
 4. Select "reduce"
 
 **Firefox:**
+
 1. Open DevTools (F12)
 2. Click the settings gear icon
 3. Under "Advanced settings" check "prefers-reduced-motion: reduce"
@@ -140,9 +153,11 @@ You can also test in browser DevTools:
 ## WCAG Compliance
 
 ✅ **WCAG 2.1 Level AAA - 2.3.3 Animation from Interactions**
+
 > Motion animation triggered by interaction can be disabled, unless the animation is essential to the functionality or the information being conveyed.
 
 **Compliance Status:**
+
 - ✅ All non-essential animations can be disabled via system preference
 - ✅ Alternative instant feedback provided
 - ✅ No functionality lost when animations disabled
@@ -151,6 +166,7 @@ You can also test in browser DevTools:
 ## Future Considerations
 
 If adding new animations:
+
 1. **Always** use CSS transitions/animations (covered by media query)
 2. **Or** check `usePrefersReducedMotion()` before applying JavaScript animations
 3. **Provide** instant alternatives for motion-based feedback
