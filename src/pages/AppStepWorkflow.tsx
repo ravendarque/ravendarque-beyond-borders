@@ -24,12 +24,12 @@ import '../styles.css';
 
 /**
  * AppStepWorkflow - Main application component
- * 
+ *
  * Three-step workflow for creating profile picture with flag border:
  * 1. Upload image
  * 2. Select flag
  * 3. Adjust and download
- * 
+ *
  * Responsibilities:
  * - Orchestrate workflow state (image, flag, step)
  * - Coordinate rendering pipeline
@@ -61,17 +61,11 @@ export function AppStepWorkflow() {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   // Step navigation with URL sync (uses unified state)
-  const {
-    currentStep,
-    setCurrentStep,
-    goToNext,
-    goToPrevious,
-    canGoToStep2,
-    canGoToStep3,
-  } = useStepNavigation({
-    imageUrl: step1.imageUrl,
-    flagId: step2.flagId,
-  });
+  const { currentStep, setCurrentStep, goToNext, goToPrevious, canGoToStep2, canGoToStep3 } =
+    useStepNavigation({
+      imageUrl: step1.imageUrl,
+      flagId: step2.flagId,
+    });
 
   // Sync workflow step with navigation step (navigation is source of truth for URL sync)
   useEffect(() => {
@@ -86,7 +80,7 @@ export function AppStepWorkflow() {
 
   // Memoize selected flag to prevent unnecessary re-renders
   const selectedFlag = useMemo(() => {
-    return step2.flagId ? flags.find(f => f.id === step2.flagId) ?? null : null;
+    return step2.flagId ? (flags.find((f) => f.id === step2.flagId) ?? null) : null;
   }, [step2.flagId]);
 
   // Step transitions (handles flag offset resets, dimension detection, etc.)
@@ -119,8 +113,18 @@ export function AppStepWorkflow() {
     }
     // Use effective circle size for Step 3, original circle size for Step 1
     const circleSizeForLimits = currentStep === 3 ? effectiveCircleSize : step1.circleSize;
-    return calculatePositionLimits(step1.imageDimensions, circleSizeForLimits, step1.imagePosition.zoom);
-  }, [step1.imageDimensions, step1.circleSize, effectiveCircleSize, step1.imagePosition.zoom, currentStep]);
+    return calculatePositionLimits(
+      step1.imageDimensions,
+      circleSizeForLimits,
+      step1.imagePosition.zoom,
+    );
+  }, [
+    step1.imageDimensions,
+    step1.circleSize,
+    effectiveCircleSize,
+    step1.imagePosition.zoom,
+    currentStep,
+  ]);
 
   // Clamp position when limits change (zoom or dimensions change)
   // This ensures position is valid when zoom changes and axes become enabled/disabled
@@ -130,29 +134,30 @@ export function AppStepWorkflow() {
       prevLimitsRef.current = null;
       return;
     }
-    
+
     // Only clamp if limits actually changed (zoom changed)
-    const limitsChanged = prevLimitsRef.current === null || 
+    const limitsChanged =
+      prevLimitsRef.current === null ||
       prevLimitsRef.current.minX !== positionLimits.minX ||
       prevLimitsRef.current.maxX !== positionLimits.maxX ||
       prevLimitsRef.current.minY !== positionLimits.minY ||
       prevLimitsRef.current.maxY !== positionLimits.maxY;
-    
+
     if (!limitsChanged) {
       return;
     }
-    
+
     prevLimitsRef.current = positionLimits;
-    
+
     const EPSILON = 0.001;
     const horizontalDisabled = Math.abs(positionLimits.maxX - positionLimits.minX) < EPSILON;
     const verticalDisabled = Math.abs(positionLimits.maxY - positionLimits.minY) < EPSILON;
-    
+
     // If an axis is disabled, reset that axis to 0
     // Otherwise, clamp to the new limits
     let needsUpdate = false;
     const newPosition = { ...step1.imagePosition };
-    
+
     if (horizontalDisabled && Math.abs(newPosition.x) > EPSILON) {
       newPosition.x = 0;
       needsUpdate = true;
@@ -163,7 +168,7 @@ export function AppStepWorkflow() {
         needsUpdate = true;
       }
     }
-    
+
     if (verticalDisabled && Math.abs(newPosition.y) > EPSILON) {
       newPosition.y = 0;
       needsUpdate = true;
@@ -174,7 +179,7 @@ export function AppStepWorkflow() {
         needsUpdate = true;
       }
     }
-    
+
     if (needsUpdate) {
       setImagePosition(newPosition);
     }
@@ -307,14 +312,26 @@ export function AppStepWorkflow() {
 
           {/* Progress indicators */}
           <div className="progress-row">
-            <div className={`progress ${currentStep > 1 ? 'completed' : currentStep === 1 ? 'active' : 'upcoming'}`}>
-              <span><span className="progress-number">1/</span>IMAGE</span>
+            <div
+              className={`progress ${currentStep > 1 ? 'completed' : currentStep === 1 ? 'active' : 'upcoming'}`}
+            >
+              <span>
+                <span className="progress-number">1/</span>IMAGE
+              </span>
             </div>
-            <div className={`progress ${currentStep > 2 ? 'completed' : currentStep === 2 ? 'active' : 'upcoming'}`}>
-              <span><span className="progress-number">2/</span>FLAG</span>
+            <div
+              className={`progress ${currentStep > 2 ? 'completed' : currentStep === 2 ? 'active' : 'upcoming'}`}
+            >
+              <span>
+                <span className="progress-number">2/</span>FLAG
+              </span>
             </div>
-            <div className={`progress ${currentStep > 3 ? 'completed' : currentStep === 3 ? 'active' : 'upcoming'}`}>
-              <span><span className="progress-number">3/</span>ADJUST</span>
+            <div
+              className={`progress ${currentStep > 3 ? 'completed' : currentStep === 3 ? 'active' : 'upcoming'}`}
+            >
+              <span>
+                <span className="progress-number">3/</span>ADJUST
+              </span>
             </div>
           </div>
 
@@ -446,7 +463,7 @@ export function AppStepWorkflow() {
                 <span>NEXT →</span>
               </button>
             )}
-            
+
             {currentStep === 2 && (
               <div className="step-3-nav">
                 <div className="nav-buttons-row">
@@ -474,15 +491,34 @@ export function AppStepWorkflow() {
                   onClick={handleStartOver}
                   aria-label="Start over with a new image"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M21 3v5h-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M21 3v5h-5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                   Start Over
                 </button>
               </div>
             )}
-            
+
             {currentStep === 3 && (
               <div className="step-3-nav">
                 <div className="nav-buttons-row">
@@ -502,10 +538,34 @@ export function AppStepWorkflow() {
                     aria-label="Save avatar"
                   >
                     <span>SAVE</span>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ marginLeft: '6px', position: 'relative', zIndex: 1 }}>
-                      <path d="M8 2L8 10M8 10L5 7M8 10L11 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M2 12L2 13C2 13.5523 2.44772 14 3 14L13 14C13.5523 14 14 13.5523 14 13L14 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                      <path d="M3 10L3 12L13 12L13 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                      style={{ marginLeft: '6px', position: 'relative', zIndex: 1 }}
+                    >
+                      <path
+                        d="M8 2L8 10M8 10L5 7M8 10L11 7"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M2 12L2 13C2 13.5523 2.44772 14 3 14L13 14C13.5523 14 14 13.5523 14 13L14 12"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M3 10L3 12L13 12L13 10"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -515,9 +575,28 @@ export function AppStepWorkflow() {
                   onClick={handleStartOver}
                   aria-label="Start over with a new image"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M21 3v5h-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M21 3v5h-5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                   Start Over
                 </button>
@@ -599,10 +678,7 @@ export function AppStepWorkflow() {
       </main>
 
       {/* Privacy Information Modal */}
-      <PrivacyModal
-        open={showPrivacyModal}
-        onOpenChange={setShowPrivacyModal}
-      />
+      <PrivacyModal open={showPrivacyModal} onOpenChange={setShowPrivacyModal} />
     </>
   );
 }

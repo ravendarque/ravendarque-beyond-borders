@@ -27,7 +27,7 @@ describe('Renderer Pipeline Integration', () => {
   describe('Complete Render Pipeline', () => {
     it('should complete full pipeline: image → flag → render → blob', async () => {
       const img = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
-      const flag = flags.find(f => f.id === 'palestine') || flags[0];
+      const flag = flags.find((f) => f.id === 'palestine') || flags[0];
 
       const result = await renderAvatar(img, flag, {
         size: 512,
@@ -42,11 +42,11 @@ describe('Renderer Pipeline Integration', () => {
 
     it('should handle cutout mode with flag image loading', async () => {
       const img = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
-      const flag = flags.find(f => f.modes?.cutout?.offsetEnabled) || flags[0];
+      const flag = flags.find((f) => f.modes?.cutout?.offsetEnabled) || flags[0];
 
       // Mock flag image loading
       const mockFlagImage = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
-      
+
       const result = await renderAvatar(img, flag, {
         size: 512,
         thicknessPct: 10,
@@ -61,7 +61,7 @@ describe('Renderer Pipeline Integration', () => {
 
     it('should apply flag offset correctly in cutout mode', async () => {
       const img = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
-      const flag = flags.find(f => f.modes?.cutout?.offsetEnabled) || flags[0];
+      const flag = flags.find((f) => f.modes?.cutout?.offsetEnabled) || flags[0];
       const mockFlagImage = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
 
       // Test with different offset values (percentage: -50 to +50)
@@ -85,7 +85,7 @@ describe('Renderer Pipeline Integration', () => {
   describe('Flag Data Integration', () => {
     it('should use flag colors from modes.ring.colors', async () => {
       const img = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
-      const flag = flags.find(f => f.modes?.ring?.colors) || flags[0];
+      const flag = flags.find((f) => f.modes?.ring?.colors) || flags[0];
 
       const result = await renderAvatar(img, flag, {
         size: 512,
@@ -99,19 +99,19 @@ describe('Renderer Pipeline Integration', () => {
 
     it('should handle flags with cutout mode configuration', async () => {
       const img = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
-      const cutoutFlags = flags.filter(f => f.modes?.cutout?.offsetEnabled);
+      const cutoutFlags = flags.filter((f) => f.modes?.cutout?.offsetEnabled);
 
       for (const flag of cutoutFlags.slice(0, 3)) {
         const mockFlagImage = await imageBitmapFromDataUrl(TINY_PNG_DATA_URL);
-        
+
         const result = await renderAvatar(img, flag, {
           size: 512,
           thicknessPct: 10,
           presentation: 'cutout',
           borderImageBitmap: mockFlagImage,
-          flagOffsetPct: { 
-            x: flag.modes?.cutout?.defaultOffset || 0, 
-            y: 0 
+          flagOffsetPct: {
+            x: flag.modes?.cutout?.defaultOffset || 0,
+            y: 0,
           },
         });
 
@@ -135,7 +135,6 @@ describe('Renderer Pipeline Integration', () => {
       expect(result.blob).toBeInstanceOf(Blob);
       // Downsampling should work without errors
     });
-
   });
 
   describe('Performance Metrics Integration', () => {

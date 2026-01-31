@@ -24,16 +24,13 @@ export interface RenderOptions {
  * @param flagImageCache - Cache map for flag ImageBitmaps
  * @returns Rendering state and functions
  */
-export function useAvatarRenderer(
-  flagsList: FlagSpec[],
-  flagImageCache: Map<string, ImageBitmap>
-) {
+export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<string, ImageBitmap>) {
   const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
-  
+
   // Use ref to track overlayUrl for cleanup without adding to dependencies
   const overlayUrlRef = useRef<string | null>(null);
-  
+
   // Keep ref in sync with state
   overlayUrlRef.current = overlayUrl;
 
@@ -47,7 +44,8 @@ export function useAvatarRenderer(
    */
   const render = useCallback(
     async (imageUrl: string, flagId: string, options: RenderOptions) => {
-      const { size, thickness, flagOffsetPct, presentation, segmentRotation, bg, circleSize } = options;
+      const { size, thickness, flagOffsetPct, presentation, segmentRotation, bg, circleSize } =
+        options;
 
       // Exit early if no image
       if (!imageUrl) {
@@ -68,7 +66,7 @@ export function useAvatarRenderer(
       try {
         // Show loading indicator at start of render process
         setIsRendering(true);
-        
+
         // Find selected flag
         const flag = flagsList.find((f) => f.id === flagId);
         if (!flag) {
@@ -105,7 +103,7 @@ export function useAvatarRenderer(
         // Simple formula: inner circle diameter = canvas size - (border thickness * 2)
         const base = size;
         const thicknessPx = Math.round((thickness / 100) * base);
-        const rendererCircleSize = size - (thicknessPx * 2); // Inner circle diameter
+        const rendererCircleSize = size - thicknessPx * 2; // Inner circle diameter
 
         // Calculate position limits using step 1's circle size
         // Position percentages are relative to step 1's circle size, not the renderer's
@@ -113,16 +111,12 @@ export function useAvatarRenderer(
         const positionLimits = calculatePositionLimits(
           options.imageDimensions,
           circleSize, // Use step 1's circle size for limits calculation
-          options.imagePosition.zoom
+          options.imagePosition.zoom,
         );
-        
+
         // Calculate max limits (at zoom 200%) for consistent position mapping
         // This is needed for positionToBackgroundPosition to work correctly
-        const maxLimits = calculatePositionLimits(
-          options.imageDimensions,
-          circleSize,
-          200
-        );
+        const maxLimits = calculatePositionLimits(options.imageDimensions, circleSize, 200);
 
         // Convert step 1 position adjustments to pixel offsets
         // IMPORTANT: Calculate offset for step 1's circle size first (where position is relative to)
@@ -133,9 +127,9 @@ export function useAvatarRenderer(
           circleSize, // Calculate offset for step 1's circle size
           options.imagePosition.zoom,
           positionLimits,
-          maxLimits
+          maxLimits,
         );
-        
+
         // Scale the offset from step 1's circle size to renderer's circle size
         // This ensures the position mapping is correct when circle sizes differ
         const scaleFactor = rendererCircleSize / circleSize;
@@ -143,7 +137,7 @@ export function useAvatarRenderer(
           x: step1Offset.x * scaleFactor,
           y: step1Offset.y * scaleFactor,
         };
-        
+
         // Debug logging (only in development)
         if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
@@ -184,7 +178,7 @@ export function useAvatarRenderer(
         }
 
         setOverlayUrl(blobUrl);
-        
+
         // Clear loading state after successful render
         setIsRendering(false);
 
@@ -197,21 +191,21 @@ export function useAvatarRenderer(
       } catch (err) {
         // Clear loading state on error
         setIsRendering(false);
-        
+
         // Normalize and re-throw the error for the caller to handle
         const appError = normalizeError(err);
-        
+
         // Development logging
         if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
           console.error('Failed to render avatar:', appError.toJSON());
         }
-        
+
         // Re-throw so caller (App.tsx) can display the error
         throw appError;
       }
     },
-    [flagsList, flagImageCache]
+    [flagsList, flagImageCache],
   );
 
   // Cleanup: revoke object URL on unmount to prevent memory leaks

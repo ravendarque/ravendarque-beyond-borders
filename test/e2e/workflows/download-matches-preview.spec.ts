@@ -15,16 +15,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 test.describe('Download Matches Preview', () => {
-  test('should download image that matches Step 3 preview with zoom and position', async ({ page }) => {
+  test('should download image that matches Step 3 preview with zoom and position', async ({
+    page,
+  }) => {
     const testResultsDir = TEST_RESULTS_DIR;
     if (!fs.existsSync(testResultsDir)) {
       fs.mkdirSync(testResultsDir, { recursive: true });
     }
-    
+
     await page.goto('/');
 
     // Upload test image
-    const testImagePath = path.resolve(__dirname, '../../test-data/profile-pic-portrait-clr-1518x2700.png');
+    const testImagePath = path.resolve(
+      __dirname,
+      '../../test-data/profile-pic-portrait-clr-1518x2700.png',
+    );
     await uploadImage(page, testImagePath);
 
     // Wait for Step 1 controls
@@ -36,9 +41,9 @@ test.describe('Download Matches Preview', () => {
     const zoomSlider = page.getByLabel('Zoom level').locator('[role="slider"]').first();
     const hOffsetSlider = page.getByLabel('Horizontal position').locator('[role="slider"]').first();
     const vOffsetSlider = page.getByLabel('Vertical position').locator('[role="slider"]').first();
-    
+
     await expect(zoomSlider).toBeVisible({ timeout: 10000 });
-    
+
     // Set zoom to 10%
     await zoomSlider.focus();
     await page.keyboard.press('Home'); // Go to 0%
@@ -47,20 +52,22 @@ test.describe('Download Matches Preview', () => {
       await page.waitForTimeout(50);
     }
     await page.waitForTimeout(500);
-    
+
     // Set H offset to 24% (slider is inverted, so move from -50 to -24)
     await hOffsetSlider.focus();
     await page.keyboard.press('Home'); // Go to -50
-    for (let i = 0; i < 26; i++) { // Move right 26 steps: -50 + 26 = -24
+    for (let i = 0; i < 26; i++) {
+      // Move right 26 steps: -50 + 26 = -24
       await page.keyboard.press('ArrowRight');
       await page.waitForTimeout(50);
     }
     await page.waitForTimeout(500);
-    
+
     // Set V offset to -42% (slider is inverted, so move from -50 to 42)
     await vOffsetSlider.focus();
     await page.keyboard.press('Home'); // Go to -50
-    for (let i = 0; i < 92; i++) { // Move right 92 steps: -50 + 92 = 42
+    for (let i = 0; i < 92; i++) {
+      // Move right 92 steps: -50 + 92 = 42
       await page.keyboard.press('ArrowRight');
       await page.waitForTimeout(50);
     }
@@ -78,7 +85,7 @@ test.describe('Download Matches Preview', () => {
     await flagCombobox.click();
     await page.waitForTimeout(1000);
     let flagOption = page.getByRole('option', { name: TEST_FLAGS.PALESTINE });
-    if (await flagOption.count() === 0) {
+    if ((await flagOption.count()) === 0) {
       flagOption = page.getByRole('option', { name: /palestine/i });
     }
     await expect(flagOption).toBeVisible({ timeout: 10000 });
@@ -94,13 +101,13 @@ test.describe('Download Matches Preview', () => {
     // This should match the downloaded image
     const previewCircle = page.locator('.choose-circle.readonly');
     await expect(previewCircle).toBeVisible({ timeout: 10000 });
-    
+
     // Wait a bit more for any final rendering
     await page.waitForTimeout(1000);
-    
+
     const previewScreenshot = await previewCircle.screenshot();
     expect(previewScreenshot).toBeTruthy();
-    
+
     // Save preview screenshot for debugging
     const previewPath = getTestResultsPath('preview-before-download.png');
     fs.writeFileSync(previewPath, previewScreenshot);
@@ -108,7 +115,7 @@ test.describe('Download Matches Preview', () => {
     // Find and click download button
     const downloadButton = page.getByRole('button', { name: /save|download/i });
     const buttonCount = await downloadButton.count();
-    
+
     if (buttonCount === 0) {
       test.skip();
       return;
@@ -155,7 +162,7 @@ test.describe('Download Matches Preview', () => {
         // Resize both to same size for comparison
         const comparisonSize = Math.max(
           Math.min(previewImg.width, previewImg.height),
-          Math.min(downloadImg.width, downloadImg.height)
+          Math.min(downloadImg.width, downloadImg.height),
         );
 
         // Resize both images to same size for comparison
@@ -187,12 +194,12 @@ test.describe('Download Matches Preview', () => {
         for (let y = 0; y < comparisonSize; y++) {
           for (let x = 0; x < comparisonSize; x++) {
             const idx = (y * comparisonSize + x) * 4;
-            
+
             // Skip fully transparent pixels (outside the circle)
             if (previewData[idx + 3] === 0 && downloadData[idx + 3] === 0) continue;
 
             totalPixels++;
-            
+
             // Check if this pixel is in the image area (inner circle)
             const distFromCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
             const isInImageArea = distFromCenter < imageAreaRadius;
@@ -211,7 +218,8 @@ test.describe('Download Matches Preview', () => {
             const a2 = downloadData[idx + 3];
 
             // Calculate color difference (including alpha)
-            const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2) + Math.abs(a1 - a2);
+            const diff =
+              Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2) + Math.abs(a1 - a2);
             if (diff > threshold) {
               diffPixels++;
               if (isInImageArea) {
@@ -222,9 +230,10 @@ test.describe('Download Matches Preview', () => {
         }
 
         const similarity = totalPixels > 0 ? ((totalPixels - diffPixels) / totalPixels) * 100 : 100;
-        const imageAreaSimilarity = imageAreaTotalPixels > 0 
-          ? ((imageAreaTotalPixels - imageAreaDiffPixels) / imageAreaTotalPixels) * 100 
-          : 100;
+        const imageAreaSimilarity =
+          imageAreaTotalPixels > 0
+            ? ((imageAreaTotalPixels - imageAreaDiffPixels) / imageAreaTotalPixels) * 100
+            : 100;
         return {
           similarity,
           imageAreaSimilarity, // Similarity specifically in the image area (center circle)
@@ -239,7 +248,7 @@ test.describe('Download Matches Preview', () => {
       {
         previewScreenshotBase64: previewScreenshot.toString('base64'),
         downloadPathBase64: fs.readFileSync(downloadPath).toString('base64'),
-      }
+      },
     );
 
     // Log comparison results for debugging (before assertions so we see them even on failure)
@@ -261,29 +270,38 @@ test.describe('Download Matches Preview', () => {
     // - Compression artifacts
     // But overall they should match very closely
     if (comparisonResult.similarity <= 95) {
-      throw new Error(`Overall similarity ${comparisonResult.similarity.toFixed(2)}% is below 95% threshold`);
+      throw new Error(
+        `Overall similarity ${comparisonResult.similarity.toFixed(2)}% is below 95% threshold`,
+      );
     }
     expect(comparisonResult.similarity).toBeGreaterThan(95);
     // CRITICAL: Image area (center circle) must match almost perfectly - this catches positioning/zoom issues
     // The photo itself should be rendered identically (both use canvas for the image)
     if (comparisonResult.imageAreaSimilarity <= 98) {
-      throw new Error(`Image area similarity ${comparisonResult.imageAreaSimilarity.toFixed(2)}% is below 98% threshold. This likely indicates a positioning or zoom mismatch.`);
+      throw new Error(
+        `Image area similarity ${comparisonResult.imageAreaSimilarity.toFixed(2)}% is below 98% threshold. This likely indicates a positioning or zoom mismatch.`,
+      );
     }
     expect(comparisonResult.imageAreaSimilarity).toBeGreaterThan(98);
     expect(comparisonResult.totalPixels).toBeGreaterThan(1000); // Ensure we're comparing actual content
     expect(comparisonResult.imageAreaTotalPixels).toBeGreaterThan(200); // Ensure we're checking the image area
   });
 
-  test('should download image that matches preview with different zoom levels', async ({ page }) => {
+  test('should download image that matches preview with different zoom levels', async ({
+    page,
+  }) => {
     const testResultsDir = TEST_RESULTS_DIR;
     if (!fs.existsSync(testResultsDir)) {
       fs.mkdirSync(testResultsDir, { recursive: true });
     }
-    
+
     await page.goto('/');
 
     // Upload test image
-    const testImagePath = path.resolve(__dirname, '../../test-data/profile-pic-square-clr-256x256.jpg');
+    const testImagePath = path.resolve(
+      __dirname,
+      '../../test-data/profile-pic-square-clr-256x256.jpg',
+    );
     await uploadImage(page, testImagePath);
 
     // Wait for Step 1 controls
@@ -293,7 +311,7 @@ test.describe('Download Matches Preview', () => {
     // Set high zoom level using keyboard navigation
     const zoomSlider = page.getByLabel('Zoom level').locator('[role="slider"]').first();
     await expect(zoomSlider).toBeVisible({ timeout: 10000 });
-    
+
     await zoomSlider.focus();
     await page.keyboard.press('Home'); // Go to 0%
     for (let i = 0; i < 50; i++) {
@@ -306,20 +324,20 @@ test.describe('Download Matches Preview', () => {
     const nextButton = page.getByRole('button', { name: /next|→/i }).first();
     await nextButton.click();
     await page.waitForTimeout(1000);
-    
+
     // Select flag
     const flagCombobox = page.getByRole('combobox', { name: /choose a flag/i });
     await expect(flagCombobox).toBeVisible({ timeout: 10000 });
     await flagCombobox.click();
     await page.waitForTimeout(1000);
     let flagOption = page.getByRole('option', { name: TEST_FLAGS.PALESTINE });
-    if (await flagOption.count() === 0) {
+    if ((await flagOption.count()) === 0) {
       flagOption = page.getByRole('option', { name: /palestine/i });
     }
     await expect(flagOption).toBeVisible({ timeout: 10000 });
     await flagOption.click();
     await page.waitForTimeout(1000);
-    
+
     await nextButton.click();
     await page.waitForTimeout(2000);
     await waitForRenderComplete(page);
@@ -330,7 +348,7 @@ test.describe('Download Matches Preview', () => {
 
     // Download
     const downloadButton = page.getByRole('button', { name: /save|download/i });
-    if (await downloadButton.count() === 0) {
+    if ((await downloadButton.count()) === 0) {
       test.skip();
       return;
     }
@@ -342,7 +360,7 @@ test.describe('Download Matches Preview', () => {
     // Verify download succeeded
     const filename = download.suggestedFilename();
     expect(filename).toMatch(/\.(png|jpg|jpeg)$/i);
-    
+
     // Save for inspection
     const downloadPath = getTestResultsPath('downloaded-zoom50.png');
     await download.saveAs(downloadPath);

@@ -33,7 +33,7 @@ class Logger {
 
     const levelName = LOG_LEVEL_NAMES[level] || 'LOG';
     const prefix = `[${levelName}]`;
-    
+
     if (level >= LOG_LEVELS.ERROR) {
       console.error(prefix, message, ...args);
     } else if (level >= LOG_LEVELS.WARN) {
@@ -90,9 +90,7 @@ class Logger {
 }
 
 // Export a default logger instance
-export const logger = new Logger(
-  process.env.DEBUG ? LOG_LEVELS.DEBUG : LOG_LEVELS.INFO
-);
+export const logger = new Logger(process.env.DEBUG ? LOG_LEVELS.DEBUG : LOG_LEVELS.INFO);
 
 // Export the Logger class for custom instances
 export { Logger };

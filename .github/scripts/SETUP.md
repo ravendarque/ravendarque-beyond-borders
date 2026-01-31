@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD013 -->
+
 # Development Environment Setup
 
 This directory contains scripts to automate the setup of your development
@@ -59,23 +60,23 @@ The setup scripts install all tools needed for building, testing, and validating
 
 ### Essential Tools (Always Installed)
 
-| Tool | Purpose | Installation Method |
-|------|---------|---------------------|
-| **Git** | Version control | Checked (must be pre-installed) |
-| **Node.js** (18.x or 20.x) | JavaScript runtime | Checked (must be pre-installed) |
-| **pnpm** | Package manager | `npm install -g pnpm` |
-| **Project dependencies** | React, Vite, etc. | `pnpm install` |
-| **Playwright browsers** | E2E testing | `pnpm exec playwright install --with-deps` |
-| **npx** | On-demand tool execution | Built into Node.js (no install needed) |
-| **markdownlint-cli2** | Markdown linting | Via `npx` (downloaded on first use) |
-| **yaml-lint** | YAML linting | Via `npx` (downloaded on first use) |
+| Tool                       | Purpose                  | Installation Method                        |
+| -------------------------- | ------------------------ | ------------------------------------------ |
+| **Git**                    | Version control          | Checked (must be pre-installed)            |
+| **Node.js** (18.x or 20.x) | JavaScript runtime       | Checked (must be pre-installed)            |
+| **pnpm**                   | Package manager          | `npm install -g pnpm`                      |
+| **Project dependencies**   | React, Vite, etc.        | `pnpm install`                             |
+| **Playwright browsers**    | E2E testing              | `pnpm exec playwright install --with-deps` |
+| **npx**                    | On-demand tool execution | Built into Node.js (no install needed)     |
+| **markdownlint-cli2**      | Markdown linting         | Via `npx` (downloaded on first use)        |
+| **yaml-lint**              | YAML linting             | Via `npx` (downloaded on first use)        |
 
 ### Optional Tools (Skipped with `--skip-optional`)
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| **TruffleHog** | Secret scanning | CI-only (not used in local validation for speed) |
-| **Trivy** | Security vulnerability scanning | Manual install or Docker |
+| Tool           | Purpose                         | Notes                                            |
+| -------------- | ------------------------------- | ------------------------------------------------ |
+| **TruffleHog** | Secret scanning                 | CI-only (not used in local validation for speed) |
+| **Trivy**      | Security vulnerability scanning | Manual install or Docker                         |
 
 ## Prerequisites
 

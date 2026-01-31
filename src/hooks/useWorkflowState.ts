@@ -1,6 +1,6 @@
 /**
  * Unified workflow state management hook
- * 
+ *
  * Manages all workflow state through a reducer with automatic persistence.
  * Eliminates scattered useState calls and ref tracking.
  */
@@ -37,7 +37,7 @@ export type WorkflowAction =
 
 /**
  * Reducer for workflow state
- * 
+ *
  * @internal - Exported for testing only
  */
 export function workflowReducer(state: WorkflowState, action: WorkflowAction): WorkflowState {
@@ -71,27 +71,27 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
       // Don't reset if dimensions are the same (e.g., re-detection of same image)
       const hadDimensions = state.step1.imageDimensions !== null;
       const hasDimensions = action.dimensions !== null;
-      const dimensionsChanged = 
+      const dimensionsChanged =
         (!hadDimensions && hasDimensions) || // Was null, now has dimensions
         (hadDimensions && !hasDimensions) || // Had dimensions, now null (image cleared)
-        (hadDimensions && hasDimensions && (
-          state.step1.imageDimensions!.width !== action.dimensions!.width ||
-          state.step1.imageDimensions!.height !== action.dimensions!.height
-        )); // Dimensions changed (different image)
-      
+        (hadDimensions &&
+          hasDimensions &&
+          (state.step1.imageDimensions!.width !== action.dimensions!.width ||
+            state.step1.imageDimensions!.height !== action.dimensions!.height)); // Dimensions changed (different image)
+
       // Determine if position should be reset:
       // - Always reset when clearing dimensions (set to null)
       // - Reset when dimensions change AND position is at default (0,0,0) - indicates new image
       // - Don't reset when going from null to dimensions if position is NOT default - indicates restore
-      const isDefaultPosition = 
-        state.step1.imagePosition.x === 0 && 
-        state.step1.imagePosition.y === 0 && 
+      const isDefaultPosition =
+        state.step1.imagePosition.x === 0 &&
+        state.step1.imagePosition.y === 0 &&
         state.step1.imagePosition.zoom === 0;
-      
-      const shouldResetPosition = 
+
+      const shouldResetPosition =
         action.dimensions === null || // Always reset when clearing
         (dimensionsChanged && isDefaultPosition); // Only reset if position is at default (new image, not restore)
-      
+
       return {
         ...state,
         step1: {
@@ -251,7 +251,7 @@ function restoreState(): Partial<WorkflowState> | null {
 
 /**
  * Hook for managing unified workflow state
- * 
+ *
  * Provides:
  * - Reducer-based state management
  * - Automatic persistence to sessionStorage
@@ -268,23 +268,22 @@ export function useWorkflowState() {
 
     // Merge restored state with defaults
     const state = createInitialWorkflowState();
-    
+
     // Filter out blob URLs (they're invalid after refresh)
     const restoredImageUrl = restored.step1?.imageUrl;
-    const validImageUrl = restoredImageUrl && restoredImageUrl.startsWith('data:') 
-      ? restoredImageUrl 
-      : null;
-    
+    const validImageUrl =
+      restoredImageUrl && restoredImageUrl.startsWith('data:') ? restoredImageUrl : null;
+
     return {
       ...state,
       step1: {
         ...state.step1,
         ...restored.step1,
-            imageUrl: validImageUrl,
-            // Don't restore computed values
-            imageDimensions: null,
-            circleSize: IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE,
-          },
+        imageUrl: validImageUrl,
+        // Don't restore computed values
+        imageDimensions: null,
+        circleSize: IMAGE_CONSTANTS.DEFAULT_CIRCLE_SIZE,
+      },
       step2: {
         ...state.step2,
         ...restored.step2,

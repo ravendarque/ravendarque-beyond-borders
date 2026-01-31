@@ -16,9 +16,7 @@ export function StepLayout({ mainContent, controls }: StepLayoutProps) {
   return (
     <div className="step-layout">
       <div className="step-layout__main">{mainContent}</div>
-      {controls != null && (
-        <div className="step-layout__controls">{controls}</div>
-      )}
+      {controls != null && <div className="step-layout__controls">{controls}</div>}
     </div>
   );
 }

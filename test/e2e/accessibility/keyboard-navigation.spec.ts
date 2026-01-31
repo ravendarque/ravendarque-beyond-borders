@@ -14,7 +14,7 @@ test.describe('Accessibility', () => {
     test('should navigate through steps using keyboard only', async ({ page }) => {
       // Tab through all interactive elements
       await page.keyboard.press('Tab');
-      
+
       // Should focus on file input or upload button
       const focusedElement = await page.evaluate(() => document.activeElement?.tagName);
       expect(['INPUT', 'BUTTON', 'LABEL']).toContain(focusedElement);
@@ -35,10 +35,10 @@ test.describe('Accessibility', () => {
       const flagSelector = page.locator('#flag-select-label').locator('..');
       await flagSelector.focus();
       await page.keyboard.press('Enter');
-      
+
       // Should open dropdown
       await page.waitForTimeout(300);
-      
+
       // Navigate options with arrow keys
       await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');
@@ -58,10 +58,10 @@ test.describe('Accessibility', () => {
       // Find presentation mode buttons
       const ringButton = page.getByRole('radio', { name: 'Ring' });
       await ringButton.focus();
-      
+
       // Should be keyboard accessible
       await page.keyboard.press('ArrowRight');
-      
+
       // Should move to next option
       const segmentButton = page.getByRole('radio', { name: 'Segment' });
       await expect(segmentButton).toBeFocused();
@@ -78,12 +78,14 @@ test.describe('Accessibility', () => {
       await page.goto('/?step=3');
 
       // Find thickness slider
-      const thicknessSlider = page.locator('input[type="range"][aria-label*="thickness" i]').first();
+      const thicknessSlider = page
+        .locator('input[type="range"][aria-label*="thickness" i]')
+        .first();
       await thicknessSlider.focus();
-      
+
       // Should be able to adjust with arrow keys
       await page.keyboard.press('ArrowRight');
-      
+
       // Value should change
       const value = await thicknessSlider.inputValue();
       expect(parseInt(value)).toBeGreaterThan(0);
@@ -128,7 +130,7 @@ test.describe('Accessibility', () => {
       // All sliders should have aria-label
       const sliders = page.locator('input[type="range"]');
       const count = await sliders.count();
-      
+
       for (let i = 0; i < count; i++) {
         const slider = sliders.nth(i);
         const ariaLabel = await slider.getAttribute('aria-label');
@@ -172,7 +174,7 @@ test.describe('Accessibility', () => {
       // Focus on upload button
       const uploadButton = page.locator('label[for="step1-file-upload"]');
       await uploadButton.focus();
-      
+
       // Navigate to next step (would need image uploaded)
       // Focus should be managed appropriately
     });
@@ -183,13 +185,13 @@ test.describe('Accessibility', () => {
       // Open privacy modal
       const privacyButton = page.getByText(/privacy/i).first();
       await privacyButton.click();
-      
+
       await page.waitForTimeout(300);
 
       // Focus should be trapped in modal
       const modal = page.locator('[role="dialog"]');
       await expect(modal).toBeVisible();
-      
+
       // Tab should cycle within modal, not escape
       await page.keyboard.press('Tab');
       const focused = await page.evaluate(() => document.activeElement);

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { FlagSpec, Stripe } from '@/flags/schema'
+import { describe, it, expect } from 'vitest';
+import { FlagSpec, Stripe } from '@/flags/schema';
 
 describe('flags schema', () => {
   it('validates a correct flag spec', () => {
@@ -14,13 +14,13 @@ describe('flags schema', () => {
           colors: ['#5BCEFA', '#F5A9B8'],
         },
       },
-    }
-    const parsed = FlagSpec.parse(specimen)
-    expect(parsed.id).toBe('trans-pride')
-  })
+    };
+    const parsed = FlagSpec.parse(specimen);
+    expect(parsed.id).toBe('trans-pride');
+  });
 
   it('rejects invalid color', () => {
-    const bad = Stripe.safeParse({ color: 'blue', weight: 1 })
-    expect(bad.success).toBe(false)
-  })
-})
+    const bad = Stripe.safeParse({ color: 'blue', weight: 1 });
+    expect(bad.success).toBe(false);
+  });
+});

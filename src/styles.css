@@ -13,7 +13,7 @@
   --surface: #f8fafc;
   --card: #ffffff;
   --radius: 12px;
-  
+
   /* Standard color system */
   --color-black: #000;
   --color-white: #fff;
@@ -23,7 +23,7 @@
   --color-light-gray: #ddd;
   --color-yellow: #fde047;
   --color-red-accent: #be1a1a;
-  
+
   /* New responsive design system - EXACT VALUES FROM MOCK */
   --canvas-width: 306px;
   --canvas-padding: 8px;
@@ -115,12 +115,7 @@ body,
 }
 
 body {
-  font-family:
-    monospace,
-    ui-monospace,
-    'Cascadia Code',
-    'Courier New',
-    Courier;
+  font-family: monospace, ui-monospace, 'Cascadia Code', 'Courier New', Courier;
   margin: 0;
   background: var(--color-black);
   color: var(--color-white);
@@ -168,12 +163,12 @@ body {
   max-width: var(--canvas-width);
   min-width: 300px;
   /* Remove min-height: 100vh to prevent forced overflow with root padding */
-  /* min-height: 100vh; */ 
+  /* min-height: 100vh; */
   display: flex;
   flex-direction: column;
   padding: var(--canvas-padding);
   /* Allow it to fit within the viewport if possible, but grow if needed */
-  height: auto; 
+  height: auto;
 }
 
 /* Content wrapper - contains background, progress, content, and navigation */
@@ -300,16 +295,27 @@ body {
   z-index: 2;
   /* White background with halftone effect - diamond cluster pattern */
   /* Using integer pixel sizes for consistent rendering across displays */
-  background: 
+  background:
     radial-gradient(circle, rgba(180, 160, 100, 0.12) 1px, transparent 1.5px),
     radial-gradient(circle, rgba(180, 160, 100, 0.12) 0.5px, transparent 1px),
     radial-gradient(circle, rgba(180, 160, 100, 0.12) 0.5px, transparent 1px),
     radial-gradient(circle, rgba(180, 160, 100, 0.12) 0.5px, transparent 1px),
-    radial-gradient(circle, rgba(180, 160, 100, 0.12) 0.5px, transparent 1px),
-    #fff;
-  background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px, 12px 12px, 100%;
+    radial-gradient(circle, rgba(180, 160, 100, 0.12) 0.5px, transparent 1px), #fff;
+  background-size:
+    12px 12px,
+    12px 12px,
+    12px 12px,
+    12px 12px,
+    12px 12px,
+    100%;
   /* Diamond cluster: center, top, right, bottom, left positions */
-  background-position: 6px 6px, 6px 3px, 9px 6px, 6px 9px, 3px 6px, 0 0;
+  background-position:
+    6px 6px,
+    6px 3px,
+    9px 6px,
+    6px 9px,
+    3px 6px,
+    0 0;
   border-radius: 50%;
 }
 
@@ -365,7 +371,7 @@ body {
 .choose-circle {
   position: absolute;
   /* Create a gap around the circle for the halftone border */
-  inset: calc(var(--content-size) * 0.10);
+  inset: calc(var(--content-size) * 0.1);
   border: 1px solid rgba(180, 160, 100, 0.12);
   background: var(--color-white);
   border-radius: 50%;
@@ -376,11 +382,16 @@ body {
   text-align: center;
   padding: 12px 6px;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   pointer-events: auto;
   z-index: 1;
   /* Very subtle glow - higher opacity on first layer to compensate for blur spreading */
-  box-shadow: 0 0 8px rgba(180, 160, 100, 0.15), 0 0 12px rgba(180, 160, 100, 0.08), 0 0 20px rgba(180, 160, 100, 0.04);
+  box-shadow:
+    0 0 8px rgba(180, 160, 100, 0.15),
+    0 0 12px rgba(180, 160, 100, 0.08),
+    0 0 20px rgba(180, 160, 100, 0.04);
 }
 
 .choose-circle::before {
@@ -457,7 +468,9 @@ label.choose-circle.has-image.is-dragging,
 .choose-circle:active {
   transform: scale(0.95);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
 }
 
 .choose-circle.has-image:active {
@@ -562,7 +575,7 @@ label.choose-circle.has-image.is-dragging,
   background: var(--color-red-accent);
   border: 1px solid #be1a1a;
   color: var(--color-white);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.1),
     0 1px 2px rgba(0, 0, 0, 0.06);
   display: flex;
@@ -592,7 +605,7 @@ label.choose-circle.has-image.is-dragging,
 
 .nav-btn:not(:disabled):hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 
+  box-shadow:
     0 6px 12px rgba(190, 26, 26, 0.35),
     0 3px 6px rgba(0, 0, 0, 0.15);
   border-color: var(--color-red-accent);
@@ -605,8 +618,7 @@ label.choose-circle.has-image.is-dragging,
 
 .nav-btn:not(:disabled):active {
   transform: translateY(0) scale(0.98);
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.1s ease;
 }
 
@@ -1472,13 +1484,17 @@ label.choose-circle.has-image.is-dragging,
   left: 2px;
   border-radius: 50%;
   /* Checkered background to show transparency */
-  background-image: 
+  background-image:
     linear-gradient(45deg, #fef3c7 25%, transparent 25%),
     linear-gradient(-45deg, #fef3c7 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #fef3c7 75%),
     linear-gradient(-45deg, transparent 75%, #fef3c7 75%);
   background-size: 16px 16px;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0px;
   background-color: var(--color-white);
   z-index: 0;
   pointer-events: none;
@@ -1498,7 +1514,6 @@ label.choose-circle.has-image.is-dragging,
   font-size: 14px;
   text-align: center;
 }
-
 
 /* Presentation Mode Toggle Buttons */
 .presentation-controls {
@@ -1814,8 +1829,8 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
-[role="button"]:focus-visible,
-[role="link"]:focus-visible,
+[role='button']:focus-visible,
+[role='link']:focus-visible,
 [tabindex]:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
@@ -1840,18 +1855,18 @@ textarea:focus-visible,
     outline: 3px solid currentColor;
     outline-offset: 2px;
   }
-  
+
   /* Ensure buttons have visible borders */
   button,
-  [role="button"] {
+  [role='button'] {
     border: 2px solid currentColor;
   }
-  
+
   /* Ensure links are underlined */
   a {
     text-decoration: underline;
   }
-  
+
   /* Enhance disabled state visibility */
   button:disabled,
   input:disabled,
@@ -1868,18 +1883,18 @@ textarea:focus-visible,
     outline: 3px solid Highlight;
     outline-offset: 2px;
   }
-  
+
   button,
-  [role="button"] {
+  [role='button'] {
     border: 2px solid ButtonBorder;
   }
-  
+
   .skip-link:focus {
     background-color: Highlight;
     color: HighlightText;
     border: 2px solid ButtonBorder;
   }
-  
+
   /* Ensure disabled states are distinguishable */
   button:disabled,
   input:disabled,
@@ -1946,7 +1961,7 @@ textarea:focus-visible,
     /* Prevent horizontal scroll at 200% zoom */
     overflow-x: hidden;
   }
-  
+
   body {
     max-width: 100vw;
     overflow-x: hidden;
@@ -1956,10 +1971,10 @@ textarea:focus-visible,
 /* Ensure minimum touch target size (44x44px - WCAG AAA) */
 button,
 a,
-input[type="checkbox"],
-input[type="radio"],
-[role="button"],
-[role="link"] {
+input[type='checkbox'],
+input[type='radio'],
+[role='button'],
+[role='link'] {
   min-height: 44px;
   min-width: 44px;
   /* Add padding for buttons with minimal content */

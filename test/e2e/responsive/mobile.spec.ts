@@ -22,7 +22,7 @@ for (const viewport of mobileViewports) {
       // Check for horizontal scroll
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
       const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
-      
+
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1); // Allow 1px tolerance
     });
 
@@ -31,7 +31,7 @@ for (const viewport of mobileViewports) {
 
       // Check main container has padding
       const mainContainer = page.locator('main, [role="main"], .container').first();
-      if (await mainContainer.count() > 0) {
+      if ((await mainContainer.count()) > 0) {
         const padding = await mainContainer.evaluate((el) => {
           const style = window.getComputedStyle(el);
           return {
@@ -58,7 +58,7 @@ for (const viewport of mobileViewports) {
 
       // Should open dropdown
       const dropdown = page.locator('[role="listbox"]');
-      if (await dropdown.count() > 0) {
+      if ((await dropdown.count()) > 0) {
         await expect(dropdown).toBeVisible();
       }
     });

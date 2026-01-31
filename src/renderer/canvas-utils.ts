@@ -40,14 +40,14 @@ export function getMaxCanvasSize(): number {
 export function validateCanvasSize(width: number, height: number): void {
   const maxSize = getMaxCanvasSize();
   const requestedSize = width * height;
-  
+
   if (requestedSize > maxSize) {
     const browser = getBrowserType();
     const maxDimension = Math.floor(Math.sqrt(maxSize));
     throw new Error(
       `Canvas size ${width}x${height} (${requestedSize.toLocaleString()} pixels) ` +
-      `exceeds ${browser} limit of ${Math.floor(Math.sqrt(maxSize))}x${Math.floor(Math.sqrt(maxSize))} ` +
-      `(${maxSize.toLocaleString()} pixels). Maximum dimension: ${maxDimension}px.`
+        `exceeds ${browser} limit of ${Math.floor(Math.sqrt(maxSize))}x${Math.floor(Math.sqrt(maxSize))} ` +
+        `(${maxSize.toLocaleString()} pixels). Maximum dimension: ${maxDimension}px.`,
     );
   }
 }
@@ -57,8 +57,10 @@ export function validateCanvasSize(width: number, height: number): void {
  */
 export function supportsOffscreenCanvas(): boolean {
   try {
-    return typeof OffscreenCanvas !== 'undefined' && 
-           typeof OffscreenCanvas.prototype.convertToBlob === 'function';
+    return (
+      typeof OffscreenCanvas !== 'undefined' &&
+      typeof OffscreenCanvas.prototype.convertToBlob === 'function'
+    );
   } catch {
     return false;
   }
@@ -70,13 +72,16 @@ export function supportsOffscreenCanvas(): boolean {
  * @param height Canvas height in pixels
  * @returns Canvas instance and its 2D context
  */
-export function createCanvas(width: number, height: number): {
+export function createCanvas(
+  width: number,
+  height: number,
+): {
   canvas: OffscreenCanvas | HTMLCanvasElement;
   ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
 } {
   // Validate size first
   validateCanvasSize(width, height);
-  
+
   if (supportsOffscreenCanvas()) {
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
@@ -107,13 +112,13 @@ export function createCanvas(width: number, height: number): {
 export async function canvasToBlob(
   canvas: OffscreenCanvas | HTMLCanvasElement,
   type = 'image/png',
-  quality?: number
+  quality?: number,
 ): Promise<Blob> {
   // OffscreenCanvas has convertToBlob method
   if (canvas instanceof OffscreenCanvas) {
     return canvas.convertToBlob({ type, quality });
   }
-  
+
   // Regular Canvas fallback using toBlob
   return new Promise((resolve, reject) => {
     canvas.toBlob(
@@ -125,7 +130,7 @@ export async function canvasToBlob(
         }
       },
       type,
-      quality
+      quality,
     );
   });
 }
@@ -148,12 +153,12 @@ export function normalizeHexColor(color: string): string {
   if (!isValidHexColor(color)) {
     throw new Error(`Invalid hex color: ${color}`);
   }
-  
+
   // Already 6 digits
   if (color.length === 7) {
     return color.toUpperCase();
   }
-  
+
   // Expand 3 digits to 6 digits (#F00 -> #FF0000)
   const r = color[1];
   const g = color[2];
@@ -171,7 +176,7 @@ export function clamp(value: number, min: number, max: number): number {
 /**
  * Allocate pixels to stripes proportionally, ensuring no gaps or overlaps
  * Uses integer arithmetic to avoid accumulating rounding errors
- * 
+ *
  * @param totalPixels Total pixels to allocate
  * @param weights Array of relative weights for each stripe
  * @returns Array of pixel counts for each stripe (sum equals totalPixels)
@@ -180,25 +185,25 @@ export function allocatePixels(totalPixels: number, weights: number[]): number[]
   if (weights.length === 0) {
     return [];
   }
-  
-  if (weights.some(w => w <= 0)) {
+
+  if (weights.some((w) => w <= 0)) {
     throw new Error('All stripe weights must be positive');
   }
-  
+
   const totalWeight = weights.reduce((sum, w) => sum + w, 0);
   const result: number[] = [];
   let allocated = 0;
-  
+
   // Allocate pixels proportionally, rounding down
   for (let i = 0; i < weights.length - 1; i++) {
     const pixels = Math.floor((weights[i] / totalWeight) * totalPixels);
     result.push(pixels);
     allocated += pixels;
   }
-  
+
   // Give remaining pixels to last stripe to ensure exact total
   result.push(totalPixels - allocated);
-  
+
   return result;
 }
 
@@ -209,22 +214,18 @@ export function allocatePixels(totalPixels: number, weights: number[]): number[]
  * @param tolerance RGB tolerance (default: 1)
  * @returns True if colors are within tolerance
  */
-export function colorsAreSimilar(
-  color1: string,
-  color2: string,
-  tolerance = 1
-): boolean {
+export function colorsAreSimilar(color1: string, color2: string, tolerance = 1): boolean {
   const c1 = normalizeHexColor(color1);
   const c2 = normalizeHexColor(color2);
-  
+
   const r1 = parseInt(c1.slice(1, 3), 16);
   const g1 = parseInt(c1.slice(3, 5), 16);
   const b1 = parseInt(c1.slice(5, 7), 16);
-  
+
   const r2 = parseInt(c2.slice(1, 3), 16);
   const g2 = parseInt(c2.slice(3, 5), 16);
   const b2 = parseInt(c2.slice(5, 7), 16);
-  
+
   return (
     Math.abs(r1 - r2) <= tolerance &&
     Math.abs(g1 - g2) <= tolerance &&

@@ -1,7 +1,16 @@
 import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react';
-import type { ImagePosition, PositionLimits, ImageAspectRatio, ImageDimensions } from '@/utils/imagePosition';
+import type {
+  ImagePosition,
+  PositionLimits,
+  ImageAspectRatio,
+  ImageDimensions,
+} from '@/utils/imagePosition';
 import { useImageDrag } from '@/hooks/useImageDrag';
-import { positionToBackgroundPosition, calculateBackgroundSize, calculatePositionLimits } from '@/utils/imagePosition';
+import {
+  positionToBackgroundPosition,
+  calculateBackgroundSize,
+  calculatePositionLimits,
+} from '@/utils/imagePosition';
 import type { FlagSpec } from '@/flags/schema';
 import type { PresentationMode } from '@/components/PresentationModeSelector';
 import { generateFlagPatternStyle } from '@/utils/flagPattern';
@@ -43,7 +52,7 @@ export interface ImageUploadZoneProps {
 
 /**
  * ImageUploadZone - File upload UI for selecting profile picture
- * 
+ *
  * Single Responsibility: Image file selection, preview, and position adjustment
  */
 export function ImageUploadZone({
@@ -67,7 +76,7 @@ export function ImageUploadZone({
   const labelRef = useRef<HTMLLabelElement | null>(null);
   const wasDraggingRef = useRef(false);
   const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
-  
+
   // Use drag hook for panning (disabled in readonly mode)
   const { dragHandlers, setElementRef, isDragging } = useImageDrag({
     position,
@@ -80,20 +89,20 @@ export function ImageUploadZone({
   useEffect(() => {
     const element = labelRef.current;
     if (!element || !imageUrl || readonly) return;
-    
+
     const handleWheel = (e: WheelEvent) => {
       // Only handle zoom if not dragging
       if (isDragging) return;
-      
+
       // Prevent default scrolling to prevent page scroll
       e.preventDefault();
       e.stopPropagation();
-      
+
       // Scroll down = zoom out, scroll up = zoom in
       // Use deltaY: positive = scroll down, negative = scroll up
       const zoomDelta = -e.deltaY * 0.1; // 10% per wheel notch
       const newZoom = Math.max(0, Math.min(200, position.zoom + zoomDelta));
-      
+
       // Update zoom and clamp position to new limits
       const newPosition = { ...position, zoom: newZoom };
       // Recalculate limits would happen in parent, but we need to clamp here
@@ -102,10 +111,10 @@ export function ImageUploadZone({
         onPositionChange(newPosition);
       }
     };
-    
+
     // Use passive: false to allow preventDefault to work
     element.addEventListener('wheel', handleWheel, { passive: false });
-    
+
     return () => {
       element.removeEventListener('wheel', handleWheel);
     };
@@ -146,17 +155,17 @@ export function ImageUploadZone({
         // CRITICAL: Prevent default to stop browser zoom in Firefox Android
         e.preventDefault();
         e.stopPropagation();
-        
+
         const currentDistance = getTouchDistance(e.touches);
         const startDistance = pinchStartRef.current.distance;
         const startZoom = pinchStartRef.current.zoom;
-        
+
         // Calculate zoom change based on distance change
         const distanceRatio = currentDistance / startDistance;
         // Scale the ratio to zoom percentage (1.0 = no change, 1.5 = 50% more zoom)
         const zoomChange = (distanceRatio - 1) * 100;
         const newZoom = Math.max(0, Math.min(200, startZoom + zoomChange));
-        
+
         const newPosition = { ...position, zoom: newZoom };
         if (onPositionChange) {
           onPositionChange(newPosition);
@@ -187,37 +196,43 @@ export function ImageUploadZone({
   }, [imageUrl, position, onPositionChange, getTouchDistance]);
 
   // Combined touch handlers for single-touch drag (React synthetic events)
-  const combinedTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!imageUrl) return;
-    
-    // If two touches, native listener already handled it
-    if (e.touches.length === 2) {
-      return;
-    }
-    
-    // Single touch - clear pinch state and let drag handler handle it
-    pinchStartRef.current = null;
-    dragHandlers.onTouchStart?.(e);
-  }, [imageUrl, dragHandlers]);
+  const combinedTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (!imageUrl) return;
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!imageUrl) return;
-    
-    // If pinching (two touches), native listener already handled it
-    if (e.touches.length === 2 && pinchStartRef.current) {
-      return;
-    }
-    
-    // Single touch - clear pinch state (drag will handle it)
-    if (e.touches.length === 1) {
+      // If two touches, native listener already handled it
+      if (e.touches.length === 2) {
+        return;
+      }
+
+      // Single touch - clear pinch state and let drag handler handle it
       pinchStartRef.current = null;
-    }
-  }, [imageUrl]);
+      dragHandlers.onTouchStart?.(e);
+    },
+    [imageUrl, dragHandlers],
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!imageUrl) return;
+
+      // If pinching (two touches), native listener already handled it
+      if (e.touches.length === 2 && pinchStartRef.current) {
+        return;
+      }
+
+      // Single touch - clear pinch state (drag will handle it)
+      if (e.touches.length === 1) {
+        pinchStartRef.current = null;
+      }
+    },
+    [imageUrl],
+  );
 
   const handleTouchEnd = useCallback(() => {
     pinchStartRef.current = null;
   }, []);
-  
+
   // Track if we were dragging to prevent click after drag
   useEffect(() => {
     if (isDragging) {
@@ -230,7 +245,7 @@ export function ImageUploadZone({
       return () => clearTimeout(timeout);
     }
   }, [isDragging]);
-  
+
   // Calculate maximum limits (at zoom 200%) as reference for consistent position mapping
   // This ensures -50% always represents the same relative position regardless of current zoom
   const maxLimits = useMemo<PositionLimits>(() => {
@@ -239,14 +254,14 @@ export function ImageUploadZone({
     }
     return calculatePositionLimits(imageDimensions, circleSize, 200);
   }, [imageDimensions, circleSize]);
-  
+
   // Get wrapper size for flag pattern generation
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [wrapperSize, setWrapperSize] = useState<number | null>(null);
-  
+
   useEffect(() => {
     if (!wrapperRef.current) return;
-    
+
     const updateSize = () => {
       if (!wrapperRef.current) return;
       const computed = window.getComputedStyle(wrapperRef.current);
@@ -255,30 +270,30 @@ export function ImageUploadZone({
         setWrapperSize(size);
       }
     };
-    
+
     // Initial size - use requestAnimationFrame to ensure DOM is ready
     requestAnimationFrame(() => {
       updateSize();
       // Also try after a short delay in case CSS variables aren't ready
       setTimeout(updateSize, 100);
     });
-    
+
     // Use ResizeObserver for more reliable size tracking
     const resizeObserver = new ResizeObserver(() => {
       updateSize();
     });
-    
+
     resizeObserver.observe(wrapperRef.current);
-    
+
     // Fallback to window resize
     window.addEventListener('resize', updateSize);
-    
+
     return () => {
       resizeObserver.disconnect();
       window.removeEventListener('resize', updateSize);
     };
   }, []);
-  
+
   // Calculate circle inset based on border thickness (Step 3 only)
   // In Step 1, inset is fixed at 10% (from CSS)
   // In Step 3, inset = border thickness
@@ -291,19 +306,23 @@ export function ImageUploadZone({
     // Step 1: Use default CSS inset (10%)
     return undefined;
   }, [readonly, baseCircleSize, wrapperSize, borderThicknessPct]);
-  
+
   // Generate flag pattern for wrapper background (Step 3 only)
   // Ring mode uses canvas rendering; segment/cutout use CSS gradients
   // Use double-buffering to prevent flicker: keep old pattern visible until new one is ready
-  const [currentPatternStyle, setCurrentPatternStyle] = useState<React.CSSProperties | undefined>(undefined);
-  const [nextPatternStyle, setNextPatternStyle] = useState<React.CSSProperties | undefined>(undefined);
+  const [currentPatternStyle, setCurrentPatternStyle] = useState<React.CSSProperties | undefined>(
+    undefined,
+  );
+  const [nextPatternStyle, setNextPatternStyle] = useState<React.CSSProperties | undefined>(
+    undefined,
+  );
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isNextFadingIn, setIsNextFadingIn] = useState(false);
   const currentBlobUrlRef = useRef<string | null>(null);
   const nextBlobUrlRef = useRef<string | null>(null);
   const transitionTimeoutRef = useRef<number | null>(null);
   const effectIdRef = useRef<number>(0);
-  
+
   useEffect(() => {
     if (!readonly || !flag || !wrapperSize) {
       setCurrentPatternStyle(undefined);
@@ -312,19 +331,19 @@ export function ImageUploadZone({
       setIsNextFadingIn(false);
       return;
     }
-    
+
     // Cancel any pending transitions from previous effect
     if (transitionTimeoutRef.current !== null) {
       clearTimeout(transitionTimeoutRef.current);
       transitionTimeoutRef.current = null;
     }
-    
+
     // Increment effect ID to track which effect is current
     const currentEffectId = ++effectIdRef.current;
-    
+
     const borderThicknessPx = (borderThicknessPct / 100) * wrapperSize;
     const effectiveCircleSizeForPattern = wrapperSize - 2 * borderThicknessPx;
-    
+
     // Generate new pattern in "next" buffer
     generateFlagPatternStyle({
       flag,
@@ -348,7 +367,7 @@ export function ImageUploadZone({
           }
           return;
         }
-        
+
         // Extract and manage blob URL for cleanup (ring mode uses canvas -> blob URL)
         const bgImage = style.backgroundImage;
         let imageUrl: string | null = null;
@@ -363,7 +382,7 @@ export function ImageUploadZone({
             imageUrl = urlMatch[1];
           }
         }
-        
+
         // Preload image if it's a blob URL to prevent flicker
         // For CSS gradients (segment mode), no preloading needed
         const startTransition = () => {
@@ -374,12 +393,12 @@ export function ImageUploadZone({
             }
             return;
           }
-          
+
           // Set next pattern first (hidden, opacity 0) - keep current visible
           setNextPatternStyle(style);
           setIsNextFadingIn(false);
           // Don't start fading out current yet - keep it fully visible
-          
+
           // Wait for next frame to ensure DOM has updated and pattern is rendered
           requestAnimationFrame(() => {
             // Check again if effect is still current
@@ -389,7 +408,7 @@ export function ImageUploadZone({
               }
               return;
             }
-            
+
             // Wait one more frame to ensure the element is fully painted
             requestAnimationFrame(() => {
               // Final check if effect is still current
@@ -399,11 +418,11 @@ export function ImageUploadZone({
                 }
                 return;
               }
-              
+
               // Now both patterns are rendered - start cross-fade
               // Start fade-in of next pattern first
               setIsNextFadingIn(true);
-              
+
               // Wait longer before starting fade-out to ensure next pattern is significantly visible
               // This prevents white flicker by keeping current pattern fully visible until next is well into its fade-in
               setTimeout(() => {
@@ -415,7 +434,7 @@ export function ImageUploadZone({
                 }
                 setIsTransitioning(true);
               }, 80); // Longer delay to let next pattern become more visible (about 30% of transition time)
-              
+
               // After transition completes, swap buffers and clean up old pattern
               transitionTimeoutRef.current = window.setTimeout(() => {
                 // Check one more time if effect is still current
@@ -425,16 +444,16 @@ export function ImageUploadZone({
                   }
                   return;
                 }
-                
+
                 // Clean up old current pattern
                 if (currentBlobUrlRef.current) {
                   URL.revokeObjectURL(currentBlobUrlRef.current);
                 }
-                
+
                 // Swap: next becomes current
                 currentBlobUrlRef.current = nextBlobUrlRef.current;
                 nextBlobUrlRef.current = null;
-                
+
                 setCurrentPatternStyle(style);
                 setNextPatternStyle(undefined);
                 setIsTransitioning(false);
@@ -444,7 +463,7 @@ export function ImageUploadZone({
             });
           });
         };
-        
+
         if (imageUrl) {
           const img = new Image();
           img.onload = () => {
@@ -469,18 +488,19 @@ export function ImageUploadZone({
           setIsNextFadingIn(false);
         }
       });
-    
+
     return () => {
       // Cancel pending timeout
       if (transitionTimeoutRef.current !== null) {
         clearTimeout(transitionTimeoutRef.current);
         transitionTimeoutRef.current = null;
       }
-      
-      // Only clean up blob URLs if this effect is being cleaned up (not a new one starting)
-      // We'll let the new effect handle cleanup to prevent flicker
-      // Capture effectId and ref value at cleanup time to avoid stale closure warning
+
+      // Only clean up blob URLs if this effect is being cleaned up (not a new one starting).
+      // We must read effectIdRef.current here to know if a newer effect ran; capturing at
+      // effect start would be always equal and would revoke blobs the new effect needs.
       const cleanupEffectId = currentEffectId;
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: need current ref value to avoid revoking blob used by a newer effect
       const currentEffectIdAtCleanup = effectIdRef.current;
       if (cleanupEffectId === currentEffectIdAtCleanup) {
         if (nextBlobUrlRef.current) {
@@ -489,8 +509,16 @@ export function ImageUploadZone({
         }
       }
     };
-  }, [readonly, flag, wrapperSize, presentation, borderThicknessPct, flagOffsetPct, segmentRotation]);
-  
+  }, [
+    readonly,
+    flag,
+    wrapperSize,
+    presentation,
+    borderThicknessPct,
+    flagOffsetPct,
+    segmentRotation,
+  ]);
+
   // Calculate CSS values for background-image display
   // Use calculateBackgroundSize to maintain cover behavior with zoom
   // Map position using maxLimits as reference, then scale to current limits for display
@@ -500,7 +528,11 @@ export function ImageUploadZone({
     return {
       backgroundImage: `url(${imageUrl})`,
       backgroundSize,
-      backgroundPosition: positionToBackgroundPosition({ x: position.x, y: position.y }, limits, maxLimits),
+      backgroundPosition: positionToBackgroundPosition(
+        { x: position.x, y: position.y },
+        limits,
+        maxLimits,
+      ),
       backgroundRepeat: 'no-repeat' as const,
     };
   }, [imageUrl, backgroundSize, position.x, position.y, limits, maxLimits]);
@@ -515,11 +547,8 @@ export function ImageUploadZone({
         onChange={onImageUpload}
         aria-label="Choose image file (JPG or PNG)"
       />
-      
-      <div 
-        ref={wrapperRef}
-        className={readonly ? "choose-wrapper readonly" : "choose-wrapper"}
-      >
+
+      <div ref={wrapperRef} className={readonly ? 'choose-wrapper readonly' : 'choose-wrapper'}>
         {/* Flag pattern layer (Step 3 only) - double-buffered for smooth transitions */}
         {readonly && currentPatternStyle && (
           <div
@@ -540,15 +569,17 @@ export function ImageUploadZone({
             }
             setElementRef(el);
           }}
-          htmlFor={readonly ? undefined : "step1-file-upload"}
+          htmlFor={readonly ? undefined : 'step1-file-upload'}
           className={[
-            "choose-circle",
-            imageUrl && "has-image",
-            isDragging && "is-dragging",
-            readonly && "readonly"
-          ].filter(Boolean).join(" ")}
-          role={readonly ? "img" : "button"}
-          aria-label={readonly ? "Profile picture preview" : "Choose your profile picture"}
+            'choose-circle',
+            imageUrl && 'has-image',
+            isDragging && 'is-dragging',
+            readonly && 'readonly',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          role={readonly ? 'img' : 'button'}
+          aria-label={readonly ? 'Profile picture preview' : 'Choose your profile picture'}
           style={{
             ...backgroundStyle,
             ...(circleInset ? { inset: circleInset } : {}),
@@ -557,21 +588,31 @@ export function ImageUploadZone({
           onTouchStart={readonly ? undefined : combinedTouchStart}
           onTouchMove={readonly ? undefined : handleTouchMove}
           onTouchEnd={readonly ? undefined : handleTouchEnd}
-          onClick={readonly ? undefined : (e) => {
-            // Prevent file dialog only if we were dragging
-            // This allows clicking to choose a new image when an image is already selected
-            if (wasDraggingRef.current) {
-              e.preventDefault();
-              e.stopPropagation();
-            }
-          }}
+          onClick={
+            readonly
+              ? undefined
+              : (e) => {
+                  // Prevent file dialog only if we were dragging
+                  // This allows clicking to choose a new image when an image is already selected
+                  if (wasDraggingRef.current) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }
+          }
         >
           {!imageUrl && (
             <>
               <div className="icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="8" r="4" fill="currentColor"/>
-                  <path d="M6 20C6 16 8.5 14 12 14C15.5 14 18 16 18 20" fill="currentColor"/>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle cx="12" cy="8" r="4" fill="currentColor" />
+                  <path d="M6 20C6 16 8.5 14 12 14C15.5 14 18 16 18 20" fill="currentColor" />
                 </svg>
               </div>
               <div className="prompt">Choose your profile picture</div>
@@ -588,7 +629,9 @@ export function ImageUploadZone({
                 }}
                 aria-label="Learn about privacy: Stays on your device"
               >
-                <span className="info" aria-hidden="true">i</span>
+                <span className="info" aria-hidden="true">
+                  i
+                </span>
                 Stays on your device
               </button>
             </>
@@ -598,4 +641,3 @@ export function ImageUploadZone({
     </>
   );
 }
-

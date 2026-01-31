@@ -35,8 +35,8 @@ describe('Flag Data Flow Integration', () => {
 
   describe('Cutout Mode Configuration', () => {
     it('should have correct cutout configuration for flags that support it', () => {
-      const cutoutFlags = flags.filter(f => f.modes?.cutout?.offsetEnabled);
-      
+      const cutoutFlags = flags.filter((f) => f.modes?.cutout?.offsetEnabled);
+
       for (const flag of cutoutFlags) {
         expect(flag.modes?.cutout).toBeDefined();
         expect(flag.modes?.cutout?.offsetEnabled).toBe(true);
@@ -47,8 +47,8 @@ describe('Flag Data Flow Integration', () => {
     });
 
     it('should have PNG files for all flags with cutout mode', () => {
-      const cutoutFlags = flags.filter(f => f.modes?.cutout?.offsetEnabled);
-      
+      const cutoutFlags = flags.filter((f) => f.modes?.cutout?.offsetEnabled);
+
       for (const flag of cutoutFlags) {
         expect(flag.png_full).toBeTruthy();
         // PNG file should exist (would need to check file system in real test)
@@ -68,13 +68,13 @@ describe('Flag Data Flow Integration', () => {
 
     it('should have references for flags that need them', () => {
       // Flags with reasons should have references
-      const flagsWithReasons = flags.filter(f => f.reason);
-      
+      const flagsWithReasons = flags.filter((f) => f.reason);
+
       for (const flag of flagsWithReasons) {
         if (flag.references) {
           expect(Array.isArray(flag.references)).toBe(true);
           expect(flag.references.length).toBeGreaterThan(0);
-          
+
           for (const ref of flag.references) {
             expect(ref.url).toBeTruthy();
             expect(ref.text).toBeTruthy();

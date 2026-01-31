@@ -35,7 +35,7 @@ export interface RenderMetrics {
 export class RenderPerformanceTracker {
   private startTime: number = 0;
   private marks: Map<string, number> = new Map();
-  
+
   /**
    * Start tracking performance
    */
@@ -43,21 +43,21 @@ export class RenderPerformanceTracker {
     this.startTime = performance.now();
     this.marks.clear();
   }
-  
+
   /**
    * Mark a performance milestone
    */
   mark(name: string): void {
     this.marks.set(name, performance.now());
   }
-  
+
   /**
    * Get time elapsed since start
    */
   elapsed(): number {
     return performance.now() - this.startTime;
   }
-  
+
   /**
    * Get time between two marks
    */
@@ -69,7 +69,7 @@ export class RenderPerformanceTracker {
     }
     return end - start;
   }
-  
+
   /**
    * Complete tracking and return metrics
    */
@@ -77,13 +77,13 @@ export class RenderPerformanceTracker {
     inputSize: { width: number; height: number },
     outputSize: { width: number; height: number },
     wasDownsampled: boolean,
-    downsampleRatio?: number
+    downsampleRatio?: number,
   ): RenderMetrics {
     const totalTime = this.elapsed();
     const imageLoadTime = this.duration('start', 'imageLoaded');
     const renderTime = this.duration('imageLoaded', 'renderComplete');
     const exportTime = this.duration('renderComplete', 'exportComplete');
-    
+
     // Estimate memory usage
     // Input: width * height * 4 bytes (RGBA)
     // Output: width * height * 4 bytes
@@ -91,7 +91,7 @@ export class RenderPerformanceTracker {
     const inputMemory = inputSize.width * inputSize.height * 4;
     const outputMemory = outputSize.width * outputSize.height * 4;
     const estimatedMemory = inputMemory + outputMemory;
-    
+
     return {
       totalTime,
       imageLoadTime,
@@ -118,19 +118,19 @@ export function calculateDownsampleSize(
   width: number,
   height: number,
   targetSize: number,
-  maxScale = 2
+  maxScale = 2,
 ): { width: number; height: number; scale: number } {
   // Maximum intermediate size (2x target by default)
   const maxSize = targetSize * maxScale;
-  
+
   // If image is already small enough, don't downsample
   if (width <= maxSize && height <= maxSize) {
     return { width, height, scale: 1 };
   }
-  
+
   // Calculate scale to fit within maxSize
   const scale = Math.min(maxSize / width, maxSize / height);
-  
+
   return {
     width: Math.round(width * scale),
     height: Math.round(height * scale),
@@ -149,28 +149,28 @@ export function calculateDownsampleSize(
 export async function downsampleImage(
   image: ImageBitmap,
   targetWidth: number,
-  targetHeight: number
+  targetHeight: number,
 ): Promise<ImageBitmap> {
   // If no downsampling needed, return original
   if (image.width === targetWidth && image.height === targetHeight) {
     return image;
   }
-  
+
   // Create temporary canvas for downsampling
   const canvas = new OffscreenCanvas(targetWidth, targetHeight);
   const ctx = canvas.getContext('2d');
-  
+
   if (!ctx) {
     throw new Error('Failed to get 2D context for downsampling');
   }
-  
+
   // Use high-quality image smoothing
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  
+
   // Draw scaled image
   ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
-  
+
   // Create ImageBitmap from scaled canvas
   return createImageBitmap(canvas);
 }
@@ -187,7 +187,7 @@ export function shouldDownsample(
   width: number,
   height: number,
   targetSize: number,
-  threshold = 2
+  threshold = 2,
 ): boolean {
   const maxDimension = Math.max(width, height);
   return maxDimension > targetSize * threshold;
@@ -203,17 +203,17 @@ export function shouldDownsample(
 export function estimateMemoryUsage(
   imageWidth: number,
   imageHeight: number,
-  outputSize: number
+  outputSize: number,
 ): number {
   // Input image: width * height * 4 bytes (RGBA)
   const inputMemory = imageWidth * imageHeight * 4;
-  
+
   // Output canvas: size * size * 4 bytes
   const outputMemory = outputSize * outputSize * 4;
-  
+
   // Temporary canvases and processing overhead: estimate 50% extra
   const overhead = (inputMemory + outputMemory) * 0.5;
-  
+
   return inputMemory + outputMemory + overhead;
 }
 
@@ -248,13 +248,13 @@ export function formatRenderMetrics(metrics: RenderMetrics): string {
     `Input size: ${metrics.inputSize.width}x${metrics.inputSize.height}`,
     `Output size: ${metrics.outputSize.width}x${metrics.outputSize.height}`,
   ];
-  
+
   if (metrics.wasDownsampled) {
     lines.push(`Downsampled: ${(metrics.downsampleRatio! * 100).toFixed(0)}%`);
   }
-  
+
   lines.push(`Memory: ${formatMemorySize(metrics.estimatedMemory)}`);
-  
+
   return lines.join('\n');
 }
 
@@ -266,7 +266,7 @@ export function logRenderMetrics(metrics: RenderMetrics): void {
   if (process.env.NODE_ENV !== 'development') {
     return;
   }
-  
+
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
     console.group('🎨 Render Performance');
@@ -290,13 +290,13 @@ export function isLowEndDevice(): boolean {
     // Consider devices with <= 2GB RAM as low-end
     return memory !== undefined && memory <= 2;
   }
-  
+
   // Fallback: check if running on mobile
   // This is a heuristic and not always accurate
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
+    navigator.userAgent,
   );
-  
+
   return isMobile;
 }
 
@@ -310,7 +310,7 @@ export function getRecommendedSettings(): {
   estimatedMaxSize: number;
 } {
   const isLowEnd = isLowEndDevice();
-  
+
   if (isLowEnd) {
     return {
       maxScale: 1.5, // More aggressive downsampling
@@ -318,7 +318,7 @@ export function getRecommendedSettings(): {
       estimatedMaxSize: RENDER_SIZES.HIGH_RES, // Limit to high-res size
     };
   }
-  
+
   return {
     maxScale: 2, // Standard 2x downsampling
     enableDownsampling: true,
@@ -335,9 +335,9 @@ export async function warmUpRenderer(): Promise<void> {
     // Create a small test canvas
     const canvas = new OffscreenCanvas(64, 64);
     const ctx = canvas.getContext('2d');
-    
+
     if (!ctx) return;
-    
+
     // Draw some basic shapes to initialize rendering pipeline
     ctx.fillStyle = '#FF0000';
     ctx.fillRect(0, 0, 32, 32);
@@ -345,7 +345,7 @@ export async function warmUpRenderer(): Promise<void> {
     ctx.beginPath();
     ctx.arc(32, 32, 16, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Export to blob to initialize image encoding
     await canvas.convertToBlob({ type: 'image/png' });
   } catch {

@@ -9,6 +9,7 @@ This directory contains Git hooks for the Beyond Borders project.
 Runs validation checks before allowing a push to proceed. This helps catch issues locally before they reach CI.
 
 **Checks performed:**
+
 - Secret scanning (TruffleHog)
 - Security audit (Trivy)
 - Markdown linting
@@ -24,6 +25,7 @@ Runs validation checks before allowing a push to proceed. This helps catch issue
 To install the pre-push hook, run from the repository root:
 
 ### Windows (PowerShell):
+
 ```powershell
 # Create hooks directory if it doesn't exist
 New-Item -Path .git\hooks -ItemType Directory -Force
@@ -36,6 +38,7 @@ git update-index --chmod=+x .git/hooks/pre-push
 ```
 
 ### Linux/macOS:
+
 ```bash
 # Create hooks directory if it doesn't exist
 mkdir -p .git/hooks
@@ -60,11 +63,13 @@ git push --no-verify
 You can also run validation manually without pushing:
 
 ### All platforms (PowerShell Core - required):
+
 ```powershell
 pwsh .github/scripts/local-ci.ps1
 ```
 
 ### Windows (Windows PowerShell):
+
 ```powershell
 .\.github\scripts\local-ci.ps1
 ```

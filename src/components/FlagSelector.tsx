@@ -13,21 +13,28 @@ export interface FlagSelectorProps {
 
 /**
  * FlagSelector - Dropdown for selecting a flag from categorized groups
- * 
+ *
  * Single Responsibility: Flag selection UI with Radix Select primitive
  */
-export const FlagSelector = React.memo(function FlagSelector({ flags, selectedFlagId, onFlagChange }: FlagSelectorProps) {
+export const FlagSelector = React.memo(function FlagSelector({
+  flags,
+  selectedFlagId,
+  onFlagChange,
+}: FlagSelectorProps) {
   // Group flags by category and only include categories that have flags
   // Memoized to prevent recalculation on every render
   const flagsByCategory = useMemo(() => {
-    return flags.reduce((acc, flag) => {
-      if (!flag.category) return acc;
-      if (!acc[flag.category]) {
-        acc[flag.category] = [];
-      }
-      acc[flag.category].push(flag);
-      return acc;
-    }, {} as Record<string, typeof flags>);
+    return flags.reduce(
+      (acc, flag) => {
+        if (!flag.category) return acc;
+        if (!acc[flag.category]) {
+          acc[flag.category] = [];
+        }
+        acc[flag.category].push(flag);
+        return acc;
+      },
+      {} as Record<string, typeof flags>,
+    );
   }, [flags]);
 
   // Get unique categories that have flags, sorted by displayOrder
@@ -43,7 +50,7 @@ export const FlagSelector = React.memo(function FlagSelector({ flags, selectedFl
 
   /**
    * Get display name for a category from the first flag that has it (from source of truth)
-   * 
+   *
    * Categories are resolved from flag-data.yaml through the fetch-flags script,
    * which preserves the original display name in categoryDisplayName. If for some reason
    * categoryDisplayName is missing, we fall back to the category code as a last resort.
@@ -60,8 +67,8 @@ export const FlagSelector = React.memo(function FlagSelector({ flags, selectedFl
 
   return (
     <div className="flag-selector">
-      <Select.Root 
-        value={selectedFlagId ?? ''} 
+      <Select.Root
+        value={selectedFlagId ?? ''}
         onValueChange={(value) => onFlagChange(value || null)}
       >
         <Select.Trigger className="flag-select-trigger" aria-label="Choose a flag">
@@ -91,4 +98,3 @@ export const FlagSelector = React.memo(function FlagSelector({ flags, selectedFl
     </div>
   );
 });
-

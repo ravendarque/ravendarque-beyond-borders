@@ -14,7 +14,7 @@ describe('Step1PositionControls', () => {
         position={defaultPosition}
         limits={defaultLimits}
         onPositionChange={vi.fn()}
-      />
+      />,
     );
     expect(screen.getByText('Move left')).toBeTruthy();
     expect(screen.getByText('Move right')).toBeTruthy();
@@ -30,7 +30,7 @@ describe('Step1PositionControls', () => {
         position={{ x: -20, y: 15, zoom: 150 }}
         limits={defaultLimits}
         onPositionChange={vi.fn()}
-      />
+      />,
     );
     expect(screen.getByText('-20%')).toBeTruthy();
     expect(screen.getByText('15%')).toBeTruthy();
@@ -43,7 +43,7 @@ describe('Step1PositionControls', () => {
         position={defaultPosition}
         limits={defaultLimits}
         onPositionChange={vi.fn()}
-      />
+      />,
     );
     const sliders = screen.getAllByRole('slider');
     expect(sliders.length).toBe(3);
@@ -57,7 +57,7 @@ describe('Step1PositionControls', () => {
         position={defaultPosition}
         limits={defaultLimits}
         onPositionChange={onPositionChange}
-      />
+      />,
     );
     const sliders = screen.getAllByRole('slider');
     const zoomSlider = sliders[2];

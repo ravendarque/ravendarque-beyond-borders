@@ -13,48 +13,52 @@ import {
 import { TEST_FLAGS } from '../helpers/test-data';
 
 test.describe('Complete Workflow', () => {
-  test('should complete full happy path: upload → flag → adjust → download', { tag: '@smoke' }, async ({ page }) => {
-    await page.goto('/');
+  test(
+    'should complete full happy path: upload → flag → adjust → download',
+    { tag: '@smoke' },
+    async ({ page }) => {
+      await page.goto('/');
 
-    // Step 1: Upload image
-    await uploadImage(page);
+      // Step 1: Upload image
+      await uploadImage(page);
 
-    // Step 2: Select flag
-    await selectFlag(page, TEST_FLAGS.PALESTINE);
+      // Step 2: Select flag
+      await selectFlag(page, TEST_FLAGS.PALESTINE);
 
-    // Verify flag is selected
-    await expect(page.locator('#flag-select-label')).toBeVisible();
+      // Verify flag is selected
+      await expect(page.locator('#flag-select-label')).toBeVisible();
 
-    // Step 3: Adjust settings (should be on step 3 now)
-    await waitForRenderComplete(page);
+      // Step 3: Adjust settings (should be on step 3 now)
+      await waitForRenderComplete(page);
 
-    // Verify presentation mode selector is visible
-    await expect(page.getByText('Presentation Style')).toBeVisible();
+      // Verify presentation mode selector is visible
+      await expect(page.getByText('Presentation Style')).toBeVisible();
 
-    // Select Ring mode
-    await selectPresentationMode(page, 'Ring');
+      // Select Ring mode
+      await selectPresentationMode(page, 'Ring');
 
-    // Adjust border width
-    await setSliderValue(page, 'Border Width', 15);
+      // Adjust border width
+      await setSliderValue(page, 'Border Width', 15);
 
-    // Verify preview is rendered
-    const previewImg = page.locator('img[data-preview-url]').first();
-    if (await previewImg.count() > 0) {
-      await expect(previewImg).toBeVisible();
-    }
+      // Verify preview is rendered
+      const previewImg = page.locator('img[data-preview-url]').first();
+      if ((await previewImg.count()) > 0) {
+        await expect(previewImg).toBeVisible();
+      }
 
-    // Step 4: Download (if download button exists)
-    const downloadButton = page.getByRole('button', { name: /download|save|export/i });
-    if (await downloadButton.count() > 0) {
-      // Set up download listener
-      const downloadPromise = page.waitForEvent('download');
-      await downloadButton.click();
-      const download = await downloadPromise;
+      // Step 4: Download (if download button exists)
+      const downloadButton = page.getByRole('button', { name: /download|save|export/i });
+      if ((await downloadButton.count()) > 0) {
+        // Set up download listener
+        const downloadPromise = page.waitForEvent('download');
+        await downloadButton.click();
+        const download = await downloadPromise;
 
-      // Verify download
-      expect(download.suggestedFilename()).toMatch(/\.(png|jpg|jpeg)$/i);
-    }
-  });
+        // Verify download
+        expect(download.suggestedFilename()).toMatch(/\.(png|jpg|jpeg)$/i);
+      }
+    },
+  );
 
   test('should navigate between steps correctly', { tag: '@smoke' }, async ({ page }) => {
     await page.goto('/');
@@ -81,7 +85,7 @@ test.describe('Complete Workflow', () => {
 
     // Check step indicator exists
     const stepIndicator = page.locator('[aria-label*="step" i], [data-step]').first();
-    if (await stepIndicator.count() > 0) {
+    if ((await stepIndicator.count()) > 0) {
       await expect(stepIndicator).toBeVisible();
     }
 

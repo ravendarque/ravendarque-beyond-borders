@@ -1,6 +1,6 @@
 /**
  * Logic for workflow state management
- * 
+ *
  * Consolidates logic that was scattered across reducer and hooks.
  * This makes the logic testable and easier to reason about.
  */
@@ -9,7 +9,7 @@ import type { FlagSpec } from '@/flags/schema';
 
 /**
  * Determine if flag offset should be reset
- * 
+ *
  * Business rule: Reset offset when:
  * - Flag changes in cutout mode
  * - Switching to cutout mode for the first time for a flag
@@ -20,7 +20,7 @@ export function shouldResetFlagOffset(
   presentation: 'ring' | 'segment' | 'cutout',
   flagId: string | null,
   configuredForFlagId: string | null,
-  selectedFlag: FlagSpec | null
+  selectedFlag: FlagSpec | null,
 ): { shouldReset: boolean; defaultOffset: number | undefined } {
   // Only handle in Step 3 with cutout mode
   if (currentStep !== 3 || presentation !== 'cutout') {
@@ -41,4 +41,3 @@ export function shouldResetFlagOffset(
 
   return { shouldReset: false, defaultOffset: undefined };
 }
-

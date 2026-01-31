@@ -243,6 +243,14 @@ if ($prodFilesChanged -and -not $SkipBuild) {
     $exitCode = $LASTEXITCODE
     Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Linting passed" } else { "Linting failed" })
     Write-Host ""
+
+    # Format (Prettier)
+    Write-Host "  ✨ Checking code format (Prettier)..." -ForegroundColor White
+    $exitCode = 0
+    pnpm run format:check 2>&1 | Out-Null
+    $exitCode = $LASTEXITCODE
+    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Format check passed" } else { "Format check failed (run: pnpm run format)" })
+    Write-Host ""
     
     # Build
     Write-Host "  🏗️  Type checking and building..." -ForegroundColor White

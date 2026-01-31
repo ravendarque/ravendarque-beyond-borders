@@ -51,9 +51,11 @@ for (let attempt = 1; attempt <= 3; attempt++) {
 // and headless decode problems. We'll ask the page to return a dataURL and upload that.
 const tmpImage = resolveFromScript(import.meta.url, 'test-image.png');
 const dataUrl = await page.evaluate(() => {
-  const w = 512, h = 512;
+  const w = 512,
+    h = 512;
   const c = document.createElement('canvas');
-  c.width = w; c.height = h;
+  c.width = w;
+  c.height = h;
   const ctx = c.getContext('2d');
   if (!ctx) return '';
   // Draw a simple, high-contrast test image

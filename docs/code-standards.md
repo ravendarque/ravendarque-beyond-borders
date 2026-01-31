@@ -38,9 +38,9 @@ export interface ComponentNameProps {
 
 /**
  * ComponentName - Brief description
- * 
+ *
  * Single Responsibility: What this component does (one clear purpose)
- * 
+ *
  * Additional context if needed:
  * - Usage notes
  * - Important behaviors
@@ -48,16 +48,16 @@ export interface ComponentNameProps {
 export function ComponentName({ propName, optionalProp }: ComponentNameProps) {
   // Hooks first
   const [state, setState] = useState();
-  
+
   // Derived values
   const computed = useMemo(() => ..., [deps]);
-  
+
   // Event handlers
   const handleClick = () => { ... };
-  
+
   // Early returns
   if (!propName) return null;
-  
+
   // Main render
   return (
     <div className="component-name">

@@ -31,7 +31,7 @@ export interface AdjustStepProps {
 
 /**
  * AdjustStep - Step 3 content: Avatar preview and adjustment controls
- * 
+ *
  * Single Responsibility: Render step 3 UI (preview + controls)
  */
 export function AdjustStep({
@@ -54,7 +54,9 @@ export function AdjustStep({
           {overlayUrl ? (
             <img
               src={overlayUrl}
-              alt={selectedFlag ? `Avatar with ${selectedFlag.displayName} border` : 'Avatar preview'}
+              alt={
+                selectedFlag ? `Avatar with ${selectedFlag.displayName} border` : 'Avatar preview'
+              }
               className="avatar-preview-image"
             />
           ) : (
@@ -66,10 +68,7 @@ export function AdjustStep({
       }
       controls={
         <>
-          <PresentationModeSelector
-            mode={presentation}
-            onModeChange={onPresentationChange}
-          />
+          <PresentationModeSelector mode={presentation} onModeChange={onPresentationChange} />
           <AdjustControls
             thickness={thickness}
             onThicknessChange={onThicknessChange}
@@ -85,4 +84,3 @@ export function AdjustStep({
     />
   );
 }
-

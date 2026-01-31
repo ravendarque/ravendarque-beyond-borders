@@ -16,7 +16,12 @@ export const TEST_IMAGE_PATH = path.resolve(__dirname, '../../test-data/profile-
 /**
  * Get the path to the avatar sample fixture
  */
-export const AVATAR_SAMPLE_PATH = path.resolve(process.cwd(), 'tests', 'fixtures', 'avatar-sample.png');
+export const AVATAR_SAMPLE_PATH = path.resolve(
+  process.cwd(),
+  'tests',
+  'fixtures',
+  'avatar-sample.png',
+);
 
 /**
  * Get the path to an invalid test file (for error testing)

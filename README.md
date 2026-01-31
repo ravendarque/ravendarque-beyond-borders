@@ -178,10 +178,10 @@ git push --no-verify
 
 ## Flag validation & fetching
 
-  This project requires PNG flag assets to live in `public/flags` for
-  accurate previews and exports. A validator is provided to ensure every
-  flag referenced in `src/flags/flags.ts` has corresponding PNG files in
-  `public/flags`.
+This project requires PNG flag assets to live in `public/flags` for
+accurate previews and exports. A validator is provided to ensure every
+flag referenced in `src/flags/flags.ts` has corresponding PNG files in
+`public/flags`.
 
 - Run the validator locally:
 

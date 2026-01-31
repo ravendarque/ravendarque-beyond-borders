@@ -1,6 +1,6 @@
 /**
  * Application Error Types
- * 
+ *
  * Defines structured error types for different failure scenarios
  * with user-friendly messages and recovery suggestions.
  */
@@ -12,24 +12,24 @@ export enum ErrorCode {
   NETWORK_FAILURE = 'NETWORK_FAILURE',
   NETWORK_TIMEOUT = 'NETWORK_TIMEOUT',
   NETWORK_OFFLINE = 'NETWORK_OFFLINE',
-  
+
   // File Validation Errors (2xxx)
   FILE_TOO_LARGE = 'FILE_TOO_LARGE',
   FILE_INVALID_TYPE = 'FILE_INVALID_TYPE',
   FILE_LOAD_FAILED = 'FILE_LOAD_FAILED',
   FILE_DIMENSIONS_INVALID = 'FILE_DIMENSIONS_INVALID',
-  
+
   // Rendering Errors (3xxx)
   RENDER_FAILED = 'RENDER_FAILED',
   CANVAS_NOT_SUPPORTED = 'CANVAS_NOT_SUPPORTED',
   BROWSER_LIMIT_EXCEEDED = 'BROWSER_LIMIT_EXCEEDED',
-  
+
   // Flag Data Errors (4xxx)
   FLAG_DATA_MISSING = 'FLAG_DATA_MISSING',
   FLAG_DATA_INVALID = 'FLAG_DATA_INVALID',
   FLAG_LOAD_FAILED = 'FLAG_LOAD_FAILED',
   FLAG_PATTERN_MISSING = 'FLAG_PATTERN_MISSING',
-  
+
   // Generic Errors
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
@@ -124,7 +124,7 @@ export class FileValidationError extends AppError {
       ErrorCode.FILE_TOO_LARGE,
       `File size ${sizeMB}MB exceeds maximum ${maxMB}MB`,
       `This file is too large (${sizeMB}MB). Maximum file size is ${maxMB}MB.`,
-      `Please choose a smaller image or compress it before uploading.`
+      `Please choose a smaller image or compress it before uploading.`,
     );
   }
 
@@ -133,7 +133,7 @@ export class FileValidationError extends AppError {
       ErrorCode.FILE_INVALID_TYPE,
       `Invalid file type: ${type}`,
       'This file type is not supported. Please use JPG or PNG images.',
-      'Choose a JPG or PNG image file and try again.'
+      'Choose a JPG or PNG image file and try again.',
     );
   }
 
@@ -142,16 +142,20 @@ export class FileValidationError extends AppError {
       ErrorCode.FILE_LOAD_FAILED,
       'Failed to load image file',
       'Unable to load this image. The file may be corrupted.',
-      'Try a different image file or re-save this image and try again.'
+      'Try a different image file or re-save this image and try again.',
     );
   }
 
-  static dimensionsTooLarge(width: number, height: number, maxDimension: number): FileValidationError {
+  static dimensionsTooLarge(
+    width: number,
+    height: number,
+    maxDimension: number,
+  ): FileValidationError {
     return new FileValidationError(
       ErrorCode.FILE_INVALID_TYPE, // Reusing this code for dimension validation
       `Image dimensions ${width}x${height} exceed maximum ${maxDimension}px`,
       `This image is too large (${width}x${height} pixels). Maximum dimension is ${maxDimension}px.`,
-      `Please resize the image to ${maxDimension}px or smaller and try again.`
+      `Please resize the image to ${maxDimension}px or smaller and try again.`,
     );
   }
 }
@@ -160,7 +164,13 @@ export class FileValidationError extends AppError {
  * Rendering errors (canvas failures, browser limits)
  */
 export class RenderError extends AppError {
-  constructor(message: string, userMessage: string, recoverySuggestion: string, canRetry = true, originalError?: Error) {
+  constructor(
+    message: string,
+    userMessage: string,
+    recoverySuggestion: string,
+    canRetry = true,
+    originalError?: Error,
+  ) {
     super({
       code: ErrorCode.RENDER_FAILED,
       message,
@@ -177,7 +187,7 @@ export class RenderError extends AppError {
       'Canvas API not supported',
       'Your browser does not support the features needed for this app.',
       'Please try using a modern browser like Chrome, Firefox, or Safari.',
-      false
+      false,
     );
   }
 
@@ -186,7 +196,7 @@ export class RenderError extends AppError {
       'Browser rendering limit exceeded',
       'This image is too large for your browser to process.',
       'Try using a smaller image (under 4000x4000 pixels).',
-      false
+      false,
     );
   }
 
@@ -196,7 +206,7 @@ export class RenderError extends AppError {
       'Unable to create the bordered image. This might be a temporary issue.',
       'Try adjusting the border settings or using a different image.',
       true,
-      originalError
+      originalError,
     );
   }
 }
@@ -205,7 +215,13 @@ export class RenderError extends AppError {
  * Flag data errors (missing/invalid flag data)
  */
 export class FlagDataError extends AppError {
-  constructor(code: ErrorCode, message: string, userMessage: string, recoverySuggestion: string, canRetry = false) {
+  constructor(
+    code: ErrorCode,
+    message: string,
+    userMessage: string,
+    recoverySuggestion: string,
+    canRetry = false,
+  ) {
     super({
       code,
       message,
@@ -222,7 +238,7 @@ export class FlagDataError extends AppError {
       'Failed to load flag definitions',
       'Unable to load the flag library. This might be a network issue.',
       'Check your internet connection and refresh the page.',
-      true
+      true,
     );
   }
 
@@ -232,7 +248,7 @@ export class FlagDataError extends AppError {
       `Flag ${flagId} has no pattern definition`,
       'This flag cannot be displayed because its design data is missing.',
       'Please choose a different flag or report this issue.',
-      false
+      false,
     );
   }
 
@@ -242,7 +258,7 @@ export class FlagDataError extends AppError {
       `Flag ${flagId} has invalid data`,
       'This flag has invalid design data and cannot be used.',
       'Please choose a different flag or report this issue.',
-      false
+      false,
     );
   }
 }
@@ -258,15 +274,15 @@ export function normalizeError(error: unknown): AppError {
   if (error instanceof Error) {
     // Try to categorize based on error message
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('network') || message.includes('fetch')) {
       return new NetworkError(error.message, error);
     }
-    
+
     if (message.includes('canvas')) {
       return RenderError.canvasNotSupported();
     }
-    
+
     // Generic error
     return new AppError({
       code: ErrorCode.UNKNOWN_ERROR,

@@ -11,15 +11,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 test.describe('WCAG AA Compliance', () => {
-  test('should have no accessibility violations on home page', { tag: '@accessibility' }, async ({ page }) => {
-    await page.goto('/');
+  test(
+    'should have no accessibility violations on home page',
+    { tag: '@accessibility' },
+    async ({ page }) => {
+      await page.goto('/');
 
-    const accessibilityScanResults = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-      .analyze();
+      const accessibilityScanResults = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze();
 
-    expect(accessibilityScanResults.violations).toEqual([]);
-  });
+      expect(accessibilityScanResults.violations).toEqual([]);
+    },
+  );
 
   test('should have no accessibility violations after upload', async ({ page }) => {
     await page.goto('/');
@@ -47,7 +51,7 @@ test.describe('WCAG AA Compliance', () => {
 
     // Filter only color contrast violations
     const colorContrastViolations = accessibilityScanResults.violations.filter(
-      (v) => v.id === 'color-contrast'
+      (v) => v.id === 'color-contrast',
     );
 
     expect(colorContrastViolations).toEqual([]);
@@ -61,7 +65,7 @@ test.describe('WCAG AA Compliance', () => {
       .analyze();
 
     const headingViolations = accessibilityScanResults.violations.filter(
-      (v) => v.id === 'heading-order' || v.id === 'page-has-heading-one'
+      (v) => v.id === 'heading-order' || v.id === 'page-has-heading-one',
     );
 
     expect(headingViolations).toEqual([]);
@@ -75,7 +79,7 @@ test.describe('WCAG AA Compliance', () => {
       .analyze();
 
     const ariaViolations = accessibilityScanResults.violations.filter(
-      (v) => v.id === 'aria-allowed-attr' || v.id === 'aria-required-attr' || v.id === 'aria-roles'
+      (v) => v.id === 'aria-allowed-attr' || v.id === 'aria-required-attr' || v.id === 'aria-roles',
     );
 
     expect(ariaViolations).toEqual([]);
@@ -92,7 +96,7 @@ test.describe('WCAG AA Compliance', () => {
       .analyze();
 
     const motionViolations = accessibilityScanResults.violations.filter(
-      (v) => v.id === 'prefers-reduced-motion'
+      (v) => v.id === 'prefers-reduced-motion',
     );
 
     expect(motionViolations).toEqual([]);

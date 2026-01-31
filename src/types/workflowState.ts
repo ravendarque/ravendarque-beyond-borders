@@ -1,6 +1,6 @@
 /**
  * Unified workflow state types
- * 
+ *
  * Defines the step-based state model for the Beyond Borders workflow.
  * Each step owns its state, eliminating scattered useState calls and ref tracking.
  */

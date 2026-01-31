@@ -20,8 +20,10 @@ test.describe('Flag Rendering Visual Tests', () => {
     await waitForRenderComplete(page);
 
     // Take screenshot of flag preview
-    const flagPreview = page.locator('[data-flag-preview], .flag-preview, img[alt*="flag" i]').first();
-    if (await flagPreview.count() > 0) {
+    const flagPreview = page
+      .locator('[data-flag-preview], .flag-preview, img[alt*="flag" i]')
+      .first();
+    if ((await flagPreview.count()) > 0) {
       await expect(flagPreview).toHaveScreenshot('palestine-flag-preview.png');
     }
   });
@@ -33,10 +35,14 @@ test.describe('Flag Rendering Visual Tests', () => {
     await page.getByRole('option', { name: 'Pride — Rainbow Flag' }).click();
     await page.waitForTimeout(800);
 
-    await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, { timeout: 30000 });
+    await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, {
+      timeout: 30000,
+    });
 
-    const flagPreview = page.locator('[data-flag-preview], .flag-preview, img[alt*="flag" i]').first();
-    if (await flagPreview.count() > 0) {
+    const flagPreview = page
+      .locator('[data-flag-preview], .flag-preview, img[alt*="flag" i]')
+      .first();
+    if ((await flagPreview.count()) > 0) {
       await expect(flagPreview).toHaveScreenshot('pride-flag-preview.png');
     }
   });

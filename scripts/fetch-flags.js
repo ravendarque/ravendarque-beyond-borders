@@ -26,7 +26,9 @@ const WANT_DRY = argv.includes('--dry-run');
 const WANT_FORCE = argv.includes('--force');
 
 if (argv.includes('--help') || argv.includes('-h')) {
-  console.log('Usage: node scripts/fetch-flags.js [--push] [--ci] [--dry-run] [--force]\n  --push   allow git add/commit/push (local override)\n  --ci     treat run as CI (also allows commit)\n  --dry-run  only simulate actions (no network writes)\n  --force  delete existing PNG files before regenerating');
+  console.log(
+    'Usage: node scripts/fetch-flags.js [--push] [--ci] [--dry-run] [--force]\n  --push   allow git add/commit/push (local override)\n  --ci     treat run as CI (also allows commit)\n  --dry-run  only simulate actions (no network writes)\n  --force  delete existing PNG files before regenerating',
+  );
   process.exit(0);
 }
 
@@ -45,7 +47,10 @@ const yamlText = fs.readFileSync(dataYamlPath, 'utf8');
 
 // Validate schema file exists
 if (!fs.existsSync(schemaPath)) {
-  exitWithError(new FileError('data/flag-data.schema.json not found. Please add it.', schemaPath), 1);
+  exitWithError(
+    new FileError('data/flag-data.schema.json not found. Please add it.', schemaPath),
+    1,
+  );
 }
 
 // Load dependencies
@@ -71,7 +76,7 @@ ajv.addFormat('uri', {
     } catch {
       return false;
     }
-  }
+  },
 });
 const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
 
@@ -160,7 +165,7 @@ async function getMediaUrlFromCommonsImproved(filePageUrl) {
     const last = parts[parts.length - 1] || '';
     const title = decodeURIComponent(last);
     const apiUrl = `https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&iiprop=url&format=json&titles=${encodeURIComponent(title)}`;
-    
+
     const { fetchUrl } = await import('./lib/network.js');
     const body = await fetchUrl(apiUrl, 0);
     let obj = null;
@@ -202,7 +207,8 @@ async function workerForFlag(f) {
     }
 
     const parsed = new URL(mediaUrl);
-    const remoteBase = parsed.pathname.split('/').pop() || parsed.pathname.split('/').slice(-2).join('_');
+    const remoteBase =
+      parsed.pathname.split('/').pop() || parsed.pathname.split('/').slice(-2).join('_');
     const sane = sanitizeFilename(remoteBase);
     const id = canonicalizeId(sane.replace(/\.svg$/i, ''));
     const filename = id + '.svg';
@@ -246,7 +252,7 @@ async function workerForFlag(f) {
       references: f.references || null,
       colors,
       stripe_order: colors,
-      cutoutMode: f.cutoutMode || null
+      cutoutMode: f.cutoutMode || null,
     };
 
     if (svgText) {
@@ -263,8 +269,12 @@ async function workerForFlag(f) {
             const svgTagMatch = safeSvg.match(/<svg([^>]*)>/i);
             if (svgTagMatch) {
               const attrs = svgTagMatch[1];
-              const wMatch = attrs.match(/width\s*=\s*"([0-9\.]+)(px)?"/i) || attrs.match(/width\s*=\s*'([0-9\.]+)(px)?'/i);
-              const hMatch = attrs.match(/height\s*=\s*"([0-9\.]+)(px)?"/i) || attrs.match(/height\s*=\s*'([0-9\.]+)(px)?'/i);
+              const wMatch =
+                attrs.match(/width\s*=\s*"([0-9\.]+)(px)?"/i) ||
+                attrs.match(/width\s*=\s*'([0-9\.]+)(px)?'/i);
+              const hMatch =
+                attrs.match(/height\s*=\s*"([0-9\.]+)(px)?"/i) ||
+                attrs.match(/height\s*=\s*'([0-9\.]+)(px)?'/i);
               if (wMatch && hMatch) {
                 const iw = parseFloat(wMatch[1]) || 0;
                 const ih = parseFloat(hMatch[1]) || 0;
@@ -283,7 +293,9 @@ async function workerForFlag(f) {
         fs.writeFileSync(tmpHtml, html, 'utf8');
 
         let aspect = 3 / 2;
-        const vbMatch = svgText.match(/viewBox\s*=\s*"([\d\.\-]+)\s+([\d\.\-]+)\s+([\d\.\-]+)\s+([\d\.\-]+)"/i);
+        const vbMatch = svgText.match(
+          /viewBox\s*=\s*"([\d\.\-]+)\s+([\d\.\-]+)\s+([\d\.\-]+)\s+([\d\.\-]+)"/i,
+        );
         if (vbMatch) {
           const w = parseFloat(vbMatch[3]);
           const h = parseFloat(vbMatch[4]);
@@ -312,8 +324,8 @@ async function workerForFlag(f) {
                   const s = new XMLSerializer().serializeToString(svg);
                   const img = new Image();
                   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
-                  return new Promise(resolve => {
-                    img.onload = function() {
+                  return new Promise((resolve) => {
+                    img.onload = function () {
                       try {
                         const iw = img.naturalWidth || 1;
                         const ih = img.naturalHeight || 1;
@@ -324,7 +336,11 @@ async function workerForFlag(f) {
                         tctx.clearRect(0, 0, iw, ih);
                         tctx.drawImage(img, 0, 0, iw, ih);
                         const imgd = tctx.getImageData(0, 0, iw, ih).data;
-                        let minX = iw, minY = ih, maxX = 0, maxY = 0, any = false;
+                        let minX = iw,
+                          minY = ih,
+                          maxX = 0,
+                          maxY = 0,
+                          any = false;
                         for (let y = 0; y < ih; y++) {
                           for (let x = 0; x < iw; x++) {
                             const i = (y * iw + x) * 4;
@@ -341,14 +357,14 @@ async function workerForFlag(f) {
                             }
                           }
                         }
-                        const srcW = any ? (maxX - minX + 1) : iw;
-                        const srcH = any ? (maxY - minY + 1) : ih;
+                        const srcW = any ? maxX - minX + 1 : iw;
+                        const srcH = any ? maxY - minY + 1 : ih;
                         resolve(srcW / srcH);
                       } catch (e) {
                         resolve(null);
                       }
                     };
-                    img.onerror = function() {
+                    img.onerror = function () {
                       resolve(null);
                     };
                   });
@@ -379,7 +395,7 @@ async function workerForFlag(f) {
         const previewHeight = Math.max(64, Math.round(PREVIEW_WIDTH / detectedAspectForPreview));
         const targets = [
           { name: pngFull, width: fullWidth, height: FULL_HEIGHT, mode: 'slice' },
-          { name: pngPreview, width: PREVIEW_WIDTH, height: previewHeight, mode: 'contain' }
+          { name: pngPreview, width: PREVIEW_WIDTH, height: previewHeight, mode: 'contain' },
         ];
 
         const MIN_PCT_PREVIEW = 1.0;
@@ -404,10 +420,11 @@ async function workerForFlag(f) {
             const thresh = t.mode === 'slice' ? MIN_PCT_FULL : MIN_PCT_PREVIEW;
             // For 'contain' mode (previews), require both dimensions to meet threshold to avoid letterboxing
             // For 'slice' mode (full), either dimension meeting threshold is acceptable
-            const meetsThreshold = t.mode === 'slice' 
-              ? (stats.pctW >= thresh || stats.pctH >= thresh)
-              : (stats.pctW >= thresh && stats.pctH >= thresh);
-            
+            const meetsThreshold =
+              t.mode === 'slice'
+                ? stats.pctW >= thresh || stats.pctH >= thresh
+                : stats.pctW >= thresh && stats.pctH >= thresh;
+
             if (meetsThreshold) {
               usedFast = true;
               logger.debug(`Fast path succeeded for ${t.name}`);
@@ -433,7 +450,9 @@ async function workerForFlag(f) {
               const { chromium } = playwright;
               const browser = await chromium.launch({ args: ['--no-sandbox'] });
               try {
-                const context = await browser.newContext({ viewport: { width: t.width, height: t.height } });
+                const context = await browser.newContext({
+                  viewport: { width: t.width, height: t.height },
+                });
                 const page = await context.newPage();
                 await page.goto('file://' + tmpHtml);
                 try {
@@ -441,7 +460,7 @@ async function workerForFlag(f) {
                 } catch (e) {
                   // Ignore timeout
                 }
-                
+
                 let detectedAspectRatio = null;
                 try {
                   const svgHandle = await page.$('svg');
@@ -454,8 +473,8 @@ async function workerForFlag(f) {
                           const s = new XMLSerializer().serializeToString(svg);
                           const img = new Image();
                           img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
-                          return new Promise(resolve => {
-                            img.onload = function() {
+                          return new Promise((resolve) => {
+                            img.onload = function () {
                               try {
                                 const iw = img.naturalWidth || 1;
                                 const ih = img.naturalHeight || 1;
@@ -466,7 +485,11 @@ async function workerForFlag(f) {
                                 tctx.clearRect(0, 0, iw, ih);
                                 tctx.drawImage(img, 0, 0, iw, ih);
                                 const imgd = tctx.getImageData(0, 0, iw, ih).data;
-                                let minX = iw, minY = ih, maxX = 0, maxY = 0, any = false;
+                                let minX = iw,
+                                  minY = ih,
+                                  maxX = 0,
+                                  maxY = 0,
+                                  any = false;
                                 for (let y = 0; y < ih; y++) {
                                   for (let x = 0; x < iw; x++) {
                                     const i = (y * iw + x) * 4;
@@ -483,14 +506,17 @@ async function workerForFlag(f) {
                                     }
                                   }
                                 }
-                                const srcW = any ? (maxX - minX + 1) : iw;
-                                const srcH = any ? (maxY - minY + 1) : ih;
-                                return { aspectRatio: srcW / srcH, dataUrl: tmp.toDataURL('image/png') };
+                                const srcW = any ? maxX - minX + 1 : iw;
+                                const srcH = any ? maxY - minY + 1 : ih;
+                                return {
+                                  aspectRatio: srcW / srcH,
+                                  dataUrl: tmp.toDataURL('image/png'),
+                                };
                               } catch (e) {
                                 return null;
                               }
                             };
-                            img.onerror = function() {
+                            img.onerror = function () {
                               resolve(null);
                             };
                           });
@@ -498,7 +524,7 @@ async function workerForFlag(f) {
                           return null;
                         }
                       }),
-                      new Promise((resolve) => setTimeout(() => resolve(null), 10000)) // 10 second timeout
+                      new Promise((resolve) => setTimeout(() => resolve(null), 10000)), // 10 second timeout
                     ]);
                     if (result && result.dataUrl) {
                       const base64 = result.dataUrl.replace(/^data:image\/png;base64,/, '');
@@ -515,7 +541,7 @@ async function workerForFlag(f) {
                 } catch (e) {
                   await page.screenshot({ path: outP, omitBackground: true, fullPage: true });
                 }
-                
+
                 // Update aspect ratio if we detected content bounds
                 if (detectedAspectRatio !== null) {
                   aspect = detectedAspectRatio;
@@ -534,21 +560,23 @@ async function workerForFlag(f) {
               logger.warn(`Playwright rendering failed for ${outP}: ${e?.message}`);
             }
           } else if (!usedFast) {
-            logger.warn(`No Playwright available to render ${outP} and fast-path failed; skipping.`);
+            logger.warn(
+              `No Playwright available to render ${outP} and fast-path failed; skipping.`,
+            );
           }
         }
-        
+
         try {
           fs.unlinkSync(tmpHtml);
         } catch (e) {
           // Ignore cleanup errors
         }
-        
+
         metadata.png_full = id + '.png';
         metadata.png_preview = id + '.preview.png';
         metadata.aspectRatio = aspect;
         metadata.filename = filename;
-        
+
         const pngFullPath = join(outDir, pngFull);
         if (fs.existsSync(pngFullPath)) {
           try {
@@ -563,7 +591,7 @@ async function workerForFlag(f) {
             logger.warn(`Failed to extract colors or analyze PNG: ${e?.message}`);
           }
         }
-        
+
         if (!WANT_DRY) {
           try {
             fs.unlinkSync(dst);
@@ -594,8 +622,10 @@ try {
 }
 
 const limit = pLimit(3);
-const tasks = flags.map(f => limit(() => workerForFlag(f)));
-const results = await Promise.all(tasks.map(p => p.catch(e => ({ success: false, error: String(e) }))));
+const tasks = flags.map((f) => limit(() => workerForFlag(f)));
+const results = await Promise.all(
+  tasks.map((p) => p.catch((e) => ({ success: false, error: String(e) }))),
+);
 
 // Build runtime manifest from processing results
 try {
@@ -607,7 +637,9 @@ try {
     const svg = m.filename;
     const id = svg.replace(/\.svg$/i, '');
     const png_full = m.png_full || (fs.existsSync(join(outDir, id + '.png')) ? id + '.png' : null);
-    const png_preview = m.png_preview || (fs.existsSync(join(outDir, id + '.preview.png')) ? id + '.preview.png' : null);
+    const png_preview =
+      m.png_preview ||
+      (fs.existsSync(join(outDir, id + '.preview.png')) ? id + '.preview.png' : null);
     const layouts = [];
     if (Array.isArray(m.colors) && m.colors.length) {
       layouts.push({ type: 'ring', colors: m.colors });
@@ -636,10 +668,10 @@ try {
     };
     manifest.push(entry);
   }
-  
+
   // Write TypeScript file instead of JSON
   const tsSource = generateTypeScriptSource(manifest);
-  
+
   if (WANT_DRY) {
     logger.info(`Dry-run: would write flags.ts to ${flagsTsPath} with ${manifest.length} entries`);
   } else {
@@ -647,7 +679,7 @@ try {
     logger.success(`Successfully updated ${flagsTsPath}`);
     logger.info(`   Generated ${manifest.length} flag entries`);
   }
-  
+
   // Post-run cleanup - only run if we have a valid manifest and not in dry-run
   if (!WANT_DRY && manifest.length > 0) {
     try {
@@ -680,11 +712,13 @@ try {
   } else if (WANT_DRY) {
     logger.info('Dry-run: skipping cleanup (would only run with valid manifest)');
   }
-  
+
   // Report failures
   for (const r of results) {
     if (!r || r.success) continue;
-    logger.warn(`Failed to fetch or process: ${r.name || '(unknown)'} ${r.error || 'unknown reason'}`);
+    logger.warn(
+      `Failed to fetch or process: ${r.name || '(unknown)'} ${r.error || 'unknown reason'}`,
+    );
   }
 } catch (e) {
   logger.warn(`Failed to write runtime manifest: ${e?.message}`);
@@ -710,7 +744,9 @@ try {
     execSync('git push');
     logger.success('Committed and pushed changes.');
   } else {
-    logger.info('Not in CI and --push not supplied; skipping git commit/push. Use --push or --ci to enable.');
+    logger.info(
+      'Not in CI and --push not supplied; skipping git commit/push. Use --push or --ci to enable.',
+    );
   }
 } catch (e) {
   logger.warn(`Commit/push skipped or failed: ${e?.message}`);

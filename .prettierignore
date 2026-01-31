@@ -1,0 +1,24 @@
+# Dependencies and build
+node_modules/
+dist/
+.vite/
+.vite-cache/
+coverage/
+
+# Lockfiles and generated
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+*.tsbuildinfo
+
+# Test/Playwright
+test-results/
+.playwright/
+*-snapshots/
+
+# Local
+.local/
+
+# Changelog (often hand-formatted)
+CHANGELOG*
+changelog*

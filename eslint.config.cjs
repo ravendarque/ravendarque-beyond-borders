@@ -3,6 +3,7 @@ const tsParser = require('@typescript-eslint/parser');
 const tsPlugin = require('@typescript-eslint/eslint-plugin');
 const reactPlugin = require('eslint-plugin-react');
 const reactHooksPlugin = require('eslint-plugin-react-hooks');
+const eslintConfigPrettier = require('eslint-config-prettier/flat');
 
 module.exports = [
   {
@@ -36,9 +37,11 @@ module.exports = [
       // stylistic
       'no-console': 'warn',
     },
-    
+
     settings: {
       react: { version: 'detect' },
     },
   },
+  // Prettier: turn off ESLint rules that conflict with Prettier (must be last)
+  eslintConfigPrettier,
 ];

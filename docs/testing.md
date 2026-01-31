@@ -11,9 +11,11 @@ This project uses a comprehensive test suite with unit, integration, and end-to-
 ## Documentation
 
 ### Unit & Integration Tests
+
 - **[Renderer Tests](renderer-tests.md)** - Comprehensive coverage of the renderer module
 
 ### End-to-End Tests
+
 - **[E2E Test Guide](../test/e2e/README.md)** - Complete guide to writing and running E2E tests
   - How to run tests
   - Using shared helpers
@@ -24,6 +26,7 @@ This project uses a comprehensive test suite with unit, integration, and end-to-
 ## Quick Start
 
 ### Run All Tests
+
 ```bash
 # Unit and integration tests
 pnpm test
@@ -33,6 +36,7 @@ pnpm test:e2e
 ```
 
 ### Run Specific Test Suites
+
 ```bash
 # Unit tests only
 pnpm test -- test/unit

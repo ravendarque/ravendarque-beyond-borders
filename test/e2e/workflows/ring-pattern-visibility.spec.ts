@@ -3,7 +3,12 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { uploadImage, selectFlag, selectPresentationMode, waitForRenderComplete } from '../helpers/page-helpers';
+import {
+  uploadImage,
+  selectFlag,
+  selectPresentationMode,
+  waitForRenderComplete,
+} from '../helpers/page-helpers';
 import { TEST_FLAGS } from '../helpers/test-data';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -16,7 +21,10 @@ test.describe('Ring Pattern Visibility', () => {
     await page.goto('/');
 
     // Step 1: Upload image
-    const testImagePath = path.resolve(__dirname, '../../test-data/profile-pic-square-clr-256x256.jpg');
+    const testImagePath = path.resolve(
+      __dirname,
+      '../../test-data/profile-pic-square-clr-256x256.jpg',
+    );
     await uploadImage(page, testImagePath);
     await page.waitForTimeout(1000);
 
@@ -45,7 +53,7 @@ test.describe('Ring Pattern Visibility', () => {
     });
 
     console.log('Pattern background-image:', backgroundImage);
-    
+
     // Should have a radial-gradient, not 'none' or 'transparent'
     expect(backgroundImage).not.toBe('none');
     expect(backgroundImage).toContain('radial-gradient');
@@ -53,14 +61,14 @@ test.describe('Ring Pattern Visibility', () => {
     // Check if wrapper background is transparent (hatch should be hidden)
     const wrapper = page.locator('.choose-wrapper.readonly');
     await expect(wrapper).toBeVisible({ timeout: 5000 });
-    
+
     const wrapperBackground = await wrapper.evaluate((el) => {
       const style = window.getComputedStyle(el);
       return style.background;
     });
 
     console.log('Wrapper background:', wrapperBackground);
-    
+
     // Background should be transparent (no hatch pattern)
     expect(wrapperBackground).toContain('transparent');
   });

@@ -23,7 +23,11 @@ test('palestine flag preview renders correctly', async ({ page }) => {
   // so the app should start in flag mode with Palestine selected. Wait a bit
   // for the preview canvas to render.
   // Wait for the flags manifest to load — MenuItem entries render when flagsList is populated.
-  await page.locator('text=Palestine').first().waitFor({ timeout: 10000 }).catch(() => {});
+  await page
+    .locator('text=Palestine')
+    .first()
+    .waitFor({ timeout: 10000 })
+    .catch(() => {});
   await page.waitForTimeout(300);
 
   // Interact with the UI to ensure the flag preview path runs and pushDebug entries are emitted.
@@ -34,14 +38,21 @@ test('palestine flag preview renders correctly', async ({ page }) => {
   // Some environments may not expose __BB_DEBUG__ reliably; make the wait resilient so
   // we can still surface debug contents in the assertion failure message.
   try {
-    await page.waitForFunction(() => {
-      try {
-        const d = (window as any).__BB_DEBUG__;
-        return Array.isArray(d) && d.some((e: any) => e?.tag === 'flag-preview' && e?.stage === 'drawing');
-      } catch {
-        return false;
-      }
-    }, null, { timeout: 7000 });
+    await page.waitForFunction(
+      () => {
+        try {
+          const d = (window as any).__BB_DEBUG__;
+          return (
+            Array.isArray(d) &&
+            d.some((e: any) => e?.tag === 'flag-preview' && e?.stage === 'drawing')
+          );
+        } catch {
+          return false;
+        }
+      },
+      null,
+      { timeout: 7000 },
+    );
   } catch (err) {
     // swallow timeout; we'll still read __BB_DEBUG__ below and let the assertion fail with its content
   }
@@ -52,7 +63,9 @@ test('palestine flag preview renders correctly', async ({ page }) => {
       const r = await fetch('/flags/flags.json');
       if (!r.ok) return null;
       return await r.json();
-    } catch (e) { return null; }
+    } catch (e) {
+      return null;
+    }
   });
   expect(Array.isArray(manifest)).toBeTruthy();
   const hasPal = (manifest || []).some((f: any) => f && f.id === 'palestine');
@@ -76,9 +89,15 @@ test('palestine flag preview renders correctly', async ({ page }) => {
 
   // save logs and screenshot as test artifacts
   try {
-    test.info().attachments.push({ name: 'console.log', contentType: 'text/plain', body: Buffer.from(logs.join('\n')) as any });
+    test.info().attachments.push({
+      name: 'console.log',
+      contentType: 'text/plain',
+      body: Buffer.from(logs.join('\n')) as any,
+    });
   } catch {}
   try {
-    test.info().attachments.push({ name: 'screenshot.png', contentType: 'image/png', body: shot as any });
+    test
+      .info()
+      .attachments.push({ name: 'screenshot.png', contentType: 'image/png', body: shot as any });
   } catch {}
 });

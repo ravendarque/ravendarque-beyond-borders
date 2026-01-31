@@ -15,7 +15,10 @@ test.describe('Ring Pattern Debug', () => {
     await page.goto('/');
 
     // Upload image
-    const testImagePath = path.resolve(__dirname, '../../test-data/profile-pic-square-clr-256x256.jpg');
+    const testImagePath = path.resolve(
+      __dirname,
+      '../../test-data/profile-pic-square-clr-256x256.jpg',
+    );
     const fileInput = page.locator('input[type="file"]').first();
     await fileInput.setInputFiles(testImagePath);
     await page.waitForTimeout(1000);
@@ -29,7 +32,7 @@ test.describe('Ring Pattern Debug', () => {
     const combobox = page.getByRole('combobox');
     await combobox.click();
     await page.waitForTimeout(500);
-    
+
     // Click Palestine option
     const palestineOption = page.getByRole('option', { name: /palestine/i }).first();
     await palestineOption.click();
@@ -47,7 +50,7 @@ test.describe('Ring Pattern Debug', () => {
     // Check if wrapper has readonly class
     const wrapper = page.locator('.choose-wrapper.readonly');
     await expect(wrapper).toBeVisible({ timeout: 5000 });
-    
+
     // Check wrapper background is transparent (rgba(0,0,0,0) is transparent)
     const wrapperBg = await wrapper.evaluate((el) => {
       const style = window.getComputedStyle(el);
@@ -57,7 +60,7 @@ test.describe('Ring Pattern Debug', () => {
         backgroundImage: style.backgroundImage,
       };
     });
-    
+
     console.log('Wrapper background:', wrapperBg);
     // rgba(0,0,0,0) is transparent, so this is correct
 
@@ -65,15 +68,15 @@ test.describe('Ring Pattern Debug', () => {
     const patternLayer = page.locator('.choose-wrapper-pattern');
     const patternCount = await patternLayer.count();
     console.log('Pattern layer count:', patternCount);
-    
+
     // Debug: Check what props are being passed to ImageUploadZone
     const debugInfo = await page.evaluate(() => {
       const wrapper = document.querySelector('.choose-wrapper.readonly');
       if (!wrapper) return { error: 'Wrapper not found' };
-      
+
       const circle = wrapper.querySelector('.choose-circle.readonly');
       const pattern = wrapper.querySelector('.choose-wrapper-pattern');
-      
+
       return {
         wrapperExists: !!wrapper,
         circleExists: !!circle,
@@ -82,13 +85,13 @@ test.describe('Ring Pattern Debug', () => {
         wrapperSize: wrapper.getBoundingClientRect().width,
       };
     });
-    
+
     console.log('Debug info:', debugInfo);
-    
+
     if (patternCount === 0) {
       // Pattern layer not rendered - check why
       console.log('Pattern layer not found! Checking component state...');
-      
+
       // Check if we can see console logs
       const logs = await page.evaluate(() => {
         // This won't work, but let's check the DOM structure
@@ -96,16 +99,16 @@ test.describe('Ring Pattern Debug', () => {
           wrapper: document.querySelector('.choose-wrapper.readonly')?.outerHTML.substring(0, 200),
         };
       });
-      
+
       console.log('DOM structure:', logs);
-      
+
       // Take screenshot for debugging
       await page.screenshot({ path: getTestResultsPath('ring-pattern-debug.png'), fullPage: true });
       throw new Error('Pattern layer not rendered - patternStyle is likely undefined');
     }
-    
+
     await expect(patternLayer).toBeVisible({ timeout: 5000 });
-    
+
     // Check pattern background-image
     const patternBg = await patternLayer.evaluate((el) => {
       const style = window.getComputedStyle(el);
@@ -117,7 +120,7 @@ test.describe('Ring Pattern Debug', () => {
         zIndex: style.zIndex,
       };
     });
-    
+
     console.log('Pattern layer styles:', patternBg);
     expect(patternBg.backgroundImage).not.toBe('none');
     expect(patternBg.backgroundImage).toContain('radial-gradient');

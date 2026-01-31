@@ -18,13 +18,13 @@ const ctx = await browser.newContext({ baseURL: 'http://localhost:5173' });
 const page = await ctx.newPage();
 
 const logs = [];
-page.on('console', msg => {
+page.on('console', (msg) => {
   const text = `${msg.type()}: ${msg.text()}`;
   logs.push(text);
   logger.debug(text);
 });
 
-page.on('pageerror', err => {
+page.on('pageerror', (err) => {
   logs.push(`pageerror: ${err.toString()}`);
   logger.error('Page error:', err.toString());
 });

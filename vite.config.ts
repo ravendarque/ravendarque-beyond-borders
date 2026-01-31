@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { fileURLToPath, URL } from 'node:url'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { fileURLToPath, URL } from 'node:url';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Read version from package.json for local dev, or use VERSION env var for CI
 function getVersion(): string {
@@ -10,9 +10,7 @@ function getVersion(): string {
     return process.env.VERSION;
   }
   try {
-    const packageJson = JSON.parse(
-      readFileSync(resolve(__dirname, 'package.json'), 'utf-8')
-    );
+    const packageJson = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'));
     return packageJson.version || '0.0.0';
   } catch {
     return '0.0.0';
@@ -25,8 +23,7 @@ export default defineConfig({
   // Priority: BASE_URL env var > production default > dev default
   // BASE_URL is used for beta deployments (e.g., /beta/0.2.136-pr/)
   // Production uses / for custom domain (wearebeyondborders.com)
-  base: process.env.BASE_URL || 
-        (process.env.NODE_ENV === 'production' ? '/' : '/'),
+  base: process.env.BASE_URL || (process.env.NODE_ENV === 'production' ? '/' : '/'),
   plugins: [react()],
   define: {
     // Inject version at build time
@@ -48,17 +45,19 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           // Keep React together in vendor chunk
-          if (id.includes('node_modules/react') || 
-              id.includes('node_modules/react-dom') ||
-              id.includes('node_modules/scheduler')) {
+          if (
+            id.includes('node_modules/react') ||
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/scheduler')
+          ) {
             return 'vendor';
           }
-          
+
           // Split renderer utilities (canvas operations)
           if (id.includes('/src/renderer/')) {
             return 'renderer';
           }
-          
+
           // Split flag data into separate chunk
           if (id.includes('/src/flags/')) {
             return 'flags';
@@ -86,4 +85,4 @@ export default defineConfig({
       reportsDirectory: './coverage',
     },
   },
-})
+});

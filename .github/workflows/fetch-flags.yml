@@ -21,21 +21,21 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: true
-          
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
-        
+
       - name: Fetch and generate flags
         run: node scripts/fetch-flags.js
       - name: Validate flag data integrity
@@ -48,22 +48,22 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: update flags (automated)"
+          commit-message: 'chore: update flags (automated)'
           branch: update/flags-${{ github.run_id }}
-          title: "🏴 Update flags (automated)"
+          title: '🏴 Update flags (automated)'
           body: |
             Automated flag update triggered by changes to flag-data.yaml.
-            
+
             ## Changes
             - 🖼️ Updated flag PNGs in `public/flags/`
             - 🔧 Generated `src/flags/flags.ts` from `data/flag-data.yaml`
-            
+
             ## Pre-merge Validation
             - ✅ Unit tests passed (flags.test.ts)
             - ✅ Flag asset quality validated (validate-flags.js)
             - ✅ All PNG files exist and fill canvas properly
             - ✅ All flags have required properties
-            
+
             **Note**: CI will run automatically on this PR for final validation.
           labels: automated, flags
           assignees: ${{ github.actor }}

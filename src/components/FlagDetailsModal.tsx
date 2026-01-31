@@ -13,7 +13,7 @@ export interface FlagDetailsModalProps {
 
 /**
  * FlagDetailsModal - Modal dialog showing detailed information about a flag
- * 
+ *
  * Single Responsibility: Display comprehensive flag information
  */
 export function FlagDetailsModal({ open, onOpenChange, flag }: FlagDetailsModalProps) {
@@ -23,8 +23,8 @@ export function FlagDetailsModal({ open, onOpenChange, flag }: FlagDetailsModalP
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content 
-          className="dialog-content" 
+        <Dialog.Content
+          className="dialog-content"
           aria-describedby="flag-details-description"
           onOpenAutoFocus={(e) => {
             // Scroll to top when dialog opens
@@ -36,17 +36,12 @@ export function FlagDetailsModal({ open, onOpenChange, flag }: FlagDetailsModalP
           }}
         >
           <Dialog.Close asChild>
-            <button 
-              className="dialog-close-button"
-              aria-label="Close dialog"
-            >
+            <button className="dialog-close-button" aria-label="Close dialog">
               ×
             </button>
           </Dialog.Close>
-          <Dialog.Title className="dialog-title">
-            {flag.name || flag.displayName}
-          </Dialog.Title>
-          
+          <Dialog.Title className="dialog-title">{flag.name || flag.displayName}</Dialog.Title>
+
           <div className="dialog-body" id="flag-details-description">
             {flag.reason && (
               <div className="flag-detail-narrative">
@@ -77,9 +72,7 @@ export function FlagDetailsModal({ open, onOpenChange, flag }: FlagDetailsModalP
 
           <div className="dialog-actions">
             <Dialog.Close asChild>
-              <button className="dialog-button">
-                Close
-              </button>
+              <button className="dialog-button">Close</button>
             </Dialog.Close>
           </div>
         </Dialog.Content>
@@ -87,4 +80,3 @@ export function FlagDetailsModal({ open, onOpenChange, flag }: FlagDetailsModalP
     </Dialog.Root>
   );
 }
-

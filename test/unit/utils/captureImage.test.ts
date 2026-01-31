@@ -42,7 +42,7 @@ describe('captureAdjustedImage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock document.createElement for canvas
     originalCreateElement = document.createElement;
     document.createElement = vi.fn((tagName: string) => {
@@ -62,7 +62,7 @@ describe('captureAdjustedImage', () => {
       height = 100;
       naturalWidth = 100;
       naturalHeight = 100;
-      
+
       constructor() {
         // Auto-resolve onload after a microtask to simulate async loading
         setTimeout(() => {
@@ -89,7 +89,7 @@ describe('captureAdjustedImage', () => {
       position,
       circleSize,
       imageDimensions,
-      512
+      512,
     );
 
     expect(result).toBeTruthy();
@@ -105,7 +105,7 @@ describe('captureAdjustedImage', () => {
       TINY_PNG_DATA_URL,
       position,
       circleSize,
-      imageDimensions
+      imageDimensions,
     );
 
     expect(result).toBeTruthy();
@@ -122,7 +122,7 @@ describe('captureAdjustedImage', () => {
       position,
       circleSize,
       imageDimensions,
-      512
+      512,
     );
 
     const result1024 = await captureAdjustedImage(
@@ -130,7 +130,7 @@ describe('captureAdjustedImage', () => {
       position,
       circleSize,
       imageDimensions,
-      1024
+      1024,
     );
 
     expect(result512).toBeTruthy();
@@ -149,7 +149,7 @@ describe('captureAdjustedImage', () => {
       position,
       circleSize,
       imageDimensions,
-      512
+      512,
     );
 
     expect(result).toBeTruthy();
@@ -166,7 +166,7 @@ describe('captureAdjustedImage', () => {
       position,
       circleSize,
       imageDimensions,
-      512
+      512,
     );
 
     expect(result).toBeTruthy();
@@ -183,7 +183,7 @@ describe('captureAdjustedImage', () => {
       position,
       circleSize,
       imageDimensions,
-      512
+      512,
     );
 
     expect(result).toBeTruthy();
@@ -200,7 +200,7 @@ describe('captureAdjustedImage', () => {
       position,
       circleSize,
       imageDimensions,
-      512
+      512,
     );
 
     expect(result).toBeTruthy();
@@ -226,13 +226,7 @@ describe('captureAdjustedImage', () => {
     const circleSize = 250;
 
     await expect(
-      captureAdjustedImage(
-        TINY_PNG_DATA_URL,
-        position,
-        circleSize,
-        imageDimensions,
-        512
-      )
+      captureAdjustedImage(TINY_PNG_DATA_URL, position, circleSize, imageDimensions, 512),
     ).rejects.toThrow('Failed to get canvas context');
 
     // Restore original
@@ -247,7 +241,7 @@ describe('captureAdjustedImage', () => {
       onerror: (() => void) | null = null;
       width = 0;
       height = 0;
-      
+
       constructor() {
         setTimeout(() => {
           if (this.onerror) {
@@ -256,7 +250,7 @@ describe('captureAdjustedImage', () => {
         }, 0);
       }
     };
-    
+
     const originalImage = global.Image;
     global.Image = MockErrorImage as unknown as typeof Image;
 
@@ -265,13 +259,7 @@ describe('captureAdjustedImage', () => {
     const circleSize = 250;
 
     await expect(
-      captureAdjustedImage(
-        'invalid-url',
-        position,
-        circleSize,
-        imageDimensions,
-        512
-      )
+      captureAdjustedImage('invalid-url', position, circleSize, imageDimensions, 512),
     ).rejects.toThrow('Failed to load image');
 
     global.Image = originalImage;
@@ -287,13 +275,13 @@ describe('captureAdjustedImage', () => {
       position,
       circleSize,
       imageDimensions,
-      512
+      512,
     );
 
     // Result should be a valid data URL
     expect(result).toBeTruthy();
     expect(result).toMatch(/^data:image\/png;base64,/);
-    
+
     // The circular clipping is applied via canvas clip() - we can't easily verify
     // the visual result in unit tests, but we can verify it doesn't throw
   });
@@ -308,7 +296,7 @@ describe('captureAdjustedImage', () => {
       position,
       circleSize,
       imageDimensions,
-      512
+      512,
     );
 
     expect(result).toBeTruthy();
@@ -325,7 +313,7 @@ describe('captureAdjustedImage', () => {
       position,
       circleSize,
       imageDimensions,
-      512
+      512,
     );
 
     expect(result).toBeTruthy();

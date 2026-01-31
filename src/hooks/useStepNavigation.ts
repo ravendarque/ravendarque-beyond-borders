@@ -30,18 +30,16 @@ export interface UseStepNavigationReturn {
 
 /**
  * Hook for managing step navigation with URL synchronization
- * 
+ *
  * Handles:
  * - Step state management
  * - URL query parameter sync (?step=1, ?step=2, ?step=3)
  * - Browser back/forward navigation
  * - Validation of step transitions based on required data
  */
-export function useStepNavigation(
-  options: UseStepNavigationOptions
-): UseStepNavigationReturn {
+export function useStepNavigation(options: UseStepNavigationOptions): UseStepNavigationReturn {
   const { imageUrl, flagId, initialStep = 1 } = options;
-  
+
   const [currentStep, setCurrentStepState] = useState<Step>(initialStep);
   const isHandlingPopState = useRef(false);
 
@@ -52,12 +50,15 @@ export function useStepNavigation(
   /**
    * Validate if a step transition is allowed
    */
-  const canNavigateToStep = useCallback((step: Step): boolean => {
-    if (step === 1) return true;
-    if (step === 2) return canGoToStep2;
-    if (step === 3) return canGoToStep3;
-    return false;
-  }, [canGoToStep2, canGoToStep3]);
+  const canNavigateToStep = useCallback(
+    (step: Step): boolean => {
+      if (step === 1) return true;
+      if (step === 2) return canGoToStep2;
+      if (step === 3) return canGoToStep3;
+      return false;
+    },
+    [canGoToStep2, canGoToStep3],
+  );
 
   /**
    * Update URL to reflect current step
@@ -70,13 +71,13 @@ export function useStepNavigation(
     }
 
     const url = new URL(window.location.href);
-    
+
     if (step > 1) {
       url.searchParams.set('step', step.toString());
     } else {
       url.searchParams.delete('step');
     }
-    
+
     // Use pushState to allow browser back/forward navigation
     window.history.pushState({}, '', url.toString());
   }, []); // No dependencies - only uses ref and step parameter
@@ -130,10 +131,10 @@ export function useStepNavigation(
   useEffect(() => {
     const url = new URL(window.location.href);
     const stepParam = url.searchParams.get('step');
-    
+
     if (stepParam) {
       const requestedStep = parseInt(stepParam, 10) as Step;
-      
+
       // Only restore step if we have the required data
       if (canNavigateToStep(requestedStep)) {
         setCurrentStepState(requestedStep);
@@ -149,13 +150,13 @@ export function useStepNavigation(
       isHandlingPopState.current = true;
       const url = new URL(window.location.href);
       const stepParam = url.searchParams.get('step');
-      
+
       if (!stepParam) {
         // No step param means go to step 1
         setCurrentStepState(1);
       } else {
         const requestedStep = parseInt(stepParam, 10) as Step;
-        
+
         // Validate step is in range
         if (requestedStep >= 1 && requestedStep <= TOTAL_STEPS) {
           // Only navigate if we have the required data
@@ -172,7 +173,7 @@ export function useStepNavigation(
     };
 
     window.addEventListener('popstate', handlePopState);
-    
+
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
@@ -187,4 +188,3 @@ export function useStepNavigation(
     canGoToStep3,
   };
 }
-

@@ -28,26 +28,33 @@ export function fetchUrl(url, attempts = 0) {
     const opts = new URL(url);
     opts.headers = {
       'User-Agent': 'beyond-borders-fetcher/1.0 (+https://github.com/ravendarque/beyond-borders)',
-      'Referer': 'https://commons.wikimedia.org/',
-      'Accept': '*/*'
+      Referer: 'https://commons.wikimedia.org/',
+      Accept: '*/*',
     };
-    https.get(opts, (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        return resolve(fetchUrl(res.headers.location, 0));
-      }
-      if ((res.statusCode === 429 || (res.statusCode >= 500 && res.statusCode < 600) || res.statusCode === 403) && attempts < 5) {
-        const backoff = 800 * Math.pow(2, attempts);
-        logger.warn(`Retryable status ${res.statusCode} for ${url} -> retry in ${backoff}ms`);
-        setTimeout(() => resolve(fetchUrl(url, attempts + 1)), backoff);
-        return;
-      }
-      if (res.statusCode !== 200) {
-        return reject(new NetworkError(`Bad status ${res.statusCode} for ${url}`, url));
-      }
-      const bufs = [];
-      res.on('data', (d) => bufs.push(d));
-      res.on('end', () => resolve(Buffer.concat(bufs)));
-    }).on('error', reject);
+    https
+      .get(opts, (res) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          return resolve(fetchUrl(res.headers.location, 0));
+        }
+        if (
+          (res.statusCode === 429 ||
+            (res.statusCode >= 500 && res.statusCode < 600) ||
+            res.statusCode === 403) &&
+          attempts < 5
+        ) {
+          const backoff = 800 * Math.pow(2, attempts);
+          logger.warn(`Retryable status ${res.statusCode} for ${url} -> retry in ${backoff}ms`);
+          setTimeout(() => resolve(fetchUrl(url, attempts + 1)), backoff);
+          return;
+        }
+        if (res.statusCode !== 200) {
+          return reject(new NetworkError(`Bad status ${res.statusCode} for ${url}`, url));
+        }
+        const bufs = [];
+        res.on('data', (d) => bufs.push(d));
+        res.on('end', () => resolve(Buffer.concat(bufs)));
+      })
+      .on('error', reject);
   });
 }
 
@@ -65,49 +72,57 @@ export function fetchToFile(url, dst, timeoutMs = 30000, maxRedirects = 5) {
     const opts = new URL(url);
     opts.headers = {
       'User-Agent': 'beyond-borders-fetcher/1.0 (+https://github.com/ravendarque/beyond-borders)',
-      'Referer': 'https://commons.wikimedia.org/',
-      'Accept': '*/*'
+      Referer: 'https://commons.wikimedia.org/',
+      Accept: '*/*',
     };
-    const req = https.get(opts, (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        req.destroy();
-        return resolve(fetchToFile(res.headers.location, dst, timeoutMs, maxRedirects - 1));
-      }
-      if ((res.statusCode === 429 || (res.statusCode >= 500 && res.statusCode < 600) || res.statusCode === 403)) {
-        return reject(new NetworkError(`Retryable status ${res.statusCode} for ${url}`, url));
-      }
-      if (res.statusCode !== 200) {
-        return reject(new NetworkError(`Bad status ${res.statusCode} for ${url}`, url));
-      }
-      const ws = fs.createWriteStream(dst);
-      let finished = false;
-      const onDone = () => {
-        if (finished) return;
-        finished = true;
-        ws.close();
-        try {
-          const st = fs.statSync(dst);
-          resolve(st.size);
-        } catch (e) {
-          resolve(0);
+    const req = https
+      .get(opts, (res) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          req.destroy();
+          return resolve(fetchToFile(res.headers.location, dst, timeoutMs, maxRedirects - 1));
         }
-      };
-      const onError = (err) => {
-        if (finished) return;
-        finished = true;
-        try {
-          ws.destroy();
-        } catch (e) {
-          // Ignore
+        if (
+          res.statusCode === 429 ||
+          (res.statusCode >= 500 && res.statusCode < 600) ||
+          res.statusCode === 403
+        ) {
+          return reject(new NetworkError(`Retryable status ${res.statusCode} for ${url}`, url));
         }
-        reject(err);
-      };
-      res.pipe(ws);
-      res.on('error', onError);
-      ws.on('finish', onDone);
-      ws.on('error', onError);
-      res.setTimeout(timeoutMs, () => onError(new NetworkError(`Timeout downloading ${url}`, url)));
-    }).on('error', (err) => reject(err));
+        if (res.statusCode !== 200) {
+          return reject(new NetworkError(`Bad status ${res.statusCode} for ${url}`, url));
+        }
+        const ws = fs.createWriteStream(dst);
+        let finished = false;
+        const onDone = () => {
+          if (finished) return;
+          finished = true;
+          ws.close();
+          try {
+            const st = fs.statSync(dst);
+            resolve(st.size);
+          } catch (e) {
+            resolve(0);
+          }
+        };
+        const onError = (err) => {
+          if (finished) return;
+          finished = true;
+          try {
+            ws.destroy();
+          } catch (e) {
+            // Ignore
+          }
+          reject(err);
+        };
+        res.pipe(ws);
+        res.on('error', onError);
+        ws.on('finish', onDone);
+        ws.on('error', onError);
+        res.setTimeout(timeoutMs, () =>
+          onError(new NetworkError(`Timeout downloading ${url}`, url)),
+        );
+      })
+      .on('error', (err) => reject(err));
   });
 }
 

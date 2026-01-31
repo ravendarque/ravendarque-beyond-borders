@@ -22,8 +22,11 @@ const manifestPath = config.paths.flagsTs;
 // Validate that TypeScript manifest exists
 if (!fs.existsSync(manifestPath)) {
   exitWithError(
-    new FileError('TypeScript manifest src/flags/flags.ts not found — run fetch-flags.js', manifestPath),
-    2
+    new FileError(
+      'TypeScript manifest src/flags/flags.ts not found — run fetch-flags.js',
+      manifestPath,
+    ),
+    2,
   );
 }
 
@@ -65,7 +68,10 @@ function canonicalizeId(name) {
 
 // Validate YAML file exists
 if (!fs.existsSync(dataYaml)) {
-  exitWithError(new FileError('Could not find data/flag-data.yaml — aborting validation', dataYaml), 1);
+  exitWithError(
+    new FileError('Could not find data/flag-data.yaml — aborting validation', dataYaml),
+    1,
+  );
 }
 
 let yaml = null;
@@ -79,28 +85,35 @@ let expected = [];
 try {
   const jsyaml = await loadOptionalDep('js-yaml');
   if (!jsyaml) {
-    exitWithError(new ValidationError('js-yaml is required for validation. Install with: pnpm add -D js-yaml'), 1);
-  }
-  
-  const doc = jsyaml.load(yaml);
-  
-  if (!doc || !Array.isArray(doc.categories)) {
     exitWithError(
-      new FlagDataError('YAML structure is invalid. Expected { categories: [{ categoryName: "...", displayOrder: n, flags: [...] }] }'),
-      1
+      new ValidationError('js-yaml is required for validation. Install with: pnpm add -D js-yaml'),
+      1,
     );
   }
-  
+
+  const doc = jsyaml.load(yaml);
+
+  if (!doc || !Array.isArray(doc.categories)) {
+    exitWithError(
+      new FlagDataError(
+        'YAML structure is invalid. Expected { categories: [{ categoryName: "...", displayOrder: n, flags: [...] }] }',
+      ),
+      1,
+    );
+  }
+
   // Flatten nested structure
   for (const category of doc.categories) {
     if (!category.categoryName || !Array.isArray(category.flags)) {
       exitWithError(
-        new FlagDataError(`Invalid category structure. Expected { categoryName: "...", displayOrder: n, flags: [...] }`),
-        1
+        new FlagDataError(
+          `Invalid category structure. Expected { categoryName: "...", displayOrder: n, flags: [...] }`,
+        ),
+        1,
       );
     }
-    
-    expected.push(...category.flags.map(flag => ({ ...flag, category: category.categoryName })));
+
+    expected.push(...category.flags.map((flag) => ({ ...flag, category: category.categoryName })));
   }
 } catch (e) {
   exitWithError(new FlagDataError('Failed to parse YAML', e), 1);
@@ -123,22 +136,24 @@ for (const e of expected) {
       // If decoding fails, use the original (might already be decoded)
     }
     const cleanRaw = decodedBasename
-        .replace(/\.svg$/i, '')
-        .replace(/^File:/i, '')
-        .replace(/^file:/i, '');
+      .replace(/\.svg$/i, '')
+      .replace(/^File:/i, '')
+      .replace(/^file:/i, '');
     const clean = canonicalizeId(cleanRaw);
     expectedIds.add(clean);
   }
 }
 
-const manifestIds = new Set((manifest || []).map(m => m.id));
+const manifestIds = new Set((manifest || []).map((m) => m.id));
 const missingIds = [];
 for (const id of expectedIds) {
   if (!manifestIds.has(id)) missingIds.push(id);
 }
 
 if (missingIds.length) {
-  logger.error('Flag manifest validation failed — the following flags from data/flag-data.yaml are missing in src/flags/flags.ts:');
+  logger.error(
+    'Flag manifest validation failed — the following flags from data/flag-data.yaml are missing in src/flags/flags.ts:',
+  );
   for (const n of missingIds) logger.error(`  - ${n}`);
   logger.error('\nRun scripts/fetch-flags.js --ci to regenerate the manifest and assets.');
   exitWithError(new ValidationError('Flags missing from manifest', { missingIds }), 2);
@@ -156,7 +171,9 @@ for (const m of manifest) {
 }
 
 if (missingFiles.length) {
-  logger.error('Flag asset validation failed — the following PNGs referenced in flags.ts are missing from public/flags:');
+  logger.error(
+    'Flag asset validation failed — the following PNGs referenced in flags.ts are missing from public/flags:',
+  );
   for (const f of missingFiles) logger.error(`  - ${f}`);
   exitWithError(new ValidationError('Missing PNG files', { missingFiles }), 2);
 }
@@ -167,7 +184,9 @@ if (missingFiles.length) {
 // bounding box (same logic as scripts/inspect-flag-raster.js)
 const playwright = await loadOptionalDep('playwright');
 if (!playwright) {
-  logger.error('Playwright is required for PNG usage validation. Install with: pnpm add -D playwright');
+  logger.error(
+    'Playwright is required for PNG usage validation. Install with: pnpm add -D playwright',
+  );
   process.exit(1);
 }
 
@@ -192,7 +211,8 @@ for (const m of manifest) {
         else img.onload = () => resolve(true);
         setTimeout(() => resolve(true), 2000);
       }).then(() => {
-        const w = img.naturalWidth, h = img.naturalHeight;
+        const w = img.naturalWidth,
+          h = img.naturalHeight;
         const c = document.createElement('canvas');
         c.width = w;
         c.height = h;
@@ -200,7 +220,11 @@ for (const m of manifest) {
         ctx.clearRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0);
         const data = ctx.getImageData(0, 0, w, h).data;
-        let minX = w, minY = h, maxX = 0, maxY = 0, any = false;
+        let minX = w,
+          minY = h,
+          maxX = 0,
+          maxY = 0,
+          any = false;
         for (let y = 0; y < h; y++) {
           for (let x = 0; x < w; x++) {
             const i = (y * w + x) * 4;
@@ -217,10 +241,22 @@ for (const m of manifest) {
         if (!any) return { w, h, any: false };
         const usedW = maxX - minX + 1;
         const usedH = maxY - minY + 1;
-        return { w, h, any: true, minX, minY, maxX, maxY, usedW, usedH, pctW: usedW / w, pctH: usedH / h };
+        return {
+          w,
+          h,
+          any: true,
+          minX,
+          minY,
+          maxX,
+          maxY,
+          usedW,
+          usedH,
+          pctW: usedW / w,
+          pctH: usedH / h,
+        };
       });
     });
-    
+
     if (!res.any) {
       usageErrors.push({ id: m.id, file: m.png_full, reason: 'no non-transparent pixels' });
     } else {
@@ -234,17 +270,40 @@ for (const m of manifest) {
       const MIN_PCT = 1.0; // require 100% coverage
       if (m.png_full && pngPath.endsWith(m.png_full)) {
         if ((res.pctH || 0) < MIN_PCT) {
-          usageErrors.push({ id: m.id, file: m.png_full, usedW: res.usedW, usedH: res.usedH, w: res.w, h: res.h, pctW: res.pctW, pctH: res.pctH });
+          usageErrors.push({
+            id: m.id,
+            file: m.png_full,
+            usedW: res.usedW,
+            usedH: res.usedH,
+            w: res.w,
+            h: res.h,
+            pctW: res.pctW,
+            pctH: res.pctH,
+          });
         }
       } else {
         // For other images (fallback) require both dimensions meet MIN_PCT
         if ((res.pctW || 0) < MIN_PCT || (res.pctH || 0) < MIN_PCT) {
-          usageErrors.push({ id: m.id, file: m.png_full, usedW: res.usedW, usedH: res.usedH, w: res.w, h: res.h, pctW: res.pctW, pctH: res.pctH });
+          usageErrors.push({
+            id: m.id,
+            file: m.png_full,
+            usedW: res.usedW,
+            usedH: res.usedH,
+            w: res.w,
+            h: res.h,
+            pctW: res.pctW,
+            pctH: res.pctH,
+          });
         }
       }
     }
   } catch (e) {
-    usageErrors.push({ id: m.id, file: m.png_full, reason: 'read/eval failed', error: String(e?.message) });
+    usageErrors.push({
+      id: m.id,
+      file: m.png_full,
+      reason: 'read/eval failed',
+      error: String(e?.message),
+    });
   }
 }
 
@@ -255,14 +314,22 @@ try {
 }
 
 if (usageErrors.length) {
-  logger.error('Flag asset usage validation failed — the following png_full files do not fill their canvas:');
+  logger.error(
+    'Flag asset usage validation failed — the following png_full files do not fill their canvas:',
+  );
   for (const x of usageErrors) {
-    const details = x.reason || (`used ${x.usedW}x${x.usedH} of ${x.w}x${x.h} (${Math.round((x.pctW || 0) * 100)}% x ${Math.round((x.pctH || 0) * 100)}%)`);
+    const details =
+      x.reason ||
+      `used ${x.usedW}x${x.usedH} of ${x.w}x${x.h} (${Math.round((x.pctW || 0) * 100)}% x ${Math.round((x.pctH || 0) * 100)}%)`;
     logger.error(`  - ${x.id || x.file}: ${details}${x.error ? ' error=' + x.error : ''}`);
   }
-  logger.error('\nRegenerate assets with scripts/fetch-flags.js --ci and inspect with scripts/inspect-flag-raster.js.');
+  logger.error(
+    '\nRegenerate assets with scripts/fetch-flags.js --ci and inspect with scripts/inspect-flag-raster.js.',
+  );
   exitWithError(new ValidationError('PNG canvas usage validation failed', { usageErrors }), 3);
 }
 
-logger.success('Flag validation passed — flags.ts present, category keys valid, referenced PNGs exist, and all png_full images fully use their canvas.');
+logger.success(
+  'Flag validation passed — flags.ts present, category keys valid, referenced PNGs exist, and all png_full images fully use their canvas.',
+);
 process.exit(0);

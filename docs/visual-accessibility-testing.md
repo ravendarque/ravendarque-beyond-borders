@@ -7,17 +7,20 @@ This guide provides comprehensive testing procedures for visual accessibility fe
 ## Testing Tools
 
 ### Color Contrast Checkers
+
 - **WebAIM Contrast Checker**: https://webaim.org/resources/contrastchecker/
 - **Stark Plugin** (Figma/Browser): https://www.getstark.co/
 - **axe DevTools** (Browser Extension): https://www.deque.com/axe/devtools/
 - **Chrome Lighthouse**: Built into Chrome DevTools
 
 ### Color Blindness Simulators
+
 - **Coblis** (Web): https://www.color-blindness.com/coblis-color-blindness-simulator/
 - **Color Oracle** (Desktop): https://colororacle.org/
 - **Chrome DevTools**: Rendering > Emulate vision deficiencies
 
 ### High Contrast Mode
+
 - **Windows High Contrast**: Settings > Ease of Access > High Contrast
 - **macOS Increase Contrast**: System Preferences > Accessibility > Display > Increase Contrast
 - **Chrome Forced Colors**: DevTools > Rendering > Emulate forced colors
@@ -27,6 +30,7 @@ This guide provides comprehensive testing procedures for visual accessibility fe
 ### ✅ Color Contrast (WCAG 1.4.3 - Level AA)
 
 #### Normal Text (< 18pt or < 14pt bold)
+
 - [ ] Primary text on background: Minimum 4.5:1 ratio
 - [ ] Secondary text on background: Minimum 4.5:1 ratio
 - [ ] Link text on background: Minimum 4.5:1 ratio
@@ -34,10 +38,12 @@ This guide provides comprehensive testing procedures for visual accessibility fe
 - [ ] Form label text: Minimum 4.5:1 ratio
 
 #### Large Text (≥ 18pt or ≥ 14pt bold)
+
 - [ ] Headings on background: Minimum 3:1 ratio
 - [ ] Button text on button background: Minimum 3:1 ratio
 
 #### UI Components (WCAG 1.4.11 - Level AA)
+
 - [ ] Button borders: Minimum 3:1 ratio against adjacent colors
 - [ ] Form field borders: Minimum 3:1 ratio
 - [ ] Focus indicators: Minimum 3:1 ratio
@@ -56,6 +62,7 @@ This guide provides comprehensive testing procedures for visual accessibility fe
 ### ✅ Zoom & Reflow (WCAG 1.4.10 - Level AA)
 
 #### 200% Zoom Testing
+
 1. **Set browser zoom to 200%** (Ctrl/Cmd + Plus until 200%)
 2. **Check layout**:
    - [ ] No horizontal scrolling required
@@ -66,12 +73,14 @@ This guide provides comprehensive testing procedures for visual accessibility fe
 3. **Test all pages/views** at 200% zoom
 
 #### 400% Zoom Testing (Optional - Level AAA)
+
 - [ ] Single-column layout activates
 - [ ] Content remains usable (may require vertical scrolling)
 
 ### ✅ High Contrast Mode
 
 #### Windows High Contrast Mode
+
 1. **Enable**: Windows Settings > Ease of Access > High Contrast
 2. **Choose theme**: High Contrast Black or High Contrast White
 3. **Test**:
@@ -84,6 +93,7 @@ This guide provides comprehensive testing procedures for visual accessibility fe
    - [ ] Images/icons that convey information have text alternatives
 
 #### macOS Increase Contrast
+
 1. **Enable**: System Preferences > Accessibility > Display > Increase Contrast
 2. **Test**:
    - [ ] All UI elements have enhanced contrast
@@ -125,6 +135,7 @@ This guide provides comprehensive testing procedures for visual accessibility fe
 4. **Fix any failures** by adjusting colors
 
 **Example**:
+
 ```
 Foreground: #6b7280 (secondary text)
 Background: #ffffff (white)
@@ -172,6 +183,7 @@ Ratio: 4.6:1 ✅ PASS (AA)
 ### Procedure 4: High Contrast Mode Testing
 
 #### Windows
+
 1. **Enable High Contrast**: Settings > Ease of Access > High Contrast
 2. **Select High Contrast Black**
 3. **Open application in browser**
@@ -183,6 +195,7 @@ Ratio: 4.6:1 ✅ PASS (AA)
 5. **Repeat with High Contrast White**
 
 #### macOS
+
 1. **Enable Increase Contrast**: System Prefs > Accessibility > Display
 2. **Toggle "Increase contrast"**
 3. **Test application**
@@ -193,6 +206,7 @@ Ratio: 4.6:1 ✅ PASS (AA)
 **Tools**: Color Oracle or Chrome DevTools
 
 #### Using Chrome DevTools
+
 1. **Open DevTools** (F12)
 2. **Go to Rendering tab** (⋮ menu > More tools > Rendering)
 3. **Find "Emulate vision deficiencies"**
@@ -233,11 +247,11 @@ Ratio: 4.6:1 ✅ PASS (AA)
 
 ### Color Contrast Results
 
-| Element | Foreground | Background | Ratio | Required | Status |
-|---------|------------|------------|-------|----------|--------|
-| Primary text | #0f172a | #ffffff | 15.7:1 | 4.5:1 | ✅ PASS |
-| Secondary text | #6b7280 | #ffffff | 4.6:1 | 4.5:1 | ✅ PASS |
-| Button text | #ffffff | #f97316 | 4.7:1 | 4.5:1 | ✅ PASS |
+| Element        | Foreground | Background | Ratio  | Required | Status  |
+| -------------- | ---------- | ---------- | ------ | -------- | ------- |
+| Primary text   | #0f172a    | #ffffff    | 15.7:1 | 4.5:1    | ✅ PASS |
+| Secondary text | #6b7280    | #ffffff    | 4.6:1  | 4.5:1    | ✅ PASS |
+| Button text    | #ffffff    | #f97316    | 4.7:1  | 4.5:1    | ✅ PASS |
 
 ### Focus Indicator Results
 
@@ -262,11 +276,11 @@ Ratio: 4.6:1 ✅ PASS (AA)
 
 ### Touch Target Results
 
-| Element | Width | Height | Status |
-|---------|-------|--------|--------|
-| Upload button | 48px | 48px | ✅ PASS |
-| Icon buttons | 48px | 48px | ✅ PASS |
-| Sliders | 44px+ | 44px+ | ✅ PASS |
+| Element       | Width | Height | Status  |
+| ------------- | ----- | ------ | ------- |
+| Upload button | 48px  | 48px   | ✅ PASS |
+| Icon buttons  | 48px  | 48px   | ✅ PASS |
+| Sliders       | 44px+ | 44px+  | ✅ PASS |
 
 ### Color Blindness Results
 
@@ -317,18 +331,23 @@ Ratio: 4.6:1 ✅ PASS (AA)
 ## Common Issues & Solutions
 
 ### Issue: Low contrast text
+
 **Solution**: Increase color darkness/lightness to meet 4.5:1 ratio
 
 ### Issue: Focus indicator not visible
+
 **Solution**: Add 3px solid outline with high-contrast color
 
 ### Issue: Horizontal scrolling at 200% zoom
+
 **Solution**: Use responsive units (%, rem) instead of fixed pixels
 
 ### Issue: Touch targets too small
+
 **Solution**: Add padding or increase min-width/min-height to 44px
 
 ### Issue: Information conveyed by color alone
+
 **Solution**: Add icons, text labels, or patterns alongside color
 
 ## Resources

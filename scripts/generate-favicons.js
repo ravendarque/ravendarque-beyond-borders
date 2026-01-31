@@ -39,11 +39,7 @@ async function main() {
 
   for (const { name, size } of SIZES) {
     const outPath = `${publicDir}/${name}`;
-    await pipeline
-      .clone()
-      .resize(size, size)
-      .png()
-      .toFile(outPath);
+    await pipeline.clone().resize(size, size).png().toFile(outPath);
     console.log(`Wrote ${name} (${size}x${size})`);
   }
 

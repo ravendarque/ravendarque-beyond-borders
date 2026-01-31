@@ -25,9 +25,11 @@ Overall, the codebase demonstrates **good adherence** to the established code st
 ### Issues Found
 
 1. **FlagPreview.tsx** - `size` prop is defined but never used
+
    ```typescript
    size?: 'small' | 'large';  // Defined but unused
    ```
+
    **Recommendation**: Either implement the size variant or remove the prop.
 
 2. **ImageUploadZone.tsx** - Inline styles used for background image
@@ -63,19 +65,19 @@ Overall, the codebase demonstrates **good adherence** to the established code st
      - `#fff` (white) - multiple instances
      - `#fde047` (yellow) - line 184
      - `#000` (black text) - lines 213, 226, 239
-   
+
    **Recommendation**: Define these as CSS custom properties in `:root` for consistency and easier theming.
 
 2. **Legacy Color Variables**
    - Many legacy color variables defined but may not be used consistently:
      - `--muted`, `--muted-border`, `--muted-check`, `--checker-1`, `--checker-2`, etc.
-   
+
    **Recommendation**: Audit which legacy variables are actually used and remove unused ones, or document their usage.
 
 3. **Dark Theme Support**
    - Dark theme variables defined but may not be fully implemented
    - Checkered pattern uses hardcoded `#e0e0e0` and `#fff` instead of theme-aware colors
-   
+
    **Recommendation**: Use CSS custom properties for checkered pattern colors to support dark theme.
 
 ### Score: 7/10
@@ -97,26 +99,30 @@ Overall, the codebase demonstrates **good adherence** to the established code st
 1. **Missing Error Boundaries**
    - No error boundaries found in the component tree
    - If a component crashes, the entire app will crash
-   
+
    **Recommendation**: Add error boundaries around major sections (steps) to gracefully handle errors.
 
 2. **Performance - Unnecessary Re-renders**
    - `FlagSelector` recalculates `flagsByCategory` on every render
    - Could be memoized with `useMemo`
-   
-   **Recommendation**: 
+
+   **Recommendation**:
+
    ```typescript
    const flagsByCategory = useMemo(() => {
-     return flags.reduce((acc, flag) => {
-       // ... existing logic
-     }, {} as Record<string, typeof flags>);
+     return flags.reduce(
+       (acc, flag) => {
+         // ... existing logic
+       },
+       {} as Record<string, typeof flags>,
+     );
    }, [flags]);
    ```
 
 3. **Type Safety - Missing Null Checks**
    - `AppStepWorkflow.tsx` line 41: `flags.find()` could return `undefined`, but code uses `|| null` which is good
    - However, the pattern is inconsistent - some places use `|| null`, others use `?? null`
-   
+
    **Recommendation**: Standardize on `??` (nullish coalescing) for null/undefined checks.
 
 ### Score: 8/10
@@ -137,19 +143,19 @@ Overall, the codebase demonstrates **good adherence** to the established code st
 1. **Import Order Inconsistency**
    - `AppStepWorkflow.tsx` mixes import styles:
      ```typescript
-     import { flags } from '@/flags/flags';  // Internal
-     import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';  // Internal
-     import { getAssetUrl } from '@/config';  // Internal
-     import { FlagSelector } from '@/components/FlagSelector';  // Internal
+     import { flags } from '@/flags/flags'; // Internal
+     import { useAvatarRenderer } from '@/hooks/useAvatarRenderer'; // Internal
+     import { getAssetUrl } from '@/config'; // Internal
+     import { FlagSelector } from '@/components/FlagSelector'; // Internal
      ```
    - Should group all internal imports together
-   
+
    **Recommendation**: Group imports: React → External → Internal (@/ imports) → Relative
 
 2. **Missing Type Exports**
    - Some components export types, but not all are exported from `index.ts`
    - `PresentationMode` is exported from component but also from `index.ts` (good)
-   
+
    **Recommendation**: Ensure all public types are exported from `index.ts`.
 
 ### Score: 9/10
@@ -170,13 +176,13 @@ Overall, the codebase demonstrates **good adherence** to the established code st
 1. **Category Display Name Logic**
    - `FlagSelector.getCategoryDisplayName()` falls back to category code if `categoryDisplayName` is missing
    - This is a reasonable fallback, but could be more explicit
-   
+
    **Recommendation**: Add a comment explaining the fallback strategy, or consider a default mapping.
 
 2. **State Synchronization**
    - URL state and component state are synchronized, but the logic is complex
    - `isHandlingPopState` ref pattern is correct but could be documented better
-   
+
    **Recommendation**: Add JSDoc comment explaining the URL sync pattern.
 
 ### Score: 9/10
@@ -198,21 +204,21 @@ Overall, the codebase demonstrates **good adherence** to the established code st
 1. **Missing ARIA Labels**
    - Slider icons have `aria-label` but the slider itself could have better labeling
    - Avatar preview image has `alt="Avatar preview"` which is good, but could be more descriptive
-   
-   **Recommendation**: 
+
+   **Recommendation**:
    - Add `aria-label` to slider root: `aria-label="Border thickness"`
    - Improve avatar preview alt text: `alt={`Avatar with ${flag?.displayName} border`}`
 
 2. **Keyboard Navigation**
    - All interactive elements appear keyboard accessible (Radix UI components handle this)
    - No explicit `tabIndex` management found (which is good - using defaults)
-   
+
    **Status**: ✅ No issues found
 
 3. **Focus Indicators**
    - Red outline (`#be1a1a`) used for focus states - matches standards ✅
    - Should verify all focusable elements have visible focus indicators
-   
+
    **Recommendation**: Add visual regression tests for focus states.
 
 ### Score: 9/10
@@ -266,6 +272,7 @@ None found.
 ## 8. Standards Compliance Checklist
 
 ### Code Quality ✅
+
 - [x] Components follow structure
 - [x] Props have TypeScript interfaces
 - [x] JSDoc comments present
@@ -274,6 +281,7 @@ None found.
 - [x] Performance optimizations (mostly)
 
 ### UI/UX Consistency ⚠️
+
 - [x] Colors match system (mostly - some hardcoded)
 - [x] Typography follows standards
 - [x] Spacing consistent
@@ -282,6 +290,7 @@ None found.
 - [x] Component patterns match existing
 
 ### Data & State ✅
+
 - [x] Flag data changes go through YAML
 - [x] Category keys validated
 - [x] flags.ts is generated
@@ -289,6 +298,7 @@ None found.
 - [x] State management follows patterns
 
 ### Accessibility ✅
+
 - [x] Interactive elements have ARIA labels
 - [x] Keyboard navigation works
 - [x] Focus indicators visible
@@ -296,6 +306,7 @@ None found.
 - [ ] Screen reader testing (needs verification)
 
 ### File Organization ✅
+
 - [x] Files follow structure
 - [x] Imports follow order (mostly)
 - [x] File names follow conventions
@@ -341,14 +352,17 @@ None found.
 ## 11. Testing Considerations
 
 ### Unit Tests
+
 - Components appear to have test files (`.test.tsx` files found)
 - **Recommendation**: Verify test coverage for new functionality
 
 ### E2E Tests
+
 - Playwright tests exist in `test/e2e/`
 - **Recommendation**: Ensure new UI patterns are covered
 
 ### Visual Regression
+
 - **Recommendation**: Add visual regression tests for:
   - Focus states
   - Hover states
@@ -369,6 +383,7 @@ The codebase is **well-maintained and follows most standards**. The main areas f
 With these fixes, the codebase would achieve an **A grade (90+)**.
 
 **Recommended Actions:**
+
 1. Create issues for "Must Fix" items
 2. Schedule "Should Fix" items for next sprint
 3. Consider "Nice to Have" items for future planning
@@ -377,4 +392,3 @@ With these fixes, the codebase would achieve an **A grade (90+)**.
 
 **Review Completed**: 2025-01-XX  
 **Next Review**: After addressing "Must Fix" items
-

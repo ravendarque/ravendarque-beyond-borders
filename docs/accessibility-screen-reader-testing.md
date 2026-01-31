@@ -7,6 +7,7 @@ This document provides comprehensive guidance for testing the Beyond Borders app
 ## Screen Readers to Test
 
 ### Windows
+
 - **NVDA** (Free, Open Source)
   - Download: https://www.nvaccess.org/download/
   - Most commonly used free screen reader
@@ -18,12 +19,14 @@ This document provides comprehensive guidance for testing the Beyond Borders app
   - Industry standard for accessibility testing
 
 ### macOS/iOS
+
 - **VoiceOver** (Built-in)
   - Enable: System Preferences > Accessibility > VoiceOver
   - Keyboard shortcut: Command+F5
   - Native Apple screen reader
 
 ### Android
+
 - **TalkBack** (Built-in)
   - Enable: Settings > Accessibility > TalkBack
   - Native Android screen reader
@@ -137,19 +140,22 @@ This document provides comprehensive guidance for testing the Beyond Borders app
 ## ARIA Implementation Details
 
 ### Landmarks
+
 ```html
 <main id="main-content" aria-labelledby="app-title">
-<header role="banner">
-<section aria-labelledby="controls-heading" id="controls">
-<section aria-labelledby="preview-heading" id="preview">
+  <header role="banner">
+    <section aria-labelledby="controls-heading" id="controls">
+      <section aria-labelledby="preview-heading" id="preview"></section>
+    </section>
+  </header>
+</main>
 ```
 
 ### Live Regions
+
 ```html
 <!-- Polite announcements (status updates) -->
-<div role="status" aria-live="polite" aria-atomic="true">
-  {statusMessage}
-</div>
+<div role="status" aria-live="polite" aria-atomic="true">{statusMessage}</div>
 
 <!-- Assertive announcements (errors) -->
 <div role="alert" aria-live="assertive" aria-atomic="true">
@@ -158,6 +164,7 @@ This document provides comprehensive guidance for testing the Beyond Borders app
 ```
 
 ### Progress Indicators
+
 ```html
 <Box
   role="status"
@@ -166,45 +173,42 @@ This document provides comprehensive guidance for testing the Beyond Borders app
   aria-label="Rendering avatar with flag border, please wait"
 >
   <CircularProgress aria-label="Loading progress indicator" />
-  <span class="visually-hidden">
-    Rendering in progress. This may take a few seconds.
-  </span>
+  <span class="visually-hidden"> Rendering in progress. This may take a few seconds. </span>
 </Box>
 ```
 
 ### Form Labels and Descriptions
+
 ```html
 <!-- Slider with full ARIA -->
 <Slider
   aria-labelledby="thickness-label"
   aria-valuetext="Border thickness 7 percent"
-  aria-valuenow={7}
-  aria-valuemin={3}
-  aria-valuemax={20}
+  aria-valuenow="{7}"
+  aria-valuemin="{3}"
+  aria-valuemax="{20}"
   aria-describedby="thickness-description"
 />
 <span id="thickness-description" class="visually-hidden">
-  Use left and right arrow keys to adjust border thickness.
-  Current value is 7 percent. Range is from 3 to 20.
+  Use left and right arrow keys to adjust border thickness. Current value is 7 percent. Range is
+  from 3 to 20.
 </span>
 
 <!-- Select with description -->
-<Select
-  labelId="flag-select-label"
-  aria-describedby="flag-select-description"
->
-  <MenuItem>Rainbow Pride</MenuItem>
-</Select>
+<select labelId="flag-select-label" aria-describedby="flag-select-description">
+  <menuitem>Rainbow Pride</menuitem>
+</select>
 <span id="flag-select-description" class="visually-hidden">
   Choose a flag to add as a border to your avatar.
 </span>
 ```
 
 ### Button States
+
 ```html
 <Button
-  aria-label={disabled 
-    ? "Download button. Please upload an image first." 
+  aria-label={disabled
+    ? "Download button. Please upload an image first."
     : "Download generated avatar as PNG file"}
   aria-describedby="download-description"
   disabled={disabled}
@@ -212,8 +216,8 @@ This document provides comprehensive guidance for testing the Beyond Borders app
   Download
 </Button>
 <span id="download-description" class="visually-hidden">
-  {disabled 
-    ? "The download button will be enabled after you upload an image." 
+  {disabled
+    ? "The download button will be enabled after you upload an image."
     : "Click to download your avatar with the flag border as a PNG file."}
 </span>
 ```
@@ -221,18 +225,23 @@ This document provides comprehensive guidance for testing the Beyond Borders app
 ## Common Issues and Solutions
 
 ### Issue: Screen reader reads too much/too little
+
 **Solution**: Use `aria-hidden="true"` on decorative elements, `visually-hidden` class for screen-reader-only content
 
 ### Issue: Changes not announced
+
 **Solution**: Check live region `aria-live` attribute (use "polite" for most updates, "assertive" for errors)
 
 ### Issue: Unclear context
+
 **Solution**: Add `aria-describedby` with detailed descriptions in `visually-hidden` spans
 
 ### Issue: Slider values not announced
+
 **Solution**: Use `aria-valuetext`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax` attributes
 
 ### Issue: Form fields confusing
+
 **Solution**: Use `<label>` elements or `aria-labelledby` + `aria-describedby` for context
 
 ## Keyboard Shortcuts
@@ -260,32 +269,38 @@ Document all keyboard shortcuts for screen reader users:
 ### Test Results
 
 #### Navigation (Pass/Fail)
+
 - [ ] Landmarks announced
 - [ ] Heading hierarchy correct
 - [ ] Skip links functional
 - [ ] Tab order logical
 
 #### Interactive Elements (Pass/Fail)
+
 - [ ] All buttons labeled
 - [ ] Form controls accessible
 - [ ] Sliders announce values
 - [ ] State changes communicated
 
 #### Dynamic Content (Pass/Fail)
+
 - [ ] Status updates announced
 - [ ] Progress communicated
 - [ ] Errors announced assertively
 - [ ] Success messages clear
 
 ### Issues Found
+
 1. [Issue description and location]
 2. [Issue description and location]
 
 ### Recommendations
+
 1. [Recommendation]
 2. [Recommendation]
 
 ### Overall Assessment
+
 ☐ Pass - Meets WCAG 2.1 AA
 ☐ Pass with minor issues
 ☐ Fail - Major accessibility barriers
@@ -295,7 +310,7 @@ Document all keyboard shortcuts for screen reader users:
 
 - **WCAG 2.1 Guidelines**: https://www.w3.org/WAI/WCAG21/quickref/
 - **ARIA Authoring Practices**: https://www.w3.org/WAI/ARIA/apg/
-- **Screen Reader Keyboard Shortcuts**: 
+- **Screen Reader Keyboard Shortcuts**:
   - NVDA: https://dequeuniversity.com/screenreaders/nvda-keyboard-shortcuts
   - JAWS: https://dequeuniversity.com/screenreaders/jaws-keyboard-shortcuts
   - VoiceOver: https://dequeuniversity.com/screenreaders/voiceover-keyboard-shortcuts

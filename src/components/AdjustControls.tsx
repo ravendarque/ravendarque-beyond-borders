@@ -24,7 +24,7 @@ export interface AdjustControlsProps {
 
 /**
  * AdjustControls - Slider controls for adjusting avatar border
- * 
+ *
  * Single Responsibility: Render and handle slider controls for:
  * - Border thickness
  * - Flag horizontal offset (cutout mode only)
@@ -51,8 +51,14 @@ export function AdjustControls({
           </div>
           <div className="slider-with-icons">
             <span className="slider-icon" aria-label="Thinner border">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1" fill="none"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1" fill="none" />
               </svg>
             </span>
             <Slider.Root
@@ -70,8 +76,14 @@ export function AdjustControls({
               <Slider.Thumb className="slider-thumb" />
             </Slider.Root>
             <span className="slider-icon" aria-label="Thicker border">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" />
               </svg>
             </span>
           </div>
@@ -89,9 +101,27 @@ export function AdjustControls({
             </div>
             <div className="slider-with-icons">
               <span className="slider-icon" aria-label="Rotate counter-clockwise">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M19 7 A8 8 0 1 0 7 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                  <path d="M22.5 7 L17.5 10 L21.5 12.5 Z" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19 7 A8 8 0 1 0 7 19"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path
+                    d="M22.5 7 L17.5 10 L21.5 12.5 Z"
+                    fill="currentColor"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </span>
               <Slider.Root
@@ -109,9 +139,27 @@ export function AdjustControls({
                 <Slider.Thumb className="slider-thumb" />
               </Slider.Root>
               <span className="slider-icon" aria-label="Rotate clockwise">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 7 A8 8 0 1 1 17 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                  <path d="M1.5 7 L6.5 10 L2.5 12.5 Z" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5 7 A8 8 0 1 1 17 19"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path
+                    d="M1.5 7 L6.5 10 L2.5 12.5 Z"
+                    fill="currentColor"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </span>
             </div>
@@ -130,9 +178,24 @@ export function AdjustControls({
             </div>
             <div className="slider-with-icons">
               <span className="slider-icon" aria-label="Left offset">
-                <svg width="26" height="20" viewBox="0 0 26 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="1" y="2" width="24" height="16" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 2" fill="none"/>
-                  <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="3" fill="none"/>
+                <svg
+                  width="26"
+                  height="20"
+                  viewBox="0 0 26 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="1"
+                    y="2"
+                    width="24"
+                    height="16"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeDasharray="2 2"
+                    fill="none"
+                  />
+                  <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="3" fill="none" />
                 </svg>
               </span>
               <Slider.Root
@@ -150,9 +213,24 @@ export function AdjustControls({
                 <Slider.Thumb className="slider-thumb" />
               </Slider.Root>
               <span className="slider-icon" aria-label="Right offset">
-                <svg width="26" height="20" viewBox="0 0 26 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="1" y="2" width="24" height="16" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 2" fill="none"/>
-                  <circle cx="16" cy="10" r="8" stroke="currentColor" strokeWidth="3" fill="none"/>
+                <svg
+                  width="26"
+                  height="20"
+                  viewBox="0 0 26 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="1"
+                    y="2"
+                    width="24"
+                    height="16"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeDasharray="2 2"
+                    fill="none"
+                  />
+                  <circle cx="16" cy="10" r="8" stroke="currentColor" strokeWidth="3" fill="none" />
                 </svg>
               </span>
             </div>
@@ -162,4 +240,3 @@ export function AdjustControls({
     </div>
   );
 }
-

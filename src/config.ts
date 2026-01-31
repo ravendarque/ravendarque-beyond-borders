@@ -53,11 +53,11 @@ function createConfig(): AppConfig {
     getAssetUrl(path: string): string {
       // Remove leading slash from path if present
       const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-      
+
       // Combine base URL with path
       // Handle trailing slash in base URL
       const base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-      
+
       return `${base}${cleanPath}`;
     },
 
@@ -89,7 +89,7 @@ export const config = createConfig();
  * Convenience function for getting asset URLs
  * @param path - Relative path to the asset
  * @returns Full URL including base path
- * 
+ *
  * @example
  * ```ts
  * const flagUrl = getAssetUrl('flags/palestine.png');

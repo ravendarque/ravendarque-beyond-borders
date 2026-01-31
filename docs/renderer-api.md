@@ -163,7 +163,7 @@ Progress callback for loading indicators.
 ```typescript
 onProgress: (progress) => {
   console.log(`Rendering: ${Math.round(progress * 100)}%`);
-}
+};
 ```
 
 ---
@@ -184,13 +184,13 @@ larger files due to less efficient compression.
 
 ```typescript
 // High quality, larger file size
-pngQuality: 0.95
+pngQuality: 0.95;
 
 // Balanced (default)
-pngQuality: 0.92
+pngQuality: 0.92;
 
 // Smaller file size, still good quality
-pngQuality: 0.85
+pngQuality: 0.85;
 ```
 
 ---
@@ -201,9 +201,9 @@ The `renderAvatar` function returns a `RenderResult` object containing:
 
 ```typescript
 interface RenderResult {
-  blob: Blob;              // The rendered image as a Blob
-  sizeBytes: number;       // Actual file size in bytes
-  sizeKB: string;          // File size in KB (formatted, e.g., "156.23")
+  blob: Blob; // The rendered image as a Blob
+  sizeBytes: number; // Actual file size in bytes
+  sizeKB: string; // File size in KB (formatted, e.g., "156.23")
   metrics?: RenderMetrics; // Performance metrics (if tracking enabled)
 }
 ```
@@ -238,7 +238,7 @@ const result = await renderAvatar(userImage, palestineFlag, {
   size: 1024,
   thicknessPct: 15,
   presentation: 'ring',
-  backgroundColor: '#ffffff'
+  backgroundColor: '#ffffff',
 });
 
 console.log(`Export size: ${result.sizeKB} KB`); // e.g., "156.23 KB"
@@ -256,7 +256,7 @@ const result = await renderAvatar(userImage, kurdistanFlag, {
   presentation: 'cutout',
   flagOffsetPx: { x: 50, y: 0 }, // Shift flag pattern right
   borderImageBitmap: flagPNG, // Use pre-rendered flag PNG
-  backgroundColor: null // Transparent background
+  backgroundColor: null, // Transparent background
 });
 
 // Check file size before uploading
@@ -276,7 +276,7 @@ const result = await renderAvatar(userImage, ukraineFlag, {
   presentation: 'segment',
   onProgress: (progress) => {
     updateProgressBar(progress * 100);
-  }
+  },
 });
 
 // Display file size to user
@@ -294,12 +294,10 @@ const result = await renderAvatar(userImage, tibetFlag, {
   thicknessPct: 15,
   presentation: 'ring',
   pngQuality: 0.85, // Reduce quality slightly for smaller file
-  imageOffsetPx: { x: -20, y: 10 } // Fine-tune image position
+  imageOffsetPx: { x: -20, y: 10 }, // Fine-tune image position
 });
 
-console.log(
-  `Optimized size: ${result.sizeKB} KB (${result.sizeBytes.toLocaleString()} bytes)`
-);
+console.log(`Optimized size: ${result.sizeKB} KB (${result.sizeBytes.toLocaleString()} bytes)`);
 // Typical output: "Optimized size: 128.45 KB (131,532 bytes)"
 ```
 
@@ -326,13 +324,13 @@ console.log(
 // OLD (cutout mode)
 renderAvatar(image, flag, {
   presentation: 'cutout',
-  imageOffsetPx: { x: 50, y: 0 } // Used for flag offset (confusing!)
+  imageOffsetPx: { x: 50, y: 0 }, // Used for flag offset (confusing!)
 });
 
 // NEW (cutout mode)
 renderAvatar(image, flag, {
   presentation: 'cutout',
-  flagOffsetPx: { x: 50, y: 0 } // Clearer intent
+  flagOffsetPx: { x: 50, y: 0 }, // Clearer intent
 });
 ```
 
@@ -366,7 +364,7 @@ Enable performance tracking to identify bottlenecks:
 const blob = await renderAvatar(userImage, flag, {
   size: 1024,
   thicknessPct: 15,
-  enablePerformanceTracking: true
+  enablePerformanceTracking: true,
 });
 
 // Check console for metrics:

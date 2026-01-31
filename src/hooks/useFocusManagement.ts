@@ -2,19 +2,19 @@ import { useRef, useCallback, useEffect } from 'react';
 
 /**
  * Hook for managing focus programmatically
- * 
+ *
  * Provides utilities for setting focus, managing focus order,
  * and handling focus restoration.
- * 
+ *
  * @returns Focus management utilities
- * 
+ *
  * @example
  * ```tsx
  * const { focusRef, setFocus } = useFocusManagement();
- * 
+ *
  * // Attach ref to element
  * <button ref={focusRef}>Click me</button>
- * 
+ *
  * // Focus the element programmatically
  * useEffect(() => {
  *   if (someCondition) {
@@ -90,15 +90,15 @@ export function useFocusManagement<T extends HTMLElement = HTMLElement>() {
 
 /**
  * Hook to trap focus within a container (for modals, dialogs, etc.)
- * 
+ *
  * @param isActive Whether focus trapping is currently active
  * @returns Ref to attach to the container element
- * 
+ *
  * @example
  * ```tsx
  * const [isOpen, setIsOpen] = useState(false);
  * const trapRef = useFocusTrap(isOpen);
- * 
+ *
  * return (
  *   <div ref={trapRef}>
  *     {isOpen && <Modal>...</Modal>}
@@ -126,7 +126,7 @@ export function useFocusTrap(isActive: boolean) {
       if (e.key !== 'Tab') return;
 
       const focusableElements = Array.from(
-        container.querySelectorAll<HTMLElement>(focusableSelector)
+        container.querySelectorAll<HTMLElement>(focusableSelector),
       );
 
       if (focusableElements.length === 0) return;
