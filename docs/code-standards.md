@@ -9,7 +9,7 @@ to properly review pull requests and ensure consistency.
 1. [Component Architecture](#component-architecture)
 2. [UI/UX Standards](#uiux-standards)
 3. [Code Patterns](#code-patterns)
-4. [File Organization](#file-organization)
+4. [File Organization](#file-organization) (includes [Formatting (Prettier)](#formatting-prettier))
 5. [Data Flow & State Management](#data-flow--state-management)
 6. [Review Checklist](#review-checklist)
 
@@ -294,6 +294,12 @@ src/
 - **Utils**: kebab-case (`flag-utils.ts`)
 - **Types**: kebab-case (`flag-types.ts`)
 - **Config**: kebab-case (`config.ts`)
+
+### Formatting (Prettier)
+
+- **Prettier** is the source of truth for code style. Config: `.prettierrc` (printWidth 100, singleQuote, trailingComma all, semi).
+- **ESLint** uses `eslint-config-prettier` so it does not enforce style rules that conflict with Prettier.
+- **Scripts**: `pnpm run format` (fix), `pnpm run format:check` (CI/pre-push). Format check runs when production code changes.
 
 ---
 

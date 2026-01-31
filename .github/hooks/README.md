@@ -18,6 +18,7 @@ Runs validation checks before allowing a push to proceed. This helps catch issue
 - File permission validation
 - Large file detection (>1MB warning)
 - Privacy check (Google Fonts, tracking scripts, external CDNs)
+- **Lint (ESLint)** and **format check (Prettier)** when production code changed
 - Conditional build/test (if production code changed)
 
 ## Installation
@@ -85,7 +86,7 @@ The validation scripts will check for required tools and provide installation in
 - **Trivy** - Security audit
 - **markdownlint-cli2** - Markdown linting
 - **yamllint** - YAML linting
-- **Node.js & pnpm** - For build/test (conditional)
+- **Node.js & pnpm** - Lint (ESLint), format check (Prettier), build/test (conditional)
 
 ## Troubleshooting
 

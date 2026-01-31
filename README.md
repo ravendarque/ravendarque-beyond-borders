@@ -128,6 +128,7 @@ We use a three-tier validation approach to catch issues early:
    - Markdown/YAML linting
    - TODO/FIXME detection
    - File validation and large file detection
+   - **Lint (ESLint)** and **format check (Prettier)** when production code changed
    - Conditional build/test (only if production code changed)
 
 2. **PR validation** (always runs): Lightweight checks on every PR
@@ -137,7 +138,7 @@ We use a three-tier validation approach to catch issues early:
 3. **Full CI** (conditional): Complete build and test suite
    - Only runs when production code changes (src/, config files, etc.)
    - Secret scanning (TruffleHog) - runs in CI only for speed
-   - Full linting, type checking, unit and E2E tests
+   - **Lint (ESLint)** and **format check (Prettier)**, type checking, unit and E2E tests
    - Node.js 18.x and 20.x matrix
 
 **Running validation locally:**
