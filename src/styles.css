@@ -184,7 +184,10 @@ body {
 .content-bg {
   position: absolute;
   inset: 0;
-  background: url('/bg2.png') bottom center / cover no-repeat;
+  background-image: image-set(url('/bg2.webp') type('image/webp'), url('/bg2.png') 1x);
+  background-position: bottom center;
+  background-size: cover;
+  background-repeat: no-repeat;
   z-index: 0;
 }
 
