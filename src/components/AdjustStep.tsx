@@ -1,4 +1,5 @@
 import React from 'react';
+import { StepLayout } from './StepLayout';
 import { PresentationModeSelector, type PresentationMode } from './PresentationModeSelector';
 import { AdjustControls } from './AdjustControls';
 import type { FlagSpec } from '@/flags/schema';
@@ -47,40 +48,41 @@ export function AdjustStep({
   onSegmentRotationChange,
 }: AdjustStepProps) {
   return (
-    <div className="adjust-wrapper">
-      {/* Avatar Preview */}
-      <div className="avatar-preview">
-        {overlayUrl ? (
-          <img 
-            src={overlayUrl} 
-            alt={selectedFlag ? `Avatar with ${selectedFlag.displayName} border` : 'Avatar preview'}
-            className="avatar-preview-image"
+    <StepLayout
+      mainContent={
+        <div className="avatar-preview">
+          {overlayUrl ? (
+            <img
+              src={overlayUrl}
+              alt={selectedFlag ? `Avatar with ${selectedFlag.displayName} border` : 'Avatar preview'}
+              className="avatar-preview-image"
+            />
+          ) : (
+            <div className="avatar-preview-placeholder">
+              {isRendering ? 'Rendering...' : 'Loading preview...'}
+            </div>
+          )}
+        </div>
+      }
+      controls={
+        <>
+          <PresentationModeSelector
+            mode={presentation}
+            onModeChange={onPresentationChange}
           />
-        ) : (
-          <div className="avatar-preview-placeholder">
-            {isRendering ? 'Rendering...' : 'Loading preview...'}
-          </div>
-        )}
-      </div>
-
-      {/* Presentation Mode Toggle Buttons */}
-      <PresentationModeSelector
-        mode={presentation}
-        onModeChange={onPresentationChange}
-      />
-
-      {/* Adjust Controls */}
-      <AdjustControls
-        thickness={thickness}
-        onThicknessChange={onThicknessChange}
-        flagOffsetPct={flagOffsetPct}
-        onFlagOffsetChange={onFlagOffsetChange}
-        presentation={presentation}
-        segmentRotation={segmentRotation}
-        onSegmentRotationChange={onSegmentRotationChange}
-        selectedFlag={selectedFlag}
-      />
-    </div>
+          <AdjustControls
+            thickness={thickness}
+            onThicknessChange={onThicknessChange}
+            flagOffsetPct={flagOffsetPct}
+            onFlagOffsetChange={onFlagOffsetChange}
+            presentation={presentation}
+            segmentRotation={segmentRotation}
+            onSegmentRotationChange={onSegmentRotationChange}
+            selectedFlag={selectedFlag}
+          />
+        </>
+      }
+    />
   );
 }
 

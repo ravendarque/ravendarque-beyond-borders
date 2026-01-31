@@ -325,7 +325,7 @@ test.describe('Download Matches Preview', () => {
     await waitForRenderComplete(page);
 
     // Verify preview is visible
-    const previewWrapper = page.locator('.adjust-wrapper');
+    const previewWrapper = page.locator('.step-layout');
     await expect(previewWrapper).toBeVisible({ timeout: 10000 });
 
     // Download

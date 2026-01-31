@@ -342,7 +342,6 @@ export function AppStepWorkflow() {
                       imageDimensions={step1.imageDimensions}
                       onPositionChange={setImagePosition}
                       circleSize={step1.circleSize}
-                      renderPositionControls={false}
                     />
                   }
                   controls={

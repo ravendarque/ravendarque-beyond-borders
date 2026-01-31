@@ -159,7 +159,7 @@ test.describe('Zoom Visual Verification', () => {
     await page.waitForTimeout(1000);
     
     // Wait for Step 3 to render
-    await page.waitForSelector('.adjust-wrapper', { timeout: 20000 });
+    await page.waitForSelector('.step-layout', { timeout: 20000 });
     await waitForRenderComplete(page);
     
     // Wait for the rendered image to appear (using choose-circle in readonly mode)
@@ -182,7 +182,7 @@ test.describe('Zoom Visual Verification', () => {
     expect(wrapperStyle).toContain('blob:');
     
     // Take screenshot of Step 3 preview
-    const step3Preview = page.locator('.adjust-wrapper');
+    const step3Preview = page.locator('.step-layout');
     await step3Preview.screenshot({ path: getTestResultsPath('step3-zoom10-h24-v-42.png') });
     
     // Get image dimensions from Step 3 (choose-circle container)

@@ -1424,18 +1424,6 @@ label.choose-circle.has-image.is-dragging,
   gap: 12px;
 }
 
-/* Step 3: Adjust (legacy wrapper kept for any non-layout refs; layout now from .step-layout) */
-.adjust-wrapper {
-  width: 100%;
-  max-width: var(--content-size);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: center;
-  position: relative;
-  z-index: 2;
-}
-
 .step-header {
   text-align: center;
 }
