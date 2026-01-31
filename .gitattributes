@@ -1,0 +1,2 @@
+# Normalize line endings to LF everywhere so Prettier and Git agree (no CRLF/LF churn).
+* text=auto eol=lf
