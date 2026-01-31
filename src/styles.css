@@ -1431,7 +1431,7 @@ label.choose-circle.has-image.is-dragging,
   width: 100%;
   max-width: min(320px, 100%);
   min-width: 0;
-  padding-inline: 16px;
+  padding-inline: 8px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -1615,11 +1615,11 @@ label.choose-circle.has-image.is-dragging,
   box-sizing: border-box;
 }
 
+/* Padding comes from parent .step-layout__controls; no extra padding here (fixes #176) */
 .step1-controls {
   width: 100%;
   max-width: min(320px, 100%);
   min-width: 0;
-  padding-inline: 16px; /* gap from display edge */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
