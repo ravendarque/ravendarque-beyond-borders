@@ -40,6 +40,8 @@ export interface ImageUploadZoneProps {
   flagOffsetPct?: number;
   /** Segment rotation in degrees (for Step 3 segment mode) */
   segmentRotation?: number;
+  /** If false, position/zoom sliders are not rendered (e.g. when rendered in layout controls slot) */
+  renderPositionControls?: boolean;
 }
 
 /**
@@ -64,6 +66,7 @@ export function ImageUploadZone({
   borderThicknessPct = 10,
   flagOffsetPct = 0,
   segmentRotation = 0,
+  renderPositionControls = true,
 }: ImageUploadZoneProps) {
   const labelRef = useRef<HTMLLabelElement | null>(null);
   const wasDraggingRef = useRef(false);
@@ -603,8 +606,8 @@ export function ImageUploadZone({
         </label>
       </div>
 
-      {/* Position Controls - Only show when image is uploaded and not readonly */}
-      {imageUrl && !readonly && (
+      {/* Position Controls - Only show when image is uploaded, not readonly, and not rendered in layout */}
+      {imageUrl && !readonly && renderPositionControls && (
         <div className="adjust-controls step1-controls">
           {/* Horizontal Position Slider */}
           <div className="control-group">

@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import { PresentationModeSelector } from '@/components/PresentationModeSelector';
 import { AdjustControls } from '@/components/AdjustControls';
 import { StepLayout } from '@/components/StepLayout';
+import { Step1PositionControls } from '@/components/Step1PositionControls';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { ImageAspectRatio, PositionLimits } from '@/utils/imagePosition';
@@ -341,7 +342,17 @@ export function AppStepWorkflow() {
                       imageDimensions={step1.imageDimensions}
                       onPositionChange={setImagePosition}
                       circleSize={step1.circleSize}
+                      renderPositionControls={false}
                     />
+                  }
+                  controls={
+                    step1.imageUrl ? (
+                      <Step1PositionControls
+                        position={step1.imagePosition}
+                        limits={positionLimits}
+                        onPositionChange={setImagePosition}
+                      />
+                    ) : undefined
                   }
                 />
               </ErrorBoundary>
