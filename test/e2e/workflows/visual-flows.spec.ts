@@ -211,7 +211,11 @@ test.describe('Visual Flows - Cutout Mode', () => {
     await setSliderValue(page, 'Flag horizontal offset', -20);
     await verifyCanvasHasContent(page);
     const afterOffset = await captureCanvas(page);
-    verifyCanvasChanged(afterThickness, afterOffset, 'Flag horizontal offset change affected render');
+    verifyCanvasChanged(
+      afterThickness,
+      afterOffset,
+      'Flag horizontal offset change affected render',
+    );
 
     // Attach final screenshot
     const finalScreenshot = await page.screenshot({ fullPage: false });

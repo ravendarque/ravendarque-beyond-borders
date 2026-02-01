@@ -11,7 +11,10 @@ const __dirname = path.dirname(__filename);
 /**
  * Get the path to the test profile picture
  */
-export const TEST_IMAGE_PATH = path.resolve(__dirname, '../../test-data/profile-pic-square-clr-256x256.jpg');
+export const TEST_IMAGE_PATH = path.resolve(
+  __dirname,
+  '../../test-data/profile-pic-square-clr-256x256.jpg',
+);
 
 /**
  * Get the path to the avatar sample fixture

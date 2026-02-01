@@ -46,7 +46,9 @@ export async function uploadImage(page: Page, imagePath?: string): Promise<void>
   await page.waitForTimeout(500);
 
   // Wait for step 2: flag selector trigger becomes visible
-  await page.getByRole(FLAG_SELECT_TRIGGER, { name: 'Choose a flag' }).waitFor({ state: 'visible', timeout: 10000 });
+  await page
+    .getByRole(FLAG_SELECT_TRIGGER, { name: 'Choose a flag' })
+    .waitFor({ state: 'visible', timeout: 10000 });
 }
 
 /**

@@ -48,7 +48,10 @@ test.describe('Visual Flows - Ring Mode', () => {
 
     // Verify UI elements are present (radiogroup + button with aria-pressed, not radio input)
     await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /^Ring/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /^Ring/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
 
     // Note: Slider interactions skipped - sliders may not be visible until canvas renders
     // Canvas rendering is not working in tests (requires further investigation)
@@ -82,7 +85,10 @@ test.describe('Visual Flows - Segment Mode', () => {
     });
 
     // Verify UI state (button with aria-pressed, not radio input)
-    await expect(page.getByRole('button', { name: /^Segment/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /^Segment/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
 
     // Note: Slider interactions skipped - see Ring Mode test for explanation
   });
@@ -114,7 +120,10 @@ test.describe('Visual Flows - Cutout Mode', () => {
     });
 
     // Verify UI state (button with aria-pressed, not radio input)
-    await expect(page.getByRole('button', { name: /^Cutout/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /^Cutout/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
 
     // Note: Slider interactions skipped - see Ring Mode test for explanation
   });
@@ -130,7 +139,10 @@ test.describe('Visual Flows - Mode Switching', () => {
 
     // Test Ring mode
     await selectPresentationMode(page, 'Ring');
-    await expect(page.getByRole('button', { name: /^Ring/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /^Ring/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     const ringScreenshot = await page.screenshot();
     test.info().attachments.push({
       name: 'mode-switch-01-ring.png',
@@ -140,7 +152,10 @@ test.describe('Visual Flows - Mode Switching', () => {
 
     // Test Segment mode
     await selectPresentationMode(page, 'Segment');
-    await expect(page.getByRole('button', { name: /^Segment/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /^Segment/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     const segmentScreenshot = await page.screenshot();
     test.info().attachments.push({
       name: 'mode-switch-02-segment.png',
@@ -150,7 +165,10 @@ test.describe('Visual Flows - Mode Switching', () => {
 
     // Test Cutout mode
     await selectPresentationMode(page, 'Cutout');
-    await expect(page.getByRole('button', { name: /^Cutout/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /^Cutout/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     const cutoutScreenshot = await page.screenshot();
     test.info().attachments.push({
       name: 'mode-switch-03-cutout.png',
@@ -160,7 +178,10 @@ test.describe('Visual Flows - Mode Switching', () => {
 
     // Switch back to Ring
     await selectPresentationMode(page, 'Ring');
-    await expect(page.getByRole('button', { name: /^Ring/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /^Ring/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });
 
