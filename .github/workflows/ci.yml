@@ -42,6 +42,7 @@ jobs:
               - 'package.json'
               - 'pnpm-lock.yaml'
               - 'playwright.config.ts'
+              - 'test/e2e/**'
               - 'scripts/**'
               - '.github/scripts/**'
               - '.github/workflows/**'
@@ -158,4 +159,42 @@ jobs:
         with:
           name: coverage
           path: coverage
+          if-no-files-found: ignore
+
+  # E2E tests (Chromium, smoke only) - runs when app or E2E code changes
+  e2e:
+    needs: [check-changes, validate]
+    if: needs.check-changes.outputs.production-code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests (Chromium, smoke)
+        run: pnpm test:e2e:smoke --project=chromium
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: test-results/playwright-report
           if-no-files-found: ignore

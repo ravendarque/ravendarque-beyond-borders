@@ -51,8 +51,8 @@ for (const viewport of mobileViewports) {
       // Upload image
       await uploadImage(page);
 
-      // Test flag selector (should work with touch)
-      const flagSelector = page.locator('#flag-select-label').locator('..');
+      // Test flag selector (combobox trigger, not #flag-select-label which is a class inside dropdown)
+      const flagSelector = page.getByRole('combobox', { name: 'Choose a flag' });
       await flagSelector.tap();
       await page.waitForTimeout(300);
 

@@ -86,8 +86,8 @@ test.describe('Network Error Handling', () => {
       await expect(fileInput).toBeVisible();
     }
 
-    // Should still function (fallback behavior)
-    const flagSelector = page.locator('#flag-select-label');
+    // Should still function (fallback behavior) — step 2 shows combobox trigger
+    const flagSelector = page.getByRole('combobox', { name: 'Choose a flag' });
     await expect(flagSelector).toBeVisible();
   });
 });

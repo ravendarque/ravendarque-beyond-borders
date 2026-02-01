@@ -46,9 +46,9 @@ test.describe('Visual Flows - Ring Mode', () => {
       body: afterModeSelect as any,
     });
 
-    // Verify UI elements are present
-    await expect(page.getByText('Presentation Style')).toBeVisible();
-    await expect(page.getByRole('radio', { name: 'Ring' })).toBeChecked();
+    // Verify UI elements are present (radiogroup + button with aria-pressed, not radio input)
+    await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Ring/ })).toHaveAttribute('aria-pressed', 'true');
 
     // Note: Slider interactions skipped - sliders may not be visible until canvas renders
     // Canvas rendering is not working in tests (requires further investigation)
@@ -81,8 +81,8 @@ test.describe('Visual Flows - Segment Mode', () => {
       body: afterModeSelect as any,
     });
 
-    // Verify UI state
-    await expect(page.getByRole('radio', { name: 'Segment' })).toBeChecked();
+    // Verify UI state (button with aria-pressed, not radio input)
+    await expect(page.getByRole('button', { name: /^Segment/ })).toHaveAttribute('aria-pressed', 'true');
 
     // Note: Slider interactions skipped - see Ring Mode test for explanation
   });
@@ -113,8 +113,8 @@ test.describe('Visual Flows - Cutout Mode', () => {
       body: afterModeSelect as any,
     });
 
-    // Verify UI state
-    await expect(page.getByRole('radio', { name: 'Cutout' })).toBeChecked();
+    // Verify UI state (button with aria-pressed, not radio input)
+    await expect(page.getByRole('button', { name: /^Cutout/ })).toHaveAttribute('aria-pressed', 'true');
 
     // Note: Slider interactions skipped - see Ring Mode test for explanation
   });
@@ -126,11 +126,11 @@ test.describe('Visual Flows - Mode Switching', () => {
 
     // Setup: Upload image and select flag
     await uploadImage(page);
-    await selectFlag(page, 'Transgender Pride — Transgender flag');
+    await selectFlag(page, TEST_FLAGS.TRANSGENDER);
 
     // Test Ring mode
     await selectPresentationMode(page, 'Ring');
-    await expect(page.getByRole('radio', { name: 'Ring' })).toBeChecked();
+    await expect(page.getByRole('button', { name: /^Ring/ })).toHaveAttribute('aria-pressed', 'true');
     const ringScreenshot = await page.screenshot();
     test.info().attachments.push({
       name: 'mode-switch-01-ring.png',
@@ -140,7 +140,7 @@ test.describe('Visual Flows - Mode Switching', () => {
 
     // Test Segment mode
     await selectPresentationMode(page, 'Segment');
-    await expect(page.getByRole('radio', { name: 'Segment' })).toBeChecked();
+    await expect(page.getByRole('button', { name: /^Segment/ })).toHaveAttribute('aria-pressed', 'true');
     const segmentScreenshot = await page.screenshot();
     test.info().attachments.push({
       name: 'mode-switch-02-segment.png',
@@ -150,7 +150,7 @@ test.describe('Visual Flows - Mode Switching', () => {
 
     // Test Cutout mode
     await selectPresentationMode(page, 'Cutout');
-    await expect(page.getByRole('radio', { name: 'Cutout' })).toBeChecked();
+    await expect(page.getByRole('button', { name: /^Cutout/ })).toHaveAttribute('aria-pressed', 'true');
     const cutoutScreenshot = await page.screenshot();
     test.info().attachments.push({
       name: 'mode-switch-03-cutout.png',
@@ -160,7 +160,7 @@ test.describe('Visual Flows - Mode Switching', () => {
 
     // Switch back to Ring
     await selectPresentationMode(page, 'Ring');
-    await expect(page.getByRole('radio', { name: 'Ring' })).toBeChecked();
+    await expect(page.getByRole('button', { name: /^Ring/ })).toHaveAttribute('aria-pressed', 'true');
   });
 });
 
@@ -171,9 +171,9 @@ test.describe('Visual Flows - Flag Switching', () => {
     // Setup: Upload image
     await uploadImage(page);
 
-    // Test first flag
+    // Test first flag (combobox is the trigger, not #flag-select-label which is a class inside dropdown)
     await selectFlag(page, TEST_FLAGS.PRIDE);
-    await expect(page.locator('#flag-select-label')).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Choose a flag' })).toBeVisible();
     const prideScreenshot = await page.screenshot();
     test.info().attachments.push({
       name: 'flag-switch-01-pride.png',

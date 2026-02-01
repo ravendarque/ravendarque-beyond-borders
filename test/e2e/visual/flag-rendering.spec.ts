@@ -29,10 +29,9 @@ test.describe('Flag Rendering Visual Tests', () => {
   });
 
   test('should render Pride flag preview correctly', async ({ page }) => {
-    const flagSelector = page.locator('#flag-select-label').locator('..');
-    await flagSelector.click();
+    await page.getByRole('combobox', { name: 'Choose a flag' }).click();
     await page.waitForTimeout(300);
-    await page.getByRole('option', { name: 'Pride — Rainbow Flag' }).click();
+    await page.getByRole('option', { name: 'Pride' }).click();
     await page.waitForTimeout(800);
 
     await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, {

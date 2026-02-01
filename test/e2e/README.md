@@ -3,7 +3,9 @@
 ## Overview
 
 This directory contains end-to-end tests using Playwright. Tests are
-organized into subdirectories by category:
+organized into subdirectories by category.
+
+**Before writing or changing selectors:** Read **[APP-SELECTORS.md](APP-SELECTORS.md)** — it documents the app’s DOM/ARIA structure (roles, aria-labels, step flow) so tests match the real UI instead of guessing.
 
 - **`workflows/`** - Complete user workflows and happy paths
 - **`responsive/`** - Mobile, tablet, and desktop viewport tests
@@ -226,13 +228,13 @@ changes carefully before committing.
 
 ## CI/CD
 
-Tests run automatically on:
+E2E tests run in CI when production code or E2E code changes (see
+`.github/workflows/ci.yml`):
 
-- Every pull request
-- Every push to main branch
-
-The CI runs tests on all browser projects (Chromium, Firefox, WebKit,
-mobile).
+- **PR / branch push**: The `e2e` job runs **Chromium only**, **@smoke** tests
+  only, for a fast gate (~2 smoke tests).
+- **Full suite**: Run `pnpm test:e2e` locally for all browsers and tests.
+  A full 5-browser run is not yet in CI (see issue #167).
 
 ## Troubleshooting
 

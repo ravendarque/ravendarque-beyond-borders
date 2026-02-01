@@ -37,8 +37,8 @@ for (const viewport of tabletViewports) {
         timeout: 30000,
       });
 
-      // Check layout elements
-      await expect(page.getByText('Presentation Style')).toBeVisible();
+      // Check layout elements (radiogroup, not "Presentation Style" text)
+      await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
     });
 
     test('should support both touch and mouse interactions', async ({ page }) => {
@@ -47,8 +47,8 @@ for (const viewport of tabletViewports) {
       // Test mouse interaction
       await uploadImage(page);
 
-      // Test touch interaction on flag selector
-      const flagSelector = page.locator('#flag-select-label').locator('..');
+      // Test touch interaction on flag selector (combobox trigger)
+      const flagSelector = page.getByRole('combobox', { name: 'Choose a flag' });
       await flagSelector.tap();
       await page.waitForTimeout(300);
 

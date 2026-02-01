@@ -74,8 +74,12 @@ test.describe('Visual Flows - Ring Mode', () => {
     // Step 1: Upload image
     await uploadImage(page);
 
-    // Step 2: Select Non-binary flag (this triggers rendering with uploaded image)
-    await selectFlag(page, 'Non-binary Pride — Non-binary flag');
+    // Step 2: Select Non-Binary Pride flag (displayName from app)
+    await selectFlag(page, TEST_FLAGS.NON_BINARY);
+
+    // Go to step 3 (user must click Next after selecting flag)
+    await page.getByRole('button', { name: 'Go to next step' }).click();
+    await page.waitForTimeout(300);
 
     // Step 3: Wait for initial render and verify
     await verifyCanvasHasContent(page);
@@ -95,23 +99,11 @@ test.describe('Visual Flows - Ring Mode', () => {
       body: screenshot as any,
     });
 
-    // Step 4a: Change border width and verify
-    await setSliderValue(page, 'Border Width', 40);
+    // Step 4a: Change border thickness (app slider aria-label) and verify
+    await setSliderValue(page, 'Border thickness', 12);
     await verifyCanvasHasContent(page);
-    const afterBorderWidth = await captureCanvas(page);
-    verifyCanvasChanged(baselineImage, afterBorderWidth, 'Border width change affected render');
-
-    // Step 4b: Change inset and verify
-    await setSliderValue(page, 'Inset', 15);
-    await verifyCanvasHasContent(page);
-    const afterInset = await captureCanvas(page);
-    verifyCanvasChanged(afterBorderWidth, afterInset, 'Inset change affected render');
-
-    // Step 4c: Change outset and verify
-    await setSliderValue(page, 'Outset', 25);
-    await verifyCanvasHasContent(page);
-    const afterOutset = await captureCanvas(page);
-    verifyCanvasChanged(afterInset, afterOutset, 'Outset change affected render');
+    const afterThickness = await captureCanvas(page);
+    verifyCanvasChanged(baselineImage, afterThickness, 'Border thickness change affected render');
 
     // Attach final screenshot
     const finalScreenshot = await page.screenshot({ fullPage: false });
@@ -130,8 +122,12 @@ test.describe('Visual Flows - Segment Mode', () => {
     // Step 1: Upload image
     await uploadImage(page);
 
-    // Step 2: Select Pride flag (this triggers rendering)
-    await selectFlag(page, 'Pride — Rainbow Flag');
+    // Step 2: Select Pride flag (displayName from app)
+    await selectFlag(page, TEST_FLAGS.PRIDE);
+
+    // Go to step 3
+    await page.getByRole('button', { name: 'Go to next step' }).click();
+    await page.waitForTimeout(300);
 
     // Step 3: Wait for initial render
     await verifyCanvasHasContent(page);
@@ -151,23 +147,17 @@ test.describe('Visual Flows - Segment Mode', () => {
       body: screenshot as any,
     });
 
-    // Step 4a: Change border width and verify
-    await setSliderValue(page, 'Border Width', 35);
+    // Step 4a: Change border thickness (app slider)
+    await setSliderValue(page, 'Border thickness', 10);
     await verifyCanvasHasContent(page);
-    const afterBorderWidth = await captureCanvas(page);
-    verifyCanvasChanged(baselineImage, afterBorderWidth, 'Border width change affected render');
+    const afterThickness = await captureCanvas(page);
+    verifyCanvasChanged(baselineImage, afterThickness, 'Border thickness change affected render');
 
-    // Step 4b: Change inset and verify
-    await setSliderValue(page, 'Inset', 10);
+    // Step 4b: Change segment rotation (app slider, segment mode only)
+    await setSliderValue(page, 'Segment rotation', 45);
     await verifyCanvasHasContent(page);
-    const afterInset = await captureCanvas(page);
-    verifyCanvasChanged(afterBorderWidth, afterInset, 'Inset change affected render');
-
-    // Step 4c: Change outset and verify
-    await setSliderValue(page, 'Outset', 20);
-    await verifyCanvasHasContent(page);
-    const afterOutset = await captureCanvas(page);
-    verifyCanvasChanged(afterInset, afterOutset, 'Outset change affected render');
+    const afterRotation = await captureCanvas(page);
+    verifyCanvasChanged(afterThickness, afterRotation, 'Segment rotation change affected render');
 
     // Attach final screenshot
     const finalScreenshot = await page.screenshot({ fullPage: false });
@@ -186,8 +176,12 @@ test.describe('Visual Flows - Cutout Mode', () => {
     // Step 1: Upload image
     await uploadImage(page);
 
-    // Step 2: Select Palestine flag (this triggers rendering)
-    await selectFlag(page, 'Palestine — Palestinian flag');
+    // Step 2: Select Palestine flag (displayName from app)
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
+
+    // Go to step 3
+    await page.getByRole('button', { name: 'Go to next step' }).click();
+    await page.waitForTimeout(300);
 
     // Step 3: Wait for initial render
     await verifyCanvasHasContent(page);
@@ -207,33 +201,17 @@ test.describe('Visual Flows - Cutout Mode', () => {
       body: screenshot as any,
     });
 
-    // Step 4a: Change border width and verify
-    await setSliderValue(page, 'Border Width', 30);
+    // Step 4a: Change border thickness (app slider)
+    await setSliderValue(page, 'Border thickness', 10);
     await verifyCanvasHasContent(page);
-    const afterBorderWidth = await captureCanvas(page);
-    verifyCanvasChanged(baselineImage, afterBorderWidth, 'Border width change affected render');
+    const afterThickness = await captureCanvas(page);
+    verifyCanvasChanged(baselineImage, afterThickness, 'Border thickness change affected render');
 
-    // Step 4b: Change inset and verify
-    await setSliderValue(page, 'Inset', 12);
+    // Step 4b: Change flag horizontal offset (app slider, cutout mode when offsetEnabled)
+    await setSliderValue(page, 'Flag horizontal offset', -20);
     await verifyCanvasHasContent(page);
-    const afterInset = await captureCanvas(page);
-    verifyCanvasChanged(afterBorderWidth, afterInset, 'Inset change affected render');
-
-    // Step 4c: Change outset and verify
-    await setSliderValue(page, 'Outset', 18);
-    await verifyCanvasHasContent(page);
-    const afterOutset = await captureCanvas(page);
-    verifyCanvasChanged(afterInset, afterOutset, 'Outset change affected render');
-
-    // Step 4d: Change horizontal offset to -200 and verify
-    await setSliderValue(page, 'Horizontal Offset', -200);
-    await verifyCanvasHasContent(page);
-    const afterHorizontalOffset = await captureCanvas(page);
-    verifyCanvasChanged(
-      afterOutset,
-      afterHorizontalOffset,
-      'Horizontal offset change affected render',
-    );
+    const afterOffset = await captureCanvas(page);
+    verifyCanvasChanged(afterThickness, afterOffset, 'Flag horizontal offset change affected render');
 
     // Attach final screenshot
     const finalScreenshot = await page.screenshot({ fullPage: false });

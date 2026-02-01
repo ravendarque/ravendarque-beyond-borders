@@ -31,8 +31,8 @@ test.describe('Accessibility', () => {
 
       await page.goto('/?step=2');
 
-      // Find flag selector and navigate with keyboard
-      const flagSelector = page.locator('#flag-select-label').locator('..');
+      // Find flag selector (combobox trigger) and navigate with keyboard
+      const flagSelector = page.getByRole('combobox', { name: 'Choose a flag' });
       await flagSelector.focus();
       await page.keyboard.press('Enter');
 

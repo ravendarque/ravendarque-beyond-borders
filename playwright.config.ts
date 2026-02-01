@@ -9,8 +9,9 @@ export default defineConfig({
     // Configure screenshot comparison threshold
     toHaveScreenshot: { threshold: 0.2 },
   },
-  fullyParallel: false,
+  fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 2 : undefined,
   reporter: [
     ['list'],
     ['html', { open: 'never', outputFolder: 'test-results/playwright-report' }],
@@ -55,7 +56,7 @@ export default defineConfig({
   webServer: {
     command: 'pnpm dev',
     port: 5173,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },
 });

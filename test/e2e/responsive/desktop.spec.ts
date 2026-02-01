@@ -33,8 +33,8 @@ for (const viewport of desktopViewports) {
       await selectFlag(page, TEST_FLAGS.PALESTINE);
       await waitForRenderComplete(page);
 
-      // All controls should be visible
-      await expect(page.getByText('Presentation Style')).toBeVisible();
+      // All controls should be visible (radiogroup, not "Presentation Style" text)
+      await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
 
       // Sliders should be accessible
       const sliders = page.locator('input[type="range"]');

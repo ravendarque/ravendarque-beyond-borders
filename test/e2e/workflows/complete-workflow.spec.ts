@@ -25,20 +25,21 @@ test.describe('Complete Workflow', () => {
       // Step 2: Select flag
       await selectFlag(page, TEST_FLAGS.PALESTINE);
 
-      // Verify flag is selected
-      await expect(page.locator('#flag-select-label')).toBeVisible();
+      // Go to step 3 (user must click Next after selecting flag)
+      await page.getByRole('button', { name: 'Go to next step' }).click();
+      await page.waitForTimeout(300);
 
-      // Step 3: Adjust settings (should be on step 3 now)
+      // Step 3: Wait for render then adjust settings
       await waitForRenderComplete(page);
 
-      // Verify presentation mode selector is visible
-      await expect(page.getByText('Presentation Style')).toBeVisible();
+      // Verify presentation mode selector is visible (radiogroup with Ring/Segment/Cutout)
+      await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
 
       // Select Ring mode
       await selectPresentationMode(page, 'Ring');
 
-      // Adjust border width
-      await setSliderValue(page, 'Border Width', 15);
+      // Adjust border thickness (app uses aria-label "Border thickness")
+      await setSliderValue(page, 'Border thickness', 15);
 
       // Verify preview is rendered
       const previewImg = page.locator('img[data-preview-url]').first();
@@ -46,8 +47,8 @@ test.describe('Complete Workflow', () => {
         await expect(previewImg).toBeVisible();
       }
 
-      // Step 4: Download (if download button exists)
-      const downloadButton = page.getByRole('button', { name: /download|save|export/i });
+      // Step 4: Download (app uses aria-label "Save avatar")
+      const downloadButton = page.getByRole('button', { name: 'Save avatar' });
       if ((await downloadButton.count()) > 0) {
         // Set up download listener
         const downloadPromise = page.waitForEvent('download');
@@ -69,15 +70,17 @@ test.describe('Complete Workflow', () => {
     // Upload image to move to step 2
     await uploadImage(page);
 
-    // Step 2: Verify we're on step 2
-    await expect(page.locator('#flag-select-label')).toBeVisible();
+    // Step 2: Verify we're on step 2 (flag selector visible)
+    await expect(page.getByRole('combobox', { name: 'Choose a flag' })).toBeVisible();
 
-    // Select flag to move to step 3
+    // Select flag then click Next to go to step 3
     await selectFlag(page, TEST_FLAGS.PALESTINE);
+    await page.getByRole('button', { name: 'Go to next step' }).click();
+    await page.waitForTimeout(300);
 
-    // Step 3: Verify we're on step 3
+    // Step 3: Verify we're on step 3 (presentation mode selector)
     await waitForRenderComplete(page);
-    await expect(page.getByText('Presentation Style')).toBeVisible();
+    await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
   });
 
   test('should show step indicator with correct state', async ({ page }) => {
