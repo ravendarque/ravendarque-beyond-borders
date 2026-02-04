@@ -126,10 +126,11 @@ export async function canvasToBlob(
     return (canvas as OffscreenCanvas).convertToBlob({ type, quality });
   }
 
-  // Regular Canvas fallback using toBlob
+  // Regular Canvas fallback using toBlob (canvas is HTMLCanvasElement here)
+  const htmlCanvas = canvas as HTMLCanvasElement;
   return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
+    htmlCanvas.toBlob(
+      (blob: Blob | null) => {
         if (blob) {
           resolve(blob);
         } else {

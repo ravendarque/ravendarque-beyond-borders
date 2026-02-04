@@ -58,8 +58,8 @@ describe('FlagDetailsModal', () => {
     render(<FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />);
 
     const dialog = screen.getByRole('dialog');
-    const body = dialog.querySelector('.dialog-body');
-    expect(within(body!).getByText('This is a test flag reason')).toBeTruthy();
+    const body = dialog.querySelector('.dialog-body') as HTMLElement;
+    expect(within(body).getByText('This is a test flag reason')).toBeTruthy();
   });
 
   it('should not render reason section when reason is not available', () => {

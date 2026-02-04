@@ -26,9 +26,9 @@ describe('PrivacyModal', () => {
     renderWithRouter(<PrivacyModal open={true} onOpenChange={vi.fn()} />);
 
     const dialog = screen.getByRole('dialog');
-    const body = dialog.querySelector('.dialog-body');
-    expect(within(body!).getByText(/beyond borders processes everything/i)).toBeTruthy();
-    expect(within(body!).getByText(/directly in your browser/i)).toBeTruthy();
+    const body = dialog.querySelector('.dialog-body') as HTMLElement;
+    expect(within(body).getByText(/beyond borders processes everything/i)).toBeTruthy();
+    expect(within(body).getByText(/directly in your browser/i)).toBeTruthy();
   });
 
   it('should render privacy benefits list', () => {

@@ -51,7 +51,11 @@ test('measure time from Step 2 Next click until render complete', async ({ page 
       { timeout: 30000 },
     );
   } catch (e) {
-    const debug = await getRenderDebug(page);
+    const debug = (await getRenderDebug(page)) as {
+      stage: string;
+      error: string;
+      uploadDone: boolean;
+    };
     const body = [
       `__BB_RENDER_STAGE__: ${debug.stage}`,
       `__BB_RENDER_ERROR__: ${debug.error}`,
