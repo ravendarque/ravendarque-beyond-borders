@@ -10,7 +10,8 @@ import net from 'node:net';
 const port = parseInt(process.argv[2] || '5173', 10);
 const url = `http://localhost:${port}/`;
 
-if (process.env.CI) {
+// Skip when CI or GitHub Actions (Playwright starts the server via webServer)
+if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
   process.exit(0);
 }
 
