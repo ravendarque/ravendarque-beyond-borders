@@ -21,7 +21,6 @@ export function PrivacyModal({ open, onOpenChange }: PrivacyModalProps) {
         <Dialog.Overlay className="dialog-overlay" />
         <Dialog.Content
           className="dialog-content"
-          aria-describedby="privacy-dialog-description"
           onOpenAutoFocus={(e) => {
             // Scroll to top when dialog opens
             e.preventDefault();
@@ -37,9 +36,13 @@ export function PrivacyModal({ open, onOpenChange }: PrivacyModalProps) {
             </button>
           </Dialog.Close>
           <Dialog.Title className="dialog-title">Your Privacy is Protected</Dialog.Title>
+          <Dialog.Description className="visually-hidden">
+            Beyond Borders processes everything directly in your browser. Your images never leave
+            your device.
+          </Dialog.Description>
 
           <div className="dialog-body">
-            <p id="privacy-dialog-description">
+            <p>
               Beyond Borders processes everything <strong>directly in your browser</strong>. Your
               images never leave your device.
             </p>
