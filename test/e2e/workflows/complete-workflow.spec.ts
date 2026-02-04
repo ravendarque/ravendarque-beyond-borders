@@ -6,10 +6,11 @@ import { test, expect } from '@playwright/test';
 import {
   uploadImage,
   selectFlag,
+  goToStep3,
   selectPresentationMode,
   setSliderValue,
-  waitForRenderComplete,
 } from '../helpers/page-helpers';
+import { TEST_IDS } from '../helpers/test-ids';
 import { TEST_FLAGS } from '../helpers/test-data';
 
 test.describe('Complete Workflow', () => {
@@ -22,15 +23,11 @@ test.describe('Complete Workflow', () => {
       // Step 1: Upload image
       await uploadImage(page);
 
-      // Step 2: Select flag
+      // Step 2: Select flag then go to step 3
       await selectFlag(page, TEST_FLAGS.PALESTINE);
+      await goToStep3(page);
 
-      // Go to step 3 (user must click Next after selecting flag)
-      await page.getByRole('button', { name: 'Go to next step' }).click();
-      await page.waitForTimeout(300);
-
-      // Step 3: Wait for render then adjust settings
-      await waitForRenderComplete(page);
+      // Step 3: Adjust settings (goToStep3 already waited for step 3 ready)
 
       // Verify presentation mode selector is visible (radiogroup with Ring/Segment/Cutout)
       await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
@@ -47,15 +44,12 @@ test.describe('Complete Workflow', () => {
         await expect(previewImg).toBeVisible();
       }
 
-      // Step 4: Download (app uses aria-label "Save avatar")
-      const downloadButton = page.getByRole('button', { name: 'Save avatar' });
+      // Step 4: Download (stable testid)
+      const downloadButton = page.getByTestId(TEST_IDS.SAVE_AVATAR);
       if ((await downloadButton.count()) > 0) {
-        // Set up download listener
         const downloadPromise = page.waitForEvent('download');
         await downloadButton.click();
         const download = await downloadPromise;
-
-        // Verify download
         expect(download.suggestedFilename()).toMatch(/\.(png|jpg|jpeg)$/i);
       }
     },
@@ -73,13 +67,11 @@ test.describe('Complete Workflow', () => {
     // Step 2: Verify we're on step 2 (flag selector visible)
     await expect(page.getByRole('combobox', { name: 'Choose a flag' })).toBeVisible();
 
-    // Select flag then click Next to go to step 3
+    // Select flag then go to step 3
     await selectFlag(page, TEST_FLAGS.PALESTINE);
-    await page.getByRole('button', { name: 'Go to next step' }).click();
-    await page.waitForTimeout(300);
+    await goToStep3(page);
 
-    // Step 3: Verify we're on step 3 (presentation mode selector)
-    await waitForRenderComplete(page);
+    // Step 3: Verify we're on step 3
     await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
   });
 

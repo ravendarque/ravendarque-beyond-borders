@@ -2,9 +2,8 @@
  * Mobile viewport tests (320px, 375px, 414px)
  */
 
-import { test, expect, devices } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { uploadImage } from '../helpers/page-helpers';
-import { TEST_IMAGE_PATH } from '../helpers/test-data';
 
 const mobileViewports = [
   { width: 320, height: 568, name: 'iPhone SE' },
@@ -48,15 +47,13 @@ for (const viewport of mobileViewports) {
     test('should support touch interactions', async ({ page }) => {
       await page.goto('/');
 
-      // Upload image
       await uploadImage(page);
 
-      // Test flag selector (combobox trigger, not #flag-select-label which is a class inside dropdown)
+      // Flag selector opens on click (tap in real touch devices; click works at mobile viewport without hasTouch)
       const flagSelector = page.getByRole('combobox', { name: 'Choose a flag' });
-      await flagSelector.tap();
+      await flagSelector.click();
       await page.waitForTimeout(300);
 
-      // Should open dropdown
       const dropdown = page.locator('[role="listbox"]');
       if ((await dropdown.count()) > 0) {
         await expect(dropdown).toBeVisible();

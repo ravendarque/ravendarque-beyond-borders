@@ -3,12 +3,8 @@
  */
 
 import { test, expect } from '@playwright/test';
-import {
-  uploadImage,
-  selectFlag,
-  waitForRenderComplete,
-  preSelectFlag,
-} from '../helpers/page-helpers';
+import { uploadImage, selectFlag, goToStep3, preSelectFlag } from '../helpers/page-helpers';
+import { TEST_IDS } from '../helpers/test-ids';
 import { TEST_IMAGE_PATH, TEST_FLAGS, INVALID_FILE_PATH } from '../helpers/test-data';
 import * as fs from 'fs';
 
@@ -54,18 +50,16 @@ test.describe('Image Upload Validation', () => {
 
 test.describe('Download Functionality', () => {
   test.beforeEach(async ({ page }) => {
-    // Pre-seed flag
     await preSelectFlag(page, 'palestine');
     await page.goto('/');
 
-    // Upload image and select flag
     await uploadImage(page);
     await selectFlag(page, TEST_FLAGS.PALESTINE);
-    await waitForRenderComplete(page);
+    await goToStep3(page);
   });
 
   test('should download with correct filename', async ({ page }) => {
-    const downloadButton = page.getByRole('button', { name: /download|save|export/i });
+    const downloadButton = page.getByTestId(TEST_IDS.SAVE_AVATAR);
 
     // Check if download button exists (may not be implemented yet)
     const buttonCount = await downloadButton.count();
@@ -75,7 +69,7 @@ test.describe('Download Functionality', () => {
       return;
     }
 
-    const downloadPromise = page.waitForEvent('download');
+    const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
     await downloadButton.click();
     const download = await downloadPromise;
 
@@ -85,7 +79,7 @@ test.describe('Download Functionality', () => {
   });
 
   test('should download in correct format', async ({ page }) => {
-    const downloadButton = page.getByRole('button', { name: /download|save|export/i });
+    const downloadButton = page.getByTestId(TEST_IDS.SAVE_AVATAR);
 
     const buttonCount = await downloadButton.count();
     if (buttonCount === 0) {
@@ -93,7 +87,7 @@ test.describe('Download Functionality', () => {
       return;
     }
 
-    const downloadPromise = page.waitForEvent('download');
+    const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
     await downloadButton.click();
     const download = await downloadPromise;
 

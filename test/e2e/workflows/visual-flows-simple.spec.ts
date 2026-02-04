@@ -10,6 +10,7 @@ import { test, expect } from '@playwright/test';
 import {
   uploadImage,
   selectFlag,
+  goToStep3,
   selectPresentationMode,
   setSliderValue,
 } from '../helpers/page-helpers';
@@ -28,8 +29,9 @@ test.describe('Visual Flows - Ring Mode', () => {
       body: afterUpload as any,
     });
 
-    // Step 2: Select Non-binary flag
+    // Step 2: Select flag then go to step 3
     await selectFlag(page, TEST_FLAGS.NON_BINARY);
+    await goToStep3(page);
     const afterFlagSelect = await page.screenshot();
     test.info().attachments.push({
       name: 'ring-02-after-flag-select.png',
@@ -37,7 +39,6 @@ test.describe('Visual Flows - Ring Mode', () => {
       body: afterFlagSelect as any,
     });
 
-    // Step 3: Select Ring mode (should be default, but explicitly select it)
     await selectPresentationMode(page, 'Ring');
     const afterModeSelect = await page.screenshot();
     test.info().attachments.push({
@@ -66,8 +67,8 @@ test.describe('Visual Flows - Segment Mode', () => {
     // Step 1: Upload image
     await uploadImage(page);
 
-    // Step 2: Select Pride flag
     await selectFlag(page, TEST_FLAGS.PRIDE);
+    await goToStep3(page);
     const afterFlagSelect = await page.screenshot();
     test.info().attachments.push({
       name: 'segment-01-after-flag-select.png',
@@ -75,7 +76,6 @@ test.describe('Visual Flows - Segment Mode', () => {
       body: afterFlagSelect as any,
     });
 
-    // Step 3: Select Segment mode
     await selectPresentationMode(page, 'Segment');
     const afterModeSelect = await page.screenshot();
     test.info().attachments.push({
@@ -101,8 +101,8 @@ test.describe('Visual Flows - Cutout Mode', () => {
     // Step 1: Upload image
     await uploadImage(page);
 
-    // Step 2: Select Palestine flag
     await selectFlag(page, TEST_FLAGS.PALESTINE);
+    await goToStep3(page);
     const afterFlagSelect = await page.screenshot();
     test.info().attachments.push({
       name: 'cutout-01-after-flag-select.png',
@@ -110,7 +110,6 @@ test.describe('Visual Flows - Cutout Mode', () => {
       body: afterFlagSelect as any,
     });
 
-    // Step 3: Select Cutout mode
     await selectPresentationMode(page, 'Cutout');
     const afterModeSelect = await page.screenshot();
     test.info().attachments.push({
@@ -133,11 +132,10 @@ test.describe('Visual Flows - Mode Switching', () => {
   test('should switch between presentation modes smoothly', async ({ page }) => {
     await page.goto('/');
 
-    // Setup: Upload image and select flag
     await uploadImage(page);
     await selectFlag(page, TEST_FLAGS.TRANSGENDER);
+    await goToStep3(page);
 
-    // Test Ring mode
     await selectPresentationMode(page, 'Ring');
     await expect(page.getByRole('button', { name: /^Ring/ })).toHaveAttribute(
       'aria-pressed',
@@ -226,11 +224,7 @@ test.describe('Visual Flows - Error Handling', () => {
   test('should handle missing image gracefully', async ({ page }) => {
     await page.goto('/');
 
-    // Try to select flag without image
-    await selectFlag(page, TEST_FLAGS.PALESTINE);
-
-    // Should still show upload button
-    const uploadButton = await page.locator('text=/Upload|Choose/i').count();
-    expect(uploadButton).toBeGreaterThan(0);
+    // Step 1 with no image: upload/choose prompt should be visible
+    await expect(page.getByText(/Choose your profile picture|Upload/i)).toBeVisible();
   });
 });

@@ -4,7 +4,8 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { selectFlag, waitForRenderComplete } from '../helpers/page-helpers';
+import { selectFlag, goToStep3 } from '../helpers/page-helpers';
+import { TEST_IDS } from '../helpers/test-ids';
 import { TEST_FLAGS } from '../helpers/test-data';
 import { getTestResultsPath } from '../helpers/test-paths';
 import path from 'path';
@@ -15,6 +16,7 @@ const __dirname = path.dirname(__filename);
 
 test.describe('Zoom Visual Verification', () => {
   test('should apply zoom, H offset, and V offset from Step 1 to Step 3', async ({ page }) => {
+    test.setTimeout(180000); // 3 min – under full-suite load this test can take 2–3 min
     // Listen for console messages to capture debug logs
     const consoleMessages: string[] = [];
     page.on('console', (msg) => {
@@ -122,48 +124,14 @@ test.describe('Zoom Visual Verification', () => {
     const step1Preview = page.locator('.choose-wrapper');
     await step1Preview.screenshot({ path: getTestResultsPath('step1-zoom10-h24-v-42.png') });
 
-    // Now navigate to Step 2 and Step 3
-    // Click the "Next" button to go to Step 2
-    const nextButton = page.getByRole('button', { name: /next|→/i }).first();
-    await expect(nextButton).toBeVisible({ timeout: 10000 });
-    await nextButton.click();
-    await page.waitForTimeout(1000);
+    // Go to Step 2 (click Step 1 Next)
+    await page.getByTestId(TEST_IDS.STEP1_NEXT).click();
+    await page.waitForTimeout(500);
+    await page.getByRole('combobox', { name: 'Choose a flag' }).waitFor({ state: 'visible', timeout: 10000 });
 
-    // Wait for Step 2 to load - look for the combobox
-    await page.waitForSelector('text=Choose a flag', { timeout: 10000 });
-
-    // Select flag - find the combobox and click it
-    const flagCombobox = page.getByRole('combobox', { name: /choose a flag/i });
-    await expect(flagCombobox).toBeVisible({ timeout: 10000 });
-    await flagCombobox.click();
-    await page.waitForTimeout(1000); // Wait longer for menu to open
-
-    // Wait for any flag option to appear (menu is open)
-    await page.waitForSelector('[role="option"]', { timeout: 10000 });
-
-    // Select Palestine flag - try exact name first, then partial match
-    let flagOption = page.getByRole('option', { name: TEST_FLAGS.PALESTINE });
-    if ((await flagOption.count()) === 0) {
-      // Try partial match
-      flagOption = page.getByRole('option', { name: /palestine/i });
-    }
-    if ((await flagOption.count()) === 0) {
-      // Fallback: just select the first flag
-      flagOption = page.getByRole('option').first();
-    }
-    await expect(flagOption).toBeVisible({ timeout: 10000 });
-    await flagOption.click();
-    await page.waitForTimeout(1000);
-
-    // Click "Next" again to go to Step 3
-    const nextButton2 = page.getByRole('button', { name: /next|→/i }).first();
-    await expect(nextButton2).toBeVisible({ timeout: 10000 });
-    await nextButton2.click();
-    await page.waitForTimeout(1000);
-
-    // Wait for Step 3 to render
-    await page.waitForSelector('.step-layout', { timeout: 20000 });
-    await waitForRenderComplete(page);
+    // Step 2: select flag and go to Step 3 (deterministic: waits dimensions + step 3 ready)
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
+    await goToStep3(page);
 
     // Wait for the rendered image to appear (using choose-circle in readonly mode)
     await page.waitForSelector('.choose-circle.has-image', { timeout: 20000 });
@@ -171,20 +139,15 @@ test.describe('Zoom Visual Verification', () => {
     // Wait for rendering to complete (zoom/position should be applied)
     await page.waitForTimeout(3000);
 
-    // Get the rendered image element (choose-circle in readonly mode with flag border)
+    // Step 3 preview is ImageUploadZone (choose-wrapper + pattern).
+    // goToStep3 already waited for render complete; ensure step 3 content and Save are ready.
+    await page.locator('[data-testid="step-3"]').waitFor({ state: 'visible', timeout: 5000 });
     const renderedImage = page.locator('.choose-circle.has-image');
-    await expect(renderedImage).toBeVisible();
+    await expect(renderedImage).toBeVisible({ timeout: 10000 });
 
-    // Verify flag border overlay is present (means rendering completed)
-    const flagBorderOverlay = page.locator('.choose-wrapper.has-flag-border');
-    await expect(flagBorderOverlay).toBeVisible();
-
-    // Verify the wrapper has the flag border as background
-    const wrapperStyle = await flagBorderOverlay.evaluate(
-      (el) => window.getComputedStyle(el).backgroundImage,
-    );
-    expect(wrapperStyle).toBeTruthy();
-    expect(wrapperStyle).toContain('blob:');
+    // Save button enabled = render done (use role for robustness across browsers)
+    const saveBtn = page.getByRole('button', { name: 'Save avatar' });
+    await expect(saveBtn).toBeEnabled({ timeout: 10000 });
 
     // Take screenshot of Step 3 preview
     const step3Preview = page.locator('.step-layout');

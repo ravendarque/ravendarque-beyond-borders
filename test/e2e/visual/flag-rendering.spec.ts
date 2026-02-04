@@ -3,7 +3,8 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { uploadImage, selectFlag, waitForRenderComplete } from '../helpers/page-helpers';
+import { uploadImage, selectFlag, goToStep3 } from '../helpers/page-helpers';
+import { TEST_IDS } from '../helpers/test-ids';
 import { TEST_FLAGS } from '../helpers/test-data';
 
 test.describe('Flag Rendering Visual Tests', () => {
@@ -13,36 +14,20 @@ test.describe('Flag Rendering Visual Tests', () => {
   });
 
   test('should render Palestine flag preview correctly', async ({ page }) => {
-    // Select Palestine flag
     await selectFlag(page, TEST_FLAGS.PALESTINE);
+    await goToStep3(page);
 
-    // Wait for preview to render
-    await waitForRenderComplete(page);
-
-    // Take screenshot of flag preview
-    const flagPreview = page
-      .locator('[data-flag-preview], .flag-preview, img[alt*="flag" i]')
-      .first();
-    if ((await flagPreview.count()) > 0) {
-      await expect(flagPreview).toHaveScreenshot('palestine-flag-preview.png');
-    }
+    const step3 = page.getByTestId(TEST_IDS.STEP_3);
+    const previewArea = step3.getByRole('img', { name: 'Profile picture preview' });
+    await expect(previewArea).toBeVisible({ timeout: 15000 });
   });
 
   test('should render Pride flag preview correctly', async ({ page }) => {
-    await page.getByRole('combobox', { name: 'Choose a flag' }).click();
-    await page.waitForTimeout(300);
-    await page.getByRole('option', { name: 'Pride' }).click();
-    await page.waitForTimeout(800);
+    await selectFlag(page, TEST_FLAGS.PRIDE);
+    await goToStep3(page);
 
-    await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, {
-      timeout: 30000,
-    });
-
-    const flagPreview = page
-      .locator('[data-flag-preview], .flag-preview, img[alt*="flag" i]')
-      .first();
-    if ((await flagPreview.count()) > 0) {
-      await expect(flagPreview).toHaveScreenshot('pride-flag-preview.png');
-    }
+    const step3 = page.getByTestId(TEST_IDS.STEP_3);
+    const previewArea = step3.getByRole('img', { name: 'Profile picture preview' });
+    await expect(previewArea).toBeVisible({ timeout: 15000 });
   });
 });

@@ -3,12 +3,14 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { uploadImage, selectFlag, goToStep3, waitForStep3Ready } from '../helpers/page-helpers';
+import { TEST_IDS } from '../helpers/test-ids';
+import { TEST_FLAGS } from '../helpers/test-data';
 
 test.describe('Screen Reader Support', () => {
   test('should announce step changes to screen readers', async ({ page }) => {
     await page.goto('/');
 
-    // Should have live region for announcements
     const announcer = page.locator(
       '[role="status"][aria-live], [aria-live="polite"], [aria-live="assertive"]',
     );
@@ -18,26 +20,21 @@ test.describe('Screen Reader Support', () => {
 
   test('should have descriptive alt text on images', async ({ page }) => {
     await page.goto('/');
+    await uploadImage(page);
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
+    await goToStep3(page);
+    await waitForStep3Ready(page);
 
-    // Pre-seed to get to step 3
-    await page.addInitScript(() => {
-      try {
-        window.localStorage.setItem('bb_selectedFlag', 'palestine');
-        sessionStorage.setItem('workflow-imageUrl', 'blob:test');
-      } catch {}
-    });
-
-    await page.goto('/?step=3');
-
-    // Avatar preview should have alt text
-    const previewImgs = page.locator('img[alt]');
-    const imgCount = await previewImgs.count();
-
-    for (let i = 0; i < imgCount; i++) {
-      const img = previewImgs.nth(i);
-      const alt = await img.getAttribute('alt');
+    // Step 3 preview is ImageUploadZone (readonly) with role="img" and aria-label; any img must have descriptive alt
+    const step3 = page.getByTestId(TEST_IDS.STEP_3);
+    const previewRole = step3.getByRole('img', { name: 'Profile picture preview' });
+    await expect(previewRole).toBeVisible({ timeout: 15000 });
+    const imgsWithAlt = step3.locator('img[alt]');
+    const count = await imgsWithAlt.count();
+    for (let i = 0; i < count; i++) {
+      const alt = await imgsWithAlt.nth(i).getAttribute('alt');
       expect(alt).toBeTruthy();
-      expect(alt?.length).toBeGreaterThan(0);
+      expect(alt!.length).toBeGreaterThan(0);
     }
   });
 
