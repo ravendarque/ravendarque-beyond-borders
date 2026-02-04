@@ -17,6 +17,17 @@ export const TEST_IMAGE_PATH = path.resolve(
 );
 
 /**
+ * Positioning test image: solid blue background with coloured markers (red center,
+ * green/yellow/magenta/cyan corners). Use for E2E zoom/position verification by
+ * sampling pixel colours with sharp instead of brittle photo comparison.
+ * Generate with: node scripts/generate-positioning-test-image.js
+ */
+export const POSITIONING_TEST_IMAGE_PATH = path.resolve(
+  __dirname,
+  '../../test-data/positioning-test-image.png',
+);
+
+/**
  * Get the path to the avatar sample fixture
  */
 export const AVATAR_SAMPLE_PATH = path.resolve(
