@@ -52,18 +52,22 @@ export function validateCanvasSize(width: number, height: number): void {
   }
 }
 
+/** Safe reference to OffscreenCanvas (undefined in Safari/WebKit before support). */
+function getOffscreenCanvasCtor(): (typeof OffscreenCanvas) | undefined {
+  try {
+    const g = typeof globalThis !== 'undefined' ? globalThis : window;
+    const OC = (g as unknown as { OffscreenCanvas?: typeof OffscreenCanvas }).OffscreenCanvas;
+    return typeof OC === 'function' && typeof OC.prototype.convertToBlob === 'function' ? OC : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
- * Check if OffscreenCanvas is supported
+ * Check if OffscreenCanvas is supported (Safari/WebKit may not have it).
  */
 export function supportsOffscreenCanvas(): boolean {
-  try {
-    return (
-      typeof OffscreenCanvas !== 'undefined' &&
-      typeof OffscreenCanvas.prototype.convertToBlob === 'function'
-    );
-  } catch {
-    return false;
-  }
+  return getOffscreenCanvasCtor() !== undefined;
 }
 
 /**
@@ -82,8 +86,9 @@ export function createCanvas(
   // Validate size first
   validateCanvasSize(width, height);
 
-  if (supportsOffscreenCanvas()) {
-    const canvas = new OffscreenCanvas(width, height);
+  const OffscreenCanvasCtor = getOffscreenCanvasCtor();
+  if (OffscreenCanvasCtor) {
+    const canvas = new OffscreenCanvasCtor(width, height);
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       throw new Error('Failed to get 2D context from OffscreenCanvas');
@@ -114,9 +119,9 @@ export async function canvasToBlob(
   type = 'image/png',
   quality?: number,
 ): Promise<Blob> {
-  // OffscreenCanvas has convertToBlob method
-  if (canvas instanceof OffscreenCanvas) {
-    return canvas.convertToBlob({ type, quality });
+  // OffscreenCanvas has convertToBlob; avoid referencing OffscreenCanvas for Safari
+  if (typeof (canvas as unknown as { convertToBlob?: unknown }).convertToBlob === 'function') {
+    return (canvas as OffscreenCanvas).convertToBlob({ type, quality });
   }
 
   // Regular Canvas fallback using toBlob

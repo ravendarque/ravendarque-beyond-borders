@@ -8,6 +8,7 @@
 
 import type { FlagSpec } from '@/flags/schema';
 import { getAssetUrl } from '@/config';
+import { createCanvas, canvasToBlob } from '@/renderer/canvas-utils';
 
 export type PresentationMode = 'ring' | 'segment' | 'cutout';
 
@@ -52,11 +53,11 @@ export function generateCutoutPattern(options: FlagPatternOptions): string {
  * Uses the same rendering logic as the final download renderer to ensure
  * UI preview matches the downloaded image exactly.
  *
- * @returns OffscreenCanvas with concentric rings drawn from outer to inner
+ * @returns Canvas with concentric rings drawn from outer to inner
  */
 export async function generateRingPatternCanvasElement(
   options: FlagPatternOptions,
-): Promise<OffscreenCanvas | null> {
+): Promise<OffscreenCanvas | HTMLCanvasElement | null> {
   const { flag, wrapperSize, circleSize } = options;
 
   const colors = flag.modes?.ring?.colors ?? [];
@@ -73,9 +74,8 @@ export async function generateRingPatternCanvasElement(
     return null;
   }
 
-  // Create canvas matching the renderer's logic
-  const canvas = new OffscreenCanvas(wrapperSize, wrapperSize);
-  const ctx = canvas.getContext('2d')!;
+  // Create canvas matching the renderer's logic (OffscreenCanvas or HTMLCanvasElement for Safari)
+  const { canvas, ctx } = createCanvas(wrapperSize, wrapperSize);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
@@ -201,7 +201,7 @@ function generateSegmentPatternCSS(options: FlagPatternOptions): string {
  */
 export async function generateSegmentPatternCanvasElement(
   options: FlagPatternOptions,
-): Promise<OffscreenCanvas | null> {
+): Promise<OffscreenCanvas | HTMLCanvasElement | null> {
   const { flag, wrapperSize, circleSize, segmentRotation = 0 } = options;
 
   const colors = flag.modes?.ring?.colors ?? [];
@@ -218,9 +218,8 @@ export async function generateSegmentPatternCanvasElement(
     return null;
   }
 
-  // Create canvas matching the renderer's logic
-  const canvas = new OffscreenCanvas(wrapperSize, wrapperSize);
-  const ctx = canvas.getContext('2d')!;
+  // Create canvas matching the renderer's logic (OffscreenCanvas or HTMLCanvasElement for Safari)
+  const { canvas, ctx } = createCanvas(wrapperSize, wrapperSize);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
@@ -300,8 +299,8 @@ export async function generateFlagPatternStyle(
         return { backgroundImage: 'none' };
       }
 
-      // Convert OffscreenCanvas to blob URL
-      const blob = await canvas.convertToBlob();
+      // Convert canvas to blob URL (works for OffscreenCanvas and HTMLCanvasElement)
+      const blob = await canvasToBlob(canvas);
       const url = URL.createObjectURL(blob);
 
       return {
