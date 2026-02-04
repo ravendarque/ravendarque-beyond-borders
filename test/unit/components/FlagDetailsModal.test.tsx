@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FlagDetailsModal } from '@/components/FlagDetailsModal';
 import type { FlagSpec } from '@/flags/schema';
@@ -57,7 +57,9 @@ describe('FlagDetailsModal', () => {
   it('should render reason when available', () => {
     render(<FlagDetailsModal open={true} onOpenChange={vi.fn()} flag={mockFlag} />);
 
-    expect(screen.getByText('This is a test flag reason')).toBeTruthy();
+    const dialog = screen.getByRole('dialog');
+    const body = dialog.querySelector('.dialog-body');
+    expect(within(body!).getByText('This is a test flag reason')).toBeTruthy();
   });
 
   it('should not render reason section when reason is not available', () => {

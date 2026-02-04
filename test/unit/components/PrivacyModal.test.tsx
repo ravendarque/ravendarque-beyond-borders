@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
@@ -25,8 +25,10 @@ describe('PrivacyModal', () => {
   it('should render main privacy message', () => {
     renderWithRouter(<PrivacyModal open={true} onOpenChange={vi.fn()} />);
 
-    expect(screen.getByText(/beyond borders processes everything/i)).toBeTruthy();
-    expect(screen.getByText(/directly in your browser/i)).toBeTruthy();
+    const dialog = screen.getByRole('dialog');
+    const body = dialog.querySelector('.dialog-body');
+    expect(within(body!).getByText(/beyond borders processes everything/i)).toBeTruthy();
+    expect(within(body!).getByText(/directly in your browser/i)).toBeTruthy();
   });
 
   it('should render privacy benefits list', () => {
