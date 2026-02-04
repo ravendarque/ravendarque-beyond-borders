@@ -175,9 +175,11 @@ export async function goToStep3(page: Page, timeout = 30000): Promise<void> {
 export async function waitForReRender(page: Page, timeout = 25000): Promise<void> {
   const saveBtn = page.getByTestId(TEST_IDS.SAVE_AVATAR);
   await saveBtn.waitFor({ state: 'visible', timeout: 5000 });
-  await expect(saveBtn).toBeDisabled({ timeout: 5000 }).catch(() => {
-    // Already re-rendering or no change triggered; proceed to wait for enabled
-  });
+  await expect(saveBtn)
+    .toBeDisabled({ timeout: 5000 })
+    .catch(() => {
+      // Already re-rendering or no change triggered; proceed to wait for enabled
+    });
   await expect(saveBtn).toBeEnabled({ timeout });
 }
 
