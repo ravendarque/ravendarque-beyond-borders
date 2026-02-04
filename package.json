@@ -15,10 +15,11 @@
     "generate-favicons": "node scripts/generate-favicons.js",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
-    "test:e2e": "playwright test",
-    "test:e2e:smoke": "playwright test --grep @smoke",
-    "test:watch": "vitest"
+    "test": "node scripts/run-vitest.cjs run",
+    "test:e2e": "node scripts/check-dev-server.js && playwright test",
+    "test:e2e:fast": "node scripts/check-dev-server.js && playwright test --project=chromium",
+    "test:e2e:smoke": "node scripts/check-dev-server.js && playwright test --grep @smoke",
+    "test:watch": "node scripts/run-vitest.cjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -36,7 +37,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
-    "@playwright/test": "^1.54.2",
+    "@playwright/test": "^1.58.1",
     "@resvg/resvg-js": "^2.6.2",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
@@ -53,7 +54,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "happy-dom": "^20.0.11",
-    "playwright": "^1.36.0",
+    "playwright": "^1.58.1",
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.4",
     "sharp": "^0.34.3",

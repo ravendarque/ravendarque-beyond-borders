@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: 'test/e2e',
-  outputDir: 'test-results/playwright',
+  outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR || 'test-results/playwright',
   timeout: 120000,
   expect: {
     timeout: 5000,
@@ -11,11 +11,18 @@ export default defineConfig({
   },
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  workers: 8,
   reporter: [
     ['list'],
     ['html', { open: 'never', outputFolder: 'test-results/playwright-report' }],
-    ['json', { outputFile: 'test-results/playwright/results.json' }],
+    [
+      'json',
+      {
+        outputFile: process.env.PLAYWRIGHT_OUTPUT_DIR
+          ? `${process.env.PLAYWRIGHT_OUTPUT_DIR}/results.json`
+          : 'test-results/playwright/results.json',
+      },
+    ],
   ],
   use: {
     baseURL: 'http://localhost:5173',

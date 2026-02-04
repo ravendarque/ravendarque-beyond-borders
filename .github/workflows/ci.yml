@@ -161,7 +161,7 @@ jobs:
           path: coverage
           if-no-files-found: ignore
 
-  # E2E tests (Chromium, smoke only) - runs when app or E2E code changes
+  # E2E tests (full suite, all browsers) - full test pyramid on PR
   e2e:
     needs: [check-changes, validate]
     if: needs.check-changes.outputs.production-code == 'true'
@@ -184,10 +184,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps
 
-      - name: Run E2E tests (Chromium, smoke)
-        run: pnpm test:e2e:smoke --project=chromium
+      - name: Run E2E tests (full suite, all browsers)
+        run: pnpm test:e2e
         env:
           CI: true
 
