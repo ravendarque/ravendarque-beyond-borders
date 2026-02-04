@@ -339,6 +339,7 @@ export function AppStepWorkflow() {
           <div className="content-area">
             {/* Step 1: Image Upload */}
             {currentStep === 1 && (
+              <div data-testid="step-1">
               <ErrorBoundary
                 fallback={
                   <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -372,10 +373,12 @@ export function AppStepWorkflow() {
                   }
                 />
               </ErrorBoundary>
+              </div>
             )}
 
             {/* Step 2: Flag Selection */}
             {currentStep === 2 && (
+              <div data-testid="step-2">
               <ErrorBoundary
                 fallback={
                   <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -397,10 +400,12 @@ export function AppStepWorkflow() {
                   }
                 />
               </ErrorBoundary>
+              </div>
             )}
 
             {/* Step 3: Adjust */}
             {currentStep === 3 && (
+              <div data-testid="step-3">
               <ErrorBoundary
                 fallback={
                   <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -447,6 +452,7 @@ export function AppStepWorkflow() {
                   }
                 />
               </ErrorBoundary>
+              </div>
             )}
           </div>
 
@@ -459,6 +465,7 @@ export function AppStepWorkflow() {
                 onClick={goToNext}
                 disabled={!canGoToStep2}
                 aria-label="Go to next step"
+                data-testid="step1-next"
               >
                 <span>NEXT →</span>
               </button>
@@ -472,6 +479,7 @@ export function AppStepWorkflow() {
                     className="nav-btn"
                     onClick={goToPrevious}
                     aria-label="Go to previous step"
+                    data-testid="nav-back"
                   >
                     <span>← BACK</span>
                   </button>
@@ -481,6 +489,7 @@ export function AppStepWorkflow() {
                     onClick={goToNext}
                     disabled={!canGoToStep3}
                     aria-label="Go to next step"
+                    data-testid="step2-next"
                   >
                     <span>NEXT →</span>
                   </button>
@@ -527,6 +536,7 @@ export function AppStepWorkflow() {
                     className="nav-btn"
                     onClick={goToPrevious}
                     aria-label="Go to previous step"
+                    data-testid="nav-back"
                   >
                     <span>← BACK</span>
                   </button>
@@ -536,6 +546,7 @@ export function AppStepWorkflow() {
                     onClick={handleDownload}
                     disabled={!overlayUrl || isRendering}
                     aria-label="Save avatar"
+                    data-testid="save-avatar"
                   >
                     <span>SAVE</span>
                     <svg

@@ -47,6 +47,15 @@ export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<str
       const { size, thickness, flagOffsetPct, presentation, segmentRotation, bg, circleSize } =
         options;
 
+      // E2E: clear render-done signal so tests wait for this run, not a stale value
+      try {
+        window.__BB_UPLOAD_DONE__ = false;
+        window.__BB_RENDER_STAGE__ = 'start';
+        window.__BB_RENDER_ERROR__ = undefined;
+      } catch {
+        // Ignore
+      }
+
       // Exit early if no image
       if (!imageUrl) {
         setIsRendering(false);
@@ -74,9 +83,18 @@ export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<str
         }
 
         // Load original image (not cropped - renderer will apply position/zoom)
+        try {
+          window.__BB_RENDER_STAGE__ = 'fetch_start';
+        } catch {}
         const response = await fetch(imageUrl);
         const blob = await response.blob();
+        try {
+          window.__BB_RENDER_STAGE__ = 'createImageBitmap_start';
+        } catch {}
         const img = await createImageBitmap(blob);
+        try {
+          window.__BB_RENDER_STAGE__ = 'createImageBitmap_done';
+        } catch {}
 
         // Transform flag data to format expected by renderAvatar
         const transformedFlag: FlagSpec = { ...flag };
@@ -153,6 +171,9 @@ export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<str
           });
         }
 
+        try {
+          window.__BB_RENDER_STAGE__ = 'renderAvatar_start';
+        } catch {}
         // Render avatar with flag border
         // Pass position/zoom directly to renderer - no capture needed
         const result = await renderAvatar(img, transformedFlag, {
@@ -184,6 +205,7 @@ export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<str
 
         // Set test completion hook for E2E tests
         try {
+          window.__BB_RENDER_STAGE__ = 'done';
           window.__BB_UPLOAD_DONE__ = true;
         } catch {
           // Ignore errors setting test hooks
@@ -191,6 +213,10 @@ export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<str
       } catch (err) {
         // Clear loading state on error
         setIsRendering(false);
+        try {
+          window.__BB_RENDER_STAGE__ = 'error';
+          window.__BB_RENDER_ERROR__ = err instanceof Error ? err.message : String(err);
+        } catch {}
 
         // Normalize and re-throw the error for the caller to handle
         const appError = normalizeError(err);
