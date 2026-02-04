@@ -68,9 +68,14 @@ if (-not $trivyFound) {
     }
 }
 
-# Run trivy scan
+# Run trivy scan (skip test artifacts and build output so pre-push stays fast)
 $exitCode = 0
-$trivyOutput = trivy fs . --severity CRITICAL,HIGH --exit-code 1 2>&1
+$trivyOutput = trivy fs . --severity CRITICAL,HIGH --exit-code 1 `
+    --skip-dirs "test-results" `
+    --skip-dirs "node_modules" `
+    --skip-dirs ".git" `
+    --skip-dirs "dist" `
+    2>&1
 $exitCode = $LASTEXITCODE
 
 if ($exitCode -eq 0) {
