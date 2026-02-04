@@ -67,4 +67,6 @@ await sharp(buffer, { raw: { width: W, height: H, channels: CHANNELS } })
   .toFile(outPath);
 
 console.log(`Wrote ${outPath}`);
-console.log('Markers: center=red, corners=green/yellow/magenta/cyan. Use in E2E to verify zoom/position by sampling pixel colours.');
+console.log(
+  'Markers: center=red, corners=green/yellow/magenta/cyan. Use in E2E to verify zoom/position by sampling pixel colours.',
+);

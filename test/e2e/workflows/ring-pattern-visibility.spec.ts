@@ -34,9 +34,9 @@ test.describe('Ring Pattern Visibility', () => {
 
     // Pattern is either CSS radial-gradient or a blob URL (canvas-generated)
     expect(backgroundImage).not.toBe('none');
-    expect(
-      backgroundImage.includes('radial-gradient') || backgroundImage.includes('blob:'),
-    ).toBe(true);
+    expect(backgroundImage.includes('radial-gradient') || backgroundImage.includes('blob:')).toBe(
+      true,
+    );
 
     // Check if wrapper background is transparent (hatch should be hidden)
     const wrapper = page.locator('.choose-wrapper.readonly');
@@ -50,8 +50,7 @@ test.describe('Ring Pattern Visibility', () => {
     // Background should be transparent (no hatch pattern). Check both shorthand and color.
     // Browsers may report "transparent", "rgba(0, 0, 0, 0)", "rgba(0,0,0,0)", etc.
     const transparentRe = /transparent|rgba?\s*\(\s*0\s*,?\s*0\s*,?\s*0\s*,?\s*0\s*\)/;
-    const isTransparent =
-      transparentRe.test(background) || transparentRe.test(backgroundColor);
+    const isTransparent = transparentRe.test(background) || transparentRe.test(backgroundColor);
     expect(isTransparent).toBe(true);
   });
 });

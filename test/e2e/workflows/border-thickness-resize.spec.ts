@@ -24,7 +24,9 @@ test.describe('Border Thickness Resize', () => {
     const initialWidth = initialBox!.width;
     const initialHeight = initialBox!.height;
 
-    await circle.screenshot({ path: getTestResultsPath('border-thickness-10.png') }).catch(() => {});
+    await circle
+      .screenshot({ path: getTestResultsPath('border-thickness-10.png') })
+      .catch(() => {});
 
     // ARIA-only: [aria-label="Border thickness"] then getByRole('slider') for WebKit
     const sliderRoot = page.locator('[aria-label="Border thickness"]');
@@ -44,7 +46,9 @@ test.describe('Border Thickness Resize', () => {
     expect(thickerWidth).toBeLessThan(initialWidth);
     expect(thickerHeight).toBeLessThan(initialHeight);
 
-    await circle.screenshot({ path: getTestResultsPath('border-thickness-15.png') }).catch(() => {});
+    await circle
+      .screenshot({ path: getTestResultsPath('border-thickness-15.png') })
+      .catch(() => {});
 
     // Set thickness to 5% (thinner border = larger circle)
     await setSliderValue(page, 'Border thickness', 5);

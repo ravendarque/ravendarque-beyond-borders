@@ -92,9 +92,7 @@ test.describe('WCAG AA Compliance', () => {
 
     // Run full WCAG scan; axe-core 4.x does not expose prefers-reduced-motion as a runOnly rule.
     // We only assert that the page still has no critical violations when reduced motion is on.
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa'])
-      .analyze();
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
 
     const motionRelated = results.violations.filter(
       (v) => v.id === 'prefers-reduced-motion' || v.impact === 'serious',

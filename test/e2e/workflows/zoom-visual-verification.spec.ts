@@ -127,7 +127,9 @@ test.describe('Zoom Visual Verification', () => {
     // Go to Step 2 (click Step 1 Next)
     await page.getByTestId(TEST_IDS.STEP1_NEXT).click();
     await page.waitForTimeout(500);
-    await page.getByRole('combobox', { name: 'Choose a flag' }).waitFor({ state: 'visible', timeout: 10000 });
+    await page
+      .getByRole('combobox', { name: 'Choose a flag' })
+      .waitFor({ state: 'visible', timeout: 10000 });
 
     // Step 2: select flag and go to Step 3 (deterministic: waits dimensions + step 3 ready)
     await selectFlag(page, TEST_FLAGS.PALESTINE);

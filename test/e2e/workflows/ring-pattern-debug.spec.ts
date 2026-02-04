@@ -41,8 +41,6 @@ test.describe('Ring Pattern Debug', () => {
       return style.backgroundImage;
     });
     expect(patternBg).not.toBe('none');
-    expect(
-      patternBg.includes('radial-gradient') || patternBg.includes('blob:'),
-    ).toBe(true);
+    expect(patternBg.includes('radial-gradient') || patternBg.includes('blob:')).toBe(true);
   });
 });

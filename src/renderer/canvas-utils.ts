@@ -53,11 +53,13 @@ export function validateCanvasSize(width: number, height: number): void {
 }
 
 /** Safe reference to OffscreenCanvas (undefined in Safari/WebKit before support). */
-function getOffscreenCanvasCtor(): (typeof OffscreenCanvas) | undefined {
+function getOffscreenCanvasCtor(): typeof OffscreenCanvas | undefined {
   try {
     const g = typeof globalThis !== 'undefined' ? globalThis : window;
     const OC = (g as unknown as { OffscreenCanvas?: typeof OffscreenCanvas }).OffscreenCanvas;
-    return typeof OC === 'function' && typeof OC.prototype.convertToBlob === 'function' ? OC : undefined;
+    return typeof OC === 'function' && typeof OC.prototype.convertToBlob === 'function'
+      ? OC
+      : undefined;
   } catch {
     return undefined;
   }

@@ -35,7 +35,8 @@ test('measure time from Step 2 Next click until render complete', async ({ page 
   const step2Next = page.getByTestId(TEST_IDS.STEP2_NEXT);
   await step2Next.waitFor({ state: 'visible', timeout: 10000 });
   await page.waitForFunction(
-    () => (window as unknown as { __BB_DIMENSIONS_READY__?: boolean }).__BB_DIMENSIONS_READY__ === true,
+    () =>
+      (window as unknown as { __BB_DIMENSIONS_READY__?: boolean }).__BB_DIMENSIONS_READY__ === true,
     null,
     { timeout: 15000 },
   );

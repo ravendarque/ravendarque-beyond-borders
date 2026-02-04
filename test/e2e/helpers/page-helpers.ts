@@ -155,7 +155,8 @@ export async function goToStep3(page: Page, timeout = 30000): Promise<void> {
   await expect(step2Next).toBeEnabled({ timeout: 10000 });
   // Wait for dimension detection so step 3 render runs (deterministic, no fixed delay)
   await page.waitForFunction(
-    () => (window as unknown as { __BB_DIMENSIONS_READY__?: boolean }).__BB_DIMENSIONS_READY__ === true,
+    () =>
+      (window as unknown as { __BB_DIMENSIONS_READY__?: boolean }).__BB_DIMENSIONS_READY__ === true,
     null,
     { timeout: 15000 },
   );

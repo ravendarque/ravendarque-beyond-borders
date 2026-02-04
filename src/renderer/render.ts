@@ -687,7 +687,7 @@ function drawTexturedAnnulus(
   const texH = Math.max(1, Math.round(thickness));
 
   // Render the source bitmap into a texture canvas using cover semantics
-  const { canvas: tex, ctx: texCtx } = createCanvas(texW, texH);
+  const { ctx: texCtx } = createCanvas(texW, texH);
   const bw = bitmap.width;
   const bh = bitmap.height;
   const scale = Math.max(texW / bw, texH / bh);

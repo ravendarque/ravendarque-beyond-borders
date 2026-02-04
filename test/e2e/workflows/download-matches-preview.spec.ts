@@ -5,12 +5,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import {
-  selectFlag,
-  setSliderValue,
-  goToStep3,
-  waitForStep3Ready,
-} from '../helpers/page-helpers';
+import { selectFlag, setSliderValue, goToStep3, waitForStep3Ready } from '../helpers/page-helpers';
 import { TEST_IDS } from '../helpers/test-ids';
 import { TEST_FLAGS, POSITIONING_TEST_IMAGE_PATH } from '../helpers/test-data';
 import { TEST_RESULTS_DIR, getTestResultsPath } from '../helpers/test-paths';
@@ -23,14 +18,23 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /** Sample pixel at (x, y) from raw buffer; info has width, height, channels */
-function samplePixel(data: Buffer, info: { width: number; height: number; channels: number }, x: number, y: number): [number, number, number] {
+function samplePixel(
+  data: Buffer,
+  info: { width: number; height: number; channels: number },
+  x: number,
+  y: number,
+): [number, number, number] {
   const { width, channels } = info;
   const idx = channels * (width * Math.floor(y) + Math.floor(x));
   return [data[idx], data[idx + 1], data[idx + 2]];
 }
 
 /** Assert colour matches expected [R,G,B] within tolerance (default 25) */
-function expectColorNear(actual: [number, number, number], expected: [number, number, number], tolerance = 25) {
+function expectColorNear(
+  actual: [number, number, number],
+  expected: [number, number, number],
+  tolerance = 25,
+) {
   expect(Math.abs(actual[0] - expected[0])).toBeLessThanOrEqual(tolerance);
   expect(Math.abs(actual[1] - expected[1])).toBeLessThanOrEqual(tolerance);
   expect(Math.abs(actual[2] - expected[2])).toBeLessThanOrEqual(tolerance);
@@ -89,9 +93,7 @@ test.describe('Download Matches Preview', () => {
 
     // Verify positioning by sampling the center of the downloaded image (circle center = source center at 0,0)
     // Our test image has a red center marker (#c04040); the output circle center should show that red
-    const { data, info } = await sharp(downloadPath)
-      .raw()
-      .toBuffer({ resolveWithObject: true });
+    const { data, info } = await sharp(downloadPath).raw().toBuffer({ resolveWithObject: true });
 
     const centerX = info.width / 2;
     const centerY = info.height / 2;
@@ -133,7 +135,10 @@ test.describe('Download Matches Preview', () => {
     await fileInput.setInputFiles(POSITIONING_TEST_IMAGE_PATH);
     await page.waitForTimeout(1000);
 
-    await page.locator('[aria-label="Zoom level"]').getByRole('slider').waitFor({ state: 'visible', timeout: 15000 });
+    await page
+      .locator('[aria-label="Zoom level"]')
+      .getByRole('slider')
+      .waitFor({ state: 'visible', timeout: 15000 });
     await setSliderValue(page, 'Zoom level', 50);
 
     await page.getByTestId(TEST_IDS.STEP1_NEXT).click();

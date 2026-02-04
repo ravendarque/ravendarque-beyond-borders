@@ -5,7 +5,11 @@ function filterNoise(fn: (...args: unknown[]) => void): (...args: unknown[]) => 
   return (...args: unknown[]) => {
     const msg = typeof args[0] === 'string' ? args[0] : String(args[0]);
     // Radix Dialog: we set aria-describedby and an id; Radix still warns in tests (portal/timing)
-    if (msg.includes('Description') && msg.includes('aria-describedby') && msg.includes('DialogContent')) {
+    if (
+      msg.includes('Description') &&
+      msg.includes('aria-describedby') &&
+      msg.includes('DialogContent')
+    ) {
       return;
     }
     fn.apply(console, args);
