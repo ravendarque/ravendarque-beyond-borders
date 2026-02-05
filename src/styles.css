@@ -282,7 +282,7 @@ body {
   color: #7a1515;
 }
 
-/* Content area - centered flexbox */
+/* Content area - centered flexbox. Children take full width so step-layout can use step-content-width. */
 .content-area {
   flex: 1;
   display: flex;
@@ -292,6 +292,12 @@ body {
   padding-top: 20px;
   position: relative;
   margin-bottom: 20px;
+}
+
+.content-area > * {
+  width: 100%;
+  max-width: var(--step-content-width);
+  box-sizing: border-box;
 }
 
 /* Image upload circle wrapper */
@@ -1207,7 +1213,6 @@ label.choose-circle.has-image.is-dragging,
 
 .flag-selector {
   width: 100%;
-  max-width: 320px;
   position: relative;
 }
 
@@ -1290,10 +1295,9 @@ label.choose-circle.has-image.is-dragging,
   background: #f0f0f0;
 }
 
-/* Flag Preview */
+/* Flag Preview - uses full step content width (no 320px cap) */
 .flag-preview-wrapper {
   width: 100%;
-  max-width: 320px;
   display: flex;
   flex-direction: column;
   gap: 12px;
