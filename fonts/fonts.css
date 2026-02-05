@@ -14,7 +14,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('./tilt-warp.ttf') format('truetype');
+  src: url('/fonts/tilt-warp.ttf') format('truetype');
 }
 
 @font-face {
@@ -22,7 +22,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./azeret-mono-regular.ttf') format('truetype');
+  src: url('/fonts/azeret-mono-regular.ttf') format('truetype');
 }
 
 @font-face {
@@ -30,5 +30,5 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('./anton-regular.ttf') format('truetype');
+  src: url('/fonts/anton-regular.ttf') format('truetype');
 }
