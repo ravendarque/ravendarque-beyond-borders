@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 
 test.describe('Zoom Visual Verification', () => {
   test('should apply zoom, H offset, and V offset from Step 1 to Step 3', async ({ page }) => {
-    test.setTimeout(180000); // 3 min – under full-suite load this test can take 2–3 min
+    test.setTimeout(240000); // 4 min – under full-suite/CI load (slider steps + step3 render) can exceed 3 min
     // Listen for console messages to capture debug logs
     const consoleMessages: string[] = [];
     page.on('console', (msg) => {
@@ -73,9 +73,9 @@ test.describe('Zoom Visual Verification', () => {
     await page.keyboard.press('Home'); // Go to 0%
     for (let i = 0; i < 10; i++) {
       await page.keyboard.press('ArrowRight'); // Move right 10 times = 10%
-      await page.waitForTimeout(50);
+      await page.waitForTimeout(30);
     }
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(400);
 
     // Verify zoom value is set by checking displayed value
     const zoomValueDisplay = page.locator('.slider-value').filter({ hasText: /10/ }).first();
@@ -86,43 +86,42 @@ test.describe('Zoom Visual Verification', () => {
     await expect(vOffsetSlider).toBeVisible({ timeout: 5000 });
 
     // Note: The sliders are inverted in the UI
-    // Horizontal: slider value = -position.x, so to set position.x = 24, set slider to -24
-    // Vertical: slider value = -position.y, so to set position.y = -42, set slider to 42
+    // Horizontal: slider value = -position.x. Vertical: slider value = -position.y
+    // We use modest values to minimize key presses while still verifying zoom/position carry to step 3
 
-    // Set H offset to 24% (slider needs to be -24 because it's inverted)
-    // For inverted slider, we need to move left from center
+    const TARGET_H = 24; // position.x 24 → slider -24, from -50 need 26 steps
+    const TARGET_V = -20; // position.y -20 → slider 20, from -50 need 70 steps (was -42/92)
+
+    // Set H offset (slider -24)
     await hOffsetSlider.focus();
-    await page.keyboard.press('Home'); // Go to -50 (leftmost)
-    // Move right to get to -24: from -50, move right 26 steps to get to -24
+    await page.keyboard.press('Home'); // -50
     for (let i = 0; i < 26; i++) {
       await page.keyboard.press('ArrowRight');
-      await page.waitForTimeout(50);
+      await page.waitForTimeout(30);
     }
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(400);
 
-    // Set V offset to -42% (slider needs to be 42 because it's inverted)
-    // For inverted slider, move right from center to get positive slider value
+    // Set V offset (slider 20)
     await vOffsetSlider.focus();
-    await page.keyboard.press('Home'); // Go to -50 (leftmost, which is topmost for inverted)
-    // Move right to get to 42: from -50, move right 92 steps to get to 42
-    for (let i = 0; i < 92; i++) {
+    await page.keyboard.press('Home'); // -50
+    for (let i = 0; i < 70; i++) {
       await page.keyboard.press('ArrowRight');
-      await page.waitForTimeout(50);
+      await page.waitForTimeout(30);
     }
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(400);
 
     // Verify the displayed position values (these should show the actual position)
     const sliderValues = page.locator('.slider-value');
     const hDisplayValue = await sliderValues.nth(0).textContent(); // First is H position
     const vDisplayValue = await sliderValues.nth(1).textContent(); // Second is V position
     const zoomDisplayValue = await sliderValues.nth(2).textContent(); // Third is Zoom
-    expect(parseFloat(hDisplayValue || '0')).toBeCloseTo(24, 0);
-    expect(parseFloat(vDisplayValue || '0')).toBeCloseTo(-42, 0);
+    expect(parseFloat(hDisplayValue || '0')).toBeCloseTo(TARGET_H, 0);
+    expect(parseFloat(vDisplayValue || '0')).toBeCloseTo(TARGET_V, 0);
     expect(parseFloat(zoomDisplayValue || '0')).toBeCloseTo(10, 0);
 
     // Take screenshot of Step 1 with these settings
     const step1Preview = page.locator('.choose-wrapper');
-    await step1Preview.screenshot({ path: getTestResultsPath('step1-zoom10-h24-v-42.png') });
+    await step1Preview.screenshot({ path: getTestResultsPath('step1-zoom10-h24-v-20.png') });
 
     // Go to Step 2 (click Step 1 Next)
     await page.getByTestId(TEST_IDS.STEP1_NEXT).click();
@@ -133,7 +132,7 @@ test.describe('Zoom Visual Verification', () => {
 
     // Step 2: select flag and go to Step 3 (deterministic: waits dimensions + step 3 ready)
     await selectFlag(page, TEST_FLAGS.PALESTINE);
-    await goToStep3(page);
+    await goToStep3(page, 45000); // 45s for step 3 ready on slow CI
 
     // Wait for the rendered image to appear (using choose-circle in readonly mode)
     await page.waitForSelector('.choose-circle.has-image', { timeout: 20000 });
@@ -153,7 +152,7 @@ test.describe('Zoom Visual Verification', () => {
 
     // Take screenshot of Step 3 preview
     const step3Preview = page.locator('.step-layout');
-    await step3Preview.screenshot({ path: getTestResultsPath('step3-zoom10-h24-v-42.png') });
+    await step3Preview.screenshot({ path: getTestResultsPath('step3-zoom10-h24-v-20.png') });
 
     // Get image dimensions from Step 3 (choose-circle container)
     const imageBoundingBox = await renderedImage.boundingBox();
