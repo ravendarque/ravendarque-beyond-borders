@@ -35,6 +35,9 @@
   --progress-height: 24px;
   --progress-gap: 11px;
   --progress-font: 11px;
+  /** Width of the step content column (shared layout); all steps use this */
+  --step-content-width: min(320px, 90vw);
+  /** Square size for the image circle / avatar preview (steps 1 & 3); image control owns this */
   --content-size: min(250px, 45vh);
   --nav-btn-width: 120px;
   --nav-btn-font: 14px;
@@ -51,6 +54,7 @@
     --progress-height: 28px;
     --progress-gap: 20px;
     --progress-font: 13px;
+    --step-content-width: min(380px, 90vw);
     --content-size: min(350px, 50vh);
     --nav-btn-width: 160px;
     --nav-btn-font: 16px;
@@ -67,6 +71,7 @@
     --progress-height: 32px;
     --progress-gap: 30px;
     --progress-font: 14px;
+    --step-content-width: min(400px, 90vw);
     --content-size: min(400px, 55vh);
     --nav-btn-width: 180px;
     --nav-btn-font: 16px;
@@ -1188,10 +1193,9 @@ label.choose-circle.has-image.is-dragging,
   border-width: 0;
 }
 
-/* Flag Selector (Step 2) */
+/* Flag Selector (Step 2) - fills layout content width */
 .flag-selector-wrapper {
   width: 100%;
-  max-width: var(--content-size);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -1251,7 +1255,7 @@ label.choose-circle.has-image.is-dragging,
   overflow-y: auto;
   z-index: 100;
   width: var(--radix-select-trigger-width);
-  max-width: var(--content-size);
+  max-width: var(--step-content-width);
 }
 
 .flag-select-item {
@@ -1410,10 +1414,10 @@ label.choose-circle.has-image.is-dragging,
   outline-offset: 2px;
 }
 
-/* Shared step layout (all three steps) - fixes #172 */
+/* Shared step layout (all three steps) - fixes #172. Content width defined here; circle owns its square size. */
 .step-layout {
   width: 100%;
-  max-width: var(--content-size);
+  max-width: var(--step-content-width);
   display: flex;
   flex-direction: column;
   gap: 20px;
