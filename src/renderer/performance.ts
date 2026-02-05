@@ -4,6 +4,7 @@
  */
 
 import { FILE_SIZE, RENDER_SIZES } from '@/constants';
+import { createCanvas, canvasToBlob } from './canvas-utils';
 
 /**
  * Performance metrics for a render operation
@@ -156,13 +157,8 @@ export async function downsampleImage(
     return image;
   }
 
-  // Create temporary canvas for downsampling
-  const canvas = new OffscreenCanvas(targetWidth, targetHeight);
-  const ctx = canvas.getContext('2d');
-
-  if (!ctx) {
-    throw new Error('Failed to get 2D context for downsampling');
-  }
+  // Create temporary canvas for downsampling (OffscreenCanvas or HTMLCanvasElement for Safari)
+  const { canvas, ctx } = createCanvas(targetWidth, targetHeight);
 
   // Use high-quality image smoothing
   ctx.imageSmoothingEnabled = true;
@@ -332,11 +328,8 @@ export function getRecommendedSettings(): {
  */
 export async function warmUpRenderer(): Promise<void> {
   try {
-    // Create a small test canvas
-    const canvas = new OffscreenCanvas(64, 64);
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) return;
+    // Create a small test canvas (OffscreenCanvas or HTMLCanvasElement for Safari)
+    const { canvas, ctx } = createCanvas(64, 64);
 
     // Draw some basic shapes to initialize rendering pipeline
     ctx.fillStyle = '#FF0000';
@@ -347,7 +340,7 @@ export async function warmUpRenderer(): Promise<void> {
     ctx.fill();
 
     // Export to blob to initialize image encoding
-    await canvas.convertToBlob({ type: 'image/png' });
+    await canvasToBlob(canvas, 'image/png');
   } catch {
     // Ignore errors during warm-up
     // This is a best-effort optimization

@@ -3,7 +3,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { uploadImage, selectFlag, waitForRenderComplete } from '../helpers/page-helpers';
+import { uploadImage, selectFlag, goToStep3, waitForStep3Ready } from '../helpers/page-helpers';
 import { TEST_FLAGS } from '../helpers/test-data';
 
 const desktopViewports = [
@@ -28,18 +28,14 @@ for (const viewport of desktopViewports) {
     test('should have proper layout on desktop', async ({ page }) => {
       await page.goto('/');
 
-      // Complete workflow
       await uploadImage(page);
       await selectFlag(page, TEST_FLAGS.PALESTINE);
-      await waitForRenderComplete(page);
+      await goToStep3(page);
+      await waitForStep3Ready(page);
 
-      // All controls should be visible
-      await expect(page.getByText('Presentation Style')).toBeVisible();
-
-      // Sliders should be accessible
-      const sliders = page.locator('input[type="range"]');
-      const sliderCount = await sliders.count();
-      expect(sliderCount).toBeGreaterThan(0);
+      await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
+      const sliderRoot = page.locator('[aria-label="Border thickness"]');
+      await expect(sliderRoot.getByRole('slider')).toBeVisible();
     });
 
     test('should maintain proper spacing on large screens', async ({ page }) => {

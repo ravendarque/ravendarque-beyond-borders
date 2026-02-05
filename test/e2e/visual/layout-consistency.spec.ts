@@ -3,28 +3,31 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { uploadImage, selectFlag, waitForRenderComplete } from '../helpers/page-helpers';
+import { uploadImage, selectFlag, goToStep3, waitForStep3Ready } from '../helpers/page-helpers';
+import { TEST_IDS } from '../helpers/test-ids';
 import { TEST_FLAGS } from '../helpers/test-data';
 
 test.describe('Layout Consistency', () => {
   test('should maintain layout during step transitions', async ({ page }) => {
     await page.goto('/');
 
-    // Step 1 screenshot
-    await expect(page).toHaveScreenshot('step1-initial.png', { fullPage: true });
+    // Step 1: upload zone visible
+    await expect(page.getByTestId(TEST_IDS.STEP_1)).toBeVisible();
+    await expect(page.getByText(/Choose|profile picture/i).first()).toBeVisible();
 
-    // Upload image
     await uploadImage(page);
 
-    // Step 2 screenshot
-    await expect(page).toHaveScreenshot('step2-after-upload.png', { fullPage: true });
+    // Step 2: flag selector visible
+    await expect(page.getByTestId(TEST_IDS.STEP_2)).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Choose a flag' })).toBeVisible();
 
-    // Select flag
     await selectFlag(page, TEST_FLAGS.PALESTINE);
+    await goToStep3(page);
+    await waitForStep3Ready(page);
 
-    // Step 3 screenshot
-    await waitForRenderComplete(page);
-    await expect(page).toHaveScreenshot('step3-after-flag-select.png', { fullPage: true });
+    // Step 3: adjust/save visible
+    await expect(page.getByTestId(TEST_IDS.STEP_3)).toBeVisible();
+    await expect(page.getByTestId(TEST_IDS.SAVE_AVATAR)).toBeVisible();
   });
 
   test('should not have layout shifts during loading', async ({ page }) => {

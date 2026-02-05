@@ -52,6 +52,11 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
   useEffect(() => {
     if (!step1.imageUrl) {
       onImageDimensionsChange(null);
+      try {
+        (window as Window & { __BB_DIMENSIONS_READY__?: boolean }).__BB_DIMENSIONS_READY__ = false;
+      } catch {
+        // Ignore
+      }
       return;
     }
 
@@ -61,9 +66,19 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
         width: img.naturalWidth,
         height: img.naturalHeight,
       });
+      try {
+        (window as Window & { __BB_DIMENSIONS_READY__?: boolean }).__BB_DIMENSIONS_READY__ = true;
+      } catch {
+        // Ignore
+      }
     };
     img.onerror = () => {
       onImageDimensionsChange(null);
+      try {
+        (window as Window & { __BB_DIMENSIONS_READY__?: boolean }).__BB_DIMENSIONS_READY__ = false;
+      } catch {
+        // Ignore
+      }
     };
     img.src = step1.imageUrl;
   }, [step1.imageUrl, onImageDimensionsChange]);

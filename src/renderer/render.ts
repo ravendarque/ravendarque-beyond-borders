@@ -296,8 +296,7 @@ export async function renderAvatar(
     // Use 3x multiplier for safety margin
     const estimatedMaxExtension = canvasW;
     const extraWidth = Math.abs(flagOffsetPct / 50) * estimatedMaxExtension * 3;
-    const flagCanvas = new OffscreenCanvas(canvasW + extraWidth, canvasH);
-    const flagCtx = flagCanvas.getContext('2d')!;
+    const { canvas: flagCanvas, ctx: flagCtx } = createCanvas(canvasW + extraWidth, canvasH);
 
     // Enable high-quality image smoothing for crisp flag rendering
     flagCtx.imageSmoothingEnabled = true;
@@ -452,8 +451,7 @@ export async function renderAvatar(
       const texW = circumference;
       const texH = thickness;
       try {
-        const tex = new OffscreenCanvas(texW, texH);
-        const tctx = tex.getContext('2d')!;
+        const { canvas: tex, ctx: tctx } = createCanvas(texW, texH);
         // draw the provided bitmap into the texture using cover semantics
         const bw = options.borderImageBitmap.width;
         const bh = options.borderImageBitmap.height;
@@ -642,9 +640,8 @@ function createStripeTexture(
   orientation: string,
   w: number,
   h: number,
-): OffscreenCanvas {
-  const canvas = new OffscreenCanvas(Math.max(1, w), Math.max(1, h));
-  const ctx = canvas.getContext('2d')!;
+): OffscreenCanvas | HTMLCanvasElement {
+  const { canvas, ctx } = createCanvas(Math.max(1, w), Math.max(1, h));
   // Normalize weights
   const total = stripes.reduce((s, x) => s + x.weight, 0);
   let x = 0;
@@ -690,8 +687,7 @@ function drawTexturedAnnulus(
   const texH = Math.max(1, Math.round(thickness));
 
   // Render the source bitmap into a texture canvas using cover semantics
-  const tex = new OffscreenCanvas(texW, texH);
-  const texCtx = tex.getContext('2d')!;
+  const { ctx: texCtx } = createCanvas(texW, texH);
   const bw = bitmap.width;
   const bh = bitmap.height;
   const scale = Math.max(texW / bw, texH / bh);
@@ -713,8 +709,7 @@ function drawTexturedAnnulus(
   const destH = destW;
 
   // Create a temporary destination canvas to populate the annulus pixels precisely
-  const dest = new OffscreenCanvas(destW, destH);
-  const destCtx = dest.getContext('2d')!;
+  const { canvas: dest, ctx: destCtx } = createCanvas(destW, destH);
   const destImage = destCtx.createImageData(destW, destH);
   const dstBuf = destImage.data;
 
@@ -775,8 +770,7 @@ function drawTexturedAnnulus(
 
   // Erase mode: where dest has alpha > 0, clear the corresponding pixels on the target canvas
   // We'll use an offscreen temporary to read the existing pixels and composite an erased result.
-  const target = new OffscreenCanvas(destW, destH);
-  const targetCtx = target.getContext('2d')!;
+  const { canvas: target, ctx: targetCtx } = createCanvas(destW, destH);
   // Draw the current canvas region into target
   targetCtx.clearRect(0, 0, destW, destH);
   targetCtx.drawImage(ctx.canvas, minX, minY, destW, destH, 0, 0, destW, destH);

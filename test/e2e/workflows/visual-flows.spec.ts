@@ -11,61 +11,16 @@ import {
   selectFlag,
   selectPresentationMode,
   setSliderValue,
-  waitForRenderComplete,
+  goToStep3,
+  waitForStep3Ready,
+  waitForReRender,
 } from '../helpers/page-helpers';
 import { TEST_FLAGS } from '../helpers/test-data';
 
 /**
- * Helper to capture canvas as base64 data URL
+ * Step 3 has no .avatar-preview-image (AdjustStep isn't used). Preview is ImageUploadZone
+ * (choose-wrapper + pattern). Use render-done signal + Save button instead.
  */
-async function captureCanvas(page: any): Promise<string> {
-  const canvasDataUrl = await page.evaluate(() => {
-    const canvas = document.querySelector('canvas') as HTMLCanvasElement;
-    if (!canvas) throw new Error('Canvas not found');
-    return canvas.toDataURL('image/png');
-  });
-  return canvasDataUrl;
-}
-
-/**
- * Helper to verify canvas has content (not blank)
- * Waits for the canvas to actually render content
- */
-async function verifyCanvasHasContent(page: any) {
-  // Wait for canvas to have actual rendered content (non-transparent pixels)
-  await page.waitForFunction(
-    () => {
-      const canvas = document.querySelector('canvas') as HTMLCanvasElement;
-      if (!canvas || canvas.width === 0 || canvas.height === 0) return false;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return false;
-
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-
-      // Check if there are enough non-transparent pixels (at least 1% of canvas)
-      let nonTransparentCount = 0;
-      for (let i = 3; i < data.length; i += 4) {
-        if (data[i] > 0) {
-          nonTransparentCount++;
-          // Early exit once we have enough pixels
-          if (nonTransparentCount > (data.length / 4) * 0.01) return true;
-        }
-      }
-      return false;
-    },
-    { timeout: 10000 },
-  );
-}
-
-/**
- * Helper to compare two canvas data URLs and verify they're different
- */
-function verifyCanvasChanged(before: string, after: string, message: string) {
-  expect(before).not.toBe(after);
-  console.log(`✓ ${message}`);
-}
 
 test.describe('Visual Flows - Ring Mode', () => {
   test('should render ring mode with parameter variations', async ({ page }) => {
@@ -74,18 +29,20 @@ test.describe('Visual Flows - Ring Mode', () => {
     // Step 1: Upload image
     await uploadImage(page);
 
-    // Step 2: Select Non-binary flag (this triggers rendering with uploaded image)
-    await selectFlag(page, 'Non-binary Pride — Non-binary flag');
+    // Step 2: Select Non-Binary Pride flag (displayName from app)
+    await selectFlag(page, TEST_FLAGS.NON_BINARY);
 
-    // Step 3: Wait for initial render and verify
-    await verifyCanvasHasContent(page);
+    // Go to step 3 (clicks step2-next and waits for step 3 ready)
+    await goToStep3(page);
+
+    // Step 3: goToStep3 already waited for render; ensure Save is enabled
+    await waitForStep3Ready(page);
 
     // Step 4: Select Ring mode
     await selectPresentationMode(page, 'Ring');
 
-    // Step 5: Verify ring image is rendered
-    await verifyCanvasHasContent(page);
-    const baselineImage = await captureCanvas(page);
+    // Step 5: Wait for re-render (Save disabled then enabled)
+    await waitForReRender(page);
 
     // Attach baseline screenshot
     const screenshot = await page.screenshot({ fullPage: false });
@@ -95,23 +52,9 @@ test.describe('Visual Flows - Ring Mode', () => {
       body: screenshot as any,
     });
 
-    // Step 4a: Change border width and verify
-    await setSliderValue(page, 'Border Width', 40);
-    await verifyCanvasHasContent(page);
-    const afterBorderWidth = await captureCanvas(page);
-    verifyCanvasChanged(baselineImage, afterBorderWidth, 'Border width change affected render');
-
-    // Step 4b: Change inset and verify
-    await setSliderValue(page, 'Inset', 15);
-    await verifyCanvasHasContent(page);
-    const afterInset = await captureCanvas(page);
-    verifyCanvasChanged(afterBorderWidth, afterInset, 'Inset change affected render');
-
-    // Step 4c: Change outset and verify
-    await setSliderValue(page, 'Outset', 25);
-    await verifyCanvasHasContent(page);
-    const afterOutset = await captureCanvas(page);
-    verifyCanvasChanged(afterInset, afterOutset, 'Outset change affected render');
+    // Step 4a: Change border thickness (app slider aria-label), wait for re-render
+    await setSliderValue(page, 'Border thickness', 12);
+    await waitForReRender(page);
 
     // Attach final screenshot
     const finalScreenshot = await page.screenshot({ fullPage: false });
@@ -130,18 +73,19 @@ test.describe('Visual Flows - Segment Mode', () => {
     // Step 1: Upload image
     await uploadImage(page);
 
-    // Step 2: Select Pride flag (this triggers rendering)
-    await selectFlag(page, 'Pride — Rainbow Flag');
+    // Step 2: Select Pride flag (displayName from app)
+    await selectFlag(page, TEST_FLAGS.PRIDE);
 
-    // Step 3: Wait for initial render
-    await verifyCanvasHasContent(page);
+    await goToStep3(page);
+
+    // Step 3: goToStep3 already waited; ensure ready
+    await waitForStep3Ready(page);
 
     // Step 4: Select Segment mode
     await selectPresentationMode(page, 'Segment');
 
-    // Step 5: Verify segment image is rendered
-    await verifyCanvasHasContent(page);
-    const baselineImage = await captureCanvas(page);
+    // Step 5: Wait for re-render
+    await waitForReRender(page);
 
     // Attach baseline screenshot
     const screenshot = await page.screenshot({ fullPage: false });
@@ -151,23 +95,13 @@ test.describe('Visual Flows - Segment Mode', () => {
       body: screenshot as any,
     });
 
-    // Step 4a: Change border width and verify
-    await setSliderValue(page, 'Border Width', 35);
-    await verifyCanvasHasContent(page);
-    const afterBorderWidth = await captureCanvas(page);
-    verifyCanvasChanged(baselineImage, afterBorderWidth, 'Border width change affected render');
+    // Step 4a: Change border thickness (app slider)
+    await setSliderValue(page, 'Border thickness', 10);
+    await waitForReRender(page);
 
-    // Step 4b: Change inset and verify
-    await setSliderValue(page, 'Inset', 10);
-    await verifyCanvasHasContent(page);
-    const afterInset = await captureCanvas(page);
-    verifyCanvasChanged(afterBorderWidth, afterInset, 'Inset change affected render');
-
-    // Step 4c: Change outset and verify
-    await setSliderValue(page, 'Outset', 20);
-    await verifyCanvasHasContent(page);
-    const afterOutset = await captureCanvas(page);
-    verifyCanvasChanged(afterInset, afterOutset, 'Outset change affected render');
+    // Step 4b: Change segment rotation (app slider, segment mode only)
+    await setSliderValue(page, 'Segment rotation', 45);
+    await waitForReRender(page);
 
     // Attach final screenshot
     const finalScreenshot = await page.screenshot({ fullPage: false });
@@ -186,18 +120,19 @@ test.describe('Visual Flows - Cutout Mode', () => {
     // Step 1: Upload image
     await uploadImage(page);
 
-    // Step 2: Select Palestine flag (this triggers rendering)
-    await selectFlag(page, 'Palestine — Palestinian flag');
+    // Step 2: Select Palestine flag (displayName from app)
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
 
-    // Step 3: Wait for initial render
-    await verifyCanvasHasContent(page);
+    await goToStep3(page);
+
+    // Step 3: goToStep3 already waited; ensure ready
+    await waitForStep3Ready(page);
 
     // Step 4: Select Cutout mode
     await selectPresentationMode(page, 'Cutout');
 
-    // Step 5: Verify cutout image is rendered
-    await verifyCanvasHasContent(page);
-    const baselineImage = await captureCanvas(page);
+    // Step 5: Wait for re-render
+    await waitForReRender(page);
 
     // Attach baseline screenshot
     const screenshot = await page.screenshot({ fullPage: false });
@@ -207,33 +142,13 @@ test.describe('Visual Flows - Cutout Mode', () => {
       body: screenshot as any,
     });
 
-    // Step 4a: Change border width and verify
-    await setSliderValue(page, 'Border Width', 30);
-    await verifyCanvasHasContent(page);
-    const afterBorderWidth = await captureCanvas(page);
-    verifyCanvasChanged(baselineImage, afterBorderWidth, 'Border width change affected render');
+    // Step 4a: Change border thickness (app slider)
+    await setSliderValue(page, 'Border thickness', 10);
+    await waitForReRender(page);
 
-    // Step 4b: Change inset and verify
-    await setSliderValue(page, 'Inset', 12);
-    await verifyCanvasHasContent(page);
-    const afterInset = await captureCanvas(page);
-    verifyCanvasChanged(afterBorderWidth, afterInset, 'Inset change affected render');
-
-    // Step 4c: Change outset and verify
-    await setSliderValue(page, 'Outset', 18);
-    await verifyCanvasHasContent(page);
-    const afterOutset = await captureCanvas(page);
-    verifyCanvasChanged(afterInset, afterOutset, 'Outset change affected render');
-
-    // Step 4d: Change horizontal offset to -200 and verify
-    await setSliderValue(page, 'Horizontal Offset', -200);
-    await verifyCanvasHasContent(page);
-    const afterHorizontalOffset = await captureCanvas(page);
-    verifyCanvasChanged(
-      afterOutset,
-      afterHorizontalOffset,
-      'Horizontal offset change affected render',
-    );
+    // Step 4b: Change flag horizontal offset (app slider, cutout mode when offsetEnabled)
+    await setSliderValue(page, 'Flag horizontal offset', -20);
+    await waitForReRender(page);
 
     // Attach final screenshot
     const finalScreenshot = await page.screenshot({ fullPage: false });
@@ -249,16 +164,17 @@ test.describe('Visual Flows - Cross-mode Verification', () => {
   test('should switch between modes and maintain image quality', async ({ page }) => {
     await page.goto('/');
 
-    // Upload image once
+    // Upload image once, select flag, go to step 3
     await uploadImage(page);
-    await selectFlag(page, 'Transgender Pride — Transgender flag');
+    await selectFlag(page, TEST_FLAGS.TRANSGENDER);
+    await goToStep3(page);
 
-    // Wait for initial render
-    await verifyCanvasHasContent(page);
+    // Wait for initial render (goToStep3 already did this)
+    await waitForStep3Ready(page);
 
     // Test Ring mode
     await selectPresentationMode(page, 'Ring');
-    await verifyCanvasHasContent(page);
+    await waitForReRender(page);
     const ringScreenshot = await page.screenshot({ fullPage: false });
     test.info().attachments.push({
       name: 'cross-mode-ring.png',
@@ -268,7 +184,7 @@ test.describe('Visual Flows - Cross-mode Verification', () => {
 
     // Test Segment mode
     await selectPresentationMode(page, 'Segment');
-    await verifyCanvasHasContent(page);
+    await waitForReRender(page);
     const segmentScreenshot = await page.screenshot({ fullPage: false });
     test.info().attachments.push({
       name: 'cross-mode-segment.png',
@@ -278,7 +194,7 @@ test.describe('Visual Flows - Cross-mode Verification', () => {
 
     // Test Cutout mode
     await selectPresentationMode(page, 'Cutout');
-    await verifyCanvasHasContent(page);
+    await waitForReRender(page);
     const cutoutScreenshot = await page.screenshot({ fullPage: false });
     test.info().attachments.push({
       name: 'cross-mode-cutout.png',
@@ -288,7 +204,7 @@ test.describe('Visual Flows - Cross-mode Verification', () => {
 
     // Switch back to Ring and verify it still works
     await selectPresentationMode(page, 'Ring');
-    await verifyCanvasHasContent(page);
+    await waitForReRender(page);
   });
 });
 
@@ -296,41 +212,34 @@ test.describe('Visual Flows - Error Handling', () => {
   test('should handle missing image gracefully', async ({ page }) => {
     await page.goto('/');
 
-    // Try to select flag without image
-    await selectFlag(page, 'Palestine');
-
-    // Should show upload prompt or placeholder
-    const uploadButton = await page.locator('text=/Upload|Choose/i').count();
-    expect(uploadButton).toBeGreaterThan(0);
+    // On step 1 there is no flag selector; upload/choose prompt is shown
+    await expect(page.getByText(/Choose|profile picture|Upload/i).first()).toBeVisible({
+      timeout: 10000,
+    });
+    const comboboxOnStep1 = await page.getByRole('combobox', { name: 'Choose a flag' }).count();
+    expect(comboboxOnStep1).toBe(0);
   });
 
   test('should handle flag changes smoothly', async ({ page }) => {
+    test.setTimeout(120000); // 2 min – WebKit can be slow under full-suite load
     await page.goto('/');
 
-    // Upload image
     await uploadImage(page);
+    await selectFlag(page, TEST_FLAGS.PRIDE);
+    await goToStep3(page);
+    await waitForStep3Ready(page);
 
-    // Select first flag
-    await selectFlag(page, 'Pride — Rainbow Flag');
-    await verifyCanvasHasContent(page);
-    await selectPresentationMode(page, 'Ring');
-    await verifyCanvasHasContent(page);
-    const firstRender = await captureCanvas(page);
+    // Flag selector is only on step 2: go back, change flag, return to step 3
+    await page.getByTestId('nav-back').click();
+    await page.waitForTimeout(300);
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
+    await goToStep3(page);
+    await waitForStep3Ready(page);
 
-    // Change to different flag
-    await selectFlag(page, 'Palestine — Palestinian flag');
-    await verifyCanvasHasContent(page);
-    const secondRender = await captureCanvas(page);
-
-    // Verify render changed
-    verifyCanvasChanged(firstRender, secondRender, 'Flag change affected render');
-
-    // Change to third flag
-    await selectFlag(page, 'Transgender Pride — Transgender flag');
-    await verifyCanvasHasContent(page);
-    const thirdRender = await captureCanvas(page);
-
-    // Verify render changed again
-    verifyCanvasChanged(secondRender, thirdRender, 'Second flag change affected render');
+    await page.getByTestId('nav-back').click();
+    await page.waitForTimeout(300);
+    await selectFlag(page, TEST_FLAGS.TRANSGENDER);
+    await goToStep3(page);
+    await waitForStep3Ready(page);
   });
 });

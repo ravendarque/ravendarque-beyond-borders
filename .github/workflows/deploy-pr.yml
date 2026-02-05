@@ -193,7 +193,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ vars.NODE_VERSION || '22' }}
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 

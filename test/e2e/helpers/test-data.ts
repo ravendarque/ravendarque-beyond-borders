@@ -11,7 +11,21 @@ const __dirname = path.dirname(__filename);
 /**
  * Get the path to the test profile picture
  */
-export const TEST_IMAGE_PATH = path.resolve(__dirname, '../../test-data/profile-pic.jpg');
+export const TEST_IMAGE_PATH = path.resolve(
+  __dirname,
+  '../../test-data/profile-pic-square-clr-256x256.jpg',
+);
+
+/**
+ * Positioning test image: solid blue background with coloured markers (red center,
+ * green/yellow/magenta/cyan corners). Use for E2E zoom/position verification by
+ * sampling pixel colours with sharp instead of brittle photo comparison.
+ * Generate with: node scripts/generate-positioning-test-image.js
+ */
+export const POSITIONING_TEST_IMAGE_PATH = path.resolve(
+  __dirname,
+  '../../test-data/positioning-test-image.png',
+);
 
 /**
  * Get the path to the avatar sample fixture
@@ -29,12 +43,13 @@ export const AVATAR_SAMPLE_PATH = path.resolve(
 export const INVALID_FILE_PATH = path.resolve(__dirname, '../../test-data/invalid.txt');
 
 /**
- * Common flag names for testing
+ * Flag display names for E2E tests.
+ * Must match displayName in src/flags/flags.ts (from data/flag-data.yaml).
  */
 export const TEST_FLAGS = {
-  PALESTINE: 'Palestine — Palestinian flag',
-  PRIDE: 'Pride — Rainbow Flag',
+  PALESTINE: 'Palestine',
+  PRIDE: 'Pride',
   UKRAINE: 'Ukraine',
-  NON_BINARY: 'Non-binary Pride — Non-binary flag',
-  TRANSGENDER: 'Transgender Pride — Transgender flag',
+  NON_BINARY: 'Non-Binary Pride',
+  TRANSGENDER: 'Trans Pride',
 } as const;

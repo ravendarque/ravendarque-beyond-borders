@@ -3,7 +3,9 @@
 ## Overview
 
 This directory contains end-to-end tests using Playwright. Tests are
-organized into subdirectories by category:
+organized into subdirectories by category.
+
+**Before writing or changing selectors:** Read **[APP-SELECTORS.md](APP-SELECTORS.md)** — it documents the app’s DOM/ARIA structure (roles, aria-labels, step flow) so tests match the real UI instead of guessing.
 
 - **`workflows/`** - Complete user workflows and happy paths
 - **`responsive/`** - Mobile, tablet, and desktop viewport tests
@@ -95,14 +97,28 @@ test('my test', async ({ page }) => {
 
 ### Available Helpers
 
-- `uploadImage(page, imagePath?)` - Upload an image file
+- `uploadImage(page, imagePath?)` - Upload an image file (uses `step1-next` to advance to step 2)
 - `selectFlag(page, flagName)` - Select a flag from dropdown
+- `goToStep3(page, timeout?)` - Click step-2 Next and wait for step 3 ready (outcome-based)
+- `waitForStep3Ready(page, timeout?)` - Wait for step 3 ready: either `__BB_UPLOAD_DONE__` or Save button enabled (so WebKit passes when render completes). Fails fast if `__BB_RENDER_ERROR__` is set. Then sanity-checks Save visible and enabled.
+- `waitForRenderComplete(page, timeout?)` - Wait for `__BB_UPLOAD_DONE__` (legacy; use `waitForStep3Ready` when possible)
 - `selectPresentationMode(page, mode)` - Select Ring/Segment/Cutout
 - `setSliderValue(page, label, value)` - Set a slider value
-- `waitForRenderComplete(page, timeout?)` - Wait for render to finish
 - `preSelectFlag(page, flagId)` - Pre-seed localStorage with flag
 - `preSeedImage(page, imageUrl)` - Pre-seed sessionStorage with image
 - `verifyCanvasHasContent(page)` - Verify canvas has rendered content
+
+### Test IDs
+
+Use constants from `helpers/test-ids.ts` for stable selectors (see `APP-SELECTORS.md`):
+
+```typescript
+import { TEST_IDS } from '../helpers/test-ids';
+
+page.getByTestId(TEST_IDS.STEP1_NEXT);
+page.getByTestId(TEST_IDS.STEP2_NEXT);
+page.getByTestId(TEST_IDS.SAVE_AVATAR);
+```
 
 ### Test Data
 
@@ -138,14 +154,14 @@ test.describe('Feature Name', () => {
 #### Waiting for Async Operations
 
 ```typescript
-// Wait for render to complete
+// Wait for step 3 ready (__BB_UPLOAD_DONE__)
+await waitForStep3Ready(page);
+
+// Or: go to step 3 (click step2-next + wait for step 3 ready)
+await goToStep3(page);
+
+// Legacy: wait for __BB_UPLOAD_DONE__
 await waitForRenderComplete(page);
-
-// Wait for specific element
-await page.waitForSelector('#my-element');
-
-// Wait for function
-await page.waitForFunction(() => window.someCondition);
 ```
 
 #### Screenshots
@@ -226,13 +242,13 @@ changes carefully before committing.
 
 ## CI/CD
 
-Tests run automatically on:
+E2E tests run in CI when production code or E2E code changes (see
+`.github/workflows/ci.yml`):
 
-- Every pull request
-- Every push to main branch
-
-The CI runs tests on all browser projects (Chromium, Firefox, WebKit,
-mobile).
+- **PR / branch push**: The `e2e` job runs **Chromium only**, **@smoke** tests
+  only, for a fast gate (~2 smoke tests).
+- **Full suite**: Run `pnpm test:e2e` locally for all browsers and tests.
+  A full 5-browser run is not yet in CI (see issue #167).
 
 ## Troubleshooting
 
@@ -272,6 +288,11 @@ If screenshots fail:
 6. **Clean up** - Tests should be independent and not rely on previous
    test state
 7. **Document complex tests** - Add comments for non-obvious test logic
+
+## Documentation
+
+- **App selectors and structure**: See **APP-SELECTORS.md** in this directory.
+- **Project docs** (architecture, deployment, testing): See **`/docs`** at repo root. One-off analysis and deep dives belong in commit messages or the PR description, not in this folder.
 
 ## Resources
 

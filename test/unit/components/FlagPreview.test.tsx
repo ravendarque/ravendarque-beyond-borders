@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { FlagPreview } from '@/components/FlagPreview';
 import type { FlagSpec } from '@/flags/schema';
 
@@ -46,20 +46,21 @@ describe('FlagPreview', () => {
   it('should render flag image when ready', () => {
     render(<FlagPreview flag={mockFlag} />);
 
-    // Fast-forward timers to trigger image URL setting
-    vi.advanceTimersByTime(20);
+    act(() => {
+      vi.advanceTimersByTime(20);
+    });
 
     const img = screen.queryByAltText('Test Flag');
-    // Image may not be immediately available due to async nature, but component should render
     expect(img || screen.queryByText('No preview available')).toBeTruthy();
   });
 
   it('should use png_preview when available', () => {
     render(<FlagPreview flag={mockFlag} />);
 
-    vi.advanceTimersByTime(20);
+    act(() => {
+      vi.advanceTimersByTime(20);
+    });
 
-    // Component should attempt to load preview
     const img = screen.queryByAltText('Test Flag') as HTMLImageElement;
     if (img) {
       expect(img.src).toContain('test-flag-preview.png');
@@ -74,7 +75,9 @@ describe('FlagPreview', () => {
 
     render(<FlagPreview flag={flagWithoutPreview} />);
 
-    vi.advanceTimersByTime(20);
+    act(() => {
+      vi.advanceTimersByTime(20);
+    });
 
     const img = screen.queryByAltText('Test Flag') as HTMLImageElement;
     if (img) {
@@ -90,14 +93,14 @@ describe('FlagPreview', () => {
 
     const { container } = render(<FlagPreview flag={flagWithAspectRatio} />);
 
-    vi.advanceTimersByTime(20);
+    act(() => {
+      vi.advanceTimersByTime(20);
+    });
 
-    // Wait for component to render with image URL
     const previewDiv = container.querySelector('.flag-preview[style*="aspect-ratio"]');
     if (previewDiv) {
       expect((previewDiv as HTMLElement).style.aspectRatio).toBe('1.5 / 1');
     } else {
-      // Component may still be in placeholder state
       expect(container.querySelector('.flag-preview')).toBeTruthy();
     }
   });
@@ -105,14 +108,14 @@ describe('FlagPreview', () => {
   it('should use default aspect ratio of 2:1 when not specified', () => {
     const { container } = render(<FlagPreview flag={mockFlag} />);
 
-    vi.advanceTimersByTime(20);
+    act(() => {
+      vi.advanceTimersByTime(20);
+    });
 
-    // Wait for component to render with image URL
     const previewDiv = container.querySelector('.flag-preview[style*="aspect-ratio"]');
     if (previewDiv) {
       expect((previewDiv as HTMLElement).style.aspectRatio).toBe('2 / 1');
     } else {
-      // Component may still be in placeholder state
       expect(container.querySelector('.flag-preview')).toBeTruthy();
     }
   });
@@ -120,11 +123,11 @@ describe('FlagPreview', () => {
   it('should render about button when image is ready', () => {
     render(<FlagPreview flag={mockFlag} />);
 
-    vi.advanceTimersByTime(20);
+    act(() => {
+      vi.advanceTimersByTime(20);
+    });
 
-    // About button should be present when flag preview is rendered
     const aboutButton = screen.queryByText('About this flag');
-    // May not be immediately available, but should exist when image loads
     expect(aboutButton || screen.queryByText('No preview available')).toBeTruthy();
   });
 });

@@ -6,10 +6,11 @@ import { test, expect } from '@playwright/test';
 import {
   uploadImage,
   selectFlag,
+  goToStep3,
   selectPresentationMode,
   setSliderValue,
-  waitForRenderComplete,
 } from '../helpers/page-helpers';
+import { TEST_IDS } from '../helpers/test-ids';
 import { TEST_FLAGS } from '../helpers/test-data';
 
 test.describe('Complete Workflow', () => {
@@ -22,23 +23,20 @@ test.describe('Complete Workflow', () => {
       // Step 1: Upload image
       await uploadImage(page);
 
-      // Step 2: Select flag
+      // Step 2: Select flag then go to step 3
       await selectFlag(page, TEST_FLAGS.PALESTINE);
+      await goToStep3(page);
 
-      // Verify flag is selected
-      await expect(page.locator('#flag-select-label')).toBeVisible();
+      // Step 3: Adjust settings (goToStep3 already waited for step 3 ready)
 
-      // Step 3: Adjust settings (should be on step 3 now)
-      await waitForRenderComplete(page);
-
-      // Verify presentation mode selector is visible
-      await expect(page.getByText('Presentation Style')).toBeVisible();
+      // Verify presentation mode selector is visible (radiogroup with Ring/Segment/Cutout)
+      await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
 
       // Select Ring mode
       await selectPresentationMode(page, 'Ring');
 
-      // Adjust border width
-      await setSliderValue(page, 'Border Width', 15);
+      // Adjust border thickness (app uses aria-label "Border thickness")
+      await setSliderValue(page, 'Border thickness', 15);
 
       // Verify preview is rendered
       const previewImg = page.locator('img[data-preview-url]').first();
@@ -46,15 +44,12 @@ test.describe('Complete Workflow', () => {
         await expect(previewImg).toBeVisible();
       }
 
-      // Step 4: Download (if download button exists)
-      const downloadButton = page.getByRole('button', { name: /download|save|export/i });
+      // Step 4: Download (stable testid)
+      const downloadButton = page.getByTestId(TEST_IDS.SAVE_AVATAR);
       if ((await downloadButton.count()) > 0) {
-        // Set up download listener
         const downloadPromise = page.waitForEvent('download');
         await downloadButton.click();
         const download = await downloadPromise;
-
-        // Verify download
         expect(download.suggestedFilename()).toMatch(/\.(png|jpg|jpeg)$/i);
       }
     },
@@ -69,15 +64,15 @@ test.describe('Complete Workflow', () => {
     // Upload image to move to step 2
     await uploadImage(page);
 
-    // Step 2: Verify we're on step 2
-    await expect(page.locator('#flag-select-label')).toBeVisible();
+    // Step 2: Verify we're on step 2 (flag selector visible)
+    await expect(page.getByRole('combobox', { name: 'Choose a flag' })).toBeVisible();
 
-    // Select flag to move to step 3
+    // Select flag then go to step 3
     await selectFlag(page, TEST_FLAGS.PALESTINE);
+    await goToStep3(page);
 
     // Step 3: Verify we're on step 3
-    await waitForRenderComplete(page);
-    await expect(page.getByText('Presentation Style')).toBeVisible();
+    await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
   });
 
   test('should show step indicator with correct state', async ({ page }) => {

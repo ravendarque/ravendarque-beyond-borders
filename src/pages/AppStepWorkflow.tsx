@@ -339,114 +339,120 @@ export function AppStepWorkflow() {
           <div className="content-area">
             {/* Step 1: Image Upload */}
             {currentStep === 1 && (
-              <ErrorBoundary
-                fallback={
-                  <div style={{ padding: '20px', textAlign: 'center' }}>
-                    <h3>Error loading image upload</h3>
-                    <p>Please refresh the page and try again.</p>
-                  </div>
-                }
-              >
-                <StepLayout
-                  mainContent={
-                    <ImageUploadZone
-                      imageUrl={step1.imageUrl}
-                      onImageUpload={handleImageUpload}
-                      onShowPrivacy={() => setShowPrivacyModal(true)}
-                      position={step1.imagePosition}
-                      limits={positionLimits}
-                      aspectRatio={aspectRatio}
-                      imageDimensions={step1.imageDimensions}
-                      onPositionChange={setImagePosition}
-                      circleSize={step1.circleSize}
-                    />
+              <div data-testid="step-1">
+                <ErrorBoundary
+                  fallback={
+                    <div style={{ padding: '20px', textAlign: 'center' }}>
+                      <h3>Error loading image upload</h3>
+                      <p>Please refresh the page and try again.</p>
+                    </div>
                   }
-                  controls={
-                    step1.imageUrl ? (
-                      <Step1PositionControls
+                >
+                  <StepLayout
+                    mainContent={
+                      <ImageUploadZone
+                        imageUrl={step1.imageUrl}
+                        onImageUpload={handleImageUpload}
+                        onShowPrivacy={() => setShowPrivacyModal(true)}
                         position={step1.imagePosition}
                         limits={positionLimits}
+                        aspectRatio={aspectRatio}
+                        imageDimensions={step1.imageDimensions}
                         onPositionChange={setImagePosition}
+                        circleSize={step1.circleSize}
                       />
-                    ) : undefined
-                  }
-                />
-              </ErrorBoundary>
+                    }
+                    controls={
+                      step1.imageUrl ? (
+                        <Step1PositionControls
+                          position={step1.imagePosition}
+                          limits={positionLimits}
+                          onPositionChange={setImagePosition}
+                        />
+                      ) : undefined
+                    }
+                  />
+                </ErrorBoundary>
+              </div>
             )}
 
             {/* Step 2: Flag Selection */}
             {currentStep === 2 && (
-              <ErrorBoundary
-                fallback={
-                  <div style={{ padding: '20px', textAlign: 'center' }}>
-                    <h3>Error loading flag selector</h3>
-                    <p>Please refresh the page and try again.</p>
-                  </div>
-                }
-              >
-                <StepLayout
-                  mainContent={
-                    <div className="flag-selector-wrapper">
-                      <FlagSelector
-                        flags={flags}
-                        selectedFlagId={step2.flagId}
-                        onFlagChange={setFlagId}
-                      />
-                      <FlagPreview flag={selectedFlag} />
+              <div data-testid="step-2">
+                <ErrorBoundary
+                  fallback={
+                    <div style={{ padding: '20px', textAlign: 'center' }}>
+                      <h3>Error loading flag selector</h3>
+                      <p>Please refresh the page and try again.</p>
                     </div>
                   }
-                />
-              </ErrorBoundary>
+                >
+                  <StepLayout
+                    mainContent={
+                      <div className="flag-selector-wrapper">
+                        <FlagSelector
+                          flags={flags}
+                          selectedFlagId={step2.flagId}
+                          onFlagChange={setFlagId}
+                        />
+                        <FlagPreview flag={selectedFlag} />
+                      </div>
+                    }
+                  />
+                </ErrorBoundary>
+              </div>
             )}
 
             {/* Step 3: Adjust */}
             {currentStep === 3 && (
-              <ErrorBoundary
-                fallback={
-                  <div style={{ padding: '20px', textAlign: 'center' }}>
-                    <h3>Error loading adjustment controls</h3>
-                    <p>Please go back and try again, or refresh the page.</p>
-                  </div>
-                }
-              >
-                <StepLayout
-                  mainContent={
-                    <ImageUploadZone
-                      imageUrl={step1.imageUrl}
-                      position={step1.imagePosition}
-                      limits={positionLimits}
-                      aspectRatio={aspectRatio}
-                      imageDimensions={step1.imageDimensions}
-                      circleSize={effectiveCircleSize}
-                      baseCircleSize={step1.circleSize}
-                      readonly={true}
-                      flag={selectedFlag}
-                      presentation={step3.presentation}
-                      borderThicknessPct={step3.thickness}
-                      flagOffsetPct={step3.flagOffsetPct}
-                      segmentRotation={step3.segmentRotation}
-                    />
+              <div data-testid="step-3">
+                <ErrorBoundary
+                  fallback={
+                    <div style={{ padding: '20px', textAlign: 'center' }}>
+                      <h3>Error loading adjustment controls</h3>
+                      <p>Please go back and try again, or refresh the page.</p>
+                    </div>
                   }
-                  controls={
-                    <>
-                      <PresentationModeSelector
-                        mode={step3.presentation}
-                        onModeChange={setPresentation}
-                      />
-                      <AdjustControls
-                        thickness={step3.thickness}
-                        onThicknessChange={setThickness}
-                        flagOffsetPct={step3.flagOffsetPct}
-                        onFlagOffsetChange={setFlagOffsetPct}
+                >
+                  <StepLayout
+                    mainContent={
+                      <ImageUploadZone
+                        imageUrl={step1.imageUrl}
+                        position={step1.imagePosition}
+                        limits={positionLimits}
+                        aspectRatio={aspectRatio}
+                        imageDimensions={step1.imageDimensions}
+                        circleSize={effectiveCircleSize}
+                        baseCircleSize={step1.circleSize}
+                        readonly={true}
+                        flag={selectedFlag}
                         presentation={step3.presentation}
+                        borderThicknessPct={step3.thickness}
+                        flagOffsetPct={step3.flagOffsetPct}
                         segmentRotation={step3.segmentRotation}
-                        onSegmentRotationChange={setSegmentRotation}
-                        selectedFlag={selectedFlag}
                       />
-                    </>
-                  }
-                />
-              </ErrorBoundary>
+                    }
+                    controls={
+                      <>
+                        <PresentationModeSelector
+                          mode={step3.presentation}
+                          onModeChange={setPresentation}
+                        />
+                        <AdjustControls
+                          thickness={step3.thickness}
+                          onThicknessChange={setThickness}
+                          flagOffsetPct={step3.flagOffsetPct}
+                          onFlagOffsetChange={setFlagOffsetPct}
+                          presentation={step3.presentation}
+                          segmentRotation={step3.segmentRotation}
+                          onSegmentRotationChange={setSegmentRotation}
+                          selectedFlag={selectedFlag}
+                        />
+                      </>
+                    }
+                  />
+                </ErrorBoundary>
+              </div>
             )}
           </div>
 
@@ -459,6 +465,7 @@ export function AppStepWorkflow() {
                 onClick={goToNext}
                 disabled={!canGoToStep2}
                 aria-label="Go to next step"
+                data-testid="step1-next"
               >
                 <span>NEXT →</span>
               </button>
@@ -472,6 +479,7 @@ export function AppStepWorkflow() {
                     className="nav-btn"
                     onClick={goToPrevious}
                     aria-label="Go to previous step"
+                    data-testid="nav-back"
                   >
                     <span>← BACK</span>
                   </button>
@@ -481,6 +489,7 @@ export function AppStepWorkflow() {
                     onClick={goToNext}
                     disabled={!canGoToStep3}
                     aria-label="Go to next step"
+                    data-testid="step2-next"
                   >
                     <span>NEXT →</span>
                   </button>
@@ -527,6 +536,7 @@ export function AppStepWorkflow() {
                     className="nav-btn"
                     onClick={goToPrevious}
                     aria-label="Go to previous step"
+                    data-testid="nav-back"
                   >
                     <span>← BACK</span>
                   </button>
@@ -536,6 +546,7 @@ export function AppStepWorkflow() {
                     onClick={handleDownload}
                     disabled={!overlayUrl || isRendering}
                     aria-label="Save avatar"
+                    data-testid="save-avatar"
                   >
                     <span>SAVE</span>
                     <svg

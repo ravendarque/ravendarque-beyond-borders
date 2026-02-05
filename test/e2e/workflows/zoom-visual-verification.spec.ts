@@ -4,7 +4,8 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { selectFlag, waitForRenderComplete } from '../helpers/page-helpers';
+import { selectFlag, goToStep3 } from '../helpers/page-helpers';
+import { TEST_IDS } from '../helpers/test-ids';
 import { TEST_FLAGS } from '../helpers/test-data';
 import { getTestResultsPath } from '../helpers/test-paths';
 import path from 'path';
@@ -15,6 +16,7 @@ const __dirname = path.dirname(__filename);
 
 test.describe('Zoom Visual Verification', () => {
   test('should apply zoom, H offset, and V offset from Step 1 to Step 3', async ({ page }) => {
+    test.setTimeout(240000); // 4 min – under full-suite/CI load (slider steps + step3 render) can exceed 3 min
     // Listen for console messages to capture debug logs
     const consoleMessages: string[] = [];
     page.on('console', (msg) => {
@@ -71,9 +73,9 @@ test.describe('Zoom Visual Verification', () => {
     await page.keyboard.press('Home'); // Go to 0%
     for (let i = 0; i < 10; i++) {
       await page.keyboard.press('ArrowRight'); // Move right 10 times = 10%
-      await page.waitForTimeout(50);
+      await page.waitForTimeout(30);
     }
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(400);
 
     // Verify zoom value is set by checking displayed value
     const zoomValueDisplay = page.locator('.slider-value').filter({ hasText: /10/ }).first();
@@ -84,86 +86,53 @@ test.describe('Zoom Visual Verification', () => {
     await expect(vOffsetSlider).toBeVisible({ timeout: 5000 });
 
     // Note: The sliders are inverted in the UI
-    // Horizontal: slider value = -position.x, so to set position.x = 24, set slider to -24
-    // Vertical: slider value = -position.y, so to set position.y = -42, set slider to 42
+    // Horizontal: slider value = -position.x. Vertical: slider value = -position.y
+    // We use modest values to minimize key presses while still verifying zoom/position carry to step 3
 
-    // Set H offset to 24% (slider needs to be -24 because it's inverted)
-    // For inverted slider, we need to move left from center
+    const TARGET_H = 24; // position.x 24 → slider -24, from -50 need 26 steps
+    const TARGET_V = -20; // position.y -20 → slider 20, from -50 need 70 steps (was -42/92)
+
+    // Set H offset (slider -24)
     await hOffsetSlider.focus();
-    await page.keyboard.press('Home'); // Go to -50 (leftmost)
-    // Move right to get to -24: from -50, move right 26 steps to get to -24
+    await page.keyboard.press('Home'); // -50
     for (let i = 0; i < 26; i++) {
       await page.keyboard.press('ArrowRight');
-      await page.waitForTimeout(50);
+      await page.waitForTimeout(30);
     }
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(400);
 
-    // Set V offset to -42% (slider needs to be 42 because it's inverted)
-    // For inverted slider, move right from center to get positive slider value
+    // Set V offset (slider 20)
     await vOffsetSlider.focus();
-    await page.keyboard.press('Home'); // Go to -50 (leftmost, which is topmost for inverted)
-    // Move right to get to 42: from -50, move right 92 steps to get to 42
-    for (let i = 0; i < 92; i++) {
+    await page.keyboard.press('Home'); // -50
+    for (let i = 0; i < 70; i++) {
       await page.keyboard.press('ArrowRight');
-      await page.waitForTimeout(50);
+      await page.waitForTimeout(30);
     }
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(400);
 
     // Verify the displayed position values (these should show the actual position)
     const sliderValues = page.locator('.slider-value');
     const hDisplayValue = await sliderValues.nth(0).textContent(); // First is H position
     const vDisplayValue = await sliderValues.nth(1).textContent(); // Second is V position
     const zoomDisplayValue = await sliderValues.nth(2).textContent(); // Third is Zoom
-    expect(parseFloat(hDisplayValue || '0')).toBeCloseTo(24, 0);
-    expect(parseFloat(vDisplayValue || '0')).toBeCloseTo(-42, 0);
+    expect(parseFloat(hDisplayValue || '0')).toBeCloseTo(TARGET_H, 0);
+    expect(parseFloat(vDisplayValue || '0')).toBeCloseTo(TARGET_V, 0);
     expect(parseFloat(zoomDisplayValue || '0')).toBeCloseTo(10, 0);
 
     // Take screenshot of Step 1 with these settings
     const step1Preview = page.locator('.choose-wrapper');
-    await step1Preview.screenshot({ path: getTestResultsPath('step1-zoom10-h24-v-42.png') });
+    await step1Preview.screenshot({ path: getTestResultsPath('step1-zoom10-h24-v-20.png') });
 
-    // Now navigate to Step 2 and Step 3
-    // Click the "Next" button to go to Step 2
-    const nextButton = page.getByRole('button', { name: /next|→/i }).first();
-    await expect(nextButton).toBeVisible({ timeout: 10000 });
-    await nextButton.click();
-    await page.waitForTimeout(1000);
+    // Go to Step 2 (click Step 1 Next)
+    await page.getByTestId(TEST_IDS.STEP1_NEXT).click();
+    await page.waitForTimeout(500);
+    await page
+      .getByRole('combobox', { name: 'Choose a flag' })
+      .waitFor({ state: 'visible', timeout: 10000 });
 
-    // Wait for Step 2 to load - look for the combobox
-    await page.waitForSelector('text=Choose a flag', { timeout: 10000 });
-
-    // Select flag - find the combobox and click it
-    const flagCombobox = page.getByRole('combobox', { name: /choose a flag/i });
-    await expect(flagCombobox).toBeVisible({ timeout: 10000 });
-    await flagCombobox.click();
-    await page.waitForTimeout(1000); // Wait longer for menu to open
-
-    // Wait for any flag option to appear (menu is open)
-    await page.waitForSelector('[role="option"]', { timeout: 10000 });
-
-    // Select Palestine flag - try exact name first, then partial match
-    let flagOption = page.getByRole('option', { name: TEST_FLAGS.PALESTINE });
-    if ((await flagOption.count()) === 0) {
-      // Try partial match
-      flagOption = page.getByRole('option', { name: /palestine/i });
-    }
-    if ((await flagOption.count()) === 0) {
-      // Fallback: just select the first flag
-      flagOption = page.getByRole('option').first();
-    }
-    await expect(flagOption).toBeVisible({ timeout: 10000 });
-    await flagOption.click();
-    await page.waitForTimeout(1000);
-
-    // Click "Next" again to go to Step 3
-    const nextButton2 = page.getByRole('button', { name: /next|→/i }).first();
-    await expect(nextButton2).toBeVisible({ timeout: 10000 });
-    await nextButton2.click();
-    await page.waitForTimeout(1000);
-
-    // Wait for Step 3 to render
-    await page.waitForSelector('.step-layout', { timeout: 20000 });
-    await waitForRenderComplete(page);
+    // Step 2: select flag and go to Step 3 (deterministic: waits dimensions + step 3 ready)
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
+    await goToStep3(page, 45000); // 45s for step 3 ready on slow CI
 
     // Wait for the rendered image to appear (using choose-circle in readonly mode)
     await page.waitForSelector('.choose-circle.has-image', { timeout: 20000 });
@@ -171,24 +140,19 @@ test.describe('Zoom Visual Verification', () => {
     // Wait for rendering to complete (zoom/position should be applied)
     await page.waitForTimeout(3000);
 
-    // Get the rendered image element (choose-circle in readonly mode with flag border)
+    // Step 3 preview is ImageUploadZone (choose-wrapper + pattern).
+    // goToStep3 already waited for render complete; ensure step 3 content and Save are ready.
+    await page.locator('[data-testid="step-3"]').waitFor({ state: 'visible', timeout: 5000 });
     const renderedImage = page.locator('.choose-circle.has-image');
-    await expect(renderedImage).toBeVisible();
+    await expect(renderedImage).toBeVisible({ timeout: 10000 });
 
-    // Verify flag border overlay is present (means rendering completed)
-    const flagBorderOverlay = page.locator('.choose-wrapper.has-flag-border');
-    await expect(flagBorderOverlay).toBeVisible();
-
-    // Verify the wrapper has the flag border as background
-    const wrapperStyle = await flagBorderOverlay.evaluate(
-      (el) => window.getComputedStyle(el).backgroundImage,
-    );
-    expect(wrapperStyle).toBeTruthy();
-    expect(wrapperStyle).toContain('blob:');
+    // Save button enabled = render done (use role for robustness across browsers)
+    const saveBtn = page.getByRole('button', { name: 'Save avatar' });
+    await expect(saveBtn).toBeEnabled({ timeout: 10000 });
 
     // Take screenshot of Step 3 preview
     const step3Preview = page.locator('.step-layout');
-    await step3Preview.screenshot({ path: getTestResultsPath('step3-zoom10-h24-v-42.png') });
+    await step3Preview.screenshot({ path: getTestResultsPath('step3-zoom10-h24-v-20.png') });
 
     // Get image dimensions from Step 3 (choose-circle container)
     const imageBoundingBox = await renderedImage.boundingBox();

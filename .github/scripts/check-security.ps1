@@ -68,9 +68,21 @@ if (-not $trivyFound) {
     }
 }
 
-# Run trivy scan
+# Run trivy scan (skip irrelevant dirs so pre-push stays fast).
+# First run can be slow while Trivy downloads the vuln DB (~84 MiB); later runs use cache.
+# --timeout 15m: default 5m often too short for DB download on slow links
+# Skipping: assets (public), test binaries/fixtures, docs, build/output dirs
 $exitCode = 0
-$trivyOutput = trivy fs . --severity CRITICAL,HIGH --exit-code 1 2>&1
+$trivyOutput = trivy fs . --severity CRITICAL,HIGH --exit-code 1 --timeout 15m `
+    --skip-dirs "test-results" `
+    --skip-dirs "node_modules" `
+    --skip-dirs ".git" `
+    --skip-dirs "dist" `
+    --skip-dirs "public" `
+    --skip-dirs "test/test-data" `
+    --skip-dirs "test/fixtures" `
+    --skip-dirs "docs" `
+    2>&1
 $exitCode = $LASTEXITCODE
 
 if ($exitCode -eq 0) {

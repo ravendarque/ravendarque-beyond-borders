@@ -72,6 +72,9 @@ export default defineConfig({
     environment: 'happy-dom',
     globals: true,
     setupFiles: ['./test/setup.ts'],
+    pool: 'threads',
+    maxWorkers: '100%',
+    fileParallelism: true,
     exclude: [
       '**/node_modules/**',
       '**/dist/**',

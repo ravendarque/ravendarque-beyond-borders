@@ -1,5 +1,23 @@
 // Vitest setup: jsdom polyfills and canvas mocks
 
+// Suppress known noisy console output in tests (we fix the causes where possible)
+function filterNoise(fn: (...args: unknown[]) => void): (...args: unknown[]) => void {
+  return (...args: unknown[]) => {
+    const msg = typeof args[0] === 'string' ? args[0] : String(args[0]);
+    // Radix Dialog: we set aria-describedby and an id; Radix still warns in tests (portal/timing)
+    if (
+      msg.includes('Description') &&
+      msg.includes('aria-describedby') &&
+      msg.includes('DialogContent')
+    ) {
+      return;
+    }
+    fn.apply(console, args);
+  };
+}
+console.error = filterNoise(console.error);
+console.warn = filterNoise(console.warn);
+
 // Minimal no-op 2D context and OffscreenCanvas mocks for tests (jsdom lacks Canvas APIs)
 class Mock2DContext {
   fillStyle: any;

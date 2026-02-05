@@ -1,0 +1,9 @@
+# Keep editor and Prettier in sync so line endings stay LF (no CRLF churn on Windows).
+# https://editorconfig.org
+
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8

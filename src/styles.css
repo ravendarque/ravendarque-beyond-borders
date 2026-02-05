@@ -23,6 +23,8 @@
   --color-light-gray: #ddd;
   --color-yellow: #fde047;
   --color-red-accent: #be1a1a;
+  /* Footer links on dark bg: WCAG AA 4.5:1 on #000 (axe color-contrast) */
+  --color-footer-link-on-dark: #e06060;
 
   /* New responsive design system - EXACT VALUES FROM MOCK */
   --canvas-width: 306px;
@@ -33,6 +35,9 @@
   --progress-height: 24px;
   --progress-gap: 11px;
   --progress-font: 11px;
+  /** Width of the step content column (shared layout); all steps use this */
+  --step-content-width: min(320px, 90vw);
+  /** Square size for the image circle / avatar preview (steps 1 & 3); image control owns this */
   --content-size: min(250px, 45vh);
   --nav-btn-width: 120px;
   --nav-btn-font: 14px;
@@ -49,6 +54,7 @@
     --progress-height: 28px;
     --progress-gap: 20px;
     --progress-font: 13px;
+    --step-content-width: min(380px, 90vw);
     --content-size: min(350px, 50vh);
     --nav-btn-width: 160px;
     --nav-btn-font: 16px;
@@ -65,6 +71,7 @@
     --progress-height: 32px;
     --progress-gap: 30px;
     --progress-font: 14px;
+    --step-content-width: min(400px, 90vw);
     --content-size: min(400px, 55vh);
     --nav-btn-width: 180px;
     --nav-btn-font: 16px;
@@ -92,6 +99,7 @@
   --color-light-gray: #4b5563;
   --color-yellow: #fde047;
   --color-red-accent: #be1a1a;
+  --color-footer-link-on-dark: #e06060;
 }
 
 * {
@@ -251,17 +259,18 @@ body {
   opacity: 1;
 }
 
+/* Upcoming step: darker text on yellow for WCAG AA 4.5:1 contrast (#fde047 background) */
 .progress.upcoming span {
   font-family: 'Anton', sans-serif;
   font-size: calc(var(--subtitle-size) * 1.2);
   font-weight: 400;
   line-height: 1.3;
-  color: var(--color-black);
+  color: #5c4a0f;
   letter-spacing: 0;
   position: relative;
   z-index: 1;
   text-shadow: none;
-  opacity: 0.4;
+  opacity: 1;
 }
 
 .progress.completed span .progress-number,
@@ -270,10 +279,10 @@ body {
 }
 
 .progress.upcoming span .progress-number {
-  color: rgba(190, 26, 26, 0.4);
+  color: #7a1515;
 }
 
-/* Content area - centered flexbox */
+/* Content area - centered flexbox. Children take full width so step-layout can use step-content-width. */
 .content-area {
   flex: 1;
   display: flex;
@@ -283,6 +292,12 @@ body {
   padding-top: 20px;
   position: relative;
   margin-bottom: 20px;
+}
+
+.content-area > * {
+  width: 100%;
+  max-width: var(--step-content-width);
+  box-sizing: border-box;
 }
 
 /* Image upload circle wrapper */
@@ -750,7 +765,7 @@ label.choose-circle.has-image.is-dragging,
   font-size: inherit;
   line-height: inherit;
   font-weight: inherit;
-  color: var(--color-red-accent);
+  color: var(--color-footer-link-on-dark);
   text-decoration: none;
   cursor: pointer;
   transition: color 0.2s ease;
@@ -761,7 +776,7 @@ label.choose-circle.has-image.is-dragging,
 }
 
 .footer-link:focus-visible {
-  outline: 2px solid var(--color-red-accent);
+  outline: 2px solid var(--color-footer-link-on-dark);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -786,7 +801,7 @@ label.choose-circle.has-image.is-dragging,
   font-size: inherit;
   line-height: inherit;
   font-weight: inherit;
-  color: var(--color-red-accent);
+  color: var(--color-footer-link-on-dark);
   text-decoration: none;
   cursor: pointer;
   transition: color 0.2s ease;
@@ -797,7 +812,7 @@ label.choose-circle.has-image.is-dragging,
 }
 
 .footer-version:focus-visible {
-  outline: 2px solid var(--color-red-accent);
+  outline: 2px solid var(--color-footer-link-on-dark);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -1184,10 +1199,9 @@ label.choose-circle.has-image.is-dragging,
   border-width: 0;
 }
 
-/* Flag Selector (Step 2) */
+/* Flag Selector (Step 2) - fills layout content width */
 .flag-selector-wrapper {
   width: 100%;
-  max-width: var(--content-size);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -1199,7 +1213,6 @@ label.choose-circle.has-image.is-dragging,
 
 .flag-selector {
   width: 100%;
-  max-width: 320px;
   position: relative;
 }
 
@@ -1247,7 +1260,7 @@ label.choose-circle.has-image.is-dragging,
   overflow-y: auto;
   z-index: 100;
   width: var(--radix-select-trigger-width);
-  max-width: var(--content-size);
+  max-width: var(--step-content-width);
 }
 
 .flag-select-item {
@@ -1282,10 +1295,9 @@ label.choose-circle.has-image.is-dragging,
   background: #f0f0f0;
 }
 
-/* Flag Preview */
+/* Flag Preview - uses full step content width (no 320px cap) */
 .flag-preview-wrapper {
   width: 100%;
-  max-width: 320px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1406,10 +1418,10 @@ label.choose-circle.has-image.is-dragging,
   outline-offset: 2px;
 }
 
-/* Shared step layout (all three steps) - fixes #172 */
+/* Shared step layout (all three steps) - fixes #172. Content width defined here; circle owns its square size. */
 .step-layout {
   width: 100%;
-  max-width: var(--content-size);
+  max-width: var(--step-content-width);
   display: flex;
   flex-direction: column;
   gap: 20px;

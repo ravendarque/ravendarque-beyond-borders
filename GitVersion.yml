@@ -1,7 +1,8 @@
 mode: ContinuousDelivery
-major-version-bump-message: '\+semver:\s?(breaking|major)|BREAKING CHANGE|feat!'
-minor-version-bump-message: '\+semver:\s?(feature|minor)|^(feat|feature)(\(|:)'
-patch-version-bump-message: '\+semver:\s?(fix|patch)|^(fix|bugfix)(\(|:)'
+# Only explicit +semver: in commit message bumps major/minor; everything else is patch
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '.'
 commit-message-incrementing: Enabled
 branches:
   main:

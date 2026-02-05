@@ -25,7 +25,6 @@ export function FlagDetailsModal({ open, onOpenChange, flag }: FlagDetailsModalP
         <Dialog.Overlay className="dialog-overlay" />
         <Dialog.Content
           className="dialog-content"
-          aria-describedby="flag-details-description"
           onOpenAutoFocus={(e) => {
             // Scroll to top when dialog opens
             e.preventDefault();
@@ -41,8 +40,11 @@ export function FlagDetailsModal({ open, onOpenChange, flag }: FlagDetailsModalP
             </button>
           </Dialog.Close>
           <Dialog.Title className="dialog-title">{flag.name || flag.displayName}</Dialog.Title>
+          <Dialog.Description className="visually-hidden">
+            {flag.reason ?? `Details for ${flag.displayName}`}
+          </Dialog.Description>
 
-          <div className="dialog-body" id="flag-details-description">
+          <div className="dialog-body">
             {flag.reason && (
               <div className="flag-detail-narrative">
                 <p className="flag-detail-reason">{flag.reason}</p>

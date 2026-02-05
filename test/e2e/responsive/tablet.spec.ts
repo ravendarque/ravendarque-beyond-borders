@@ -3,7 +3,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { uploadImage, selectFlag } from '../helpers/page-helpers';
+import { uploadImage, selectFlag, goToStep3, waitForStep3Ready } from '../helpers/page-helpers';
 import { TEST_FLAGS } from '../helpers/test-data';
 
 const tabletViewports = [
@@ -28,31 +28,26 @@ for (const viewport of tabletViewports) {
     test('should have proper layout on tablet', async ({ page }) => {
       await page.goto('/');
 
-      // Upload and select flag
       await uploadImage(page);
       await selectFlag(page, TEST_FLAGS.PALESTINE);
+      await goToStep3(page);
+      await waitForStep3Ready(page);
 
-      // Wait for step 3
-      await page.waitForFunction(() => !!(window as any).__BB_UPLOAD_DONE__, null, {
-        timeout: 30000,
-      });
-
-      // Check layout elements
-      await expect(page.getByText('Presentation Style')).toBeVisible();
+      await expect(page.getByRole('radiogroup', { name: 'Presentation style' })).toBeVisible();
+      const sliderRoot = page.locator('[aria-label="Border thickness"]');
+      await expect(sliderRoot.getByRole('slider')).toBeVisible();
     });
 
     test('should support both touch and mouse interactions', async ({ page }) => {
       await page.goto('/');
 
-      // Test mouse interaction
       await uploadImage(page);
 
-      // Test touch interaction on flag selector
-      const flagSelector = page.locator('#flag-select-label').locator('..');
-      await flagSelector.tap();
+      // Flag selector opens on click (tap on real touch devices)
+      const flagSelector = page.getByRole('combobox', { name: 'Choose a flag' });
+      await flagSelector.click();
       await page.waitForTimeout(300);
 
-      // Should work with both
       const dropdown = page.locator('[role="listbox"]');
       if ((await dropdown.count()) > 0) {
         await expect(dropdown).toBeVisible();
