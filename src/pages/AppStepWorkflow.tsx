@@ -84,8 +84,10 @@ export function AppStepWorkflow() {
   }, [step2.flagId]);
 
   // Step transitions (handles flag offset resets, dimension detection, etc.)
+  // Pass displayed step (currentStep) so we never run step-3 logic while user is on step 2 after clicking Back
   useStepTransitions({
     state: workflow.state,
+    displayedStep: currentStep,
     selectedFlag,
     onImageDimensionsChange: setImageDimensions,
     onCircleSizeChange: setCircleSize,

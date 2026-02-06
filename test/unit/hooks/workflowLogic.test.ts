@@ -20,9 +20,11 @@ describe('workflowLogic', () => {
       expect(result.shouldReset).toBe(false);
     });
 
-    it('should return false when not in cutout mode', () => {
+    it('should return true when on step 3 and first time configuring (any mode) so step3 stays in sync', () => {
       const result = shouldResetFlagOffset(3, 'ring', 'test-flag', null, mockFlag);
-      expect(result.shouldReset).toBe(false);
+      expect(result.shouldReset).toBe(true);
+      expect(result.defaultOffset).toBe(0);
+      expect(result.defaultThickness).toBeUndefined();
     });
 
     it('should return true when first time configuring', () => {

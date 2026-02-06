@@ -18,6 +18,8 @@ import { shouldResetFlagOffset } from './workflowLogic';
 export interface UseStepTransitionsOptions {
   /** Current workflow state */
   state: WorkflowState;
+  /** Currently displayed step (from navigation) - use this for step-3 logic to avoid races when going back */
+  displayedStep: 1 | 2 | 3;
   /** Selected flag (memoized) */
   selectedFlag: FlagSpec | null;
   /** Callback to update image dimensions */
@@ -43,6 +45,7 @@ export interface UseStepTransitionsOptions {
 export function useStepTransitions(options: UseStepTransitionsOptions): void {
   const {
     state,
+    displayedStep,
     selectedFlag,
     onImageDimensionsChange,
     onCircleSizeChange,
@@ -50,7 +53,7 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
     onUpdateStep3ForFlag,
   } = options;
 
-  const { step1, step2, step3, currentStep } = state;
+  const { step1, step2, step3 } = state;
 
   // Detect image dimensions when image URL changes
   useEffect(() => {
@@ -107,10 +110,10 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
   }, [step1.imageUrl, onCircleSizeChange]); // Re-run when image changes to ensure element exists
 
   // Handle flag offset and thickness reset logic (consolidated - handles both flag changes and mode switches)
+  // Use displayedStep (from navigation) so we never run step-3 logic when user has clicked Back and is viewing step 2
   useEffect(() => {
-    // Use business logic to determine if offset/thickness should be reset
     const { shouldReset, defaultOffset, defaultThickness } = shouldResetFlagOffset(
-      currentStep,
+      displayedStep,
       step3.presentation,
       step2.flagId,
       step3.configuredForFlagId,
@@ -122,7 +125,7 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
       onUpdateStep3ForFlag(step2.flagId, defaultOffset, defaultThickness);
     }
   }, [
-    currentStep,
+    displayedStep,
     step2.flagId,
     step3.presentation,
     step3.configuredForFlagId,

@@ -33,7 +33,12 @@ export type WorkflowAction =
   | { type: 'RESET_STEP2' }
   | { type: 'RESET_STEP3' }
   | { type: 'RESET_ALL' }
-  | { type: 'UPDATE_STEP3_FOR_FLAG'; flagId: string | null; defaultOffset?: number; defaultThickness?: number };
+  | {
+      type: 'UPDATE_STEP3_FOR_FLAG';
+      flagId: string | null;
+      defaultOffset?: number;
+      defaultThickness?: number;
+    };
 
 /**
  * Reducer for workflow state

@@ -47,7 +47,7 @@ jobs:
               - '.github/scripts/**'
               - '.github/workflows/**'
 
-  # Lightweight validation - runs when production code changes
+  # Lightweight validation (security, markdown, yaml, etc.) - runs in parallel with build-and-test
   validate:
     needs: check-changes
     if: needs.check-changes.outputs.production-code == 'true'
@@ -113,9 +113,9 @@ jobs:
       - name: Check stale references
         run: pwsh .github/scripts/check-stale-references.ps1
 
-  # Full build and test suite - runs after validation passes
+  # Lint, format, build, unit tests - runs first for fastest feedback (most common failures)
   build-and-test:
-    needs: [check-changes, validate]
+    needs: check-changes
     if: needs.check-changes.outputs.production-code == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -141,6 +141,7 @@ jobs:
       - name: Validate flag SVGs
         run: node scripts/validate-flags.js
 
+      # Order: lint → format → build → tests (most common failures first)
       - name: Lint code
         run: pnpm run lint
 
@@ -161,9 +162,9 @@ jobs:
           path: coverage
           if-no-files-found: ignore
 
-  # E2E tests (full suite, all browsers) - full test pyramid on PR
+  # E2E tests (full suite, all browsers) - after unit tests pass
   e2e:
-    needs: [check-changes, validate]
+    needs: [check-changes, build-and-test]
     if: needs.check-changes.outputs.production-code == 'true'
     runs-on: ubuntu-latest
     steps:

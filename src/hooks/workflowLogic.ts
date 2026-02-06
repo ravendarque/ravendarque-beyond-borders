@@ -8,12 +8,14 @@
 import type { FlagSpec } from '@/flags/schema';
 
 /**
- * Determine if flag offset should be reset
+ * Determine if step 3 should be synced to the current flag (offset, thickness, configuredForFlagId).
  *
- * Business rule: Reset offset when:
- * - Flag changes in cutout mode
- * - Switching to cutout mode for the first time for a flag
- * - First time configuring a flag in cutout mode
+ * Business rule: Sync when we're actually on step 3 and:
+ * - Flag changed (user selected a different flag), or
+ * - First time configuring (configuredForFlagId is null, e.g. after navigating back then forward).
+ *
+ * Uses cutout defaults when in cutout mode; otherwise keeps current thickness/offset so we don't
+ * overwrite user choices when switching flags in ring/segment mode.
  */
 export function shouldResetFlagOffset(
   currentStep: number,
@@ -21,25 +23,30 @@ export function shouldResetFlagOffset(
   flagId: string | null,
   configuredForFlagId: string | null,
   selectedFlag: FlagSpec | null,
-): { shouldReset: boolean; defaultOffset: number | undefined; defaultThickness: number | undefined } {
-  // Only handle in Step 3 with cutout mode
-  if (currentStep !== 3 || presentation !== 'cutout') {
+): {
+  shouldReset: boolean;
+  defaultOffset: number | undefined;
+  defaultThickness: number | undefined;
+} {
+  // Only run when we're actually on step 3 (use displayed step to avoid race when navigating back)
+  if (currentStep !== 3) {
     return { shouldReset: false, defaultOffset: undefined, defaultThickness: undefined };
   }
 
-  const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
-  const defaultThickness = selectedFlag?.modes?.cutout?.defaultBorderThickness;
   const flagChanged = configuredForFlagId !== null && configuredForFlagId !== flagId;
   const firstTimeConfiguring = configuredForFlagId === null;
 
-  // Reset if flag changed or first time configuring
-  if (flagChanged || firstTimeConfiguring) {
-    return {
-      shouldReset: true,
-      defaultOffset: defaultOffset ?? 0, // Default to 0 if flag has no cutout config
-      defaultThickness,
-    };
+  if (!flagChanged && !firstTimeConfiguring) {
+    return { shouldReset: false, defaultOffset: undefined, defaultThickness: undefined };
   }
 
-  return { shouldReset: false, defaultOffset: undefined, defaultThickness: undefined };
+  // When in cutout mode, use cutout defaults; otherwise keep current values (pass undefined)
+  if (presentation === 'cutout') {
+    const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset ?? 0;
+    const defaultThickness = selectedFlag?.modes?.cutout?.defaultBorderThickness;
+    return { shouldReset: true, defaultOffset, defaultThickness };
+  }
+
+  // Ring/segment: still set configuredForFlagId and offset 0 so step3 is in sync; keep thickness
+  return { shouldReset: true, defaultOffset: 0, defaultThickness: undefined };
 }
