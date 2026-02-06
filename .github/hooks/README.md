@@ -121,5 +121,6 @@ If a hook fails to run:
 4. Try running validation manually to see detailed error messages
 
 For more information, see:
+
 - Pre-commit: `.github/scripts/pre-commit.ps1`
 - Pre-push: `.github/scripts/local-ci.ps1`
