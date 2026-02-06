@@ -33,7 +33,7 @@ export type WorkflowAction =
   | { type: 'RESET_STEP2' }
   | { type: 'RESET_STEP3' }
   | { type: 'RESET_ALL' }
-  | { type: 'UPDATE_STEP3_FOR_FLAG'; flagId: string | null; defaultOffset?: number };
+  | { type: 'UPDATE_STEP3_FOR_FLAG'; flagId: string | null; defaultOffset?: number; defaultThickness?: number };
 
 /**
  * Reducer for workflow state
@@ -197,6 +197,8 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
           ...state.step3,
           configuredForFlagId: action.flagId,
           flagOffsetPct: action.defaultOffset ?? state.step3.flagOffsetPct,
+          thickness:
+            action.defaultThickness != null ? action.defaultThickness : state.step3.thickness,
         },
       };
 
@@ -358,9 +360,12 @@ export function useWorkflowState() {
     }
   }, []);
 
-  const updateStep3ForFlag = useCallback((flagId: string | null, defaultOffset?: number) => {
-    dispatch({ type: 'UPDATE_STEP3_FOR_FLAG', flagId, defaultOffset });
-  }, []);
+  const updateStep3ForFlag = useCallback(
+    (flagId: string | null, defaultOffset?: number, defaultThickness?: number) => {
+      dispatch({ type: 'UPDATE_STEP3_FOR_FLAG', flagId, defaultOffset, defaultThickness });
+    },
+    [],
+  );
 
   return {
     state,

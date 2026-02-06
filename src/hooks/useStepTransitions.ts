@@ -27,7 +27,11 @@ export interface UseStepTransitionsOptions {
   /** Callback to update flag offset */
   onFlagOffsetChange: (offset: number) => void;
   /** Callback to update step 3 configuration for flag */
-  onUpdateStep3ForFlag: (flagId: string | null, defaultOffset?: number) => void;
+  onUpdateStep3ForFlag: (
+    flagId: string | null,
+    defaultOffset?: number,
+    defaultThickness?: number,
+  ) => void;
 }
 
 /**
@@ -102,10 +106,10 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
     return () => window.removeEventListener('resize', updateCircleSize);
   }, [step1.imageUrl, onCircleSizeChange]); // Re-run when image changes to ensure element exists
 
-  // Handle flag offset reset logic (consolidated - handles both flag changes and mode switches)
+  // Handle flag offset and thickness reset logic (consolidated - handles both flag changes and mode switches)
   useEffect(() => {
-    // Use business logic to determine if offset should be reset
-    const { shouldReset, defaultOffset } = shouldResetFlagOffset(
+    // Use business logic to determine if offset/thickness should be reset
+    const { shouldReset, defaultOffset, defaultThickness } = shouldResetFlagOffset(
       currentStep,
       step3.presentation,
       step2.flagId,
@@ -115,7 +119,7 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
 
     if (shouldReset) {
       onFlagOffsetChange(defaultOffset ?? 0);
-      onUpdateStep3ForFlag(step2.flagId, defaultOffset);
+      onUpdateStep3ForFlag(step2.flagId, defaultOffset, defaultThickness);
     }
   }, [
     currentStep,

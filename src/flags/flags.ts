@@ -883,6 +883,7 @@ export const flags: FlagSpec[] = [
       cutout: {
         offsetEnabled: true,
         defaultOffset: 0,
+        defaultBorderThickness: 13,
       },
     },
   },

@@ -101,6 +101,13 @@ export function generateTypeScriptSource(manifest) {
         lines.push('      cutout: {');
         lines.push(`        offsetEnabled: ${entry.cutoutMode.offsetEnabled},`);
         lines.push(`        defaultOffset: ${entry.cutoutMode.defaultOffset},`);
+        if (
+          entry.cutoutMode.defaultBorderThickness != null &&
+          entry.cutoutMode.defaultBorderThickness >= 5 &&
+          entry.cutoutMode.defaultBorderThickness <= 15
+        ) {
+          lines.push(`        defaultBorderThickness: ${entry.cutoutMode.defaultBorderThickness},`);
+        }
         lines.push('      },');
       }
 

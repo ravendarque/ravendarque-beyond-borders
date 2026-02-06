@@ -380,7 +380,7 @@ categories:
         cutoutMode:
           offsetEnabled: true
           defaultOffset: 0
-          #defaultBorderThickness: 13 # TODO: enable this functionality
+          defaultBorderThickness: 13
 
   - categoryName: 'Stateless People'
     displayOrder: 6

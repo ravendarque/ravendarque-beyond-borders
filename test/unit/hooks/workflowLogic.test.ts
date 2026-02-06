@@ -48,5 +48,23 @@ describe('workflowLogic', () => {
       expect(result.shouldReset).toBe(true);
       expect(result.defaultOffset).toBe(0);
     });
+
+    it('should return defaultThickness when flag cutout has defaultBorderThickness', () => {
+      const flagWithThickness = {
+        ...mockFlag,
+        modes: { cutout: { defaultOffset: 25, defaultBorderThickness: 13 } },
+      } as FlagSpec;
+      const result = shouldResetFlagOffset(3, 'cutout', 'test-flag', null, flagWithThickness);
+      expect(result.shouldReset).toBe(true);
+      expect(result.defaultOffset).toBe(25);
+      expect(result.defaultThickness).toBe(13);
+    });
+
+    it('should return undefined defaultThickness when flag cutout has no defaultBorderThickness', () => {
+      const result = shouldResetFlagOffset(3, 'cutout', 'test-flag', null, mockFlag);
+      expect(result.shouldReset).toBe(true);
+      expect(result.defaultOffset).toBe(25);
+      expect(result.defaultThickness).toBeUndefined();
+    });
   });
 });

@@ -21,13 +21,14 @@ export function shouldResetFlagOffset(
   flagId: string | null,
   configuredForFlagId: string | null,
   selectedFlag: FlagSpec | null,
-): { shouldReset: boolean; defaultOffset: number | undefined } {
+): { shouldReset: boolean; defaultOffset: number | undefined; defaultThickness: number | undefined } {
   // Only handle in Step 3 with cutout mode
   if (currentStep !== 3 || presentation !== 'cutout') {
-    return { shouldReset: false, defaultOffset: undefined };
+    return { shouldReset: false, defaultOffset: undefined, defaultThickness: undefined };
   }
 
   const defaultOffset = selectedFlag?.modes?.cutout?.defaultOffset;
+  const defaultThickness = selectedFlag?.modes?.cutout?.defaultBorderThickness;
   const flagChanged = configuredForFlagId !== null && configuredForFlagId !== flagId;
   const firstTimeConfiguring = configuredForFlagId === null;
 
@@ -36,8 +37,9 @@ export function shouldResetFlagOffset(
     return {
       shouldReset: true,
       defaultOffset: defaultOffset ?? 0, // Default to 0 if flag has no cutout config
+      defaultThickness,
     };
   }
 
-  return { shouldReset: false, defaultOffset: undefined };
+  return { shouldReset: false, defaultOffset: undefined, defaultThickness: undefined };
 }
