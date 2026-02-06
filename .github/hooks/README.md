@@ -10,8 +10,8 @@ Runs fast validation checks on staged files before allowing a commit. Catches li
 
 **Checks performed:**
 
-- Lint staged code files (ESLint)
-- Format check staged code files (Prettier)
+- Lint staged code files (ESLint) - `.ts`, `.tsx`, `.js`, `.jsx`
+- Format check staged files (Prettier) - `.ts`, `.tsx`, `.js`, `.jsx`, `.md`, `.yml`, `.yaml`, `.json`
 
 ### pre-push
 

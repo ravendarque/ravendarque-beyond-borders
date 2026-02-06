@@ -55,37 +55,41 @@ if (-not $stagedFiles) {
     exit 0
 }
 
-# Filter for code files
+# Filter for code files (for linting)
 $codeFiles = $stagedFiles | Where-Object { $_ -match '\.(ts|tsx|js|jsx)$' }
 
-if (-not $codeFiles) {
-    Write-Host "✅ No code files staged - skipping lint/format checks" -ForegroundColor Green
+# Filter for all Prettier-supported files (for formatting)
+$prettierFiles = $stagedFiles | Where-Object { $_ -match '\.(ts|tsx|js|jsx|md|yml|yaml|json)$' }
+
+if (-not $prettierFiles) {
+    Write-Host "✅ No lintable/formattable files staged - skipping checks" -ForegroundColor Green
     exit 0
 }
 
-Write-Host "📝 Staged code files:" -ForegroundColor White
-$codeFiles | ForEach-Object { Write-Host "   $_" -ForegroundColor Gray }
+Write-Host "📝 Staged files to check:" -ForegroundColor White
+$prettierFiles | ForEach-Object { Write-Host "   $_" -ForegroundColor Gray }
 Write-Host ""
 
-# 1. Lint staged files only
-Write-Host "1️⃣  Linting staged files..." -ForegroundColor White
-$exitCode = 0
+# 1. Lint staged code files only (ESLint)
 if ($codeFiles) {
+    Write-Host "1️⃣  Linting code files (ESLint)..." -ForegroundColor White
+    $exitCode = 0
     # ESLint can handle multiple files - pass them all
     pnpm eslint $codeFiles 2>&1 | Out-Null
     $exitCode = $LASTEXITCODE
+    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Linting passed" } else { "Linting failed" })
+    Write-Host ""
+} else {
+    Write-Host "1️⃣  No code files to lint - skipping ESLint" -ForegroundColor Gray
+    Write-Host ""
 }
-Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Linting passed" } else { "Linting failed" })
-Write-Host ""
 
-# 2. Check format of staged files only
-Write-Host "2️⃣  Checking code format (Prettier)..." -ForegroundColor White
+# 2. Check format of all staged files (Prettier)
+Write-Host "2️⃣  Checking file format (Prettier)..." -ForegroundColor White
 $exitCode = 0
-if ($codeFiles) {
-    # Prettier can handle multiple files - pass them all
-    pnpm prettier --check $codeFiles 2>&1 | Out-Null
-    $exitCode = $LASTEXITCODE
-}
+# Prettier can handle multiple files - pass them all
+pnpm prettier --check $prettierFiles 2>&1 | Out-Null
+$exitCode = $LASTEXITCODE
 Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Format check passed" } else { "Format check failed (run: pnpm run format)" })
 Write-Host ""
 
