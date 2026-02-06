@@ -18,6 +18,7 @@ test-results/
 
 # Local
 .local/
+.claude/
 
 # Changelog (often hand-formatted)
 CHANGELOG*
