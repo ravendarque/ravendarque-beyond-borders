@@ -548,7 +548,10 @@ export function ImageUploadZone({
         aria-label="Choose image file (JPG or PNG)"
       />
 
-      <div ref={wrapperRef} className={readonly ? 'avatar-circle-wrapper readonly' : 'avatar-circle-wrapper'}>
+      <div
+        ref={wrapperRef}
+        className={readonly ? 'avatar-circle-wrapper readonly' : 'avatar-circle-wrapper'}
+      >
         {/* Flag pattern layer (Step 3 only) - double-buffered for smooth transitions */}
         {readonly && currentPatternStyle && (
           <div

@@ -1,4 +1,4 @@
-# Code Standards & Review Guidelines
+﻿# Code Standards & Review Guidelines
 
 This document defines the code standards, UI patterns, and review criteria
 for Beyond Borders. It is designed to be comprehensive enough for AI agents
@@ -127,7 +127,7 @@ The application uses a carefully defined color palette:
 - **Checkered Pattern**: Light gray (`#e0e0e0`) on white (`#fff`)
   - Only appears inside ring border (circular area)
   - Used in avatar preview to show transparency
-  - Pattern size: 16px × 16px
+  - Pattern size: 16px Ã— 16px
 
 ### Typography
 
@@ -164,7 +164,7 @@ The application uses CSS custom properties for consistent spacing:
 
 ### Icon Standards
 
-- **Size**: 40px × 40px for circular icon containers
+- **Size**: 40px Ã— 40px for circular icon containers
 - **Background**: Cream/yellow with opacity (`rgba(180, 160, 100, 0.2)`)
 - **Color**: `#666` for icon strokes/fills
 - **SVG**: Use `currentColor` for theming
@@ -206,11 +206,14 @@ The application uses CSS custom properties for consistent spacing:
 
 #### Shared Step Layout (all steps)
 
-- **StepLayout** wraps each step’s content with a main slot and an optional controls slot.
-- Step 1 (Image): main = `ImageUploadZone`; controls = `Step1PositionControls` (position/zoom sliders) when an image is present.
+- **StepLayout** wraps each stepâ€™s content with a main slot and an optional controls slot.
+- Step 1 (Image): main = `ImageUploadZone`; controls =
+  `Step1PositionControls` (position/zoom sliders) when an image is present.
 - Step 2 (Flag): main = flag selector + preview; no controls slot.
-- Step 3 (Adjust): main = readonly `ImageUploadZone` (preview); controls = `PresentationModeSelector` + `AdjustControls`.
-- Layout and spacing (e.g. `.step-layout`, `.step-layout__controls`) are defined once in CSS.
+- Step 3 (Adjust): main = readonly `ImageUploadZone` (preview); controls =
+  `PresentationModeSelector` + `AdjustControls`.
+- Layout and spacing (e.g. `.step-layout`, `.step-layout__controls`) are
+  defined once in CSS.
 
 ---
 
@@ -259,24 +262,24 @@ The application uses CSS custom properties for consistent spacing:
 
 ```text
 src/
-├── components/         # Reusable UI components
-│   ├── FlagSelector.tsx
-│   ├── FlagPreview.tsx
-│   ├── ImageUploadZone.tsx
-│   └── index.ts       # Public exports
-├── pages/             # Page-level components
-│   └── AppStepWorkflow.tsx
-├── hooks/             # Custom React hooks
-│   ├── useAvatarRenderer.ts
-│   └── useFlagImageCache.ts
-├── flags/             # Flag data and schema
-│   ├── flags.ts       # Generated (do not edit manually)
-│   ├── schema.ts      # Zod schema definitions
-│   └── utils.ts       # Flag utilities
-├── renderer/          # Canvas rendering engine
-├── config.ts          # App configuration (getAssetUrl, etc.)
-├── styles.css         # Global styles (single file)
-└── types/             # Shared TypeScript types
+â”œâ”€â”€ components/         # Reusable UI components
+â”‚   â”œâ”€â”€ FlagSelector.tsx
+â”‚   â”œâ”€â”€ FlagPreview.tsx
+â”‚   â”œâ”€â”€ ImageUploadZone.tsx
+â”‚   â””â”€â”€ index.ts       # Public exports
+â”œâ”€â”€ pages/             # Page-level components
+â”‚   â””â”€â”€ AppStepWorkflow.tsx
+â”œâ”€â”€ hooks/             # Custom React hooks
+â”‚   â”œâ”€â”€ useAvatarRenderer.ts
+â”‚   â””â”€â”€ useFlagImageCache.ts
+â”œâ”€â”€ flags/             # Flag data and schema
+â”‚   â”œâ”€â”€ flags.ts       # Generated (do not edit manually)
+â”‚   â”œâ”€â”€ schema.ts      # Zod schema definitions
+â”‚   â””â”€â”€ utils.ts       # Flag utilities
+â”œâ”€â”€ renderer/          # Canvas rendering engine
+â”œâ”€â”€ config.ts          # App configuration (getAssetUrl, etc.)
+â”œâ”€â”€ styles.css         # Global styles (single file)
+â””â”€â”€ types/             # Shared TypeScript types
 ```
 
 ### Import Order
@@ -297,9 +300,12 @@ src/
 
 ### Formatting (Prettier)
 
-- **Prettier** is the source of truth for code style. Config: `.prettierrc` (printWidth 100, singleQuote, trailingComma all, semi).
-- **ESLint** uses `eslint-config-prettier` so it does not enforce style rules that conflict with Prettier.
-- **Scripts**: `pnpm run format` (fix), `pnpm run format:check` (CI/pre-push). Format check runs when production code changes.
+- **Prettier** is the source of truth for code style. Config: `.prettierrc`
+  (printWidth 100, singleQuote, trailingComma all, semi).
+- **ESLint** uses `eslint-config-prettier` so it does not enforce style
+  rules that conflict with Prettier.
+- **Scripts**: `pnpm run format` (fix), `pnpm run format:check`
+  (CI/pre-push). Format check runs when production code changes.
 
 ---
 
@@ -309,31 +315,36 @@ src/
 
 1. **Source of Truth**: `data/flag-data.yaml`
    - Categories are blocks with `categoryName`, `displayOrder`, and nested `flags`
-   - You can add new categories by adding a new block; no need to edit the fetch script
+   - You can add new categories by adding a new block; no need to edit the
+     fetch script
    - Display names and order come from each category block
 
 2. **Processing**: `scripts/fetch-flags.js`
    - Reads YAML, flattens flags from category blocks
-   - Derives `category` code from `categoryName`: known names use a stable code (e.g. 'Occupied / Disputed Territory' → 'occupied'), any other name is slugified (e.g. 'Movements / Organisations' → 'movements')
-   - Generates `src/flags/flags.ts` with `category`, `categoryDisplayName`, and `categoryDisplayOrder`
+   - Derives `category` code from `categoryName`: known names use a stable
+     code (e.g. 'Occupied / Disputed Territory' â†’ 'occupied'), any other
+     name is slugified (e.g. 'Movements / Organisations' â†’ 'movements')
+   - Generates `src/flags/flags.ts` with `category`, `categoryDisplayName`,
+     and `categoryDisplayOrder`
 
 3. **Usage**: Components use `flags.ts`
    - `category`: Slug for filtering/grouping (e.g. 'occupied', 'movements')
-   - `categoryDisplayName`: Display name from source of truth (e.g. 'Occupied / Disputed Territory')
+   - `categoryDisplayName`: Display name from source of truth (e.g.
+     'Occupied / Disputed Territory')
    - `categoryDisplayOrder`: Order for the dropdown (from YAML `displayOrder`)
 
 ### State Flow in AppStepWorkflow
 
 ```text
 AppStepWorkflow (main orchestrator)
-├── Step 1: ImageUploadZone
-│   └── imageUrl state
-├── Step 2: FlagSelector + FlagPreview
-│   ├── flagId state
-│   └── selectedFlag (memoized from flags.find())
-└── Step 3: Adjust controls + Avatar preview
-    ├── thickness, flagOffsetX, presentation
-    └── render() function triggered via useEffect
+â”œâ”€â”€ Step 1: ImageUploadZone
+â”‚   â””â”€â”€ imageUrl state
+â”œâ”€â”€ Step 2: FlagSelector + FlagPreview
+â”‚   â”œâ”€â”€ flagId state
+â”‚   â””â”€â”€ selectedFlag (memoized from flags.find())
+â””â”€â”€ Step 3: Adjust controls + Avatar preview
+    â”œâ”€â”€ thickness, flagOffsetX, presentation
+    â””â”€â”€ render() function triggered via useEffect
 ```
 
 ### Image Caching Flow
@@ -373,7 +384,8 @@ When reviewing pull requests, verify the following:
 ### Data & State
 
 - [ ] Flag data changes go through `data/flag-data.yaml` (source of truth)
-- [ ] Category codes derived from YAML category names (known mapping or slug); new categories need no script change
+- [ ] Category codes derived from YAML category names (known mapping or
+      slug); new categories need no script change
 - [ ] `flags.ts` is generated (not manually edited)
 - [ ] Asset URLs use `getAssetUrl()` for GitHub Pages compatibility
 - [ ] State management follows [Data Flow](#data-flow--state-management) patterns
@@ -411,7 +423,10 @@ When reviewing pull requests, verify the following:
 ### Adding a New Flag
 
 1. Edit `data/flag-data.yaml`:
-   - Either add a flag under an existing category block, or add a new category block (`categoryName`, `displayOrder`, `flags: [...]`) and put the flag there. New category names are slugified automatically (no script change needed).
+   - Either add a flag under an existing category block, or add a new
+     category block (`categoryName`, `displayOrder`, `flags: [...]`) and
+     put the flag there. New category names are slugified automatically
+     (no script change needed).
 2. Run `pnpm run fetch-flags` (or `node scripts/fetch-flags.js`) to regenerate `src/flags/flags.ts`.
 3. Validate: `pnpm run validate-flags` (or `node scripts/validate-flags.js`).
 4. Commit both YAML and generated `flags.ts`.

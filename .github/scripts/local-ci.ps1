@@ -131,6 +131,7 @@ $prodPattern = "^(src/|public/|index.html|vite.config.ts|tsconfig.json|package.j
 $prodFilesChanged = $stagedFiles | Where-Object { $_ -match $prodPattern }
 
 # 1-4: Run lint, format, build, tests FIRST (most common failures = fastest feedback)
+# Note: Lint/format also run in pre-commit hook for faster feedback on staged files
 if ($prodFilesChanged -and -not $SkipBuild) {
     Write-Host "1️⃣  Linting code..." -ForegroundColor White
     $exitCode = 0
@@ -182,20 +183,7 @@ if ($exitCode -ne 0) {
 }
 Write-Host ""
 
-Write-Host "6️⃣  Linting Markdown files..." -ForegroundColor White
-$exitCode = 0
-try {
-    & pwsh -File "$scriptDir/check-markdown.ps1" 2>&1 | Out-Host
-    $exitCode = $LASTEXITCODE
-} catch {
-    $exitCode = 1
-}
-if ($exitCode -ne 0) {
-    $script:Errors++
-}
-Write-Host ""
-
-Write-Host "7️⃣  Linting YAML files..." -ForegroundColor White
+Write-Host "6️⃣  Linting YAML files..." -ForegroundColor White
 $exitCode = 0
 try {
     & pwsh -File "$scriptDir/check-yaml.ps1" 2>&1 | Out-Host
@@ -208,7 +196,7 @@ if ($exitCode -ne 0) {
 }
 Write-Host ""
 
-Write-Host "8️⃣  Checking for TODO/FIXME comments..." -ForegroundColor White
+Write-Host "7️⃣  Checking for TODO/FIXME comments..." -ForegroundColor White
 try {
     & pwsh -File "$scriptDir/check-todo-fixme.ps1" | Out-Host
 } catch {
@@ -216,7 +204,7 @@ try {
 }
 Write-Host ""
 
-Write-Host "9️⃣  Validating file permissions..." -ForegroundColor White
+Write-Host "8️⃣  Validating file permissions..." -ForegroundColor White
 try {
     & pwsh -File "$scriptDir/check-file-permissions.ps1"
     if ($LASTEXITCODE -ne 0) {

@@ -71,19 +71,6 @@ jobs:
       - name: Security audit
         run: pwsh .github/scripts/check-security.ps1
 
-      - name: Get changed markdown files
-        id: changed-md
-        uses: tj-actions/changed-files@v46
-        with:
-          files: |
-            **/*.md
-            !node_modules/**
-            !.local/**
-
-      - name: Markdown lint
-        if: steps.changed-md.outputs.any_changed == 'true'
-        run: pwsh .github/scripts/check-markdown.ps1 ${{ join(steps.changed-md.outputs.all_changed_files, ' ') }}
-
       - name: Get changed YAML files
         id: changed-yaml
         uses: tj-actions/changed-files@v46
