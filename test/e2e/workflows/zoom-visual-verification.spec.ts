@@ -33,7 +33,7 @@ test.describe('Zoom Visual Verification', () => {
     await page.goto('/');
 
     // Wait for app to load
-    await page.waitForSelector('.choose-wrapper', { timeout: 10000 });
+    await page.waitForSelector('.avatar-circle-wrapper', { timeout: 10000 });
 
     // Upload specific test image
     const testImagePath = path.resolve(
@@ -43,8 +43,8 @@ test.describe('Zoom Visual Verification', () => {
     const fileInput = page.locator('input[type="file"]').first();
     await fileInput.setInputFiles(testImagePath);
 
-    // Wait for image to load - the choose-circle gets the "has-image" class when image is loaded
-    await page.waitForSelector('.choose-circle.has-image', { timeout: 20000 });
+    // Wait for image to load - the avatar-circle gets the "has-image" class when image is loaded
+    await page.waitForSelector('.avatar-circle.has-image', { timeout: 20000 });
 
     // Wait for controls to appear - they show when imageUrl exists
     await page.waitForSelector('.step1-controls', { timeout: 20000 });
@@ -56,7 +56,7 @@ test.describe('Zoom Visual Verification', () => {
     await page.waitForTimeout(2000);
 
     // Verify image preview is visible
-    const imagePreview = page.locator('.choose-circle.has-image');
+    const imagePreview = page.locator('.avatar-circle.has-image');
     await expect(imagePreview).toBeVisible();
 
     // Radix UI Slider uses role="slider" on a button element, not a standard input
@@ -120,7 +120,7 @@ test.describe('Zoom Visual Verification', () => {
     expect(parseFloat(zoomDisplayValue || '0')).toBeCloseTo(10, 0);
 
     // Take screenshot of Step 1 with these settings
-    const step1Preview = page.locator('.choose-wrapper');
+    const step1Preview = page.locator('.avatar-circle-wrapper');
     await step1Preview.screenshot({ path: getTestResultsPath('step1-zoom10-h24-v-20.png') });
 
     // Go to Step 2 (click Step 1 Next)
@@ -134,16 +134,16 @@ test.describe('Zoom Visual Verification', () => {
     await selectFlag(page, TEST_FLAGS.PALESTINE);
     await goToStep3(page, 45000); // 45s for step 3 ready on slow CI
 
-    // Wait for the rendered image to appear (using choose-circle in readonly mode)
-    await page.waitForSelector('.choose-circle.has-image', { timeout: 20000 });
+    // Wait for the rendered image to appear (using avatar-circle in readonly mode)
+    await page.waitForSelector('.avatar-circle.has-image', { timeout: 20000 });
 
     // Wait for rendering to complete (zoom/position should be applied)
     await page.waitForTimeout(3000);
 
-    // Step 3 preview is ImageUploadZone (choose-wrapper + pattern).
+    // Step 3 preview is ImageUploadZone (avatar-circle-wrapper + pattern).
     // goToStep3 already waited for render complete; ensure step 3 content and Save are ready.
     await page.locator('[data-testid="step-3"]').waitFor({ state: 'visible', timeout: 5000 });
-    const renderedImage = page.locator('.choose-circle.has-image');
+    const renderedImage = page.locator('.avatar-circle.has-image');
     await expect(renderedImage).toBeVisible({ timeout: 10000 });
 
     // Save button enabled = render done (use role for robustness across browsers)
@@ -154,7 +154,7 @@ test.describe('Zoom Visual Verification', () => {
     const step3Preview = page.locator('.step-layout');
     await step3Preview.screenshot({ path: getTestResultsPath('step3-zoom10-h24-v-20.png') });
 
-    // Get image dimensions from Step 3 (choose-circle container)
+    // Get image dimensions from Step 3 (avatar-circle container)
     const imageBoundingBox = await renderedImage.boundingBox();
     expect(imageBoundingBox).toBeTruthy();
     expect(imageBoundingBox!.width).toBeGreaterThan(0);

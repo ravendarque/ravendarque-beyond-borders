@@ -120,7 +120,7 @@ The application uses a carefully defined color palette:
 - **Cream/Yellow**: `rgba(180, 160, 100, ...)` - Used for:
   - Halftone pattern dots
   - Icon backgrounds (with opacity)
-  - Hover shadows on choose-circle
+  - Hover shadows on avatar-circle
 
 #### Transparency Indicators
 
@@ -143,7 +143,7 @@ The application uses a carefully defined color palette:
 
 The application uses CSS custom properties for consistent spacing:
 
-- `--content-size`: Base size for circular elements (choose-circle, avatar-preview)
+- `--content-size`: Base size for circular elements (avatar-circle, avatar-preview)
 - Consistent gaps: 20px between major sections
 - Padding: 12px 6px for circular content areas
 
@@ -158,7 +158,7 @@ The application uses CSS custom properties for consistent spacing:
 
 #### Shadows
 
-- **Subtle glows**: Cream/yellow for choose-circle hover states
+- **Subtle glows**: Cream/yellow for avatar-circle hover states
 - **No shadows on dropdowns**: Removed for consistency
 - **Box shadows**: Use rgba with appropriate opacity (0.08-0.3 range)
 

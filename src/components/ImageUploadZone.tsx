@@ -548,17 +548,17 @@ export function ImageUploadZone({
         aria-label="Choose image file (JPG or PNG)"
       />
 
-      <div ref={wrapperRef} className={readonly ? 'choose-wrapper readonly' : 'choose-wrapper'}>
+      <div ref={wrapperRef} className={readonly ? 'avatar-circle-wrapper readonly' : 'avatar-circle-wrapper'}>
         {/* Flag pattern layer (Step 3 only) - double-buffered for smooth transitions */}
         {readonly && currentPatternStyle && (
           <div
-            className={`choose-wrapper-pattern choose-wrapper-pattern-current ${isTransitioning ? 'fading-out' : ''}`}
+            className={`avatar-circle-pattern avatar-circle-pattern-current ${isTransitioning ? 'fading-out' : ''}`}
             style={currentPatternStyle}
           />
         )}
         {readonly && nextPatternStyle && (
           <div
-            className={`choose-wrapper-pattern choose-wrapper-pattern-next ${isNextFadingIn ? 'fading-in' : ''}`}
+            className={`avatar-circle-pattern avatar-circle-pattern-next ${isNextFadingIn ? 'fading-in' : ''}`}
             style={nextPatternStyle}
           />
         )}
@@ -571,7 +571,7 @@ export function ImageUploadZone({
           }}
           htmlFor={readonly ? undefined : 'step1-file-upload'}
           className={[
-            'choose-circle',
+            'avatar-circle',
             imageUrl && 'has-image',
             isDragging && 'is-dragging',
             readonly && 'readonly',

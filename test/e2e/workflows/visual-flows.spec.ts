@@ -19,7 +19,7 @@ import { TEST_FLAGS } from '../helpers/test-data';
 
 /**
  * Step 3 has no .avatar-preview-image (AdjustStep isn't used). Preview is ImageUploadZone
- * (choose-wrapper + pattern). Use render-done signal + Save button instead.
+ * (avatar-circle-wrapper + pattern). Use render-done signal + Save button instead.
  */
 
 test.describe('Visual Flows - Ring Mode', () => {

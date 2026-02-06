@@ -23,10 +23,10 @@ test.describe('Ring Pattern Debug', () => {
     await selectPresentationMode(page, 'Ring');
     await page.waitForTimeout(500);
 
-    const wrapper = page.locator('.choose-wrapper.readonly');
+    const wrapper = page.locator('.avatar-circle-wrapper.readonly');
     await expect(wrapper).toBeVisible({ timeout: 5000 });
 
-    const patternLayer = page.locator('.choose-wrapper-pattern');
+    const patternLayer = page.locator('.avatar-circle-pattern');
     const patternCount = await patternLayer.count();
 
     if (patternCount === 0) {

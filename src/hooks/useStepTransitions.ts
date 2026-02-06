@@ -93,7 +93,7 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
   // Get circle size from CSS variable
   useEffect(() => {
     const updateCircleSize = () => {
-      const wrapper = document.querySelector('.choose-wrapper');
+      const wrapper = document.querySelector('.avatar-circle-wrapper');
       if (wrapper) {
         const computed = window.getComputedStyle(wrapper);
         const size = parseFloat(computed.width);

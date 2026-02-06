@@ -300,17 +300,15 @@ body {
   box-sizing: border-box;
 }
 
-/* Image upload circle wrapper */
-.choose-wrapper {
-  width: var(--content-size);
+/* Avatar circle wrapper - single dimension + aspect-ratio so it can never become an oval */
+.avatar-circle-wrapper {
+  width: min(var(--content-size), 100%);
   min-width: 200px;
-  max-width: 100%;
-  height: var(--content-size);
-  min-height: 200px;
-  max-height: 100%;
+  height: auto;
   aspect-ratio: 1;
   position: relative;
   z-index: 2;
+  flex-shrink: 0;
   /* White background with halftone effect - diamond cluster pattern */
   /* Using integer pixel sizes for consistent rendering across displays */
   background:
@@ -338,7 +336,7 @@ body {
 }
 
 /* Hide hatch background in Step 3 (readonly mode) - flag pattern replaces it */
-.choose-wrapper.readonly {
+.avatar-circle-wrapper.readonly {
   /* Explicitly clear all background layers */
   background: transparent;
   background-image: none;
@@ -351,12 +349,12 @@ body {
 
 /* When flag border is present, replace halftone pattern with flag border */
 /* The flag border is set via inline styles in ImageUploadZone component */
-.choose-wrapper-pattern {
+.avatar-circle-pattern {
   position: absolute;
   inset: 0;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 0; /* Behind the circle (z-index: 1) but visible in annulus gap */
+  z-index: 0; /* Behind avatar circle (z-index: 1) but visible in annulus gap */
   background-color: transparent;
   will-change: opacity; /* Optimize for opacity transitions */
   backface-visibility: hidden; /* Prevent flicker during transitions */
@@ -364,32 +362,32 @@ body {
 }
 
 /* Current pattern (fades out when transitioning) */
-.choose-wrapper-pattern-current {
+.avatar-circle-pattern-current {
   opacity: 1;
   transition: opacity 0.3s ease-out;
   z-index: 1; /* Above next pattern during transition */
 }
 
-.choose-wrapper-pattern-current.fading-out {
+.avatar-circle-pattern-current.fading-out {
   opacity: 0;
 }
 
 /* Next pattern (fades in when ready) */
-.choose-wrapper-pattern-next {
+.avatar-circle-pattern-next {
   opacity: 0;
   transition: opacity 0.3s ease-in;
   z-index: 0; /* Below current pattern during transition */
 }
 
-.choose-wrapper-pattern-next.fading-in {
+.avatar-circle-pattern-next.fading-in {
   opacity: 1;
 }
 
-/* Image upload circle */
-.choose-circle {
+/* Avatar circle (upload zone on step 1, preview on step 3) */
+.avatar-circle {
   position: absolute;
-  /* Create a gap around the circle for the halftone border */
-  inset: calc(var(--content-size) * 0.1);
+  /* Create a gap around the circle for the halftone border (10% of wrapper) */
+  inset: 10%;
   border: 1px solid rgba(180, 160, 100, 0.12);
   background: var(--color-white);
   border-radius: 50%;
@@ -412,7 +410,7 @@ body {
     0 0 20px rgba(180, 160, 100, 0.04);
 }
 
-.choose-circle::before {
+.avatar-circle::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -420,70 +418,70 @@ body {
   pointer-events: none;
 }
 
-.choose-circle.has-image::before {
+.avatar-circle.has-image::before {
   display: none;
 }
 
-.choose-wrapper:hover .choose-circle,
-label.choose-circle:hover {
+.avatar-circle-wrapper:hover .avatar-circle,
+label.avatar-circle:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(180, 160, 100, 0.3);
 }
 
-.choose-wrapper:hover .choose-circle.has-image {
+.avatar-circle-wrapper:hover .avatar-circle.has-image {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(180, 160, 100, 0.3);
 }
 
-.choose-circle.has-image {
+.avatar-circle.has-image {
   border: none;
   /* Prevent ALL browser touch gestures - we handle panning and pinch-to-zoom ourselves */
   /* This prevents Firefox Android from intercepting pinch gestures */
   touch-action: none;
 }
 
-.choose-circle.has-image:hover {
+.avatar-circle.has-image:hover {
   transform: scale(1.03);
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
 }
 
 /* Disable hover and active styles in readonly mode */
-.choose-circle.readonly:hover,
-.choose-circle.readonly.has-image:hover,
-.choose-wrapper:hover .choose-circle.readonly,
-.choose-wrapper:hover .choose-circle.readonly.has-image {
+.avatar-circle.readonly:hover,
+.avatar-circle.readonly.has-image:hover,
+.avatar-circle-wrapper:hover .avatar-circle.readonly,
+.avatar-circle-wrapper:hover .avatar-circle.readonly.has-image {
   transform: none;
   box-shadow: none;
 }
 
-.choose-circle.readonly:active,
-.choose-circle.readonly.has-image:active {
+.avatar-circle.readonly:active,
+.avatar-circle.readonly.has-image:active {
   transform: none;
   box-shadow: none;
 }
 
-.choose-circle.readonly {
+.avatar-circle.readonly {
   cursor: default;
   box-shadow: none;
 }
 
 /* Dragging state - placed after hover rules with matching specificity */
 /* When both hover and dragging are active, dragging wins due to order */
-.choose-wrapper:hover .choose-circle.is-dragging,
-label.choose-circle.is-dragging,
-.choose-circle.is-dragging {
+.avatar-circle-wrapper:hover .avatar-circle.is-dragging,
+label.avatar-circle.is-dragging,
+.avatar-circle.is-dragging {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(180, 160, 100, 0.3);
 }
 
-.choose-wrapper:hover .choose-circle.has-image.is-dragging,
-label.choose-circle.has-image.is-dragging,
-.choose-circle.has-image.is-dragging {
+.avatar-circle-wrapper:hover .avatar-circle.has-image.is-dragging,
+label.avatar-circle.has-image.is-dragging,
+.avatar-circle.has-image.is-dragging {
   transform: scale(1.03);
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
 }
 
-.choose-circle:active {
+.avatar-circle:active {
   transform: scale(0.95);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition:
@@ -491,12 +489,12 @@ label.choose-circle.has-image.is-dragging,
     box-shadow 0.1s ease;
 }
 
-.choose-circle.has-image:active {
+.avatar-circle.has-image:active {
   transform: scale(0.97);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.choose-circle .icon {
+.avatar-circle .icon {
   width: 40px;
   height: 40px;
   background: rgba(180, 160, 100, 0.2);
@@ -511,7 +509,7 @@ label.choose-circle.has-image.is-dragging,
   color: var(--color-medium-gray);
 }
 
-.choose-circle .prompt {
+.avatar-circle .prompt {
   font-family: 'Segoe UI', sans-serif;
   font-size: 13px;
   line-height: 13px;
@@ -521,7 +519,7 @@ label.choose-circle.has-image.is-dragging,
   pointer-events: none;
 }
 
-.choose-circle .formats {
+.avatar-circle .formats {
   font-family: 'Segoe UI', sans-serif;
   font-size: 12px;
   line-height: 12px;
@@ -530,7 +528,7 @@ label.choose-circle.has-image.is-dragging,
   pointer-events: none;
 }
 
-.choose-circle .privacy {
+.avatar-circle .privacy {
   font-family: 'Segoe UI', sans-serif;
   display: flex;
   align-items: center;
@@ -544,17 +542,17 @@ label.choose-circle.has-image.is-dragging,
   cursor: pointer;
 }
 
-.choose-circle .privacy:hover {
+.avatar-circle .privacy:hover {
   text-decoration: none;
 }
 
-.choose-circle .privacy:focus-visible {
+.avatar-circle .privacy:focus-visible {
   outline: 2px solid var(--color-red-accent);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-.choose-circle .privacy .info {
+.avatar-circle .privacy .info {
   width: 12px;
   height: 12px;
   border-radius: 50%;
