@@ -171,7 +171,7 @@ describe('useStepTransitions', () => {
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(-50);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine', -50, undefined);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine:cutout', -50, undefined);
   });
 
   it('should reset offset when flag changes in cutout mode', () => {
@@ -183,7 +183,7 @@ describe('useStepTransitions', () => {
       step3: {
         ...createInitialWorkflowState().step3,
         presentation: 'cutout',
-        configuredForFlagId: 'palestine', // Was configured for different flag
+        configuredForFlagId: 'palestine:cutout', // Was configured for different flag
         flagOffsetPct: -50,
       },
     });
@@ -213,10 +213,10 @@ describe('useStepTransitions', () => {
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(0);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('venezuela', 0, undefined);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('venezuela:cutout', 0, undefined);
   });
 
-  it('should not change offset if flag has not changed', () => {
+  it('should not change offset if flag and mode unchanged', () => {
     const state = createState({
       currentStep: 3,
       step2: {
@@ -225,7 +225,7 @@ describe('useStepTransitions', () => {
       step3: {
         ...createInitialWorkflowState().step3,
         presentation: 'cutout',
-        configuredForFlagId: 'palestine', // Already configured for this flag
+        configuredForFlagId: 'palestine:cutout', // Already configured for this flag+mode
         flagOffsetPct: -50,
       },
     });
@@ -245,7 +245,7 @@ describe('useStepTransitions', () => {
       }),
     );
 
-    // Should not be called since flag hasn't changed
+    // Should not be called since flag+mode hasn't changed
     expect(onFlagOffsetChange).not.toHaveBeenCalled();
     expect(onUpdateStep3ForFlag).not.toHaveBeenCalled();
   });
@@ -282,7 +282,7 @@ describe('useStepTransitions', () => {
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(0);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('no-cutout-flag', 0, undefined);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('no-cutout-flag:cutout', 0, undefined);
   });
 
   it('should sync step3 when on step 3 in ring mode and first time configuring (keeps step3 in sync)', () => {
@@ -315,7 +315,7 @@ describe('useStepTransitions', () => {
 
     // We now sync step3 for any mode when flag not yet configured (fixes back-then-forward bug)
     expect(onFlagOffsetChange).toHaveBeenCalledWith(0);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine', 0, undefined);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine:ring', 0, undefined);
   });
 
   it('should handle switching to cutout mode', () => {
@@ -347,6 +347,50 @@ describe('useStepTransitions', () => {
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(-50);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine', -50, undefined);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine:cutout', -50, undefined);
+  });
+
+  it('should re-apply cutout defaults when switching from ring to cutout mode (fixes #169 hotfix)', () => {
+    const flagWithThickness = {
+      ...mockFlag,
+      modes: {
+        cutout: {
+          offsetEnabled: true,
+          defaultOffset: -50,
+          defaultBorderThickness: 13,
+        },
+      },
+    } as FlagSpec;
+
+    const state = createState({
+      currentStep: 3,
+      step2: {
+        flagId: 'palestine',
+      },
+      step3: {
+        ...createInitialWorkflowState().step3,
+        presentation: 'cutout', // User just switched to cutout
+        configuredForFlagId: 'palestine:ring', // Was configured for ring mode
+      },
+    });
+
+    const onFlagOffsetChange = vi.fn();
+    const onUpdateStep3ForFlag = vi.fn();
+
+    renderHook(() =>
+      useStepTransitions({
+        state,
+        displayedStep: state.currentStep,
+        selectedFlag: flagWithThickness,
+        onImageDimensionsChange: vi.fn(),
+        onCircleSizeChange: vi.fn(),
+        onFlagOffsetChange,
+        onUpdateStep3ForFlag,
+      }),
+    );
+
+    // Mode changed from ring→cutout, so cutout defaults should be applied
+    expect(onFlagOffsetChange).toHaveBeenCalledWith(-50);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine:cutout', -50, 13);
   });
 });
