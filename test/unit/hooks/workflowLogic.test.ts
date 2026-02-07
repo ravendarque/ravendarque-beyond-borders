@@ -25,23 +25,51 @@ describe('workflowLogic', () => {
       expect(result.shouldReset).toBe(true);
       expect(result.defaultOffset).toBe(0);
       expect(result.defaultThickness).toBeUndefined();
+      expect(result.configKey).toBe('test-flag:ring');
     });
 
     it('should return true when first time configuring', () => {
       const result = shouldResetFlagOffset(3, 'cutout', 'test-flag', null, mockFlag);
       expect(result.shouldReset).toBe(true);
       expect(result.defaultOffset).toBe(25);
+      expect(result.configKey).toBe('test-flag:cutout');
     });
 
     it('should return true when flag changed', () => {
-      const result = shouldResetFlagOffset(3, 'cutout', 'new-flag', 'old-flag', mockFlag);
+      const result = shouldResetFlagOffset(3, 'cutout', 'new-flag', 'old-flag:cutout', mockFlag);
       expect(result.shouldReset).toBe(true);
       expect(result.defaultOffset).toBe(25);
     });
 
-    it('should return false when flag unchanged', () => {
-      const result = shouldResetFlagOffset(3, 'cutout', 'test-flag', 'test-flag', mockFlag);
+    it('should return false when flag and mode unchanged', () => {
+      const result = shouldResetFlagOffset(3, 'cutout', 'test-flag', 'test-flag:cutout', mockFlag);
       expect(result.shouldReset).toBe(false);
+    });
+
+    it('should return true when mode changes from ring to cutout (same flag)', () => {
+      const flagWithThickness = {
+        ...mockFlag,
+        modes: { cutout: { defaultOffset: 25, defaultBorderThickness: 13 } },
+      } as FlagSpec;
+      const result = shouldResetFlagOffset(
+        3,
+        'cutout',
+        'test-flag',
+        'test-flag:ring',
+        flagWithThickness,
+      );
+      expect(result.shouldReset).toBe(true);
+      expect(result.defaultOffset).toBe(25);
+      expect(result.defaultThickness).toBe(13);
+      expect(result.configKey).toBe('test-flag:cutout');
+    });
+
+    it('should return true when mode changes from cutout to ring (same flag)', () => {
+      const result = shouldResetFlagOffset(3, 'ring', 'test-flag', 'test-flag:cutout', mockFlag);
+      expect(result.shouldReset).toBe(true);
+      expect(result.defaultOffset).toBe(0);
+      expect(result.defaultThickness).toBeUndefined();
+      expect(result.configKey).toBe('test-flag:ring');
     });
 
     it('should default to 0 when flag has no cutout config', () => {

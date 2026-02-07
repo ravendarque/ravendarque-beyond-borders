@@ -112,7 +112,7 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
   // Handle flag offset and thickness reset logic (consolidated - handles both flag changes and mode switches)
   // Use displayedStep (from navigation) so we never run step-3 logic when user has clicked Back and is viewing step 2
   useEffect(() => {
-    const { shouldReset, defaultOffset, defaultThickness } = shouldResetFlagOffset(
+    const { shouldReset, configKey, defaultOffset, defaultThickness } = shouldResetFlagOffset(
       displayedStep,
       step3.presentation,
       step2.flagId,
@@ -122,7 +122,7 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
 
     if (shouldReset) {
       onFlagOffsetChange(defaultOffset ?? 0);
-      onUpdateStep3ForFlag(step2.flagId, defaultOffset, defaultThickness);
+      onUpdateStep3ForFlag(configKey, defaultOffset, defaultThickness);
     }
   }, [
     displayedStep,
