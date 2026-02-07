@@ -55,8 +55,8 @@ if (-not $stagedFiles) {
     exit 0
 }
 
-# Filter for code files (for linting)
-$codeFiles = $stagedFiles | Where-Object { $_ -match '\.(ts|tsx|js|jsx)$' }
+# Filter for code files that ESLint is configured to handle (src/ only)
+$codeFiles = $stagedFiles | Where-Object { $_ -match '^src/.*\.(ts|tsx|js|jsx)$' }
 
 # Filter for all Prettier-supported files (for formatting)
 $prettierFiles = $stagedFiles | Where-Object { $_ -match '\.(ts|tsx|js|jsx|md|yml|yaml|json)$' }
