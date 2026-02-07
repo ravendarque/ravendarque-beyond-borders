@@ -74,11 +74,11 @@ if (-not $trivyFound) {
 # --skip-db-update: skip DB updates in local dev (faster), allow in CI
 # --timeout 5m: sufficient for lock file scan (much faster than full filesystem)
 $exitCode = 0
-$skipDbUpdate = if (-not $isCI) { "--skip-db-update" } else { "" }
-$trivyOutput = trivy fs pnpm-lock.yaml --severity CRITICAL,HIGH --exit-code 1 --timeout 5m `
-    --scanners vuln `
-    $skipDbUpdate `
-    2>&1
+if ($isCI) {
+    $trivyOutput = trivy fs pnpm-lock.yaml --severity CRITICAL,HIGH --exit-code 1 --timeout 5m --scanners vuln 2>&1
+} else {
+    $trivyOutput = trivy fs pnpm-lock.yaml --severity CRITICAL,HIGH --exit-code 1 --timeout 5m --scanners vuln --skip-db-update 2>&1
+}
 $exitCode = $LASTEXITCODE
 
 if ($exitCode -eq 0) {
