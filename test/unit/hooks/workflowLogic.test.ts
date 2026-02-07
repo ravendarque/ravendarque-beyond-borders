@@ -20,9 +20,11 @@ describe('workflowLogic', () => {
       expect(result.shouldReset).toBe(false);
     });
 
-    it('should return false when not in cutout mode', () => {
+    it('should return true when on step 3 and first time configuring (any mode) so step3 stays in sync', () => {
       const result = shouldResetFlagOffset(3, 'ring', 'test-flag', null, mockFlag);
-      expect(result.shouldReset).toBe(false);
+      expect(result.shouldReset).toBe(true);
+      expect(result.defaultOffset).toBe(0);
+      expect(result.defaultThickness).toBeUndefined();
     });
 
     it('should return true when first time configuring', () => {
@@ -47,6 +49,24 @@ describe('workflowLogic', () => {
       const result = shouldResetFlagOffset(3, 'cutout', 'test-flag', null, flagWithoutCutout);
       expect(result.shouldReset).toBe(true);
       expect(result.defaultOffset).toBe(0);
+    });
+
+    it('should return defaultThickness when flag cutout has defaultBorderThickness', () => {
+      const flagWithThickness = {
+        ...mockFlag,
+        modes: { cutout: { defaultOffset: 25, defaultBorderThickness: 13 } },
+      } as FlagSpec;
+      const result = shouldResetFlagOffset(3, 'cutout', 'test-flag', null, flagWithThickness);
+      expect(result.shouldReset).toBe(true);
+      expect(result.defaultOffset).toBe(25);
+      expect(result.defaultThickness).toBe(13);
+    });
+
+    it('should return undefined defaultThickness when flag cutout has no defaultBorderThickness', () => {
+      const result = shouldResetFlagOffset(3, 'cutout', 'test-flag', null, mockFlag);
+      expect(result.shouldReset).toBe(true);
+      expect(result.defaultOffset).toBe(25);
+      expect(result.defaultThickness).toBeUndefined();
     });
   });
 });

@@ -74,6 +74,7 @@ describe('useStepTransitions', () => {
     renderHook(() =>
       useStepTransitions({
         state,
+        displayedStep: state.currentStep,
         selectedFlag: null,
         onImageDimensionsChange,
         onCircleSizeChange,
@@ -108,6 +109,7 @@ describe('useStepTransitions', () => {
     renderHook(() =>
       useStepTransitions({
         state,
+        displayedStep: state.currentStep,
         selectedFlag: null,
         onImageDimensionsChange,
         onCircleSizeChange: vi.fn(),
@@ -127,6 +129,7 @@ describe('useStepTransitions', () => {
     renderHook(() =>
       useStepTransitions({
         state,
+        displayedStep: state.currentStep,
         selectedFlag: null,
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange,
@@ -158,6 +161,7 @@ describe('useStepTransitions', () => {
     renderHook(() =>
       useStepTransitions({
         state,
+        displayedStep: state.currentStep,
         selectedFlag: mockFlag,
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
@@ -167,7 +171,7 @@ describe('useStepTransitions', () => {
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(-50);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine', -50);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine', -50, undefined);
   });
 
   it('should reset offset when flag changes in cutout mode', () => {
@@ -190,6 +194,7 @@ describe('useStepTransitions', () => {
     renderHook(() =>
       useStepTransitions({
         state,
+        displayedStep: state.currentStep,
         selectedFlag: {
           ...mockFlag,
           id: 'venezuela',
@@ -208,7 +213,7 @@ describe('useStepTransitions', () => {
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(0);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('venezuela', 0);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('venezuela', 0, undefined);
   });
 
   it('should not change offset if flag has not changed', () => {
@@ -231,6 +236,7 @@ describe('useStepTransitions', () => {
     renderHook(() =>
       useStepTransitions({
         state,
+        displayedStep: state.currentStep,
         selectedFlag: mockFlag,
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
@@ -263,6 +269,7 @@ describe('useStepTransitions', () => {
     renderHook(() =>
       useStepTransitions({
         state,
+        displayedStep: state.currentStep,
         selectedFlag: {
           id: 'no-cutout-flag',
           displayName: 'No Cutout',
@@ -275,10 +282,10 @@ describe('useStepTransitions', () => {
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(0);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('no-cutout-flag', 0);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('no-cutout-flag', 0, undefined);
   });
 
-  it('should not handle offset logic when not in cutout mode', () => {
+  it('should sync step3 when on step 3 in ring mode and first time configuring (keeps step3 in sync)', () => {
     const state = createState({
       currentStep: 3,
       step2: {
@@ -297,6 +304,7 @@ describe('useStepTransitions', () => {
     renderHook(() =>
       useStepTransitions({
         state,
+        displayedStep: state.currentStep,
         selectedFlag: mockFlag,
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
@@ -305,8 +313,9 @@ describe('useStepTransitions', () => {
       }),
     );
 
-    expect(onFlagOffsetChange).not.toHaveBeenCalled();
-    expect(onUpdateStep3ForFlag).not.toHaveBeenCalled();
+    // We now sync step3 for any mode when flag not yet configured (fixes back-then-forward bug)
+    expect(onFlagOffsetChange).toHaveBeenCalledWith(0);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine', 0, undefined);
   });
 
   it('should handle switching to cutout mode', () => {
@@ -328,6 +337,7 @@ describe('useStepTransitions', () => {
     renderHook(() =>
       useStepTransitions({
         state,
+        displayedStep: state.currentStep,
         selectedFlag: mockFlag,
         onImageDimensionsChange: vi.fn(),
         onCircleSizeChange: vi.fn(),
@@ -337,6 +347,6 @@ describe('useStepTransitions', () => {
     );
 
     expect(onFlagOffsetChange).toHaveBeenCalledWith(-50);
-    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine', -50);
+    expect(onUpdateStep3ForFlag).toHaveBeenCalledWith('palestine', -50, undefined);
   });
 });

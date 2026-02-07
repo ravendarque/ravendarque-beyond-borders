@@ -1,5 +1,3 @@
-<!-- markdownlint-disable MD013 -->
-
 # Development Environment Setup
 
 This directory contains scripts to automate the setup of your development
@@ -12,7 +10,7 @@ The setup scripts use **npm exclusively** for all development tools to ensure co
 ### All Platforms
 
 - **npm** - Package manager for pnpm installation only
-- **npx** - On-demand execution for linting tools (markdownlint-cli2, yaml-lint)
+- **npx** - On-demand execution for linting tools (yaml-lint)
 - **pnpm** - Project dependencies
 - **Manual installation** - Optional security tools (TruffleHog, Trivy) with clear instructions
 
@@ -68,7 +66,6 @@ The setup scripts install all tools needed for building, testing, and validating
 | **Project dependencies**   | React, Vite, etc.        | `pnpm install`                             |
 | **Playwright browsers**    | E2E testing              | `pnpm exec playwright install --with-deps` |
 | **npx**                    | On-demand tool execution | Built into Node.js (no install needed)     |
-| **markdownlint-cli2**      | Markdown linting         | Via `npx` (downloaded on first use)        |
 | **yaml-lint**              | YAML linting             | Via `npx` (downloaded on first use)        |
 
 ### Optional Tools (Skipped with `--skip-optional`)

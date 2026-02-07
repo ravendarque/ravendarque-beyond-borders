@@ -16,7 +16,7 @@ test.describe('Border Thickness Resize', () => {
     await selectFlag(page, TEST_FLAGS.PALESTINE);
     await goToStep3(page);
 
-    const circle = page.locator('.choose-circle.readonly');
+    const circle = page.locator('.avatar-circle.readonly');
     await expect(circle).toBeVisible({ timeout: 10000 });
 
     const initialBox = await circle.boundingBox();

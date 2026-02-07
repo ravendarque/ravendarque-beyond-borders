@@ -18,6 +18,8 @@ import { shouldResetFlagOffset } from './workflowLogic';
 export interface UseStepTransitionsOptions {
   /** Current workflow state */
   state: WorkflowState;
+  /** Currently displayed step (from navigation) - use this for step-3 logic to avoid races when going back */
+  displayedStep: 1 | 2 | 3;
   /** Selected flag (memoized) */
   selectedFlag: FlagSpec | null;
   /** Callback to update image dimensions */
@@ -27,7 +29,11 @@ export interface UseStepTransitionsOptions {
   /** Callback to update flag offset */
   onFlagOffsetChange: (offset: number) => void;
   /** Callback to update step 3 configuration for flag */
-  onUpdateStep3ForFlag: (flagId: string | null, defaultOffset?: number) => void;
+  onUpdateStep3ForFlag: (
+    flagId: string | null,
+    defaultOffset?: number,
+    defaultThickness?: number,
+  ) => void;
 }
 
 /**
@@ -39,6 +45,7 @@ export interface UseStepTransitionsOptions {
 export function useStepTransitions(options: UseStepTransitionsOptions): void {
   const {
     state,
+    displayedStep,
     selectedFlag,
     onImageDimensionsChange,
     onCircleSizeChange,
@@ -46,7 +53,7 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
     onUpdateStep3ForFlag,
   } = options;
 
-  const { step1, step2, step3, currentStep } = state;
+  const { step1, step2, step3 } = state;
 
   // Detect image dimensions when image URL changes
   useEffect(() => {
@@ -86,7 +93,7 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
   // Get circle size from CSS variable
   useEffect(() => {
     const updateCircleSize = () => {
-      const wrapper = document.querySelector('.choose-wrapper');
+      const wrapper = document.querySelector('.avatar-circle-wrapper');
       if (wrapper) {
         const computed = window.getComputedStyle(wrapper);
         const size = parseFloat(computed.width);
@@ -102,11 +109,11 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
     return () => window.removeEventListener('resize', updateCircleSize);
   }, [step1.imageUrl, onCircleSizeChange]); // Re-run when image changes to ensure element exists
 
-  // Handle flag offset reset logic (consolidated - handles both flag changes and mode switches)
+  // Handle flag offset and thickness reset logic (consolidated - handles both flag changes and mode switches)
+  // Use displayedStep (from navigation) so we never run step-3 logic when user has clicked Back and is viewing step 2
   useEffect(() => {
-    // Use business logic to determine if offset should be reset
-    const { shouldReset, defaultOffset } = shouldResetFlagOffset(
-      currentStep,
+    const { shouldReset, defaultOffset, defaultThickness } = shouldResetFlagOffset(
+      displayedStep,
       step3.presentation,
       step2.flagId,
       step3.configuredForFlagId,
@@ -115,10 +122,10 @@ export function useStepTransitions(options: UseStepTransitionsOptions): void {
 
     if (shouldReset) {
       onFlagOffsetChange(defaultOffset ?? 0);
-      onUpdateStep3ForFlag(step2.flagId, defaultOffset);
+      onUpdateStep3ForFlag(step2.flagId, defaultOffset, defaultThickness);
     }
   }, [
-    currentStep,
+    displayedStep,
     step2.flagId,
     step3.presentation,
     step3.configuredForFlagId,

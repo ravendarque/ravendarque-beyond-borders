@@ -1,0 +1,28 @@
+# Enforce branch naming on GitHub Free (no ruleset "Restrict branch names").
+# Runs on every push/PR; fails if branch name doesn't match convention so you get a red status.
+name: Branch naming
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name
+        run: |
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          # Allow main, gh-pages, and feature/feat/fix/etc prefixes
+          if echo "$BRANCH" | grep -qE '^(main|gh-pages)$|^(feature|feat|fix|hotfix|refactor|test|docs|style|perf|chore|ci)/'; then
+            echo "✅ Branch name OK: $BRANCH"
+            exit 0
+          fi
+          echo "::error::Branch name must match: main, gh-pages, or (feature|feat|fix|hotfix|refactor|test|docs|style|perf|chore|ci)/<name>"
+          echo "Current branch: $BRANCH"
+          exit 1

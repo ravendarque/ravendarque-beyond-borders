@@ -283,6 +283,22 @@ describe('workflowReducer', () => {
     expect(result.step3.configuredForFlagId).toBe('palestine');
     expect(result.step3.flagOffsetPct).toBe(25);
   });
+
+  it('should set step3.thickness when UPDATE_STEP3_FOR_FLAG has defaultThickness', () => {
+    const initialState = createInitialWorkflowState();
+    const action: WorkflowAction = {
+      type: 'UPDATE_STEP3_FOR_FLAG',
+      flagId: 'antifa-logo',
+      defaultOffset: 0,
+      defaultThickness: 13,
+    };
+
+    const result = workflowReducer(initialState, action);
+
+    expect(result.step3.configuredForFlagId).toBe('antifa-logo');
+    expect(result.step3.flagOffsetPct).toBe(0);
+    expect(result.step3.thickness).toBe(13);
+  });
 });
 
 describe('useWorkflowState', () => {

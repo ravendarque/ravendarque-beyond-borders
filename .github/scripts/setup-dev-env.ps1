@@ -196,7 +196,7 @@ if (-not $DryRun) {
 # 6. Verify npx availability for linting tools
 Write-Step "Checking npx for on-demand linting tools..."
 if (Test-Command "npx") {
-    Write-Success "npx available (will use for markdownlint-cli2 and yaml-lint)"
+    Write-Success "npx available (will use for yaml-lint)"
     Write-Info "  Linting tools will be downloaded on first use via npx"
     $alreadyInstalled++
 } else {

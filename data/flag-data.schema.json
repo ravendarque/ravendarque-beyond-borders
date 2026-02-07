@@ -90,6 +90,12 @@
                       "minimum": -50,
                       "maximum": 50,
                       "description": "The default value of the offset slider. -50 (left edge of border touches left edge of flag), 0 (centre, no offset), 50 (right edge of border touches right edge of flag)"
+                    },
+                    "defaultBorderThickness": {
+                      "type": "integer",
+                      "minimum": 5,
+                      "maximum": 15,
+                      "description": "Default border thickness percentage for cutout mode (5-15). If omitted, step 3 uses the app default."
                     }
                   },
                   "additionalProperties": false

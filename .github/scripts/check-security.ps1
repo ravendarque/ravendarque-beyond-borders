@@ -68,21 +68,17 @@ if (-not $trivyFound) {
     }
 }
 
-# Run trivy scan (skip irrelevant dirs so pre-push stays fast).
+# Run trivy scan on lock file only (fast - scans dependencies, not entire filesystem)
 # First run can be slow while Trivy downloads the vuln DB (~84 MiB); later runs use cache.
-# --timeout 15m: default 5m often too short for DB download on slow links
-# Skipping: assets (public), test binaries/fixtures, docs, build/output dirs
+# --scanners vuln: only scan for package vulnerabilities (skip config/secret/license)
+# --skip-db-update: skip DB updates in local dev (faster), allow in CI
+# --timeout 5m: sufficient for lock file scan (much faster than full filesystem)
 $exitCode = 0
-$trivyOutput = trivy fs . --severity CRITICAL,HIGH --exit-code 1 --timeout 15m `
-    --skip-dirs "test-results" `
-    --skip-dirs "node_modules" `
-    --skip-dirs ".git" `
-    --skip-dirs "dist" `
-    --skip-dirs "public" `
-    --skip-dirs "test/test-data" `
-    --skip-dirs "test/fixtures" `
-    --skip-dirs "docs" `
-    2>&1
+if ($isCI) {
+    $trivyOutput = trivy fs pnpm-lock.yaml --severity CRITICAL,HIGH --exit-code 1 --timeout 5m --scanners vuln 2>&1
+} else {
+    $trivyOutput = trivy fs pnpm-lock.yaml --severity CRITICAL,HIGH --exit-code 1 --timeout 5m --scanners vuln --skip-db-update 2>&1
+}
 $exitCode = $LASTEXITCODE
 
 if ($exitCode -eq 0) {

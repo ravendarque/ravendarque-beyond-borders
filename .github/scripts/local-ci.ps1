@@ -117,9 +117,60 @@ function Test-CommandExists {
 # Refresh PATH at start to pick up newly installed tools
 Refresh-EnvironmentPath
 
-# 1. Security audit
-Write-Host "1️⃣  Running security audit..." -ForegroundColor White
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+# Detect production code changes first (used to decide whether to run build checks)
+$stagedFiles = git diff --cached --name-only 2>&1
+if (-not $stagedFiles) {
+    $remoteBranch = git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>&1
+    if ($LASTEXITCODE -eq 0 -and $remoteBranch -and $remoteBranch -ne '') {
+        $stagedFiles = git diff --name-only --diff-filter=ACM "$remoteBranch..HEAD" 2>&1
+    }
+}
+$prodPattern = "^(src/|public/|index.html|vite.config.ts|tsconfig.json|package.json|pnpm-lock.yaml|playwright.config.ts|scripts/|.github/scripts/)"
+$prodFilesChanged = $stagedFiles | Where-Object { $_ -match $prodPattern }
+
+# 1-4: Run lint, format, build, tests FIRST (most common failures = fastest feedback)
+# Note: Lint/format also run in pre-commit hook for faster feedback on staged files
+if ($prodFilesChanged -and -not $SkipBuild) {
+    Write-Host "1️⃣  Linting code..." -ForegroundColor White
+    $exitCode = 0
+    pnpm run lint 2>&1 | Out-Null
+    $exitCode = $LASTEXITCODE
+    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Linting passed" } else { "Linting failed" })
+    Write-Host ""
+
+    Write-Host "2️⃣  Checking code format (Prettier)..." -ForegroundColor White
+    $exitCode = 0
+    pnpm run format:check 2>&1 | Out-Null
+    $exitCode = $LASTEXITCODE
+    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Format check passed" } else { "Format check failed (run: pnpm run format)" })
+    Write-Host ""
+
+    Write-Host "3️⃣  Type checking and building..." -ForegroundColor White
+    $exitCode = 0
+    pnpm run build 2>&1 | Out-Null
+    $exitCode = $LASTEXITCODE
+    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Build passed" } else { "Build failed" })
+    Write-Host ""
+
+    Write-Host "4️⃣  Running tests..." -ForegroundColor White
+    $exitCode = 0
+    pnpm test -- --run 2>&1 | Out-Null
+    $exitCode = $LASTEXITCODE
+    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Tests passed" } else { "Tests failed" })
+    Write-Host ""
+} else {
+    if ($SkipBuild) {
+        Write-Host "1️⃣–4️⃣  Skipping build checks (--SkipBuild flag)" -ForegroundColor Yellow
+    } else {
+        Write-Host "1️⃣–4️⃣  No production code changes - skipping build checks" -ForegroundColor Green
+    }
+    Write-Host ""
+}
+
+# 5-12: Other checks (less common failures, run after lint/format/build/tests)
+Write-Host "5️⃣  Running security audit..." -ForegroundColor White
 $exitCode = 0
 try {
     & pwsh -File "$scriptDir/check-security.ps1" 2>&1 | Out-Host
@@ -132,22 +183,7 @@ if ($exitCode -ne 0) {
 }
 Write-Host ""
 
-# 2. Markdown linting
-Write-Host "2️⃣  Linting Markdown files..." -ForegroundColor White
-$exitCode = 0
-try {
-    & pwsh -File "$scriptDir/check-markdown.ps1" 2>&1 | Out-Host
-    $exitCode = $LASTEXITCODE
-} catch {
-    $exitCode = 1
-}
-if ($exitCode -ne 0) {
-    $script:Errors++
-}
-Write-Host ""
-
-# 3. YAML linting
-Write-Host "3️⃣  Linting YAML files..." -ForegroundColor White
+Write-Host "6️⃣  Linting YAML files..." -ForegroundColor White
 $exitCode = 0
 try {
     & pwsh -File "$scriptDir/check-yaml.ps1" 2>&1 | Out-Host
@@ -160,9 +196,7 @@ if ($exitCode -ne 0) {
 }
 Write-Host ""
 
-# 4. Check for TODO/FIXME
-Write-Host "4️⃣  Checking for TODO/FIXME comments..." -ForegroundColor White
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Write-Host "7️⃣  Checking for TODO/FIXME comments..." -ForegroundColor White
 try {
     & pwsh -File "$scriptDir/check-todo-fixme.ps1" | Out-Host
 } catch {
@@ -170,8 +204,7 @@ try {
 }
 Write-Host ""
 
-# 5. Validate file permissions
-Write-Host "5️⃣  Validating file permissions..." -ForegroundColor White
+Write-Host "8️⃣  Validating file permissions..." -ForegroundColor White
 try {
     & pwsh -File "$scriptDir/check-file-permissions.ps1"
     if ($LASTEXITCODE -ne 0) {
@@ -182,8 +215,7 @@ try {
 }
 Write-Host ""
 
-# 6. Check for large files
-Write-Host "6️⃣  Checking for large files (>1MB)..." -ForegroundColor White
+Write-Host "🔟 Checking for large files (>1MB)..." -ForegroundColor White
 try {
     & pwsh -File "$scriptDir/check-large-files.ps1" | Out-Host
 } catch {
@@ -191,9 +223,7 @@ try {
 }
 Write-Host ""
 
-# 7. Privacy check - detect tracking, Google Fonts, etc.
-Write-Host "7️⃣  Checking for privacy concerns..." -ForegroundColor White
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Write-Host "1️⃣1️⃣  Checking for privacy concerns..." -ForegroundColor White
 $privacyExit = 0
 try {
     & pwsh -File "$scriptDir/check-privacy.ps1"
@@ -206,8 +236,7 @@ if ($privacyExit -ne 0) {
 }
 Write-Host ""
 
-# 8. Check for stale references and missing files
-Write-Host "8️⃣  Checking for stale references..." -ForegroundColor White
+Write-Host "1️⃣2️⃣  Checking for stale references..." -ForegroundColor White
 try {
     & pwsh -File "$scriptDir/check-stale-references.ps1"
     if ($LASTEXITCODE -ne 0) {
@@ -217,64 +246,6 @@ try {
     $script:Errors++
 }
 Write-Host ""
-
-# 9. Check if production code changed and run build checks
-Write-Host "9️⃣  Checking if production code changed..." -ForegroundColor White
-# Get staged files first (for commit-time checks)
-$stagedFiles = git diff --cached --name-only 2>&1
-# If no staged files, check files being pushed (pre-push hook context)
-if (-not $stagedFiles) {
-    $currentBranch = git rev-parse --abbrev-ref HEAD 2>&1
-    $remoteBranch = git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>&1
-    if ($LASTEXITCODE -eq 0 -and $remoteBranch -and $remoteBranch -ne '') {
-        $stagedFiles = git diff --name-only --diff-filter=ACM "$remoteBranch..HEAD" 2>&1
-    }
-}
-$prodPattern = "^(src/|public/|index.html|vite.config.ts|tsconfig.json|package.json|pnpm-lock.yaml|playwright.config.ts|scripts/|.github/scripts/)"
-$prodFilesChanged = $stagedFiles | Where-Object { $_ -match $prodPattern }
-
-if ($prodFilesChanged -and -not $SkipBuild) {
-    Write-Host "Production code changes detected. Running build checks...`n" -ForegroundColor Yellow
-    
-    # Lint
-    Write-Host "  📝 Linting code..." -ForegroundColor White
-    $exitCode = 0
-    pnpm run lint 2>&1 | Out-Null
-    $exitCode = $LASTEXITCODE
-    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Linting passed" } else { "Linting failed" })
-    Write-Host ""
-
-    # Format (Prettier)
-    Write-Host "  ✨ Checking code format (Prettier)..." -ForegroundColor White
-    $exitCode = 0
-    pnpm run format:check 2>&1 | Out-Null
-    $exitCode = $LASTEXITCODE
-    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Format check passed" } else { "Format check failed (run: pnpm run format)" })
-    Write-Host ""
-    
-    # Build
-    Write-Host "  🏗️  Type checking and building..." -ForegroundColor White
-    $exitCode = 0
-    pnpm run build 2>&1 | Out-Null
-    $exitCode = $LASTEXITCODE
-    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Build passed" } else { "Build failed" })
-    Write-Host ""
-    
-    # Tests
-    Write-Host "  🧪 Running tests..." -ForegroundColor White
-    $exitCode = 0
-    pnpm test -- --run 2>&1 | Out-Null
-    $exitCode = $LASTEXITCODE
-    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Tests passed" } else { "Tests failed" })
-    Write-Host ""
-} else {
-    if ($SkipBuild) {
-        Write-Host "Skipping build checks (--SkipBuild flag)" -ForegroundColor Yellow
-    } else {
-        Write-Host "✅ No production code changes - skipping build checks" -ForegroundColor Green
-    }
-    Write-Host ""
-}
 
 # Summary
 Write-Host "========================================" -ForegroundColor Cyan

@@ -23,7 +23,7 @@ test.describe('Ring Pattern Visibility', () => {
     await page.waitForTimeout(500);
 
     // Check if pattern layer exists and is visible
-    const patternLayer = page.locator('.choose-wrapper-pattern');
+    const patternLayer = page.locator('.avatar-circle-pattern');
     await expect(patternLayer).toBeVisible({ timeout: 5000 });
 
     // Check if pattern has background-image set (not transparent)
@@ -39,7 +39,7 @@ test.describe('Ring Pattern Visibility', () => {
     );
 
     // Check if wrapper background is transparent (hatch should be hidden)
-    const wrapper = page.locator('.choose-wrapper.readonly');
+    const wrapper = page.locator('.avatar-circle-wrapper.readonly');
     await expect(wrapper).toBeVisible({ timeout: 5000 });
 
     const { background, backgroundColor } = await wrapper.evaluate((el) => {

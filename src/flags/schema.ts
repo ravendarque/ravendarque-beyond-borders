@@ -50,6 +50,7 @@ export const FlagSpec = z.object({
         .object({
           offsetEnabled: z.boolean(),
           defaultOffset: z.number().min(-50).max(50),
+          defaultBorderThickness: z.number().min(5).max(15).optional(),
         })
         .optional(),
     })

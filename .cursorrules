@@ -81,14 +81,15 @@ When creating issues, use this structure:
 ## File Organization
 
 ### Local Working Files
-Use the `.local/` directory for all temporary and local development files:
+**Always use the `.local/` directory** for temporary and local development files. Never put them in the repo root or docs/ unless they are committed project docs.
 - Temporary scripts and PowerShell files
 - Test outputs and screenshots
 - Work-in-progress data files
 - Personal notes and todos
+- **Changelogs, release notes, and other draft docs for public consumption** (e.g. `.local/CHANGELOG-1.4.1-1.5.3.md`)
 - Any files that shouldn't be committed
 
-**Example:** `.local/temp-script.ps1`, `.local/screenshots/preview.png`, `.local/notes.md`
+**Example:** `.local/temp-script.ps1`, `.local/screenshots/preview.png`, `.local/notes.md`, `.local/CHANGELOG-*.md`
 
 The entire `.local/` directory is gitignored (except `.local/README.md`).
 
