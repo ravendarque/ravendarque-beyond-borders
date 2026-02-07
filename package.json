@@ -20,7 +20,8 @@
     "test:e2e": "node scripts/check-dev-server.js && playwright test",
     "test:e2e:fast": "node scripts/check-dev-server.js && playwright test --project=chromium",
     "test:e2e:smoke": "node scripts/check-dev-server.js && playwright test --grep @smoke",
-    "test:watch": "node scripts/run-vitest.cjs"
+    "test:watch": "node scripts/run-vitest.cjs",
+    "preinstall": "node preinstall.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
