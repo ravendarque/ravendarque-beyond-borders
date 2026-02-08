@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { renderAvatar } from '@/renderer/render';
+import { renderAvatarWebGL } from '@/renderer/render-webgl';
+import { isWebGLSupported } from '@/renderer/webgl-utils';
 import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
 import { getAssetUrl } from '@/config';
@@ -174,21 +176,65 @@ export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<str
         try {
           window.__BB_RENDER_STAGE__ = 'renderAvatar_start';
         } catch {}
+
+        // Feature detection: Use WebGL if available, fallback to Canvas 2D
+        const useWebGL = isWebGLSupported();
+
         // Render avatar with flag border
         // Pass position/zoom directly to renderer - no capture needed
-        const result = await renderAvatar(img, transformedFlag, {
-          size,
-          thicknessPct: thickness,
-          imageOffsetPx: imageOffset,
-          imageZoom: options.imagePosition.zoom,
-          circleSize: circleSize, // Pass Step 1's circleSize for accurate zoom calculation
-          originalImageDimensions: options.imageDimensions, // Pass original dimensions for accurate zoom
-          flagOffsetPct: { x: flagOffsetPct, y: 0 }, // Use flagOffsetPct for cutout mode
-          presentation,
-          segmentRotation,
-          backgroundColor: bg === 'transparent' ? null : bg,
-          borderImageBitmap: flagImageBitmap,
-        });
+        let result;
+        try {
+          if (useWebGL) {
+            result = await renderAvatarWebGL(img, transformedFlag, {
+              size,
+              thicknessPct: thickness,
+              imageOffsetPx: imageOffset,
+              imageZoom: options.imagePosition.zoom,
+              circleSize: circleSize,
+              originalImageDimensions: options.imageDimensions,
+              flagOffsetPct: { x: flagOffsetPct, y: 0 },
+              presentation,
+              segmentRotation,
+              backgroundColor: bg === 'transparent' ? null : bg,
+              borderImageBitmap: flagImageBitmap,
+            });
+          } else {
+            // Fallback to Canvas 2D for browsers without WebGL support
+            result = await renderAvatar(img, transformedFlag, {
+              size,
+              thicknessPct: thickness,
+              imageOffsetPx: imageOffset,
+              imageZoom: options.imagePosition.zoom,
+              circleSize: circleSize,
+              originalImageDimensions: options.imageDimensions,
+              flagOffsetPct: { x: flagOffsetPct, y: 0 },
+              presentation,
+              segmentRotation,
+              backgroundColor: bg === 'transparent' ? null : bg,
+              borderImageBitmap: flagImageBitmap,
+            });
+          }
+        } catch (err) {
+          // If WebGL fails, fallback to Canvas 2D
+          if (useWebGL) {
+            console.warn('WebGL rendering failed, falling back to Canvas 2D:', err);
+            result = await renderAvatar(img, transformedFlag, {
+              size,
+              thicknessPct: thickness,
+              imageOffsetPx: imageOffset,
+              imageZoom: options.imagePosition.zoom,
+              circleSize: circleSize,
+              originalImageDimensions: options.imageDimensions,
+              flagOffsetPct: { x: flagOffsetPct, y: 0 },
+              presentation,
+              segmentRotation,
+              backgroundColor: bg === 'transparent' ? null : bg,
+              borderImageBitmap: flagImageBitmap,
+            });
+          } else {
+            throw err;
+          }
+        }
 
         // Create overlay URL from result blob
         const blobUrl = URL.createObjectURL(result.blob);
