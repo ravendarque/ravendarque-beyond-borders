@@ -5,7 +5,6 @@ import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useStepNavigation } from '@/hooks/useStepNavigation';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
 import { useStepTransitions } from '@/hooks/useStepTransitions';
-import { useDebounce } from '@/hooks/usePerformance';
 import { getAssetUrl, config } from '@/config';
 import { FlagSelector } from '@/components/FlagSelector';
 import { FlagPreview } from '@/components/FlagPreview';
@@ -219,10 +218,8 @@ export function AppStepWorkflow() {
     void preloadFlag();
   }, [selectedFlag?.png_full, flagImageCache]);
 
-  // Debounce slider values for smoother rendering during drag
-  const debouncedThickness = useDebounce(step3.thickness, 50);
-  const debouncedFlagOffsetPct = useDebounce(step3.flagOffsetPct, 50);
-  const debouncedSegmentRotation = useDebounce(step3.segmentRotation, 50);
+  // WebGL is fast enough to render without debouncing - instant updates for smooth 60fps
+  // No more jank or cross-fading!
 
   // Trigger render when parameters change (Step 3)
   useEffect(() => {
@@ -233,10 +230,10 @@ export function AppStepWorkflow() {
       // Pass position/zoom directly to renderer - no capture needed
       render(step1.imageUrl, step2.flagId, {
         size: RENDER_SIZES.HIGH_RES,
-        thickness: debouncedThickness,
-        flagOffsetPct: debouncedFlagOffsetPct,
+        thickness: step3.thickness,
+        flagOffsetPct: step3.flagOffsetPct,
         presentation: step3.presentation,
-        segmentRotation: debouncedSegmentRotation,
+        segmentRotation: step3.segmentRotation,
         bg: 'transparent',
         imagePosition: step1.imagePosition,
         imageDimensions: step1.imageDimensions,
@@ -250,10 +247,10 @@ export function AppStepWorkflow() {
     step1.imagePosition,
     step1.circleSize,
     step2.flagId,
-    debouncedThickness,
-    debouncedFlagOffsetPct,
+    step3.thickness,
+    step3.flagOffsetPct,
     step3.presentation,
-    debouncedSegmentRotation,
+    step3.segmentRotation,
     render,
   ]);
 

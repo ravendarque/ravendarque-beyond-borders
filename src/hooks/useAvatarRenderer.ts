@@ -180,6 +180,11 @@ export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<str
         // Feature detection: Use WebGL if available, fallback to Canvas 2D
         const useWebGL = isWebGLSupported();
 
+        // Log which renderer is being used
+        console.log(
+          `🎨 Rendering with: ${useWebGL ? 'WebGL (GPU-accelerated)' : 'Canvas 2D (CPU)'}`,
+        );
+
         // Render avatar with flag border
         // Pass position/zoom directly to renderer - no capture needed
         let result;
