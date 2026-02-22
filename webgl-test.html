@@ -307,7 +307,6 @@
       precision mediump float;
       #define PI 3.14159265359
       
-      uniform sampler2D u_flagTexture;
       uniform vec2 u_center;
       uniform float u_innerRadius;
       uniform float u_outerRadius;
@@ -316,40 +315,51 @@
       
       varying vec2 v_texCoord;
       
+      vec3 getColor(float index) {
+        if (index < 0.5) return vec3(0.894, 0.012, 0.012); // Red
+        if (index < 1.5) return vec3(1.0, 0.549, 0.0);     // Orange
+        if (index < 2.5) return vec3(1.0, 0.929, 0.0);     // Yellow
+        if (index < 3.5) return vec3(0.0, 0.502, 0.149);   // Green
+        if (index < 4.5) return vec3(0.141, 0.251, 0.557); // Blue
+        return vec3(0.451, 0.161, 0.510);                  // Purple
+      }
+      
       void main() {
         vec2 pixelCoord = v_texCoord * u_resolution;
         vec2 pos = pixelCoord - u_center;
         float radius = length(pos);
         float angle = atan(pos.y, pos.x);
         
-        // Outside the ring?
-        if (radius < u_innerRadius || radius > u_outerRadius) {
+        // Smooth anti-aliasing on BOTH radial edges (inner and outer)
+        // Use wider smoothstep (2 pixels on each side = 4 pixels total) for buttery smoothness
+        float innerAlpha = smoothstep(u_innerRadius - 2.0, u_innerRadius + 2.0, radius);
+        float outerAlpha = 1.0 - smoothstep(u_outerRadius - 2.0, u_outerRadius + 2.0, radius);
+        float radialAlpha = innerAlpha * outerAlpha;
+        
+        // Early exit if outside the annulus
+        if (radialAlpha < 0.001) {
           discard;
         }
         
-        // Apply rotation (default -90 degrees to show right half W to E)
-        float rotatedAngle = angle - u_rotation - (PI / 2.0);
+        // Apply rotation and normalize angle to 0 to 2*PI
+        float rotatedAngle = angle - u_rotation + PI;
+        if (rotatedAngle < 0.0) rotatedAngle += 2.0 * PI;
+        if (rotatedAngle >= 2.0 * PI) rotatedAngle -= 2.0 * PI;
         
-        // Normalize to -PI to +PI
-        if (rotatedAngle < -PI) rotatedAngle += 2.0 * PI;
-        if (rotatedAngle > PI) rotatedAngle -= 2.0 * PI;
+        // 6 equal angular segments (60 degrees each)
+        float segmentAngle = 2.0 * PI / 6.0; // 60 degrees per segment
+        float segmentIndex = floor(rotatedAngle / segmentAngle);
         
-        // Only render right half (180 degrees): -PI/2 to +PI/2
-        if (rotatedAngle < -PI / 2.0 || rotatedAngle > PI / 2.0) {
-          discard;
-        }
+        // Hard color boundaries - no blending between segments
+        vec3 color = getColor(segmentIndex);
         
-        // Map to flag texture (horizontal stripe) - map -PI/2 to +PI/2 to 0 to 1
-        float u = (rotatedAngle + PI / 2.0) / PI;
-        float thickness = u_outerRadius - u_innerRadius;
-        float v = (radius - u_innerRadius) / thickness;
+        // But smooth anti-aliasing at the radial edges only (inner/outer circle)
+        // No alpha smoothing at angular boundaries - keep them crisp
         
-        vec4 color = texture2D(u_flagTexture, vec2(u, v));
+        // Combine all alphas (only radial smoothing, no angular smoothing)
+        float finalAlpha = radialAlpha;
         
-        // GPU anti-aliasing on outer edge
-        float outerAlpha = 1.0 - smoothstep(u_outerRadius - 1.5, u_outerRadius + 1.5, radius);
-        
-        gl_FragColor = vec4(color.rgb, color.a * outerAlpha);
+        gl_FragColor = vec4(color, finalAlpha);
       }
     `;
 
@@ -372,8 +382,14 @@
         vec2 pos = pixelCoord - u_center;
         float radius = length(pos);
         
-        // Outside the ring?
-        if (radius < u_innerRadius || radius > u_outerRadius) {
+        // Smooth anti-aliasing on BOTH radial edges (inner and outer)
+        // Use wider smoothstep (2 pixels on each side = 4 pixels total) for buttery smoothness
+        float innerAlpha = smoothstep(u_innerRadius - 2.0, u_innerRadius + 2.0, radius);
+        float outerAlpha = 1.0 - smoothstep(u_outerRadius - 2.0, u_outerRadius + 2.0, radius);
+        float radialAlpha = innerAlpha * outerAlpha;
+        
+        // Early exit if outside the annulus
+        if (radialAlpha < 0.001) {
           discard;
         }
         
@@ -388,10 +404,7 @@
         
         vec4 color = texture2D(u_flagTexture, flagUV);
         
-        // GPU anti-aliasing on outer edge
-        float outerAlpha = 1.0 - smoothstep(u_outerRadius - 1.5, u_outerRadius + 1.5, radius);
-        
-        gl_FragColor = vec4(color.rgb, color.a * outerAlpha);
+        gl_FragColor = vec4(color.rgb, color.a * radialAlpha);
       }
     `;
 
@@ -434,12 +447,18 @@
         vec2 pixelCoord = v_texCoord * u_resolution;
         float dist = distance(pixelCoord, u_center);
         
-        // Only render where we're in the annulus
-        if (dist < u_innerRadius || dist > u_outerRadius) {
+        // Smooth anti-aliasing on BOTH edges (inner and outer)
+        // Use wider smoothstep (2 pixels on each side = 4 pixels total) for buttery smoothness
+        float innerAlpha = smoothstep(u_innerRadius - 2.0, u_innerRadius + 2.0, dist);
+        float outerAlpha = 1.0 - smoothstep(u_outerRadius - 2.0, u_outerRadius + 2.0, dist);
+        float alpha = innerAlpha * outerAlpha;
+        
+        // Early exit if completely transparent
+        if (alpha < 0.001) {
           discard;
         }
         
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
       }
     `;
 
