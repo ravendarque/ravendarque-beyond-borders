@@ -7,10 +7,10 @@
  * - Hardware anti-aliasing eliminates white artifacts
  * - Smooth 60fps preview updates during slider drag
  *
- * The WebGL renderer uses a multi-pass rendering approach:
- * 1. Render masked image to a framebuffer using circular-mask shader
- * 2. Render flag border to another framebuffer using textured-annulus shader
- * 3. Composite both layers using ring-composite shader
+ * The WebGL renderer uses a SINGLE-PASS rendering approach:
+ * - One unified shader per mode combines image masking and border rendering
+ * - Eliminates framebuffer overhead and compositing pass
+ * - Direct rendering to canvas for maximum performance
  *
  * Falls back to Canvas 2D on browsers without WebGL support (< 4% of users).
  */
@@ -26,11 +26,9 @@ import {
   createQuadBuffer,
   QUAD_VERTEX_SHADER,
 } from './webgl-utils';
-import { CIRCULAR_MASK_SHADER } from './shaders/circular-mask.frag';
-import { RING_GRADIENT_SHADER } from './shaders/ring-gradient.frag';
-import { SEGMENT_SHADER } from './shaders/segment.frag';
-import { CUTOUT_SHADER } from './shaders/cutout.frag';
-import { RING_COMPOSITE_SHADER } from './shaders/ring-composite.frag';
+import { AVATAR_RING_SHADER } from './shaders/avatar-ring.frag';
+import { AVATAR_SEGMENT_SHADER } from './shaders/avatar-segment.frag';
+import { AVATAR_CUTOUT_SHADER } from './shaders/avatar-cutout.frag';
 
 /**
  * Render avatar using WebGL for GPU acceleration
@@ -69,20 +67,24 @@ export async function renderAvatarWebGL(
   // Setup viewport
   gl.viewport(0, 0, canvasW, canvasH);
 
-  // Determine presentation mode (ring or segment)
+  // Determine presentation mode (ring, segment, or cutout)
   const presentation = options.presentation ?? 'ring';
 
-  // Create shader programs
-  const maskProgram = createProgram(gl, QUAD_VERTEX_SHADER, CIRCULAR_MASK_SHADER);
-  const ringProgram = createProgram(gl, QUAD_VERTEX_SHADER, RING_GRADIENT_SHADER);
-  const segmentProgram = createProgram(gl, QUAD_VERTEX_SHADER, SEGMENT_SHADER);
-  const cutoutProgram = createProgram(gl, QUAD_VERTEX_SHADER, CUTOUT_SHADER);
-  const compositeProgram = createProgram(gl, QUAD_VERTEX_SHADER, RING_COMPOSITE_SHADER);
+  // Create appropriate shader program based on mode
+  let program: WebGLProgram;
+  if (presentation === 'segment') {
+    program = createProgram(gl, QUAD_VERTEX_SHADER, AVATAR_SEGMENT_SHADER);
+  } else if (presentation === 'cutout' && options.borderImageBitmap) {
+    program = createProgram(gl, QUAD_VERTEX_SHADER, AVATAR_CUTOUT_SHADER);
+  } else {
+    // Default to ring mode
+    program = createProgram(gl, QUAD_VERTEX_SHADER, AVATAR_RING_SHADER);
+  }
 
-  // Create quad geometry for full-screen passes
+  // Create quad geometry for full-screen pass
   const quadBuffer = createQuadBuffer(gl);
 
-  // Create textures
+  // Create image texture
   const imageTexture = createTexture(gl, image);
 
   // Get ring colors from flag specification
@@ -97,175 +99,90 @@ export async function renderAvatarWebGL(
     colorVec3Array.push(r, g, b);
   }
 
-  // Create framebuffers for multi-pass rendering
-  const imageFB = createFramebuffer(gl, canvasW, canvasH);
-  const borderFB = createFramebuffer(gl, canvasW, canvasH);
-
-  // === PASS 1: Render masked image ===
-  gl.bindFramebuffer(gl.FRAMEBUFFER, imageFB.framebuffer);
+  // === SINGLE-PASS RENDERING ===
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); // Render directly to canvas
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  gl.useProgram(maskProgram);
+  gl.useProgram(program);
 
-  // Set uniforms
-  const maskUniforms = {
-    u_image: gl.getUniformLocation(maskProgram, 'u_image'),
-    u_center: gl.getUniformLocation(maskProgram, 'u_center'),
-    u_radius: gl.getUniformLocation(maskProgram, 'u_radius'),
-    u_resolution: gl.getUniformLocation(maskProgram, 'u_resolution'),
+  // Set common uniforms (all modes)
+  const uniforms = {
+    u_image: gl.getUniformLocation(program, 'u_image'),
+    u_center: gl.getUniformLocation(program, 'u_center'),
+    u_imageRadius: gl.getUniformLocation(program, 'u_imageRadius'),
+    u_ringInnerRadius: gl.getUniformLocation(program, 'u_ringInnerRadius'),
+    u_ringOuterRadius: gl.getUniformLocation(program, 'u_ringOuterRadius'),
+    u_resolution: gl.getUniformLocation(program, 'u_resolution'),
   };
 
+  // Bind image texture
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, imageTexture);
-  gl.uniform1i(maskUniforms.u_image, 0);
-  gl.uniform2f(maskUniforms.u_center, cx, cy);
-  gl.uniform1f(maskUniforms.u_radius, imageRadius);
-  gl.uniform2f(maskUniforms.u_resolution, canvasW, canvasH);
+  gl.uniform1i(uniforms.u_image, 0);
 
-  // Draw quad
-  const positionAttrib = gl.getAttribLocation(maskProgram, 'a_position');
-  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-  gl.enableVertexAttribArray(positionAttrib);
-  gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  // Set common uniforms
+  gl.uniform2f(uniforms.u_center, cx, cy);
+  gl.uniform1f(uniforms.u_imageRadius, imageRadius);
+  gl.uniform1f(uniforms.u_ringInnerRadius, ringInnerRadius);
+  gl.uniform1f(uniforms.u_ringOuterRadius, ringOuterRadius);
+  gl.uniform2f(uniforms.u_resolution, canvasW, canvasH);
 
-  // === PASS 2: Render flag border (ring, segment, or cutout based on mode) ===
-  gl.bindFramebuffer(gl.FRAMEBUFFER, borderFB.framebuffer);
-  gl.clear(gl.COLOR_BUFFER_BIT);
+  // Set mode-specific uniforms
+  if (presentation === 'segment') {
+    // Segment mode uniforms
+    const rotationRad = ((options.segmentRotation ?? 0) * Math.PI) / 180;
+    const u_rotation = gl.getUniformLocation(program, 'u_rotation');
+    const u_colorCount = gl.getUniformLocation(program, 'u_colorCount');
+    const u_colors = gl.getUniformLocation(program, 'u_colors');
 
-  if (presentation === 'cutout' && options.borderImageBitmap) {
-    // Cutout mode: Clip flag PNG image to annulus shape
-    // Calculate flag rectangle position and size
+    gl.uniform1f(u_rotation, rotationRad);
+    gl.uniform1i(u_colorCount, ringColors.length);
+    gl.uniform3fv(u_colors, new Float32Array(colorVec3Array));
+  } else if (presentation === 'cutout' && options.borderImageBitmap) {
+    // Cutout mode uniforms
     const flagOffsetPct = options.flagOffsetPct ?? { x: 0, y: 0 };
     const thickness = ringOuterRadius - ringInnerRadius;
     const midR = (ringInnerRadius + ringOuterRadius) / 2;
     const circumference = 2 * Math.PI * midR;
 
-    // Flag rectangle dimensions
     const flagWidth = circumference;
     const flagHeight = thickness;
 
-    // Calculate offset from center (convert percentage to pixels)
     const offsetX = (flagOffsetPct.x / 100) * flagWidth;
     const offsetY = (flagOffsetPct.y / 100) * flagHeight;
 
-    // Position flag rectangle
     const flagPosX = cx - flagWidth / 2 + offsetX;
     const flagPosY = cy - flagHeight / 2 + offsetY;
 
-    // Create texture from flag image
+    // Create and bind flag texture
     const flagTexture = createTexture(gl, options.borderImageBitmap);
-
-    gl.useProgram(cutoutProgram);
-
-    const cutoutUniforms = {
-      u_flagTexture: gl.getUniformLocation(cutoutProgram, 'u_flagTexture'),
-      u_center: gl.getUniformLocation(cutoutProgram, 'u_center'),
-      u_innerRadius: gl.getUniformLocation(cutoutProgram, 'u_innerRadius'),
-      u_outerRadius: gl.getUniformLocation(cutoutProgram, 'u_outerRadius'),
-      u_resolution: gl.getUniformLocation(cutoutProgram, 'u_resolution'),
-      u_flagSize: gl.getUniformLocation(cutoutProgram, 'u_flagSize'),
-      u_flagPos: gl.getUniformLocation(cutoutProgram, 'u_flagPos'),
-    };
-
-    gl.activeTexture(gl.TEXTURE0);
+    gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, flagTexture);
-    gl.uniform1i(cutoutUniforms.u_flagTexture, 0);
-    gl.uniform2f(cutoutUniforms.u_center, cx, cy);
-    gl.uniform1f(cutoutUniforms.u_innerRadius, ringInnerRadius);
-    gl.uniform1f(cutoutUniforms.u_outerRadius, ringOuterRadius);
-    gl.uniform2f(cutoutUniforms.u_resolution, canvasW, canvasH);
-    gl.uniform2f(cutoutUniforms.u_flagSize, flagWidth, flagHeight);
-    gl.uniform2f(cutoutUniforms.u_flagPos, flagPosX, flagPosY);
 
-    const cutoutPosAttrib = gl.getAttribLocation(cutoutProgram, 'a_position');
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-    gl.enableVertexAttribArray(cutoutPosAttrib);
-    gl.vertexAttribPointer(cutoutPosAttrib, 2, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    const u_flagTexture = gl.getUniformLocation(program, 'u_flagTexture');
+    const u_flagSize = gl.getUniformLocation(program, 'u_flagSize');
+    const u_flagPos = gl.getUniformLocation(program, 'u_flagPos');
 
-    // Clean up texture
+    gl.uniform1i(u_flagTexture, 1);
+    gl.uniform2f(u_flagSize, flagWidth, flagHeight);
+    gl.uniform2f(u_flagPos, flagPosX, flagPosY);
+
+    // Clean up flag texture after rendering
     gl.deleteTexture(flagTexture);
-  } else if (presentation === 'segment') {
-    // Segment mode: Angular wedges with rotation
-    gl.useProgram(segmentProgram);
-
-    // Convert rotation from degrees to radians
-    const rotationRad = ((options.segmentRotation ?? 0) * Math.PI) / 180;
-
-    const segmentUniforms = {
-      u_center: gl.getUniformLocation(segmentProgram, 'u_center'),
-      u_innerRadius: gl.getUniformLocation(segmentProgram, 'u_innerRadius'),
-      u_outerRadius: gl.getUniformLocation(segmentProgram, 'u_outerRadius'),
-      u_resolution: gl.getUniformLocation(segmentProgram, 'u_resolution'),
-      u_rotation: gl.getUniformLocation(segmentProgram, 'u_rotation'),
-      u_colorCount: gl.getUniformLocation(segmentProgram, 'u_colorCount'),
-      u_colors: gl.getUniformLocation(segmentProgram, 'u_colors'),
-    };
-
-    gl.uniform2f(segmentUniforms.u_center, cx, cy);
-    gl.uniform1f(segmentUniforms.u_innerRadius, ringInnerRadius);
-    gl.uniform1f(segmentUniforms.u_outerRadius, ringOuterRadius);
-    gl.uniform2f(segmentUniforms.u_resolution, canvasW, canvasH);
-    gl.uniform1f(segmentUniforms.u_rotation, rotationRad);
-    gl.uniform1i(segmentUniforms.u_colorCount, ringColors.length);
-    gl.uniform3fv(segmentUniforms.u_colors, new Float32Array(colorVec3Array));
-
-    const segmentPosAttrib = gl.getAttribLocation(segmentProgram, 'a_position');
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-    gl.enableVertexAttribArray(segmentPosAttrib);
-    gl.vertexAttribPointer(segmentPosAttrib, 2, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
   } else {
-    // Ring mode: Concentric gradient (default)
-    gl.useProgram(ringProgram);
+    // Ring mode uniforms (default)
+    const u_colorCount = gl.getUniformLocation(program, 'u_colorCount');
+    const u_colors = gl.getUniformLocation(program, 'u_colors');
 
-    const ringUniforms = {
-      u_center: gl.getUniformLocation(ringProgram, 'u_center'),
-      u_innerRadius: gl.getUniformLocation(ringProgram, 'u_innerRadius'),
-      u_outerRadius: gl.getUniformLocation(ringProgram, 'u_outerRadius'),
-      u_resolution: gl.getUniformLocation(ringProgram, 'u_resolution'),
-      u_colorCount: gl.getUniformLocation(ringProgram, 'u_colorCount'),
-      u_colors: gl.getUniformLocation(ringProgram, 'u_colors'),
-    };
-
-    gl.uniform2f(ringUniforms.u_center, cx, cy);
-    gl.uniform1f(ringUniforms.u_innerRadius, ringInnerRadius);
-    gl.uniform1f(ringUniforms.u_outerRadius, ringOuterRadius);
-    gl.uniform2f(ringUniforms.u_resolution, canvasW, canvasH);
-    gl.uniform1i(ringUniforms.u_colorCount, ringColors.length);
-    gl.uniform3fv(ringUniforms.u_colors, new Float32Array(colorVec3Array));
-
-    const ringPosAttrib = gl.getAttribLocation(ringProgram, 'a_position');
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-    gl.enableVertexAttribArray(ringPosAttrib);
-    gl.vertexAttribPointer(ringPosAttrib, 2, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.uniform1i(u_colorCount, ringColors.length);
+    gl.uniform3fv(u_colors, new Float32Array(colorVec3Array));
   }
 
-  // === PASS 3: Composite layers ===
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null); // Render to screen
-  gl.clear(gl.COLOR_BUFFER_BIT);
-
-  gl.useProgram(compositeProgram);
-
-  const compositeUniforms = {
-    u_imageLayer: gl.getUniformLocation(compositeProgram, 'u_imageLayer'),
-    u_borderLayer: gl.getUniformLocation(compositeProgram, 'u_borderLayer'),
-  };
-
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, imageFB.texture);
-  gl.uniform1i(compositeUniforms.u_imageLayer, 0);
-
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, borderFB.texture);
-  gl.uniform1i(compositeUniforms.u_borderLayer, 1);
-
-  const compositePosAttrib = gl.getAttribLocation(compositeProgram, 'a_position');
+  // Draw full-screen quad
+  const positionAttrib = gl.getAttribLocation(program, 'a_position');
   gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-  gl.enableVertexAttribArray(compositePosAttrib);
-  gl.vertexAttribPointer(compositePosAttrib, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(positionAttrib);
+  gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
   // Convert canvas to blob
