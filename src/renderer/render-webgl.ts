@@ -22,7 +22,6 @@ import {
   createWebGLContext,
   createProgram,
   createTexture,
-  createFramebuffer,
   createQuadBuffer,
   QUAD_VERTEX_SHADER,
 } from './webgl-utils';

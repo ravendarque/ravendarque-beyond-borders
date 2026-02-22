@@ -4,6 +4,8 @@ import type { FlagSpec } from '@/flags/schema';
 import type { RenderOptions } from '@/renderer/render';
 
 // Mock WebGL context
+let lastGLContext: any = null;
+
 const createMockWebGLContext = () => {
   const gl = {
     TRIANGLES: 4,
@@ -68,6 +70,7 @@ const createMockWebGLContext = () => {
     deleteBuffer: vi.fn(),
     deleteFramebuffer: vi.fn(),
   };
+  lastGLContext = gl; // Track the latest context
   return gl as unknown as WebGLRenderingContext;
 };
 
@@ -142,14 +145,11 @@ describe('renderAvatarWebGL', () => {
     });
 
     it('should use ring gradient shader for ring mode', async () => {
-      const canvas = new MockOffscreenCanvas(512, 512);
-      const gl = canvas.getContext('webgl') as unknown as WebGLRenderingContext;
-
       await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
 
-      // Verify shader creation was called (1 vertex + 3 fragment shaders)
-      expect(gl.createShader).toHaveBeenCalled();
-      expect(gl.createProgram).toHaveBeenCalled();
+      // Verify shader creation was called on the actual GL context used
+      expect(lastGLContext.createShader).toHaveBeenCalled();
+      expect(lastGLContext.createProgram).toHaveBeenCalled();
     });
 
     it('should handle different color counts', async () => {
