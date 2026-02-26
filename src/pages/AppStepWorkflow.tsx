@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { flags } from '@/flags/flags';
 import { useAvatarRenderer } from '@/hooks/useAvatarRenderer';
+import { useAvatarPreview } from '@/hooks/useAvatarPreview';
 import { useFlagImageCache } from '@/hooks/useFlagImageCache';
 import { useStepNavigation } from '@/hooks/useStepNavigation';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
@@ -9,6 +10,7 @@ import { getAssetUrl, config } from '@/config';
 import { FlagSelector } from '@/components/FlagSelector';
 import { FlagPreview } from '@/components/FlagPreview';
 import { ImageUploadZone } from '@/components/ImageUploadZone';
+import { AvatarPreviewCanvas } from '@/components/AvatarPreviewCanvas';
 import { Link } from 'react-router-dom';
 import { PresentationModeSelector } from '@/components/PresentationModeSelector';
 import { AdjustControls } from '@/components/AdjustControls';
@@ -73,9 +75,21 @@ export function AppStepWorkflow() {
     }
   }, [currentStep, workflowStep, setStep]);
 
-  // Avatar rendering
   const flagImageCache = useFlagImageCache();
-  const { overlayUrl, isRendering, render } = useAvatarRenderer(flags, flagImageCache);
+
+  // Live preview — persistent WebGL renderer, draws directly to canvas, no blob overhead
+  const {
+    canvasRef: previewCanvasRef,
+    render: previewRender,
+    isRendering: isPreviewRendering,
+    lastRenderUsedWebGL,
+  } = useAvatarPreview(flags, flagImageCache);
+
+  // Export renderer — Canvas 2D, one-shot, called only on Save
+  const { render: exportRender, isRendering: isExporting } = useAvatarRenderer(
+    flags,
+    flagImageCache,
+  );
 
   // Memoize selected flag to prevent unnecessary re-renders
   const selectedFlag = useMemo(() => {
@@ -218,26 +232,19 @@ export function AppStepWorkflow() {
     void preloadFlag();
   }, [selectedFlag?.png_full, flagImageCache]);
 
-  // WebGL is fast enough to render without debouncing - instant updates for smooth 60fps
-  // No more jank or cross-fading!
-
-  // Trigger render when parameters change (Step 3)
+  // Trigger live preview render when Step 3 parameters change.
+  // The preview renderer (useAvatarPreview) draws directly to a <canvas> element —
+  // no blob, no object URL, no CSS background-image swap. Instant visual updates.
   useEffect(() => {
     if (currentStep === 3 && step1.imageUrl && step1.imageDimensions && step2.flagId) {
-      // Render at high-res (2x) for preview to ensure crisp quality when scaled down
-      // The preview container is 250-400px, so high-res gives us 2.5-4x resolution
-      // This eliminates blur from CSS downscaling
-      // Pass position/zoom directly to renderer - no capture needed
-      render(step1.imageUrl, step2.flagId, {
-        size: RENDER_SIZES.HIGH_RES,
+      void previewRender(step1.imageUrl, step2.flagId, {
         thickness: step3.thickness,
         flagOffsetPct: step3.flagOffsetPct,
         presentation: step3.presentation,
         segmentRotation: step3.segmentRotation,
-        bg: 'transparent',
         imagePosition: step1.imagePosition,
         imageDimensions: step1.imageDimensions,
-        circleSize: step1.circleSize, // Still needed for position calculation
+        circleSize: step1.circleSize,
       });
     }
   }, [
@@ -251,7 +258,7 @@ export function AppStepWorkflow() {
     step3.flagOffsetPct,
     step3.presentation,
     step3.segmentRotation,
-    render,
+    previewRender,
   ]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,16 +279,29 @@ export function AppStepWorkflow() {
     reader.readAsDataURL(file);
   };
 
-  const handleDownload = () => {
-    if (!overlayUrl) return;
+  const handleDownload = async () => {
+    if (!step1.imageUrl || !step2.flagId || !step1.imageDimensions) return;
+    // Export renders at 2× resolution (1024px) for a crisp download.
+    // This is a one-shot Canvas 2D render — latency is acceptable for a save action.
+    const blobUrl = await exportRender(step1.imageUrl, step2.flagId, {
+      size: RENDER_SIZES.HIGH_RES,
+      thickness: step3.thickness,
+      flagOffsetPct: step3.flagOffsetPct,
+      presentation: step3.presentation,
+      segmentRotation: step3.segmentRotation,
+      bg: 'transparent',
+      imagePosition: step1.imagePosition,
+      imageDimensions: step1.imageDimensions,
+      circleSize: step1.circleSize,
+    });
+    if (!blobUrl) return;
     const a = document.createElement('a');
-    a.href = overlayUrl;
-    // Generate identifier: timestamp for uniqueness
-    const identifier = Date.now();
-    a.download = `wearebeyondborders-dot-com-${identifier}.png`;
+    a.href = blobUrl;
+    a.download = `wearebeyondborders-dot-com-${Date.now()}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
   };
 
   const handleStartOver = () => {
@@ -415,20 +435,9 @@ export function AppStepWorkflow() {
                 >
                   <StepLayout
                     mainContent={
-                      <ImageUploadZone
-                        imageUrl={step1.imageUrl}
-                        position={step1.imagePosition}
-                        limits={positionLimits}
-                        aspectRatio={aspectRatio}
-                        imageDimensions={step1.imageDimensions}
-                        circleSize={effectiveCircleSize}
-                        baseCircleSize={step1.circleSize}
-                        readonly={true}
-                        flag={selectedFlag}
-                        presentation={step3.presentation}
-                        borderThicknessPct={step3.thickness}
-                        flagOffsetPct={step3.flagOffsetPct}
-                        segmentRotation={step3.segmentRotation}
+                      <AvatarPreviewCanvas
+                        canvasRef={previewCanvasRef}
+                        isRendering={isPreviewRendering}
                       />
                     }
                     controls={
@@ -542,8 +551,8 @@ export function AppStepWorkflow() {
                   <button
                     type="button"
                     className="nav-btn"
-                    onClick={handleDownload}
-                    disabled={!overlayUrl || isRendering}
+                    onClick={() => void handleDownload()}
+                    disabled={isExporting || !step1.imageUrl || !step2.flagId}
                     aria-label="Save avatar"
                     data-testid="save-avatar"
                   >
@@ -610,6 +619,35 @@ export function AppStepWorkflow() {
                   </svg>
                   Start Over
                 </button>
+                {lastRenderUsedWebGL === true && (
+                  <span
+                    className="webgl-badge"
+                    title="Preview is rendered with WebGL (GPU-accelerated)"
+                    aria-hidden="true"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M12 2L2 7v10l10 5 10-5V7L12 2z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M2 7l10 5 10-5M12 12v10"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </span>
+                )}
               </div>
             )}
           </div>

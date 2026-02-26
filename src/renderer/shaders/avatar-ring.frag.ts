@@ -49,16 +49,21 @@ void main() {
   
   // === RING LAYER ===
   float ringInnerAlpha = smoothstep(u_ringInnerRadius - 2.0, u_ringInnerRadius + 2.0, radius);
-  float ringOuterAlpha = 1.0 - smoothstep(u_ringOuterRadius - 2.0, u_ringOuterRadius + 2.0, radius);
+  // Hard cutoff at the outer boundary — CSS border-radius on the canvas element provides
+  // the circular anti-aliased clip, so shader AA here only adds a semi-transparent colour halo.
+  float ringOuterAlpha = 1.0 - step(u_ringOuterRadius, radius);
   float ringAlpha = ringInnerAlpha * ringOuterAlpha;
   
   vec3 ringColor = vec3(0.0);
   if (ringAlpha > 0.001) {
-    // Concentric gradient
+    // Concentric gradient — reversed so color[0] is outermost, matching Canvas 2D renderer
+    // which draws "outer->inner to preserve stripe order (top => outer)".
     float thickness = u_ringOuterRadius - u_ringInnerRadius;
-    float ringPos = clamp((radius - u_ringInnerRadius) / thickness, 0.0, 1.0);
+    float ringPos = 1.0 - clamp((radius - u_ringInnerRadius) / thickness, 0.0, 1.0);
     
-    float colorRange = float(u_colorCount - 1);
+    // Divide ring into u_colorCount equal bands (not u_colorCount-1).
+    // Using colorCount-1 shrinks the last band to a single anti-aliased pixel at the outer edge.
+    float colorRange = float(u_colorCount);
     float colorIndex = ringPos * colorRange;
     float idx = floor(colorIndex);
     float localPos = fract(colorIndex);

@@ -295,15 +295,11 @@ export function ImageUploadZone({
   }, []);
 
   // Calculate circle inset based on border thickness (Step 3 only)
-  // In Step 1, inset is fixed at 10% (from CSS)
-  // In Step 3, inset = border thickness
   const circleInset = useMemo(() => {
     if (readonly && baseCircleSize && wrapperSize) {
-      // Calculate border thickness in pixels
       const borderThicknessPx = (borderThicknessPct / 100) * wrapperSize;
       return `${borderThicknessPx}px`;
     }
-    // Step 1: Use default CSS inset (10%)
     return undefined;
   }, [readonly, baseCircleSize, wrapperSize, borderThicknessPct]);
 
@@ -520,8 +516,6 @@ export function ImageUploadZone({
   ]);
 
   // Calculate CSS values for background-image display
-  // Use calculateBackgroundSize to maintain cover behavior with zoom
-  // Map position using maxLimits as reference, then scale to current limits for display
   const backgroundSize = calculateBackgroundSize(imageDimensions, circleSize, position.zoom);
   const backgroundStyle = useMemo(() => {
     if (!imageUrl) return undefined;
@@ -552,7 +546,7 @@ export function ImageUploadZone({
         ref={wrapperRef}
         className={readonly ? 'avatar-circle-wrapper readonly' : 'avatar-circle-wrapper'}
       >
-        {/* Flag pattern layer (Step 3 only) - double-buffered for smooth transitions */}
+        {/* Flag pattern layer (Step 1 only) - double-buffered for smooth transitions */}
         {readonly && currentPatternStyle && (
           <div
             className={`avatar-circle-pattern avatar-circle-pattern-current ${isTransitioning ? 'fading-out' : ''}`}

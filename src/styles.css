@@ -696,6 +696,34 @@ label.avatar-circle.has-image.is-dragging,
   color: var(--color-white);
 }
 
+.webgl-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-medium-gray);
+  opacity: 0.85;
+  cursor: default;
+}
+
+.webgl-badge:hover {
+  opacity: 1;
+}
+
+/* Step 3 live preview canvas — fills the avatar-circle-wrapper, clipped to a circle */
+.avatar-preview-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-preview-canvas--rendering {
+  opacity: 0.85;
+}
+
 /* Footer */
 .footer {
   display: flex;

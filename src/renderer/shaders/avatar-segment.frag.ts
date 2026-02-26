@@ -44,7 +44,11 @@ void main() {
   vec2 pixelCoord = v_texCoord * u_resolution;
   vec2 pos = pixelCoord - u_center;
   float radius = length(pos);
-  float angle = atan(pos.y, pos.x);
+  // Negate pos.y so angles increase clockwise, matching Canvas 2D convention
+  // (Canvas 2D has y increasing downward; WebGL has y increasing upward in NDC).
+  // Use PI/2 offset so segment 0 starts at 12 o'clock (North), matching the
+  // Canvas 2D renderer which uses start = -PI/2 + rotationRad.
+  float angle = atan(-pos.y, pos.x);
   
   // === IMAGE LAYER ===
   vec4 imageColor = texture2D(u_image, v_texCoord);
@@ -53,13 +57,14 @@ void main() {
   
   // === SEGMENT LAYER ===
   float ringInnerAlpha = smoothstep(u_ringInnerRadius - 2.0, u_ringInnerRadius + 2.0, radius);
-  float ringOuterAlpha = 1.0 - smoothstep(u_ringOuterRadius - 2.0, u_ringOuterRadius + 2.0, radius);
+  float ringOuterAlpha = 1.0 - step(u_ringOuterRadius, radius);
   float ringAlpha = ringInnerAlpha * ringOuterAlpha;
   
   vec3 ringColor = vec3(0.0);
   if (ringAlpha > 0.001) {
-    // Apply rotation
-    float rotatedAngle = angle - u_rotation + PI;
+    // +PI/2 shifts segment 0 to start at top (12 o'clock), matching Canvas 2D's -PI/2 start.
+    // Subtracting u_rotation rotates clockwise, matching Canvas 2D's +rotationRad offset.
+    float rotatedAngle = angle + (PI / 2.0) - u_rotation;
     if (rotatedAngle < 0.0) rotatedAngle += 2.0 * PI;
     if (rotatedAngle >= 2.0 * PI) rotatedAngle -= 2.0 * PI;
     
