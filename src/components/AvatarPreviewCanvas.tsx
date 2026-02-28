@@ -3,7 +3,7 @@ import { RENDER_SIZES } from '@/constants';
 
 interface AvatarPreviewCanvasProps {
   /** Ref created by useAvatarPreview, attached to the canvas element */
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  canvasRef: React.RefObject<HTMLCanvasElement>;
   /** True while a render is in progress — shows subtle loading state */
   isRendering: boolean;
   /** Render resolution to use as canvas width/height attributes */

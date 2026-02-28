@@ -35,7 +35,7 @@ export interface PreviewOptions {
 
 export function useAvatarPreview(flagsList: FlagSpec[], flagImageCache: Map<string, ImageBitmap>) {
   /** Ref to the visible <canvas> element rendered by AvatarPreviewCanvas */
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   /** Persistent WebGL renderer — null until mounted, null if WebGL unavailable */
   const rendererRef = useRef<LiveAvatarRenderer | null>(null);
   const [isRendering, setIsRendering] = useState(false);

@@ -57,10 +57,9 @@ describe('useAvatarRenderer', () => {
     });
   });
 
-  it('should initialize with null overlayUrl and not rendering', () => {
+  it('should initialize with not rendering and expose render function', () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    expect(result.current.overlayUrl).toBeNull();
     expect(result.current.isRendering).toBe(false);
     expect(typeof result.current.render).toBe('function');
   });
@@ -68,7 +67,7 @@ describe('useAvatarRenderer', () => {
   it('should not render when imageUrl is empty', async () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    await result.current.render('', 'test', {
+    const url = await result.current.render('', 'test', {
       size: 1024,
       thickness: 7,
       flagOffsetPct: 0,
@@ -79,14 +78,14 @@ describe('useAvatarRenderer', () => {
       circleSize: 320,
     });
 
-    expect(result.current.overlayUrl).toBeNull();
+    expect(url).toBeNull();
     expect(result.current.isRendering).toBe(false);
   });
 
-  it('should clear overlay when flagId is empty', async () => {
+  it('should return null when flagId is empty', async () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    await result.current.render('blob:test-image', '', {
+    const url = await result.current.render('blob:test-image', '', {
       size: 1024,
       thickness: 7,
       flagOffsetPct: 0,
@@ -97,15 +96,16 @@ describe('useAvatarRenderer', () => {
       circleSize: 320,
     });
 
-    expect(result.current.overlayUrl).toBeNull();
+    expect(url).toBeNull();
     expect(result.current.isRendering).toBe(false);
   });
 
   it('should render successfully with valid inputs', async () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
+    let url: string | null = null;
     await act(async () => {
-      await result.current.render('blob:test-image', 'test', {
+      url = await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
         flagOffsetPct: 0,
@@ -117,9 +117,7 @@ describe('useAvatarRenderer', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.overlayUrl).toBe('blob:test-url');
-    });
+    expect(url).toBe('blob:test-url');
   });
 
   it('should fetch and cache flag image for cutout mode', async () => {
@@ -168,7 +166,7 @@ describe('useAvatarRenderer', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.overlayUrl).toBeTruthy();
+      expect(result.current.isRendering).toBe(false);
     });
 
     // Fetch is called once for the user image (blob:test-image), but not for the flag
@@ -202,12 +200,12 @@ describe('useAvatarRenderer', () => {
     });
   });
 
-  it('should revoke previous overlay URL when creating new one', async () => {
+  it('should return a blob URL from render each time', async () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    // First render
+    let firstUrl: string | null = null;
     await act(async () => {
-      await result.current.render('blob:test-image', 'test', {
+      firstUrl = await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
         flagOffsetPct: 0,
@@ -218,16 +216,11 @@ describe('useAvatarRenderer', () => {
         circleSize: 320,
       });
     });
+    expect(firstUrl).toBe('blob:test-url');
 
-    await waitFor(() => {
-      expect(result.current.overlayUrl).toBe('blob:test-url');
-    });
-
-    const firstUrl = result.current.overlayUrl;
-
-    // Second render
+    let secondUrl: string | null = null;
     await act(async () => {
-      await result.current.render('blob:test-image', 'test', {
+      secondUrl = await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
         flagOffsetPct: 0,
@@ -238,10 +231,7 @@ describe('useAvatarRenderer', () => {
         circleSize: 320,
       });
     });
-
-    await waitFor(() => {
-      expect(URL.revokeObjectURL).toHaveBeenCalledWith(firstUrl);
-    });
+    expect(secondUrl).toBe('blob:test-url');
   });
 
   it('should handle rendering errors gracefully', async () => {
@@ -270,18 +260,8 @@ describe('useAvatarRenderer', () => {
     expect(result.current.isRendering).toBe(false);
   });
 
-  it('should clean up overlay URL on unmount', () => {
-    const { result, unmount } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
-
-    // Manually set an overlay URL (simulating a successful render)
-    // In a real scenario, this would be set by the render function
-    // We're just testing the cleanup effect
-
-    unmount();
-
-    // The cleanup should have been called
-    // Note: We can't easily verify this without actually rendering first
-    // This test mainly ensures unmount doesn't throw
+  it('should unmount without throwing', () => {
+    const { unmount } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
     expect(() => unmount()).not.toThrow();
   });
 
@@ -297,8 +277,9 @@ describe('useAvatarRenderer', () => {
 
     const { result } = renderHook(() => useAvatarRenderer([flagWithModes], mockCache));
 
+    let url: string | null = null;
     await act(async () => {
-      await result.current.render('blob:test-image', 'test', {
+      url = await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
         flagOffsetPct: 0,
@@ -310,8 +291,6 @@ describe('useAvatarRenderer', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.overlayUrl).toBe('blob:test-url');
-    });
+    expect(url).toBe('blob:test-url');
   });
 });
