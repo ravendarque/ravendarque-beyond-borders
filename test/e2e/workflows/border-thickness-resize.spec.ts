@@ -1,12 +1,34 @@
 /**
- * E2E test to verify circle resizes when border thickness changes
- * Uses shared helpers and ARIA-only slider selector for WebKit compatibility.
+ * E2E test to verify circle resizes when border thickness changes.
+ * Step 3 uses AvatarPreviewCanvas — canvas size is fixed; we verify content via pixel sampling.
+ * At 5% thickness, pixel at 90% from center is inside photo; at 15% it's in the flag border.
  */
 
 import { test, expect } from '@playwright/test';
-import { uploadImage, selectFlag, goToStep3, setSliderValue } from '../helpers/page-helpers';
+import {
+  uploadImage,
+  selectFlag,
+  goToStep3,
+  setSliderValue,
+  waitForReRender,
+} from '../helpers/page-helpers';
 import { TEST_FLAGS } from '../helpers/test-data';
 import { getTestResultsPath } from '../helpers/test-paths';
+
+/** Sample pixel at 90% from center (left edge of inner circle at 5%, in border at 15%) */
+function samplePixelAt90PercentFromCenter(
+  canvas: HTMLCanvasElement,
+): [number, number, number, number] {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return [0, 0, 0, 0];
+  const r = Math.min(canvas.width, canvas.height) / 2;
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const x = Math.floor(cx - 0.9 * r);
+  const y = Math.floor(cy);
+  const imageData = ctx.getImageData(x, y, 1, 1);
+  return [imageData.data[0], imageData.data[1], imageData.data[2], imageData.data[3]];
+}
 
 test.describe('Border Thickness Resize', () => {
   test('should resize image circle when border thickness changes', async ({ page }) => {
@@ -16,53 +38,42 @@ test.describe('Border Thickness Resize', () => {
     await selectFlag(page, TEST_FLAGS.PALESTINE);
     await goToStep3(page);
 
-    const circle = page.locator('.avatar-circle.readonly');
-    await expect(circle).toBeVisible({ timeout: 10000 });
+    const canvas = page.locator('.avatar-preview-canvas');
+    await expect(canvas).toBeVisible({ timeout: 10000 });
 
-    const initialBox = await circle.boundingBox();
-    expect(initialBox).not.toBeNull();
-    const initialWidth = initialBox!.width;
-    const initialHeight = initialBox!.height;
-
-    await circle
+    await canvas
       .screenshot({ path: getTestResultsPath('border-thickness-10.png') })
       .catch(() => {});
 
-    // ARIA-only: [aria-label="Border thickness"] then getByRole('slider') for WebKit
     const sliderRoot = page.locator('[aria-label="Border thickness"]');
     const thicknessSlider = sliderRoot.getByRole('slider');
     await thicknessSlider.waitFor({ state: 'visible', timeout: 15000 });
 
-    // Set thickness to 15% (thicker border = smaller circle; app max is 15%)
+    // Set thickness to 15% (thicker border = smaller circle)
     await setSliderValue(page, 'Border thickness', 15);
+    await waitForReRender(page);
 
-    // Get new circle size
-    const thickerBox = await circle.boundingBox();
-    expect(thickerBox).not.toBeNull();
-    const thickerWidth = thickerBox!.width;
-    const thickerHeight = thickerBox!.height;
+    const pixelAt15 = await canvas.evaluate(samplePixelAt90PercentFromCenter);
 
-    // Circle should be smaller with thicker border
-    expect(thickerWidth).toBeLessThan(initialWidth);
-    expect(thickerHeight).toBeLessThan(initialHeight);
-
-    await circle
+    await canvas
       .screenshot({ path: getTestResultsPath('border-thickness-15.png') })
       .catch(() => {});
 
     // Set thickness to 5% (thinner border = larger circle)
     await setSliderValue(page, 'Border thickness', 5);
+    await waitForReRender(page);
 
-    // Get new circle size
-    const thinnerBox = await circle.boundingBox();
-    expect(thinnerBox).not.toBeNull();
-    const thinnerWidth = thinnerBox!.width;
-    const thinnerHeight = thinnerBox!.height;
+    const pixelAt5 = await canvas.evaluate(samplePixelAt90PercentFromCenter);
 
-    // Circle should be larger with thinner border
-    expect(thinnerWidth).toBeGreaterThan(thickerWidth);
-    expect(thinnerHeight).toBeGreaterThan(thickerHeight);
+    await canvas.screenshot({ path: getTestResultsPath('border-thickness-5.png') }).catch(() => {});
 
-    await circle.screenshot({ path: getTestResultsPath('border-thickness-5.png') }).catch(() => {});
+    // At 5% thickness, 90% from center is inside photo (circle). At 15%, it's in the flag border.
+    // Pixels must differ (photo vs Palestine flag colors)
+    const same =
+      pixelAt5[0] === pixelAt15[0] &&
+      pixelAt5[1] === pixelAt15[1] &&
+      pixelAt5[2] === pixelAt15[2] &&
+      pixelAt5[3] === pixelAt15[3];
+    expect(same).toBe(false);
   });
 });
