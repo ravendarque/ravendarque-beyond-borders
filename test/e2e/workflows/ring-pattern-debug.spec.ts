@@ -1,5 +1,6 @@
 /**
- * Ring pattern visibility in Step 3 (wrapper + pattern layer)
+ * Ring pattern visibility in Step 3.
+ * Step 3 uses AvatarPreviewCanvas (WebGL/2D canvas) — no .avatar-circle-pattern div.
  */
 
 import { test, expect } from '@playwright/test';
@@ -9,6 +10,7 @@ import {
   selectFlag,
   goToStep3,
   selectPresentationMode,
+  waitForReRender,
 } from '../helpers/page-helpers';
 import { TEST_FLAGS } from '../helpers/test-data';
 
@@ -21,26 +23,33 @@ test.describe('Ring Pattern Debug', () => {
     await goToStep3(page);
 
     await selectPresentationMode(page, 'Ring');
-    await page.waitForTimeout(500);
+    await waitForReRender(page);
 
     const wrapper = page.locator('.avatar-circle-wrapper.readonly');
     await expect(wrapper).toBeVisible({ timeout: 5000 });
 
-    const patternLayer = page.locator('.avatar-circle-pattern');
-    const patternCount = await patternLayer.count();
+    const canvas = page.locator('.avatar-preview-canvas');
+    const canvasCount = await canvas.count();
 
-    if (patternCount === 0) {
+    if (canvasCount === 0) {
       await page.screenshot({ path: getTestResultsPath('ring-pattern-debug.png'), fullPage: true });
-      throw new Error('Pattern layer not rendered - patternStyle is likely undefined');
+      throw new Error('Preview canvas not rendered');
     }
 
-    await expect(patternLayer).toBeVisible({ timeout: 5000 });
+    await expect(canvas).toBeVisible({ timeout: 5000 });
 
-    const patternBg = await patternLayer.evaluate((el) => {
-      const style = window.getComputedStyle(el);
-      return style.backgroundImage;
+    const hasContent = await canvas.evaluate((el) => {
+      const c = el as HTMLCanvasElement;
+      if (!c.width || !c.height) return false;
+      const ctx = c.getContext('2d');
+      if (!ctx) return false;
+      const imageData = ctx.getImageData(0, 0, c.width, c.height);
+      const data = imageData.data;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] > 0) return true;
+      }
+      return false;
     });
-    expect(patternBg).not.toBe('none');
-    expect(patternBg.includes('radial-gradient') || patternBg.includes('blob:')).toBe(true);
+    expect(hasContent).toBe(true);
   });
 });
