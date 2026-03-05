@@ -60,7 +60,7 @@
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.4",
     "sharp": "^0.34.3",
-    "svgo": "^4.0.0",
+    "svgo": "^4.0.1",
     "typescript": "^5.5.4",
     "vite": "^7.1.11",
     "vitest": "^3.2.4"
