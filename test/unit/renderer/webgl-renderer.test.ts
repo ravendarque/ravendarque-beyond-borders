@@ -5,8 +5,33 @@ import type { RenderOptions } from '@/renderer/render';
 
 // Mock WebGL context
 let lastGLContext: any = null;
+/** Ordered log of every call made on the mock context, for ordering/value assertions */
+let callLog: Array<{ fn: string; args: any[] }> = [];
+let textureIdCounter = 0;
 
 const createMockWebGLContext = () => {
+  const log = (fn: string, args: any[]) => callLog.push({ fn, args });
+
+  // Tag getUniformLocation results with the uniform name so uniform*() calls can be
+  // traced back to which uniform they set (the real WebGL API doesn't expose this,
+  // but the mock needs it to assert e.g. exact u_flagSize/u_flagPos values).
+  const getUniformLocation = vi.fn((_program: unknown, name: string) => ({ __name: name }));
+  const uniform2f = vi.fn((location: any, x: number, y: number) => {
+    log('uniform2f', [location?.__name, x, y]);
+  });
+
+  // Tag createTexture results with an incrementing id so deleteTexture calls can be
+  // matched back to which texture (image vs flag) was deleted.
+  const createTexture = vi.fn(() => ({ __textureId: ++textureIdCounter }));
+  const deleteTexture = vi.fn((texture: any) => {
+    log('deleteTexture', [texture?.__textureId]);
+  });
+  const drawArrays = vi.fn((...args: any[]) => {
+    log('drawArrays', args);
+  });
+  const deleteProgram = vi.fn((program: any) => log('deleteProgram', [program]));
+  const deleteBuffer = vi.fn((buffer: any) => log('deleteBuffer', [buffer]));
+
   const gl = {
     TRIANGLES: 4,
     TEXTURE_2D: 3553,
@@ -44,13 +69,13 @@ const createMockWebGLContext = () => {
     getProgramParameter: vi.fn(() => true),
     getProgramInfoLog: vi.fn(() => ''),
     useProgram: vi.fn(),
-    getUniformLocation: vi.fn(() => ({})),
+    getUniformLocation,
     getAttribLocation: vi.fn(() => 0),
     uniform1i: vi.fn(),
     uniform1f: vi.fn(),
-    uniform2f: vi.fn(),
+    uniform2f,
     uniform3fv: vi.fn(),
-    createTexture: vi.fn(() => ({})),
+    createTexture,
     bindTexture: vi.fn(),
     texParameteri: vi.fn(),
     texImage2D: vi.fn(),
@@ -60,14 +85,14 @@ const createMockWebGLContext = () => {
     bufferData: vi.fn(),
     enableVertexAttribArray: vi.fn(),
     vertexAttribPointer: vi.fn(),
-    drawArrays: vi.fn(),
+    drawArrays,
     createFramebuffer: vi.fn(() => ({})),
     bindFramebuffer: vi.fn(),
     framebufferTexture2D: vi.fn(),
-    deleteTexture: vi.fn(),
+    deleteTexture,
     deleteShader: vi.fn(),
-    deleteProgram: vi.fn(),
-    deleteBuffer: vi.fn(),
+    deleteProgram,
+    deleteBuffer,
     deleteFramebuffer: vi.fn(),
   };
   lastGLContext = gl; // Track the latest context
@@ -105,6 +130,9 @@ describe('renderAvatarWebGL', () => {
   let renderOptions: RenderOptions;
 
   beforeEach(() => {
+    callLog = [];
+    textureIdCounter = 0;
+
     // Mock ImageBitmap
     mockImage = {
       width: 512,
@@ -225,6 +253,42 @@ describe('renderAvatarWebGL', () => {
 
       expect(result).toBeDefined();
       expect(result.blob).toBeInstanceOf(Blob);
+    });
+
+    it('should delete the flag texture AFTER drawArrays, not before', async () => {
+      // Regression test: deleting a texture before the draw call that uses it rebinds
+      // the unit to the default 1x1 black texture per the WebGL spec, blanking the flag.
+      await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      const drawIndex = callLog.findIndex((c) => c.fn === 'drawArrays');
+      const flagDeleteIndex = callLog.findIndex((c) => c.fn === 'deleteTexture');
+
+      expect(drawIndex).toBeGreaterThanOrEqual(0);
+      expect(flagDeleteIndex).toBeGreaterThan(drawIndex);
+    });
+
+    it('should size the flag rect from ring diameter and flag aspect ratio, not circumference', async () => {
+      // With size=512, thicknessPct=10, paddingPct=0: ringOuterRadius=255.
+      // mockFlagImage is 2048x1024 (aspect ratio 2).
+      // Diameter-based (correct): flagRectHeight = 255*2 = 510, flagRectWidth = 510*2 = 1020.
+      // Circumference-based (the bug): would produce flagWidth ~= 1441.3, flagHeight = 51.2 -
+      // a completely different, wrong shape that this assertion would catch.
+      await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      const flagSizeCall = callLog.find((c) => c.fn === 'uniform2f' && c.args[0] === 'u_flagSize');
+      const flagPosCall = callLog.find((c) => c.fn === 'uniform2f' && c.args[0] === 'u_flagPos');
+
+      expect(flagSizeCall?.args).toEqual(['u_flagSize', 1020, 510]);
+      expect(flagPosCall?.args).toEqual(['u_flagPos', -254, 1]);
+    });
+
+    it('should delete the program, image texture, and quad buffer after export', async () => {
+      await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      expect(lastGLContext.deleteProgram).toHaveBeenCalledTimes(1);
+      expect(lastGLContext.deleteBuffer).toHaveBeenCalledTimes(1);
+      // Two textures created this call (image + flag), both must be deleted.
+      expect(lastGLContext.deleteTexture).toHaveBeenCalledTimes(2);
     });
 
     it('should handle flag offset', async () => {

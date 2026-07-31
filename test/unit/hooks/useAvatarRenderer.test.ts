@@ -12,6 +12,20 @@ vi.mock('@/renderer/render', () => ({
   })),
 }));
 
+// Mock the WebGL export renderer — default to throwing, so tests that don't care about
+// WebGL still exercise the same Canvas 2D path they did before this existed.
+vi.mock('@/renderer/render-webgl', () => ({
+  renderAvatarWebGL: vi.fn(async () => {
+    throw new Error('WebGL not mocked for this test');
+  }),
+}));
+
+// Default to WebGL unsupported so existing tests (written against the Canvas-2D-only
+// hook) keep exercising the same fallback path; WebGL-specific tests override this.
+vi.mock('@/renderer/webgl-utils', () => ({
+  isWebGLSupported: vi.fn(() => false),
+}));
+
 describe('useAvatarRenderer', () => {
   const mockFlag: FlagSpec = {
     id: 'test',
@@ -263,6 +277,74 @@ describe('useAvatarRenderer', () => {
   it('should unmount without throwing', () => {
     const { unmount } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
     expect(() => unmount()).not.toThrow();
+  });
+
+  describe('WebGL export path', () => {
+    it('should use renderAvatarWebGL when WebGL is supported, not the Canvas 2D fallback', async () => {
+      const { isWebGLSupported } = await import('@/renderer/webgl-utils');
+      const { renderAvatarWebGL } = await import('@/renderer/render-webgl');
+      const { renderAvatar } = await import('@/renderer/render');
+      vi.mocked(isWebGLSupported).mockReturnValue(true);
+      vi.mocked(renderAvatarWebGL).mockResolvedValueOnce({
+        blob: new Blob(['webgl'], { type: 'image/png' }),
+        sizeBytes: 2048,
+        sizeKB: '2.00',
+      });
+
+      const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
+
+      let url: string | null = null;
+      await act(async () => {
+        url = await result.current.render('blob:test-image', 'test', {
+          size: 1024,
+          thickness: 7,
+          flagOffsetPct: 0,
+          presentation: 'ring',
+          bg: 'transparent',
+          imagePosition: { x: 0, y: 0, zoom: 0 },
+          imageDimensions: { width: 100, height: 100 },
+          circleSize: 320,
+        });
+      });
+
+      expect(url).toBe('blob:test-url');
+      expect(renderAvatarWebGL).toHaveBeenCalledTimes(1);
+      expect(renderAvatar).not.toHaveBeenCalled();
+
+      vi.mocked(isWebGLSupported).mockReturnValue(false);
+    });
+
+    it('should fall back to Canvas 2D when renderAvatarWebGL throws', async () => {
+      const { isWebGLSupported } = await import('@/renderer/webgl-utils');
+      const { renderAvatarWebGL } = await import('@/renderer/render-webgl');
+      const { renderAvatar } = await import('@/renderer/render');
+      vi.mocked(isWebGLSupported).mockReturnValue(true);
+      vi.mocked(renderAvatarWebGL).mockRejectedValueOnce(new Error('WebGL context lost'));
+
+      const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
+
+      let url: string | null = null;
+      await act(async () => {
+        url = await result.current.render('blob:test-image', 'test', {
+          size: 1024,
+          thickness: 7,
+          flagOffsetPct: 0,
+          presentation: 'ring',
+          bg: 'transparent',
+          imagePosition: { x: 0, y: 0, zoom: 0 },
+          imageDimensions: { width: 100, height: 100 },
+          circleSize: 320,
+        });
+      });
+
+      // Falls back and still succeeds, rather than surfacing the WebGL error to the user.
+      expect(url).toBe('blob:test-url');
+      expect(renderAvatarWebGL).toHaveBeenCalledTimes(1);
+      expect(renderAvatar).toHaveBeenCalledTimes(1);
+      expect(result.current.isRendering).toBe(false);
+
+      vi.mocked(isWebGLSupported).mockReturnValue(false);
+    });
   });
 
   it('should render with flag modes', async () => {

@@ -49,9 +49,9 @@ void main() {
   
   // === RING LAYER ===
   float ringInnerAlpha = smoothstep(u_ringInnerRadius - 2.0, u_ringInnerRadius + 2.0, radius);
-  // Hard cutoff at the outer boundary — CSS border-radius on the canvas element provides
-  // the circular anti-aliased clip, so shader AA here only adds a semi-transparent colour halo.
-  float ringOuterAlpha = 1.0 - step(u_ringOuterRadius, radius);
+  // Smoothstep on both edges — the outer edge must be anti-aliased here rather than relying
+  // on CSS clipping, since this shader also renders to a bare OffscreenCanvas for PNG export.
+  float ringOuterAlpha = 1.0 - smoothstep(u_ringOuterRadius - 2.0, u_ringOuterRadius + 2.0, radius);
   float ringAlpha = ringInnerAlpha * ringOuterAlpha;
   
   vec3 ringColor = vec3(0.0);

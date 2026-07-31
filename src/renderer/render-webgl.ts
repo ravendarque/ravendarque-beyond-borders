@@ -17,7 +17,7 @@
 
 import type { FlagSpec } from '../flags/schema';
 import type { RenderOptions, RenderResult } from './render';
-import { canvasToBlob } from './canvas-utils';
+import { canvasToBlob, createRenderCanvas } from './canvas-utils';
 import {
   createWebGLContext,
   createProgram,
@@ -45,8 +45,8 @@ export async function renderAvatarWebGL(
   const canvasW = options.size;
   const canvasH = options.size;
 
-  // Create canvas for WebGL rendering
-  const canvas = new OffscreenCanvas(canvasW, canvasH);
+  // Create canvas for WebGL rendering (Safari/WebKit-safe fallback)
+  const canvas = createRenderCanvas(canvasW, canvasH);
   const gl = createWebGLContext(canvas);
 
   if (!gl) {
@@ -126,6 +126,9 @@ export async function renderAvatarWebGL(
   gl.uniform1f(uniforms.u_ringOuterRadius, ringOuterRadius);
   gl.uniform2f(uniforms.u_resolution, canvasW, canvasH);
 
+  // Hoisted so it can be cleaned up after the draw call regardless of mode.
+  let flagTexture: WebGLTexture | null = null;
+
   // Set mode-specific uniforms
   if (presentation === 'segment') {
     // Segment mode uniforms
@@ -138,36 +141,27 @@ export async function renderAvatarWebGL(
     gl.uniform1i(u_colorCount, ringColors.length);
     gl.uniform3fv(u_colors, new Float32Array(colorVec3Array));
   } else if (presentation === 'cutout' && options.borderImageBitmap) {
-    // Cutout mode uniforms
+    // Cutout mode uniforms — sized from the ring's outer diameter and the flag's own
+    // aspect ratio (matching render.ts and live-renderer.ts), not the ring circumference.
     const flagOffsetPct = options.flagOffsetPct ?? { x: 0, y: 0 };
-    const thickness = ringOuterRadius - ringInnerRadius;
-    const midR = (ringInnerRadius + ringOuterRadius) / 2;
-    const circumference = 2 * Math.PI * midR;
 
-    const flagWidth = circumference;
-    const flagHeight = thickness;
+    const flagRectHeight = ringOuterRadius * 2;
+    const flagAspectRatio = options.borderImageBitmap.width / options.borderImageBitmap.height;
+    const flagRectWidth = flagRectHeight * flagAspectRatio;
 
-    const offsetX = (flagOffsetPct.x / 100) * flagWidth;
-    const offsetY = (flagOffsetPct.y / 100) * flagHeight;
+    const flagExtension = Math.max(0, (flagRectWidth - flagRectHeight) / 2);
+    const offsetPx = -(flagOffsetPct.x / 50) * flagExtension;
+    const flagPosX = cx - flagRectWidth / 2 + offsetPx;
+    const flagPosY = cy - flagRectHeight / 2;
 
-    const flagPosX = cx - flagWidth / 2 + offsetX;
-    const flagPosY = cy - flagHeight / 2 + offsetY;
-
-    // Create and bind flag texture
-    const flagTexture = createTexture(gl, options.borderImageBitmap);
+    // Switch to TEXTURE1 BEFORE createTexture so it binds there, not to TEXTURE0.
     gl.activeTexture(gl.TEXTURE1);
+    flagTexture = createTexture(gl, options.borderImageBitmap);
     gl.bindTexture(gl.TEXTURE_2D, flagTexture);
 
-    const u_flagTexture = gl.getUniformLocation(program, 'u_flagTexture');
-    const u_flagSize = gl.getUniformLocation(program, 'u_flagSize');
-    const u_flagPos = gl.getUniformLocation(program, 'u_flagPos');
-
-    gl.uniform1i(u_flagTexture, 1);
-    gl.uniform2f(u_flagSize, flagWidth, flagHeight);
-    gl.uniform2f(u_flagPos, flagPosX, flagPosY);
-
-    // Clean up flag texture after rendering
-    gl.deleteTexture(flagTexture);
+    gl.uniform1i(gl.getUniformLocation(program, 'u_flagTexture'), 1);
+    gl.uniform2f(gl.getUniformLocation(program, 'u_flagSize'), flagRectWidth, flagRectHeight);
+    gl.uniform2f(gl.getUniformLocation(program, 'u_flagPos'), flagPosX, flagPosY);
   } else {
     // Ring mode uniforms (default)
     const u_colorCount = gl.getUniformLocation(program, 'u_colorCount');
@@ -187,6 +181,15 @@ export async function renderAvatarWebGL(
   // Convert canvas to blob
   const pngQuality = options.pngQuality ?? 0.92;
   const blob = await canvasToBlob(canvas, 'image/png', pngQuality);
+
+  // Cleanup AFTER the draw — deleting before drawArrays would rebind the unit to the
+  // default 1×1 black texture (WebGL spec), causing incorrect rendering. This is a
+  // one-shot export call (unlike the persistent LiveAvatarRenderer), so everything
+  // created for this call is deleted here rather than reused across frames.
+  if (flagTexture) gl.deleteTexture(flagTexture);
+  gl.deleteTexture(imageTexture);
+  gl.deleteBuffer(quadBuffer);
+  gl.deleteProgram(program);
 
   return {
     blob,

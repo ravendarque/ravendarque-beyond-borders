@@ -73,6 +73,34 @@ export function supportsOffscreenCanvas(): boolean {
 }
 
 /**
+ * Create a canvas (OffscreenCanvas if supported, otherwise regular Canvas) without
+ * attaching any rendering context. Shared by both the 2D (createCanvas) and WebGL
+ * (render-webgl.ts, live-renderer.ts) render paths so the Safari/WebKit fallback
+ * only lives in one place.
+ * @param width Canvas width in pixels
+ * @param height Canvas height in pixels
+ * @returns Canvas instance (caller requests whichever context it needs)
+ */
+export function createRenderCanvas(
+  width: number,
+  height: number,
+): OffscreenCanvas | HTMLCanvasElement {
+  // Validate size first
+  validateCanvasSize(width, height);
+
+  const OffscreenCanvasCtor = getOffscreenCanvasCtor();
+  if (OffscreenCanvasCtor) {
+    return new OffscreenCanvasCtor(width, height);
+  }
+
+  // Fallback to regular Canvas for older browsers
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+}
+
+/**
  * Create a canvas (OffscreenCanvas if supported, otherwise regular Canvas)
  * @param width Canvas width in pixels
  * @param height Canvas height in pixels
@@ -85,28 +113,15 @@ export function createCanvas(
   canvas: OffscreenCanvas | HTMLCanvasElement;
   ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
 } {
-  // Validate size first
-  validateCanvasSize(width, height);
-
-  const OffscreenCanvasCtor = getOffscreenCanvasCtor();
-  if (OffscreenCanvasCtor) {
-    const canvas = new OffscreenCanvasCtor(width, height);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Failed to get 2D context from OffscreenCanvas');
-    }
-    return { canvas, ctx };
-  } else {
-    // Fallback to regular Canvas for older browsers
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Failed to get 2D context from Canvas');
-    }
-    return { canvas, ctx };
+  const canvas = createRenderCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Failed to get 2D context from canvas');
   }
+  return { canvas, ctx } as {
+    canvas: OffscreenCanvas | HTMLCanvasElement;
+    ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
+  };
 }
 
 /**

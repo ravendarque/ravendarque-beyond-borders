@@ -5,7 +5,14 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { selectFlag, setSliderValue, goToStep3, waitForStep3Ready } from '../helpers/page-helpers';
+import {
+  uploadImage,
+  selectFlag,
+  setSliderValue,
+  goToStep3,
+  waitForStep3Ready,
+  selectPresentationMode,
+} from '../helpers/page-helpers';
 import { TEST_IDS } from '../helpers/test-ids';
 import { TEST_FLAGS, POSITIONING_TEST_IMAGE_PATH } from '../helpers/test-data';
 import { TEST_RESULTS_DIR, getTestResultsPath } from '../helpers/test-paths';
@@ -163,5 +170,68 @@ test.describe('Download Matches Preview', () => {
     const downloadPath = getTestResultsPath('downloaded-zoom50.png');
     await download.saveAs(downloadPath);
     expect(fs.existsSync(downloadPath)).toBe(true);
+  });
+
+  test('should download cutout mode with the flag rendered at a sane scale in the ring', async ({
+    page,
+  }) => {
+    // Regression test for a WebGL export bug where the flag rectangle was sized from the
+    // ring's circumference instead of its diameter, producing a wildly wrong scale, and a
+    // separate bug where the flag texture was deleted before the draw call that used it,
+    // rendering the ring band black. Neither is easily caught by a mocked-GL unit test, so
+    // this exercises the real download in a real browser.
+    await page.goto('/');
+
+    await uploadImage(page);
+    await selectFlag(page, TEST_FLAGS.PALESTINE);
+    await goToStep3(page);
+    await selectPresentationMode(page, 'Cutout');
+    await waitForStep3Ready(page);
+
+    const downloadButton = page.getByTestId(TEST_IDS.SAVE_AVATAR);
+    await expect(downloadButton).toBeVisible({ timeout: 5000 });
+
+    const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
+    await downloadButton.click();
+    const download = await downloadPromise;
+
+    const downloadPath = getTestResultsPath('downloaded-cutout-test.png');
+    await download.saveAs(downloadPath);
+    expect(fs.existsSync(downloadPath)).toBe(true);
+
+    const { data, info } = await sharp(downloadPath).raw().ensureAlpha().toBuffer({
+      resolveWithObject: true,
+    });
+
+    // Sample around the ring band (partway between center and edge, where the flag renders)
+    // at several angles. If the flag texture was deleted before the draw (bug), these pixels
+    // come back as fully transparent black. If the flag rect was sized from circumference
+    // instead of diameter (bug), the flag would still render, but not necessarily blank -
+    // combined with the unit-test value assertions on u_flagSize/u_flagPos, this E2E check's
+    // job is to confirm the real, non-mocked WebGL pipeline produces visible, varied content
+    // in the ring band at all.
+    const cx = info.width / 2;
+    const cy = info.height / 2;
+    const ringSampleRadius = info.width * 0.45; // near the outer edge, inside the ring band
+    const angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+
+    const samples: Array<[number, number, number, number]> = angles.map((angle) => {
+      const x = Math.round(cx + ringSampleRadius * Math.cos(angle));
+      const y = Math.round(cy + ringSampleRadius * Math.sin(angle));
+      const idx = info.channels * (info.width * y + x);
+      return [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]];
+    });
+
+    for (const [r, g, b, a] of samples) {
+      // Not fully transparent (rules out the texture-delete-before-draw regression)
+      expect(a).toBeGreaterThan(0);
+      // Not pure black (rules out sampling the default 1x1 black texture)
+      expect(r + g + b).toBeGreaterThan(0);
+    }
+
+    // The flag has real color variation around the ring, not a single degenerate color
+    // (rules out the ring band collapsing to a single sampled pixel from a mis-scaled UV).
+    const uniqueColors = new Set(samples.map(([r, g, b]) => `${r},${g},${b}`));
+    expect(uniqueColors.size).toBeGreaterThan(1);
   });
 });

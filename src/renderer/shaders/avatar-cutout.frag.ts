@@ -38,7 +38,9 @@ void main() {
   
   // === FLAG LAYER ===
   float ringInnerAlpha = smoothstep(u_ringInnerRadius - 2.0, u_ringInnerRadius + 2.0, radius);
-  float ringOuterAlpha = 1.0 - step(u_ringOuterRadius, radius);
+  // Smoothstep on both edges — the outer edge must be anti-aliased here rather than relying
+  // on CSS clipping, since this shader also renders to a bare OffscreenCanvas for PNG export.
+  float ringOuterAlpha = 1.0 - smoothstep(u_ringOuterRadius - 2.0, u_ringOuterRadius + 2.0, radius);
   float ringAlpha = ringInnerAlpha * ringOuterAlpha;
   
   vec4 flagColor = vec4(0.0);

@@ -12,6 +12,7 @@
  */
 
 import type { FlagSpec } from '../flags/schema';
+import { createRenderCanvas, supportsOffscreenCanvas } from './canvas-utils';
 import {
   createWebGLContext,
   createProgram,
@@ -53,8 +54,17 @@ export class LiveAvatarRenderer {
   constructor(size: number) {
     this.size = size;
 
-    this.offscreen = new OffscreenCanvas(size, size);
-    this.imageCanvas = new OffscreenCanvas(size, size);
+    // This class relies on OffscreenCanvas.transferToImageBitmap() for its synchronous
+    // per-frame output, which HTMLCanvasElement doesn't have — so unlike the 2D render
+    // path, there's no HTMLCanvasElement fallback here. isSupported() checks this too;
+    // callers must use it before constructing. This check makes that contract explicit
+    // rather than failing later with a confusing "transferToImageBitmap is not a function".
+    if (!supportsOffscreenCanvas()) {
+      throw new Error('OffscreenCanvas not supported — required for LiveAvatarRenderer');
+    }
+
+    this.offscreen = createRenderCanvas(size, size) as OffscreenCanvas;
+    this.imageCanvas = createRenderCanvas(size, size) as OffscreenCanvas;
 
     const imageCtx = this.imageCanvas.getContext('2d');
     if (!imageCtx) throw new Error('Failed to create 2D context for image pre-processing');
@@ -244,7 +254,7 @@ export class LiveAvatarRenderer {
   }
 
   static isSupported(): boolean {
-    return isWebGLSupported();
+    return isWebGLSupported() && supportsOffscreenCanvas();
   }
 
   destroy(): void {

@@ -4,16 +4,21 @@
  * Responsible solely for producing the final high-resolution PNG for download.
  * Called once when the user clicks Save — not on every slider change.
  *
- * Uses the Canvas 2D renderer (render.ts) which correctly handles all positioning,
- * zoom, and flag modes. Returns the blob URL so the caller can trigger a download.
+ * Tries the WebGL renderer first (GPU anti-aliasing, faster on large 1024px exports),
+ * falling back to the Canvas 2D renderer on any failure or when WebGL is unavailable —
+ * the same fallback pattern used by useAvatarPreview for live preview. Returns the blob
+ * URL so the caller can trigger a download.
  *
  * Separation of concerns:
  * - useAvatarPreview  → live preview  (persistent WebGL renderer → canvas draw, no blob)
- * - useAvatarRenderer → export/save   (one-shot Canvas 2D → blob URL for download)
+ * - useAvatarRenderer → export/save   (one-shot WebGL, falls back to Canvas 2D → blob URL)
  */
 
 import { useState, useCallback } from 'react';
 import { renderAvatar } from '@/renderer/render';
+import { renderAvatarWebGL } from '@/renderer/render-webgl';
+import { isWebGLSupported } from '@/renderer/webgl-utils';
+import type { RenderResult } from '@/renderer/render';
 import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
 import { getAssetUrl } from '@/config';
@@ -90,7 +95,7 @@ export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<str
           y: step1Offset.y * scaleFactor,
         };
 
-        const result = await renderAvatar(img, flag, {
+        const renderOptions = {
           size: size as 512 | 1024,
           thicknessPct: options.thickness,
           imageOffsetPx,
@@ -102,7 +107,25 @@ export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<str
           segmentRotation: options.segmentRotation,
           backgroundColor: options.bg === 'transparent' ? null : options.bg,
           borderImageBitmap,
-        });
+        };
+
+        let result: RenderResult;
+        if (isWebGLSupported()) {
+          try {
+            // Note: renderAvatarWebGL doesn't composite backgroundColor (no UI currently
+            // sets it to anything but 'transparent' — see AppStepWorkflow.tsx). If that
+            // changes, the shaders need a background-fill pass before this can be relied on.
+            result = await renderAvatarWebGL(img, flag, renderOptions);
+          } catch (webglErr) {
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.error('WebGL export failed, falling back to Canvas 2D:', webglErr);
+            }
+            result = await renderAvatar(img, flag, renderOptions);
+          }
+        } else {
+          result = await renderAvatar(img, flag, renderOptions);
+        }
 
         setIsRendering(false);
         return URL.createObjectURL(result.blob);
