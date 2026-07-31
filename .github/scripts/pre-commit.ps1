@@ -93,6 +93,19 @@ $exitCode = $LASTEXITCODE
 Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Format check passed" } else { "Format check failed (run: pnpm run format)" })
 Write-Host ""
 
+# 3. Scan staged changes for secrets (gitleaks) - best-effort locally, GitHub push
+# protection is the enforced backstop, so a missing local install just warns.
+Write-Host "3️⃣  Scanning staged changes for secrets (gitleaks)..." -ForegroundColor White
+if (Get-Command gitleaks -ErrorAction SilentlyContinue) {
+    gitleaks protect --staged --redact --no-banner 2>&1 | Out-Null
+    $exitCode = $LASTEXITCODE
+    Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "No secrets detected" } else { "Possible secret detected in staged changes (run: gitleaks protect --staged -v)" })
+} else {
+    Write-Host "⚠️  gitleaks not installed - skipping local secret scan (GitHub push protection still applies)" -ForegroundColor Yellow
+    Write-Host "  Install: https://github.com/gitleaks/gitleaks#installing" -ForegroundColor Gray
+}
+Write-Host ""
+
 # Summary
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "📊 Pre-commit Summary" -ForegroundColor Cyan
