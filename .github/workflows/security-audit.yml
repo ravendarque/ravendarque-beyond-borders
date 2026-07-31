@@ -1,0 +1,125 @@
+name: Security Audit
+
+# Deterministic provenance checks, born from a real incident (2026-07-31): a
+# forged merge commit bypassed PR review and added an obfuscated preinstall
+# script. These checks catch that exact pattern fast - see SECURITY.md.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 6 * * *' # daily, off the hour to avoid GitHub's peak-minute queue
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit provenance on main
+        id: provenance
+        run: |
+          set -euo pipefail
+          echo "## Commit provenance" >> "$GITHUB_STEP_SUMMARY"
+          suspects=""
+          while IFS='|' read -r sha cn ce gpg; do
+            if [ "$cn" != "GitHub" ] && [ "$cn" != "github-actions[bot]" ]; then
+              suspects="${suspects}${sha} committer='${cn} <${ce}>' signature=${gpg}\n"
+            fi
+          done < <(git log origin/main --merges --since="2 days ago" --pretty=format:'%H|%cn|%ce|%G?')
+
+          if [ -n "$suspects" ]; then
+            echo -e "$suspects" >> "$GITHUB_STEP_SUMMARY"
+            echo -e "$suspects" > /tmp/provenance-suspects.txt
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No merge commits in the last 2 days with an unexpected committer identity." >> "$GITHUB_STEP_SUMMARY"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check for unexpected install-time lifecycle scripts
+        id: lifecycle
+        run: |
+          set -euo pipefail
+          echo "## Lifecycle scripts" >> "$GITHUB_STEP_SUMMARY"
+          hits=$(node -e "
+            const pkg = require('./package.json');
+            const scripts = pkg.scripts || {};
+            const flagged = ['preinstall', 'postinstall', 'install'].filter(k => scripts[k]);
+            console.log(flagged.map(k => k + ': ' + scripts[k]).join('\n'));
+          ")
+          if [ -n "$hits" ]; then
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "$hits" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "$hits" > /tmp/lifecycle-hits.txt
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No preinstall/postinstall/install scripts in package.json (expected - this project doesn't use any)." >> "$GITHUB_STEP_SUMMARY"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Scan for hidden-payload obfuscation signature
+        id: obfuscation
+        run: |
+          set -euo pipefail
+          echo "## Obfuscation tripwire" >> "$GITHUB_STEP_SUMMARY"
+          # Matches the exact technique found in the 2026-07-31 incident: payloads
+          # hidden in invisible Unicode variation selectors, then eval()'d.
+          hits=$(git grep -lP "eval\(Buffer\.from\(" -- . ':(exclude)*.lock' ':(exclude)pnpm-lock.yaml' 2>/dev/null || true)
+          dense_hits=$(git grep -lP "[\x{FE00}-\x{FE0F}\x{E0100}-\x{E01EF}]{10,}" -- . ':(exclude)*.lock' ':(exclude)pnpm-lock.yaml' 2>/dev/null || true)
+          all_hits=$(printf '%s\n%s\n' "$hits" "$dense_hits" | sort -u | sed '/^$/d')
+          if [ -n "$all_hits" ]; then
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "$all_hits" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "$all_hits" > /tmp/obfuscation-hits.txt
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No hidden-payload signature found in tracked files." >> "$GITHUB_STEP_SUMMARY"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open issue if anything was flagged
+        if: steps.provenance.outputs.found == 'true' || steps.lifecycle.outputs.found == 'true' || steps.obfuscation.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          {
+            echo "Automated security audit flagged something on \`main\` (run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+            echo ""
+            if [ -f /tmp/provenance-suspects.txt ]; then
+              echo "### Anomalous commit committer identity"
+              echo '```'
+              cat /tmp/provenance-suspects.txt
+              echo '```'
+            fi
+            if [ -f /tmp/lifecycle-hits.txt ]; then
+              echo "### Unexpected lifecycle script in package.json"
+              echo '```'
+              cat /tmp/lifecycle-hits.txt
+              echo '```'
+            fi
+            if [ -f /tmp/obfuscation-hits.txt ]; then
+              echo "### Possible hidden-payload obfuscation signature"
+              echo '```'
+              cat /tmp/obfuscation-hits.txt
+              echo '```'
+            fi
+            echo ""
+            echo "This does not auto-remediate - please verify by hand before assuming it's malicious."
+          } > /tmp/issue-body.md
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "Security audit: possible anomaly on main ($(date -u +%Y-%m-%d))" \
+            --label "security" \
+            --body-file /tmp/issue-body.md
