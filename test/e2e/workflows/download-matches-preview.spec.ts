@@ -204,12 +204,12 @@ test.describe('Download Matches Preview', () => {
     });
 
     // Sample around the ring band (partway between center and edge, where the flag renders)
-    // at several angles. If the flag texture was deleted before the draw (bug), these pixels
-    // come back as fully transparent black. If the flag rect was sized from circumference
-    // instead of diameter (bug), the flag would still render, but not necessarily blank -
-    // combined with the unit-test value assertions on u_flagSize/u_flagPos, this E2E check's
-    // job is to confirm the real, non-mocked WebGL pipeline produces visible, varied content
-    // in the ring band at all.
+    // at several angles. Note: the Palestine flag itself has a genuine solid-black stripe, so
+    // "pure black" isn't by itself a sign of the texture-delete-before-draw bug (which produces
+    // the WebGL spec's default texture — also opaque black) — a single black sample is
+    // expected. What both bugs this guards against have in common is collapsing the ring band
+    // to a single degenerate value everywhere, so we check for real variation across angles
+    // instead of asserting anything about one individual sample's color.
     const cx = info.width / 2;
     const cy = info.height / 2;
     const ringSampleRadius = info.width * 0.45; // near the outer edge, inside the ring band
@@ -222,15 +222,15 @@ test.describe('Download Matches Preview', () => {
       return [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]];
     });
 
-    for (const [r, g, b, a] of samples) {
-      // Not fully transparent (rules out the texture-delete-before-draw regression)
+    for (const [, , , a] of samples) {
+      // Not fully transparent (rules out the texture-delete-before-draw regression producing
+      // a wrong flagUV that falls out of the shader's [0,1] sample bounds everywhere)
       expect(a).toBeGreaterThan(0);
-      // Not pure black (rules out sampling the default 1x1 black texture)
-      expect(r + g + b).toBeGreaterThan(0);
     }
 
     // The flag has real color variation around the ring, not a single degenerate color
-    // (rules out the ring band collapsing to a single sampled pixel from a mis-scaled UV).
+    // (rules out both the black-texture-fallback bug and the ring band collapsing to a single
+    // sampled pixel from a mis-scaled circumference-based UV).
     const uniqueColors = new Set(samples.map(([r, g, b]) => `${r},${g},${b}`));
     expect(uniqueColors.size).toBeGreaterThan(1);
   });
