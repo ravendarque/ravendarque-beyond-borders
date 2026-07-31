@@ -1,0 +1,21 @@
+# Trivy ignore list - each entry requires a justification comment.
+# Review periodically; remove an entry once the underlying code path changes
+# or the fix can be adopted without disproportionate risk.
+
+# GHSA-qwww-vcr4-c8h2 - React Router: RSC Mode CSRF Bypass Allows Action
+# Execution Before 400 Response.
+# Only reachable via React Server Components / Framework-mode server
+# actions. This app is a plain client-side SPA (BrowserRouter/Routes/Route
+# only, no RouterProvider, no @react-router/dev, no "use server") and never
+# exercises that code path. The fix requires react-router v8, which forces
+# a react/react-dom >=19.2.7 peer dependency - a React 18->19 upgrade with
+# no corresponding security benefit for how this app actually uses the
+# library. Accepted 2026-07-31.
+GHSA-qwww-vcr4-c8h2
+
+# CVE-2026-55697 - pnpm: Arbitrary code execution via improper handling of
+# config dependencies.
+# Only reachable when a project uses pnpm's `configDependencies` feature.
+# Verified this repo does not (no configDependencies key in
+# pnpm-workspace.yaml or package.json). Accepted 2026-07-31.
+CVE-2026-55697
