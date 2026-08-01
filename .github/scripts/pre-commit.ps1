@@ -75,7 +75,7 @@ if ($codeFiles) {
     Write-Host "1️⃣  Linting code files (ESLint)..." -ForegroundColor White
     $exitCode = 0
     # ESLint can handle multiple files - pass them all
-    pnpm eslint $codeFiles 2>&1 | Out-Null
+    & pnpm eslint @codeFiles 2>&1 | Out-Null
     $exitCode = $LASTEXITCODE
     Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Linting passed" } else { "Linting failed" })
     Write-Host ""
@@ -88,7 +88,7 @@ if ($codeFiles) {
 Write-Host "2️⃣  Checking file format (Prettier)..." -ForegroundColor White
 $exitCode = 0
 # Prettier can handle multiple files - pass them all
-pnpm prettier --check $prettierFiles 2>&1 | Out-Null
+& pnpm prettier --check @prettierFiles 2>&1 | Out-Null
 $exitCode = $LASTEXITCODE
 Print-Status ($exitCode -eq 0) $(if ($exitCode -eq 0) { "Format check passed" } else { "Format check failed (run: pnpm run format)" })
 Write-Host ""

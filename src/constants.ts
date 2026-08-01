@@ -11,7 +11,9 @@
 export const RENDER_SIZES = {
   /** Standard render size (1x) */
   STANDARD: 512,
-  /** High-resolution render size (2x) for crisp previews */
+  /** Live preview render size - persistent WebGL renderer, no blob encoding */
+  PREVIEW: 512,
+  /** High-resolution export size (2x) - used for Save/download only */
   HIGH_RES: 1024,
 } as const;
 

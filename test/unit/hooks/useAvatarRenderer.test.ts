@@ -12,6 +12,20 @@ vi.mock('@/renderer/render', () => ({
   })),
 }));
 
+// Mock the WebGL export renderer — default to throwing, so tests that don't care about
+// WebGL still exercise the same Canvas 2D path they did before this existed.
+vi.mock('@/renderer/render-webgl', () => ({
+  renderAvatarWebGL: vi.fn(async () => {
+    throw new Error('WebGL not mocked for this test');
+  }),
+}));
+
+// Default to WebGL unsupported so existing tests (written against the Canvas-2D-only
+// hook) keep exercising the same fallback path; WebGL-specific tests override this.
+vi.mock('@/renderer/webgl-utils', () => ({
+  isWebGLSupported: vi.fn(() => false),
+}));
+
 describe('useAvatarRenderer', () => {
   const mockFlag: FlagSpec = {
     id: 'test',
@@ -57,10 +71,9 @@ describe('useAvatarRenderer', () => {
     });
   });
 
-  it('should initialize with null overlayUrl and not rendering', () => {
+  it('should initialize with not rendering and expose render function', () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    expect(result.current.overlayUrl).toBeNull();
     expect(result.current.isRendering).toBe(false);
     expect(typeof result.current.render).toBe('function');
   });
@@ -68,7 +81,7 @@ describe('useAvatarRenderer', () => {
   it('should not render when imageUrl is empty', async () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    await result.current.render('', 'test', {
+    const url = await result.current.render('', 'test', {
       size: 1024,
       thickness: 7,
       flagOffsetPct: 0,
@@ -79,14 +92,14 @@ describe('useAvatarRenderer', () => {
       circleSize: 320,
     });
 
-    expect(result.current.overlayUrl).toBeNull();
+    expect(url).toBeNull();
     expect(result.current.isRendering).toBe(false);
   });
 
-  it('should clear overlay when flagId is empty', async () => {
+  it('should return null when flagId is empty', async () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    await result.current.render('blob:test-image', '', {
+    const url = await result.current.render('blob:test-image', '', {
       size: 1024,
       thickness: 7,
       flagOffsetPct: 0,
@@ -97,15 +110,16 @@ describe('useAvatarRenderer', () => {
       circleSize: 320,
     });
 
-    expect(result.current.overlayUrl).toBeNull();
+    expect(url).toBeNull();
     expect(result.current.isRendering).toBe(false);
   });
 
   it('should render successfully with valid inputs', async () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
+    let url: string | null = null;
     await act(async () => {
-      await result.current.render('blob:test-image', 'test', {
+      url = await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
         flagOffsetPct: 0,
@@ -117,9 +131,7 @@ describe('useAvatarRenderer', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.overlayUrl).toBe('blob:test-url');
-    });
+    expect(url).toBe('blob:test-url');
   });
 
   it('should fetch and cache flag image for cutout mode', async () => {
@@ -168,7 +180,7 @@ describe('useAvatarRenderer', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.overlayUrl).toBeTruthy();
+      expect(result.current.isRendering).toBe(false);
     });
 
     // Fetch is called once for the user image (blob:test-image), but not for the flag
@@ -202,12 +214,12 @@ describe('useAvatarRenderer', () => {
     });
   });
 
-  it('should revoke previous overlay URL when creating new one', async () => {
+  it('should return a blob URL from render each time', async () => {
     const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
 
-    // First render
+    let firstUrl: string | null = null;
     await act(async () => {
-      await result.current.render('blob:test-image', 'test', {
+      firstUrl = await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
         flagOffsetPct: 0,
@@ -218,16 +230,11 @@ describe('useAvatarRenderer', () => {
         circleSize: 320,
       });
     });
+    expect(firstUrl).toBe('blob:test-url');
 
-    await waitFor(() => {
-      expect(result.current.overlayUrl).toBe('blob:test-url');
-    });
-
-    const firstUrl = result.current.overlayUrl;
-
-    // Second render
+    let secondUrl: string | null = null;
     await act(async () => {
-      await result.current.render('blob:test-image', 'test', {
+      secondUrl = await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
         flagOffsetPct: 0,
@@ -238,10 +245,7 @@ describe('useAvatarRenderer', () => {
         circleSize: 320,
       });
     });
-
-    await waitFor(() => {
-      expect(URL.revokeObjectURL).toHaveBeenCalledWith(firstUrl);
-    });
+    expect(secondUrl).toBe('blob:test-url');
   });
 
   it('should handle rendering errors gracefully', async () => {
@@ -270,19 +274,77 @@ describe('useAvatarRenderer', () => {
     expect(result.current.isRendering).toBe(false);
   });
 
-  it('should clean up overlay URL on unmount', () => {
-    const { result, unmount } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
-
-    // Manually set an overlay URL (simulating a successful render)
-    // In a real scenario, this would be set by the render function
-    // We're just testing the cleanup effect
-
-    unmount();
-
-    // The cleanup should have been called
-    // Note: We can't easily verify this without actually rendering first
-    // This test mainly ensures unmount doesn't throw
+  it('should unmount without throwing', () => {
+    const { unmount } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
     expect(() => unmount()).not.toThrow();
+  });
+
+  describe('WebGL export path', () => {
+    it('should use renderAvatarWebGL when WebGL is supported, not the Canvas 2D fallback', async () => {
+      const { isWebGLSupported } = await import('@/renderer/webgl-utils');
+      const { renderAvatarWebGL } = await import('@/renderer/render-webgl');
+      const { renderAvatar } = await import('@/renderer/render');
+      vi.mocked(isWebGLSupported).mockReturnValue(true);
+      vi.mocked(renderAvatarWebGL).mockResolvedValueOnce({
+        blob: new Blob(['webgl'], { type: 'image/png' }),
+        sizeBytes: 2048,
+        sizeKB: '2.00',
+      });
+
+      const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
+
+      let url: string | null = null;
+      await act(async () => {
+        url = await result.current.render('blob:test-image', 'test', {
+          size: 1024,
+          thickness: 7,
+          flagOffsetPct: 0,
+          presentation: 'ring',
+          bg: 'transparent',
+          imagePosition: { x: 0, y: 0, zoom: 0 },
+          imageDimensions: { width: 100, height: 100 },
+          circleSize: 320,
+        });
+      });
+
+      expect(url).toBe('blob:test-url');
+      expect(renderAvatarWebGL).toHaveBeenCalledTimes(1);
+      expect(renderAvatar).not.toHaveBeenCalled();
+
+      vi.mocked(isWebGLSupported).mockReturnValue(false);
+    });
+
+    it('should fall back to Canvas 2D when renderAvatarWebGL throws', async () => {
+      const { isWebGLSupported } = await import('@/renderer/webgl-utils');
+      const { renderAvatarWebGL } = await import('@/renderer/render-webgl');
+      const { renderAvatar } = await import('@/renderer/render');
+      vi.mocked(isWebGLSupported).mockReturnValue(true);
+      vi.mocked(renderAvatarWebGL).mockRejectedValueOnce(new Error('WebGL context lost'));
+
+      const { result } = renderHook(() => useAvatarRenderer(mockFlags, mockCache));
+
+      let url: string | null = null;
+      await act(async () => {
+        url = await result.current.render('blob:test-image', 'test', {
+          size: 1024,
+          thickness: 7,
+          flagOffsetPct: 0,
+          presentation: 'ring',
+          bg: 'transparent',
+          imagePosition: { x: 0, y: 0, zoom: 0 },
+          imageDimensions: { width: 100, height: 100 },
+          circleSize: 320,
+        });
+      });
+
+      // Falls back and still succeeds, rather than surfacing the WebGL error to the user.
+      expect(url).toBe('blob:test-url');
+      expect(renderAvatarWebGL).toHaveBeenCalledTimes(1);
+      expect(renderAvatar).toHaveBeenCalledTimes(1);
+      expect(result.current.isRendering).toBe(false);
+
+      vi.mocked(isWebGLSupported).mockReturnValue(false);
+    });
   });
 
   it('should render with flag modes', async () => {
@@ -297,8 +359,9 @@ describe('useAvatarRenderer', () => {
 
     const { result } = renderHook(() => useAvatarRenderer([flagWithModes], mockCache));
 
+    let url: string | null = null;
     await act(async () => {
-      await result.current.render('blob:test-image', 'test', {
+      url = await result.current.render('blob:test-image', 'test', {
         size: 1024,
         thickness: 7,
         flagOffsetPct: 0,
@@ -310,8 +373,6 @@ describe('useAvatarRenderer', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.overlayUrl).toBe('blob:test-url');
-    });
+    expect(url).toBe('blob:test-url');
   });
 });

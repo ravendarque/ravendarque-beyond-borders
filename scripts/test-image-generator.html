@@ -1,0 +1,192 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Test Pattern - Fixed Grid</title>
+    <style>
+      body {
+        font-family: Arial;
+        padding: 20px;
+        background: #f0f0f0;
+        text-align: center;
+      }
+      canvas {
+        border: 2px solid #000;
+        margin: 20px;
+        background: white;
+      }
+      button {
+        padding: 15px 30px;
+        font-size: 18px;
+        cursor: pointer;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Circle Mask Test Pattern</h1>
+    <canvas id="c" width="512" height="512"></canvas><br />
+    <button onclick="dl()">DOWNLOAD TEST IMAGE</button>
+
+    <script>
+      const S = 512,
+        C = 256;
+      const cvs = document.getElementById('c');
+      const x = cvs.getContext('2d');
+
+      // White background
+      x.fillStyle = '#FFF';
+      x.fillRect(0, 0, S, S);
+
+      // Quadrants
+      x.globalAlpha = 0.15;
+      x.fillStyle = '#F00';
+      x.fillRect(0, 0, C, C);
+      x.fillStyle = '#0F0';
+      x.fillRect(C, 0, C, C);
+      x.fillStyle = '#00F';
+      x.fillRect(0, C, C, C);
+      x.fillStyle = '#FF0';
+      x.fillRect(C, C, C, C);
+      x.globalAlpha = 1;
+
+      // Centered grid 10px - draw from center outward
+      x.strokeStyle = '#DDD';
+      x.lineWidth = 0.5;
+      for (let off = 0; off <= C; off += 10) {
+        // Vertical lines
+        x.beginPath();
+        x.moveTo(C + off, 0);
+        x.lineTo(C + off, S);
+        x.stroke();
+        if (off > 0) {
+          x.beginPath();
+          x.moveTo(C - off, 0);
+          x.lineTo(C - off, S);
+          x.stroke();
+        }
+        // Horizontal lines
+        x.beginPath();
+        x.moveTo(0, C + off);
+        x.lineTo(S, C + off);
+        x.stroke();
+        if (off > 0) {
+          x.beginPath();
+          x.moveTo(0, C - off);
+          x.lineTo(S, C - off);
+          x.stroke();
+        }
+      }
+
+      // Centered grid 50px
+      x.strokeStyle = '#AAA';
+      x.lineWidth = 1;
+      for (let off = 0; off <= C; off += 50) {
+        // Vertical lines
+        x.beginPath();
+        x.moveTo(C + off, 0);
+        x.lineTo(C + off, S);
+        x.stroke();
+        if (off > 0) {
+          x.beginPath();
+          x.moveTo(C - off, 0);
+          x.lineTo(C - off, S);
+          x.stroke();
+        }
+        // Horizontal lines
+        x.beginPath();
+        x.moveTo(0, C + off);
+        x.lineTo(S, C + off);
+        x.stroke();
+        if (off > 0) {
+          x.beginPath();
+          x.moveTo(0, C - off);
+          x.lineTo(S, C - off);
+          x.stroke();
+        }
+      }
+
+      // Center crosshair
+      x.strokeStyle = '#000';
+      x.lineWidth = 2;
+      x.beginPath();
+      x.moveTo(C - 30, C);
+      x.lineTo(C + 30, C);
+      x.stroke();
+      x.beginPath();
+      x.moveTo(C, C - 30);
+      x.lineTo(C, C + 30);
+      x.stroke();
+
+      // Concentric circles with labels
+      const R = [180, 200, 220, 240, 250, 255];
+      const A = [45, 45, 45, 45, 90, 180];
+      const D = [12, 12, 12, 25, 12, 12];
+      R.forEach((r, i) => {
+        x.strokeStyle = '#000';
+        x.lineWidth = i >= 5 ? 3 : i >= 4 ? 2 : 1;
+        x.setLineDash(i % 2 ? [2, 2] : []);
+        x.beginPath();
+        x.arc(C, C, r, 0, Math.PI * 2);
+        x.stroke();
+        x.setLineDash([]);
+
+        const a = (A[i] * Math.PI) / 180;
+        const lx = C + (r + D[i]) * Math.cos(a);
+        const ly = C + (r + D[i]) * Math.sin(a);
+        x.save();
+        x.translate(lx, ly);
+        x.rotate(a + Math.PI / 2);
+        x.fillStyle = '#000';
+        x.font = 'bold 10px Arial';
+        x.textAlign = 'center';
+        x.fillText('r=' + r, 0, 0);
+        x.restore();
+      });
+
+      // Red edge bars at cardinal points
+      const BW = 8,
+        BI = 235,
+        BO = 256;
+      x.fillStyle = '#F00';
+      x.fillRect(C - BW / 2, C - BO, BW, BO - BI);
+      x.fillRect(C + BI, C - BW / 2, BO - BI, BW);
+      x.fillRect(C - BW / 2, C + BI, BW, BO - BI);
+      x.fillRect(C - BO, C - BW / 2, BO - BI, BW);
+
+      // Cardinal labels
+      x.fillStyle = '#000';
+      x.font = 'bold 18px Arial';
+      x.textAlign = 'center';
+      x.fillText('N', C, C - BI + 30);
+      x.fillText('E', C + BI - 30, C + 6);
+      x.fillText('S', C, C + BI - 20);
+      x.fillText('W', C - BI + 30, C + 6);
+
+      // Corner markers
+      const E = 250;
+      const corners = [
+        [C + E / Math.SQRT2, C - E / Math.SQRT2],
+        [C + E / Math.SQRT2, C + E / Math.SQRT2],
+        [C - E / Math.SQRT2, C + E / Math.SQRT2],
+        [C - E / Math.SQRT2, C - E / Math.SQRT2],
+      ];
+      x.fillStyle = '#F0F';
+      corners.forEach(([px, py]) => x.fillRect(px - 3, py - 3, 6, 6));
+
+      function dl() {
+        cvs.toBlob((b) => {
+          const u = URL.createObjectURL(b);
+          const a = document.createElement('a');
+          a.href = u;
+          a.download = 'circle-test-pattern-512x512.png';
+          a.click();
+          URL.revokeObjectURL(u);
+        });
+      }
+    </script>
+  </body>
+</html>

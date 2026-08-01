@@ -59,6 +59,9 @@ jobs:
         with:
           fetch-depth: 0 # Full history for better secret scanning
 
+      - name: Fetch main branch
+        run: git fetch origin main || true
+
       - name: Check for secrets
         uses: trufflesecurity/trufflehog@main
         with:

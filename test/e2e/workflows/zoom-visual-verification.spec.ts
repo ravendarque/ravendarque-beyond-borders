@@ -134,16 +134,15 @@ test.describe('Zoom Visual Verification', () => {
     await selectFlag(page, TEST_FLAGS.PALESTINE);
     await goToStep3(page, 45000); // 45s for step 3 ready on slow CI
 
-    // Wait for the rendered image to appear (using avatar-circle in readonly mode)
-    await page.waitForSelector('.avatar-circle.has-image', { timeout: 20000 });
+    // Wait for the rendered image to appear (Step 3 uses AvatarPreviewCanvas, not avatar-circle)
+    await page.waitForSelector('.avatar-preview-canvas', { timeout: 20000 });
 
     // Wait for rendering to complete (zoom/position should be applied)
     await page.waitForTimeout(3000);
 
-    // Step 3 preview is ImageUploadZone (avatar-circle-wrapper + pattern).
-    // goToStep3 already waited for render complete; ensure step 3 content and Save are ready.
+    // Step 3 preview is AvatarPreviewCanvas (canvas). goToStep3 already waited for render complete.
     await page.locator('[data-testid="step-3"]').waitFor({ state: 'visible', timeout: 5000 });
-    const renderedImage = page.locator('.avatar-circle.has-image');
+    const renderedImage = page.locator('.avatar-preview-canvas');
     await expect(renderedImage).toBeVisible({ timeout: 10000 });
 
     // Save button enabled = render done (use role for robustness across browsers)

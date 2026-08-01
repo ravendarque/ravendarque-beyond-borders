@@ -73,6 +73,34 @@ export function supportsOffscreenCanvas(): boolean {
 }
 
 /**
+ * Create a canvas (OffscreenCanvas if supported, otherwise regular Canvas) without
+ * attaching any rendering context. Shared by both the 2D (createCanvas) and WebGL
+ * (render-webgl.ts, live-renderer.ts) render paths so the Safari/WebKit fallback
+ * only lives in one place.
+ * @param width Canvas width in pixels
+ * @param height Canvas height in pixels
+ * @returns Canvas instance (caller requests whichever context it needs)
+ */
+export function createRenderCanvas(
+  width: number,
+  height: number,
+): OffscreenCanvas | HTMLCanvasElement {
+  // Validate size first
+  validateCanvasSize(width, height);
+
+  const OffscreenCanvasCtor = getOffscreenCanvasCtor();
+  if (OffscreenCanvasCtor) {
+    return new OffscreenCanvasCtor(width, height);
+  }
+
+  // Fallback to regular Canvas for older browsers
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+}
+
+/**
  * Create a canvas (OffscreenCanvas if supported, otherwise regular Canvas)
  * @param width Canvas width in pixels
  * @param height Canvas height in pixels
@@ -85,28 +113,71 @@ export function createCanvas(
   canvas: OffscreenCanvas | HTMLCanvasElement;
   ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
 } {
-  // Validate size first
-  validateCanvasSize(width, height);
-
-  const OffscreenCanvasCtor = getOffscreenCanvasCtor();
-  if (OffscreenCanvasCtor) {
-    const canvas = new OffscreenCanvasCtor(width, height);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Failed to get 2D context from OffscreenCanvas');
-    }
-    return { canvas, ctx };
-  } else {
-    // Fallback to regular Canvas for older browsers
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Failed to get 2D context from Canvas');
-    }
-    return { canvas, ctx };
+  const canvas = createRenderCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Failed to get 2D context from canvas');
   }
+  return { canvas, ctx } as {
+    canvas: OffscreenCanvas | HTMLCanvasElement;
+    ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
+  };
+}
+
+export interface ImagePositionOptions {
+  imageOffsetPx?: { x: number; y: number };
+  imageZoom?: number;
+  circleSize?: number;
+  originalImageDimensions?: { width: number; height: number };
+}
+
+export interface ImageDrawRect {
+  dx: number;
+  dy: number;
+  dw: number;
+  dh: number;
+}
+
+/**
+ * Compute the destination rect for drawing a user image into a `canvasSize`-square target so
+ * it cover-fills a circle of `imageRadius`, honoring the same Step 1 zoom/offset/circleSize
+ * adjustments as the Canvas 2D renderer (`render.ts`). Shared by the WebGL renderers
+ * (`live-renderer.ts`, `render-webgl.ts`) so both stay in sync with the reference formula
+ * instead of drifting independently - one implementation of this math, not two.
+ */
+export function computeImageDrawRect(
+  image: { width: number; height: number },
+  canvasSize: number,
+  imageRadius: number,
+  options: ImagePositionOptions,
+): ImageDrawRect {
+  const iw = image.width;
+  const ih = image.height;
+  const target = imageRadius * 2;
+  const zoomMultiplier = 1 + (options.imageZoom ?? 0) / 100;
+  const originalWidth = options.originalImageDimensions?.width ?? iw;
+  const originalHeight = options.originalImageDimensions?.height ?? ih;
+
+  let scale: number;
+  if (options.circleSize && options.circleSize > 0) {
+    // Cover scale relative to Step 1's circleSize, using the ORIGINAL image dimensions -
+    // zoom must be calculated relative to Step 1's circleSize, not the renderer's.
+    const step1CoverScale = Math.max(
+      options.circleSize / originalWidth,
+      options.circleSize / originalHeight,
+    );
+    scale = (step1CoverScale * zoomMultiplier * target) / options.circleSize;
+  } else {
+    // No circleSize provided - simple cover-fit fallback.
+    scale = Math.max(target / originalWidth, target / originalHeight) * zoomMultiplier;
+  }
+
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const cx = canvasSize / 2 + (options.imageOffsetPx?.x ?? 0);
+  const cy = canvasSize / 2 + (options.imageOffsetPx?.y ?? 0);
+
+  return { dx: cx - dw / 2, dy: cy - dh / 2, dw, dh };
 }
 
 /**

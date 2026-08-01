@@ -34,10 +34,15 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
-    // Chromium (Desktop)
+    // Chromium (Desktop) — WebGL args for stable rendering in headless
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: ['--use-gl=swiftshader', '--disable-gpu-sandbox'],
+        },
+      },
     },
     // Firefox (Desktop)
     {

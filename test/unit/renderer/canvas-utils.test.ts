@@ -6,6 +6,7 @@ import {
   supportsOffscreenCanvas,
   isValidHexColor,
   normalizeHexColor,
+  computeImageDrawRect,
   CANVAS_LIMITS,
 } from '@/renderer/canvas-utils';
 
@@ -178,6 +179,66 @@ describe('canvas-utils', () => {
       expect(CANVAS_LIMITS.safari).toBeLessThanOrEqual(CANVAS_LIMITS.chrome);
       expect(CANVAS_LIMITS.safari).toBeLessThanOrEqual(CANVAS_LIMITS.firefox);
       expect(CANVAS_LIMITS.safari).toBeLessThanOrEqual(CANVAS_LIMITS.default);
+    });
+  });
+
+  describe('computeImageDrawRect', () => {
+    // Regression coverage for a bug where render-webgl.ts uploaded the raw user image with
+    // none of this scaling, so exports ignored Step 1's position/zoom/circleSize entirely.
+
+    it('cover-scales a square image to exactly fill the target diameter when no circleSize is given', () => {
+      const rect = computeImageDrawRect({ width: 200, height: 200 }, 1000, 300, {});
+      // target = imageRadius * 2 = 600, scale = 600/200 = 3 -> dw/dh = 600
+      expect(rect.dw).toBeCloseTo(600);
+      expect(rect.dh).toBeCloseTo(600);
+      // Centered: dx = canvasSize/2 - dw/2 = 500 - 300 = 200
+      expect(rect.dx).toBeCloseTo(200);
+      expect(rect.dy).toBeCloseTo(200);
+    });
+
+    it('cover-scales a non-square image preserving aspect ratio (the exact bug this guards against)', () => {
+      // A 400x200 (2:1) source must stay 2:1 in the output, not get stretched to whatever
+      // the canvas/target happens to be.
+      const rect = computeImageDrawRect({ width: 400, height: 200 }, 1000, 300, {});
+      expect(rect.dw / rect.dh).toBeCloseTo(400 / 200);
+    });
+
+    it('applies imageOffsetPx to shift the center', () => {
+      const base = computeImageDrawRect({ width: 200, height: 200 }, 1000, 300, {});
+      const shifted = computeImageDrawRect({ width: 200, height: 200 }, 1000, 300, {
+        imageOffsetPx: { x: 50, y: -30 },
+      });
+      expect(shifted.dx).toBeCloseTo(base.dx + 50);
+      expect(shifted.dy).toBeCloseTo(base.dy - 30);
+      // Offset must not affect scale
+      expect(shifted.dw).toBeCloseTo(base.dw);
+      expect(shifted.dh).toBeCloseTo(base.dh);
+    });
+
+    it('applies imageZoom as a multiplier on scale, relative to circleSize', () => {
+      const noZoom = computeImageDrawRect({ width: 200, height: 200 }, 1000, 300, {
+        circleSize: 400,
+      });
+      const zoomed = computeImageDrawRect({ width: 200, height: 200 }, 1000, 300, {
+        circleSize: 400,
+        imageZoom: 50, // +50%
+      });
+      expect(zoomed.dw).toBeCloseTo(noZoom.dw * 1.5);
+      expect(zoomed.dh).toBeCloseTo(noZoom.dh * 1.5);
+    });
+
+    it('uses originalImageDimensions instead of the bitmap size when provided (Step 1 may have resized)', () => {
+      // Bitmap is 200x200 but the original upload was 400x200 - cover-scale must be computed
+      // against the original, matching what Step 1's circleSize/zoom sliders were set against.
+      const rect = computeImageDrawRect({ width: 200, height: 200 }, 1000, 300, {
+        circleSize: 400,
+        originalImageDimensions: { width: 400, height: 200 },
+      });
+      const ref = computeImageDrawRect({ width: 400, height: 200 }, 1000, 300, {
+        circleSize: 400,
+      });
+      // Same cover-scale factor should apply to whatever the actual bitmap dimensions are
+      expect(rect.dw / 200).toBeCloseTo(ref.dw / 400, 3);
     });
   });
 });

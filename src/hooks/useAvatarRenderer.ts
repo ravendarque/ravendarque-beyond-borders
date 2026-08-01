@@ -1,5 +1,24 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+/**
+ * useAvatarRenderer — export-only renderer hook
+ *
+ * Responsible solely for producing the final high-resolution PNG for download.
+ * Called once when the user clicks Save — not on every slider change.
+ *
+ * Tries the WebGL renderer first (GPU anti-aliasing, faster on large 1024px exports),
+ * falling back to the Canvas 2D renderer on any failure or when WebGL is unavailable —
+ * the same fallback pattern used by useAvatarPreview for live preview. Returns the blob
+ * URL so the caller can trigger a download.
+ *
+ * Separation of concerns:
+ * - useAvatarPreview  → live preview  (persistent WebGL renderer → canvas draw, no blob)
+ * - useAvatarRenderer → export/save   (one-shot WebGL, falls back to Canvas 2D → blob URL)
+ */
+
+import { useState, useCallback } from 'react';
 import { renderAvatar } from '@/renderer/render';
+import { renderAvatarWebGL } from '@/renderer/render-webgl';
+import { isWebGLSupported } from '@/renderer/webgl-utils';
+import type { RenderResult } from '@/renderer/render';
 import type { FlagSpec } from '@/flags/schema';
 import { FlagDataError, normalizeError } from '@/types/errors';
 import { getAssetUrl } from '@/config';
@@ -9,243 +28,122 @@ import { positionToRendererOffset, calculatePositionLimits } from '@/utils/image
 export interface RenderOptions {
   size: 512 | 1024;
   thickness: number;
-  flagOffsetPct: number; // Percentage: -50 to +50
+  flagOffsetPct: number;
   presentation: 'ring' | 'segment' | 'cutout';
   segmentRotation?: number;
   bg: string | 'transparent';
   imagePosition: ImagePosition;
   imageDimensions: ImageDimensions;
-  circleSize: number; // Circle size from Step 1 (for accurate position/zoom calculation)
+  circleSize: number;
 }
 
 /**
- * A custom hook that handles avatar rendering logic
- * @param flagsList - Array of available flags
- * @param flagImageCache - Cache map for flag ImageBitmaps
- * @returns Rendering state and functions
+ * Render the avatar at export resolution and return a blob URL for download.
+ * The caller is responsible for revoking the URL after use.
  */
 export function useAvatarRenderer(flagsList: FlagSpec[], flagImageCache: Map<string, ImageBitmap>) {
-  const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
 
-  // Use ref to track overlayUrl for cleanup without adding to dependencies
-  const overlayUrlRef = useRef<string | null>(null);
-
-  // Keep ref in sync with state
-  overlayUrlRef.current = overlayUrl;
-
-  /**
-   * Render avatar with flag border using the provided image URL
-   * This function handles the complete rendering pipeline:
-   * 1. Load and validate inputs (image, flag)
-   * 2. Transform flag data to renderer format
-   * 3. Call renderAvatar to generate the bordered image
-   * 4. Update the overlay with the result
-   */
   const render = useCallback(
-    async (imageUrl: string, flagId: string, options: RenderOptions) => {
-      const { size, thickness, flagOffsetPct, presentation, segmentRotation, bg, circleSize } =
-        options;
+    async (imageUrl: string, flagId: string, options: RenderOptions): Promise<string | null> => {
+      if (!imageUrl || !flagId) return null;
 
-      // E2E: clear render-done signal so tests wait for this run, not a stale value
+      setIsRendering(true);
       try {
-        window.__BB_UPLOAD_DONE__ = false;
-        window.__BB_RENDER_STAGE__ = 'start';
-        window.__BB_RENDER_ERROR__ = undefined;
-      } catch {
-        // Ignore
-      }
-
-      // Exit early if no image
-      if (!imageUrl) {
-        setIsRendering(false);
-        return;
-      }
-
-      // Clear overlay if no flag selected
-      if (!flagId) {
-        if (overlayUrlRef.current) {
-          URL.revokeObjectURL(overlayUrlRef.current);
-          setOverlayUrl(null);
-        }
-        setIsRendering(false);
-        return;
-      }
-
-      try {
-        // Show loading indicator at start of render process
-        setIsRendering(true);
-
-        // Find selected flag
         const flag = flagsList.find((f) => f.id === flagId);
-        if (!flag) {
-          throw FlagDataError.patternMissing(flagId);
-        }
+        if (!flag) throw FlagDataError.patternMissing(flagId);
 
-        // Load original image (not cropped - renderer will apply position/zoom)
-        try {
-          window.__BB_RENDER_STAGE__ = 'fetch_start';
-        } catch {}
         const response = await fetch(imageUrl);
         const blob = await response.blob();
-        try {
-          window.__BB_RENDER_STAGE__ = 'createImageBitmap_start';
-        } catch {}
         const img = await createImageBitmap(blob);
-        try {
-          window.__BB_RENDER_STAGE__ = 'createImageBitmap_done';
-        } catch {}
 
-        // Transform flag data to format expected by renderAvatar
-        const transformedFlag: FlagSpec = { ...flag };
-
-        // Load flag PNG image for cutout mode (for accurate rendering of complex flags)
-        // Use cache to avoid re-fetching the same flag image
-        let flagImageBitmap: ImageBitmap | undefined;
-        if (presentation === 'cutout' && flag.png_full) {
+        // Load flag PNG for cutout mode
+        let borderImageBitmap: ImageBitmap | undefined;
+        if (options.presentation === 'cutout' && flag.png_full) {
           const cacheKey = flag.png_full;
-
-          // Check cache first
           if (flagImageCache.has(cacheKey)) {
-            flagImageBitmap = flagImageCache.get(cacheKey);
+            borderImageBitmap = flagImageCache.get(cacheKey);
           } else {
-            // Fetch and cache the flag image
             const flagResponse = await fetch(getAssetUrl(`flags/${flag.png_full}`));
             const flagBlob = await flagResponse.blob();
-            flagImageBitmap = await createImageBitmap(flagBlob);
-            flagImageCache.set(cacheKey, flagImageBitmap);
+            borderImageBitmap = await createImageBitmap(flagBlob);
+            flagImageCache.set(cacheKey, borderImageBitmap);
           }
         }
 
-        // Calculate the renderer's inner circle size (where the image is drawn)
-        // Simple formula: inner circle diameter = canvas size - (border thickness * 2)
-        const base = size;
-        const thicknessPx = Math.round((thickness / 100) * base);
-        const rendererCircleSize = size - thicknessPx * 2; // Inner circle diameter
+        const { size } = options;
+        const thicknessPx = Math.round((options.thickness / 100) * size);
+        const rendererCircleSize = size - thicknessPx * 2;
 
-        // Calculate position limits using step 1's circle size
-        // Position percentages are relative to step 1's circle size, not the renderer's
-        // This ensures the position normalization matches what step 1 uses
         const positionLimits = calculatePositionLimits(
           options.imageDimensions,
-          circleSize, // Use step 1's circle size for limits calculation
+          options.circleSize,
           options.imagePosition.zoom,
         );
-
-        // Calculate max limits (at zoom 200%) for consistent position mapping
-        // This is needed for positionToBackgroundPosition to work correctly
-        const maxLimits = calculatePositionLimits(options.imageDimensions, circleSize, 200);
-
-        // Convert step 1 position adjustments to pixel offsets
-        // IMPORTANT: Calculate offset for step 1's circle size first (where position is relative to)
-        // Then scale it to the renderer's circle size
+        const maxLimits = calculatePositionLimits(options.imageDimensions, options.circleSize, 200);
         const step1Offset = positionToRendererOffset(
           { x: options.imagePosition.x, y: options.imagePosition.y },
           options.imageDimensions,
-          circleSize, // Calculate offset for step 1's circle size
+          options.circleSize,
           options.imagePosition.zoom,
           positionLimits,
           maxLimits,
         );
-
-        // Scale the offset from step 1's circle size to renderer's circle size
-        // This ensures the position mapping is correct when circle sizes differ
-        const scaleFactor = rendererCircleSize / circleSize;
-        const imageOffset = {
+        const scaleFactor = rendererCircleSize / options.circleSize;
+        const imageOffsetPx = {
           x: step1Offset.x * scaleFactor,
           y: step1Offset.y * scaleFactor,
         };
 
-        // Debug logging (only in development)
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('Renderer offset calculation:', {
-            position: options.imagePosition,
-            circleSize,
-            rendererCircleSize,
-            thicknessPx,
-            imageOffset,
-            canvasSize: size,
-            center: { x: size / 2, y: size / 2 },
-            imageRadius: rendererCircleSize / 2,
-          });
-        }
-
-        try {
-          window.__BB_RENDER_STAGE__ = 'renderAvatar_start';
-        } catch {}
-        // Render avatar with flag border
-        // Pass position/zoom directly to renderer - no capture needed
-        const result = await renderAvatar(img, transformedFlag, {
-          size,
-          thicknessPct: thickness,
-          imageOffsetPx: imageOffset,
+        const renderOptions = {
+          size: size as 512 | 1024,
+          thicknessPct: options.thickness,
+          imageOffsetPx,
           imageZoom: options.imagePosition.zoom,
-          circleSize: circleSize, // Pass Step 1's circleSize for accurate zoom calculation
-          originalImageDimensions: options.imageDimensions, // Pass original dimensions for accurate zoom
-          flagOffsetPct: { x: flagOffsetPct, y: 0 }, // Use flagOffsetPct for cutout mode
-          presentation,
-          segmentRotation,
-          backgroundColor: bg === 'transparent' ? null : bg,
-          borderImageBitmap: flagImageBitmap,
-        });
+          circleSize: options.circleSize,
+          originalImageDimensions: options.imageDimensions,
+          flagOffsetPct: { x: options.flagOffsetPct, y: 0 },
+          presentation: options.presentation,
+          segmentRotation: options.segmentRotation,
+          backgroundColor: options.bg === 'transparent' ? null : options.bg,
+          borderImageBitmap,
+        };
 
-        // Create overlay URL from result blob
-        const blobUrl = URL.createObjectURL(result.blob);
-
-        // Clean up previous overlay
-        if (overlayUrlRef.current) {
-          URL.revokeObjectURL(overlayUrlRef.current);
+        let result: RenderResult;
+        if (isWebGLSupported()) {
+          try {
+            // Note: renderAvatarWebGL doesn't composite backgroundColor (no UI currently
+            // sets it to anything but 'transparent' — see AppStepWorkflow.tsx). If that
+            // changes, the shaders need a background-fill pass before this can be relied on.
+            result = await renderAvatarWebGL(img, flag, renderOptions);
+          } catch (webglErr) {
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.error('WebGL export failed, falling back to Canvas 2D:', webglErr);
+            }
+            result = await renderAvatar(img, flag, renderOptions);
+          }
+        } else {
+          result = await renderAvatar(img, flag, renderOptions);
         }
 
-        setOverlayUrl(blobUrl);
-
-        // Clear loading state after successful render
         setIsRendering(false);
-
-        // Set test completion hook for E2E tests
-        try {
-          window.__BB_RENDER_STAGE__ = 'done';
-          window.__BB_UPLOAD_DONE__ = true;
-        } catch {
-          // Ignore errors setting test hooks
-        }
+        return URL.createObjectURL(result.blob);
       } catch (err) {
-        // Clear loading state on error
         setIsRendering(false);
-        try {
-          window.__BB_RENDER_STAGE__ = 'error';
-          window.__BB_RENDER_ERROR__ = err instanceof Error ? err.message : String(err);
-        } catch {}
-
-        // Normalize and re-throw the error for the caller to handle
         const appError = normalizeError(err);
-
-        // Development logging
         if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
-          console.error('Failed to render avatar:', appError.toJSON());
+          console.error('Export render failed:', appError.toJSON());
         }
-
-        // Re-throw so caller (App.tsx) can display the error
         throw appError;
       }
     },
     [flagsList, flagImageCache],
   );
 
-  // Cleanup: revoke object URL on unmount to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (overlayUrlRef.current) {
-        URL.revokeObjectURL(overlayUrlRef.current);
-      }
-    };
-  }, []);
-
-  return {
-    overlayUrl,
-    isRendering,
-    render,
-  };
+  return { render, isRendering };
 }
+
+/** @deprecated Import RenderOptions from useAvatarPreview or define locally */
+export type { RenderOptions as ExportRenderOptions };

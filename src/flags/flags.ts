@@ -13,7 +13,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'palestine.preview.png',
     aspectRatio: 2,
     svgFilename: 'palestine.svg',
-    category: 'occupied',
+    category: 'occupied-disputed-territory',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
     reason:
@@ -54,7 +54,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'venezuela.preview.png',
     aspectRatio: 1.5,
     svgFilename: 'venezuela.svg',
-    category: 'occupied',
+    category: 'occupied-disputed-territory',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
     reason:
@@ -87,7 +87,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'tibet.preview.png',
     aspectRatio: 1.6,
     svgFilename: 'tibet.svg',
-    category: 'occupied',
+    category: 'occupied-disputed-territory',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
     reason:
@@ -124,7 +124,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'the-sahrawi-arab-democratic-republic.preview.png',
     aspectRatio: 2,
     svgFilename: 'the-sahrawi-arab-democratic-republic.svg',
-    category: 'occupied',
+    category: 'occupied-disputed-territory',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
     reason:
@@ -161,7 +161,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'ukraine.preview.png',
     aspectRatio: 1.5,
     svgFilename: 'ukraine.svg',
-    category: 'occupied',
+    category: 'occupied-disputed-territory',
     categoryDisplayName: 'Occupied / Disputed Territory',
     categoryDisplayOrder: 1,
     reason:
@@ -194,7 +194,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'the-romani-people.preview.png',
     aspectRatio: 1.5,
     svgFilename: 'the-romani-people.svg',
-    category: 'oppressed',
+    category: 'oppressed-groups',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
     reason:
@@ -231,7 +231,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'australian-aboriginal.preview.png',
     aspectRatio: 1.6666666666666667,
     svgFilename: 'australian-aboriginal.svg',
-    category: 'oppressed',
+    category: 'oppressed-groups',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
     reason:
@@ -268,7 +268,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'iran.preview.png',
     aspectRatio: 1.75,
     svgFilename: 'iran.svg',
-    category: 'oppressed',
+    category: 'oppressed-groups',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
     reason:
@@ -309,7 +309,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'sudan.preview.png',
     aspectRatio: 2,
     svgFilename: 'sudan.svg',
-    category: 'oppressed',
+    category: 'oppressed-groups',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
     reason:
@@ -354,7 +354,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'the-democratic-republic-the-congo.preview.png',
     aspectRatio: 1.3333333333333333,
     svgFilename: 'the-democratic-republic-the-congo.svg',
-    category: 'oppressed',
+    category: 'oppressed-groups',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
     reason:
@@ -399,7 +399,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'myanmar.preview.png',
     aspectRatio: 1.5,
     svgFilename: 'myanmar.svg',
-    category: 'oppressed',
+    category: 'oppressed-groups',
     categoryDisplayName: 'Oppressed Groups',
     categoryDisplayOrder: 3,
     reason:
@@ -599,7 +599,7 @@ export const flags: FlagSpec[] = [
     displayName: 'Pride Progress (Intersex-Inclusive)',
     png_full: 'intersex-inclusive-pride.png',
     png_preview: 'intersex-inclusive-pride.preview.png',
-    aspectRatio: 1.5748031496062993,
+    aspectRatio: 1.5733333333333333,
     svgFilename: 'intersex-inclusive-pride.svg',
     category: 'lgbtqia',
     categoryDisplayName: 'LGBTQIA+',
@@ -623,12 +623,12 @@ export const flags: FlagSpec[] = [
     modes: {
       ring: {
         colors: [
-          '#e00000',
-          '#700090',
-          '#0000ff',
-          '#ff9000',
-          '#ffe000',
-          '#008000',
+          '#702080',
+          '#e02010',
+          '#f09010',
+          '#3060a0',
+          '#ffe010',
+          '#80c030',
           '#000000',
           '#ffffff',
         ],
@@ -779,7 +779,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'visually-safe-disability-pride.preview.png',
     aspectRatio: 1.3333333333333333,
     svgFilename: 'visually-safe-disability-pride.svg',
-    category: 'movements',
+    category: 'movements-organisations',
     categoryDisplayName: 'Movements / Organisations',
     categoryDisplayOrder: 5,
     reason:
@@ -816,7 +816,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'irish-traveller-movement.preview.png',
     aspectRatio: 1.530241935483871,
     svgFilename: 'irish-traveller-movement.svg',
-    category: 'movements',
+    category: 'movements-organisations',
     categoryDisplayName: 'Movements / Organisations',
     categoryDisplayOrder: 5,
     reason:
@@ -853,7 +853,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'antifa-logo.preview.png',
     aspectRatio: 1,
     svgFilename: 'antifa-logo.svg',
-    category: 'movements',
+    category: 'movements-organisations',
     categoryDisplayName: 'Movements / Organisations',
     categoryDisplayOrder: 5,
     reason:
@@ -895,7 +895,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'kurdistan.preview.png',
     aspectRatio: 1.5,
     svgFilename: 'kurdistan.svg',
-    category: 'stateless',
+    category: 'stateless-people',
     categoryDisplayName: 'Stateless People',
     categoryDisplayOrder: 6,
     reason:
@@ -932,7 +932,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'kokbayraq.preview.png',
     aspectRatio: 1.5,
     svgFilename: 'kokbayraq.svg',
-    category: 'stateless',
+    category: 'stateless-people',
     categoryDisplayName: 'Stateless People',
     categoryDisplayOrder: 6,
     reason:
@@ -965,7 +965,7 @@ export const flags: FlagSpec[] = [
     png_preview: 'rohingya.preview.png',
     aspectRatio: 1.4981273408239701,
     svgFilename: 'rohingya.svg',
-    category: 'stateless',
+    category: 'stateless-people',
     categoryDisplayName: 'Stateless People',
     categoryDisplayOrder: 6,
     reason:

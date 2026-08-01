@@ -28,6 +28,18 @@ export const POSITIONING_TEST_IMAGE_PATH = path.resolve(
 );
 
 /**
+ * Concentric-ring test pattern, radially symmetric around its center. Use for detecting
+ * scale/aspect distortion in the rendered avatar image: sample several points at the same
+ * radius from the avatar's center and confirm they match — any non-uniform scaling (e.g. the
+ * source image being stretched across the wrong target size instead of cover-scaled into the
+ * circle) breaks that symmetry, unlike a photo where "distorted" is only visible by eye.
+ */
+export const CIRCLE_TEST_PATTERN_PATH = path.resolve(
+  __dirname,
+  '../../test-data/circle-test-pattern-512x512.png',
+);
+
+/**
  * Get the path to the avatar sample fixture
  */
 export const AVATAR_SAMPLE_PATH = path.resolve(
