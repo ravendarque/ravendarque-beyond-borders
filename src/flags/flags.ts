@@ -881,7 +881,7 @@ export const flags: FlagSpec[] = [
         colors: ['#000000', '#ffffff', '#ff0000'],
       },
       cutout: {
-        offsetEnabled: true,
+        offsetEnabled: false,
         defaultOffset: 0,
         defaultBorderThickness: 13,
       },
