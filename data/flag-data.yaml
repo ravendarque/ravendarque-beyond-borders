@@ -378,7 +378,10 @@ categories:
           - url: 'https://www.hrw.org/topic/free-speech'
             text: 'Human Rights Watch: Free speech'
         cutoutMode:
-          offsetEnabled: true
+          # Logo is a perfectly square image (1365x1365), so horizontal offset has no visual
+          # effect (flagExtension = max(0, width-height)/2 = 0 for a 1:1 aspect ratio) - the
+          # only flag in the dataset where this applies.
+          offsetEnabled: false
           defaultOffset: 0
           defaultBorderThickness: 13
 
