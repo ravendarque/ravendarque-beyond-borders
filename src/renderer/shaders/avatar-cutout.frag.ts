@@ -27,7 +27,10 @@ uniform vec2 u_flagPos;
 varying vec2 v_texCoord;
 
 void main() {
-  vec2 pixelCoord = v_texCoord * u_resolution;
+  // Flip Y so pixelCoord matches standard top-down canvas convention (WebGL's v_texCoord/NDC
+  // has Y increasing upward; all position uniforms from JS, including u_flagPos, assume Y
+  // increasing downward, same as Canvas 2D and every other coordinate the app computes).
+  vec2 pixelCoord = vec2(v_texCoord.x, 1.0 - v_texCoord.y) * u_resolution;
   vec2 pos = pixelCoord - u_center;
   float radius = length(pos);
   

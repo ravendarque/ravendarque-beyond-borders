@@ -12,7 +12,7 @@
  */
 
 import type { FlagSpec } from '../flags/schema';
-import { createRenderCanvas, supportsOffscreenCanvas } from './canvas-utils';
+import { computeImageDrawRect, createRenderCanvas, supportsOffscreenCanvas } from './canvas-utils';
 import {
   createWebGLContext,
   createProgram,
@@ -216,39 +216,8 @@ export class LiveAvatarRenderer {
 
     ctx.clearRect(0, 0, size, size);
 
-    const iw = image.width;
-    const ih = image.height;
-    const target = imageRadius * 2;
-    const zoomMultiplier = 1 + (options.imageZoom ?? 0) / 100;
-    const originalWidth = options.originalImageDimensions?.width ?? iw;
-    const originalHeight = options.originalImageDimensions?.height ?? ih;
-
-    let scale: number;
-    if (options.circleSize && options.circleSize > 0) {
-      const step1CoverScale = Math.max(
-        options.circleSize / originalWidth,
-        options.circleSize / originalHeight,
-      );
-      scale = (step1CoverScale * zoomMultiplier * target) / options.circleSize;
-    } else {
-      scale = Math.max(target / originalWidth, target / originalHeight) * zoomMultiplier;
-    }
-
-    const dw = iw * scale;
-    const dh = ih * scale;
-    const cx = size / 2 + (options.imageOffsetPx?.x ?? 0);
-    const cy = size / 2 + (options.imageOffsetPx?.y ?? 0);
-
-    // Pre-flip Y before uploading as a WebGL texture.
-    // transferToImageBitmap() applies its own Y-flip (matching what the browser would do
-    // when compositing the WebGL canvas to screen). Pre-flipping here cancels it so the
-    // final drawImage() call on the visible HTML canvas shows the image right-side up.
-    // This mirrors the test page's renderImageToCanvas() approach.
-    ctx.save();
-    ctx.translate(0, size);
-    ctx.scale(1, -1);
-    ctx.drawImage(image, cx - dw / 2, cy - dh / 2, dw, dh);
-    ctx.restore();
+    const { dx, dy, dw, dh } = computeImageDrawRect(image, size, imageRadius, options);
+    ctx.drawImage(image, dx, dy, dw, dh);
 
     return this.imageCanvas;
   }

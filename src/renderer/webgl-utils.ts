@@ -109,6 +109,11 @@ export function createTexture(
 
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
+  // WebGL's texture coordinate origin is bottom-left, but 2D image/canvas sources upload
+  // row 0 (their top row) first — without this, every texture sampled by v_texCoord (whose
+  // origin matches the canvas, top-left) comes out vertically flipped relative to its source.
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
   // Upload image data
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 

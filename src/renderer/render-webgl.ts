@@ -17,7 +17,12 @@
 
 import type { FlagSpec } from '../flags/schema';
 import type { RenderOptions, RenderResult } from './render';
-import { canvasToBlob, createRenderCanvas } from './canvas-utils';
+import {
+  canvasToBlob,
+  computeImageDrawRect,
+  createCanvas,
+  createRenderCanvas,
+} from './canvas-utils';
 import {
   createWebGLContext,
   createProgram,
@@ -83,8 +88,20 @@ export async function renderAvatarWebGL(
   // Create quad geometry for full-screen pass
   const quadBuffer = createQuadBuffer(gl);
 
+  // Pre-render the user image with position/zoom/cover-scaling onto a square 2D canvas before
+  // uploading as a texture — the shader samples the full texture across the whole canvas with
+  // no scaling of its own, so uploading the raw bitmap directly (as this used to) stretches
+  // whatever aspect ratio/size the source image happens to have across the entire output,
+  // ignoring Step 1's position/zoom entirely. Mirrors live-renderer.ts's preRenderImage, minus
+  // the Y-flip that's only needed to cancel out transferToImageBitmap()'s own flip on that path
+  // — this one goes straight to canvasToBlob, so no compensating flip is needed here.
+  const { canvas: imageCanvas, ctx: imageCtx } = createCanvas(canvasW, canvasH);
+  const { dx, dy, dw, dh } = computeImageDrawRect(image, canvasW, imageRadius, options);
+  imageCtx.clearRect(0, 0, canvasW, canvasH);
+  imageCtx.drawImage(image, dx, dy, dw, dh);
+
   // Create image texture
-  const imageTexture = createTexture(gl, image);
+  const imageTexture = createTexture(gl, imageCanvas);
 
   // Get ring colors from flag specification
   const ringColors = flag.modes?.ring?.colors ?? [];

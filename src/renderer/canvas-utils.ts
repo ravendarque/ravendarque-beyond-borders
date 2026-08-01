@@ -124,6 +124,62 @@ export function createCanvas(
   };
 }
 
+export interface ImagePositionOptions {
+  imageOffsetPx?: { x: number; y: number };
+  imageZoom?: number;
+  circleSize?: number;
+  originalImageDimensions?: { width: number; height: number };
+}
+
+export interface ImageDrawRect {
+  dx: number;
+  dy: number;
+  dw: number;
+  dh: number;
+}
+
+/**
+ * Compute the destination rect for drawing a user image into a `canvasSize`-square target so
+ * it cover-fills a circle of `imageRadius`, honoring the same Step 1 zoom/offset/circleSize
+ * adjustments as the Canvas 2D renderer (`render.ts`). Shared by the WebGL renderers
+ * (`live-renderer.ts`, `render-webgl.ts`) so both stay in sync with the reference formula
+ * instead of drifting independently - one implementation of this math, not two.
+ */
+export function computeImageDrawRect(
+  image: { width: number; height: number },
+  canvasSize: number,
+  imageRadius: number,
+  options: ImagePositionOptions,
+): ImageDrawRect {
+  const iw = image.width;
+  const ih = image.height;
+  const target = imageRadius * 2;
+  const zoomMultiplier = 1 + (options.imageZoom ?? 0) / 100;
+  const originalWidth = options.originalImageDimensions?.width ?? iw;
+  const originalHeight = options.originalImageDimensions?.height ?? ih;
+
+  let scale: number;
+  if (options.circleSize && options.circleSize > 0) {
+    // Cover scale relative to Step 1's circleSize, using the ORIGINAL image dimensions -
+    // zoom must be calculated relative to Step 1's circleSize, not the renderer's.
+    const step1CoverScale = Math.max(
+      options.circleSize / originalWidth,
+      options.circleSize / originalHeight,
+    );
+    scale = (step1CoverScale * zoomMultiplier * target) / options.circleSize;
+  } else {
+    // No circleSize provided - simple cover-fit fallback.
+    scale = Math.max(target / originalWidth, target / originalHeight) * zoomMultiplier;
+  }
+
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const cx = canvasSize / 2 + (options.imageOffsetPx?.x ?? 0);
+  const cy = canvasSize / 2 + (options.imageOffsetPx?.y ?? 0);
+
+  return { dx: cx - dw / 2, dy: cy - dh / 2, dw, dh };
+}
+
 /**
  * Convert canvas to Blob (with fallback for regular Canvas)
  * @param canvas Canvas instance (OffscreenCanvas or HTMLCanvasElement)

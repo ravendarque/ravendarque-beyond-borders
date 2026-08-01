@@ -54,8 +54,10 @@ const createMockWebGLContext = () => {
     TEXTURE_WRAP_T: 10243,
     RGBA: 6408,
     UNSIGNED_BYTE: 5121,
+    UNPACK_FLIP_Y_WEBGL: 37440,
 
     viewport: vi.fn(),
+    pixelStorei: vi.fn(),
     clearColor: vi.fn(),
     clear: vi.fn(),
     createShader: vi.fn(() => ({})),
@@ -112,6 +114,12 @@ class MockOffscreenCanvas {
   getContext(type: string) {
     if (type === 'webgl' || type === 'experimental-webgl') {
       return createMockWebGLContext();
+    }
+    if (type === '2d') {
+      return {
+        clearRect: vi.fn(),
+        drawImage: vi.fn(),
+      };
     }
     return null;
   }
