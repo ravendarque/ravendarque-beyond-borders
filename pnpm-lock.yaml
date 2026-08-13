@@ -27,8 +27,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
       pnpm:
-        specifier: ^10.34.5
-        version: 10.34.5
+        specifier: ^11.21.0
+        version: 11.21.0
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2320,9 +2320,9 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  pnpm@10.34.5:
-    resolution: {integrity: sha512-pO4F8vc2WCVb1qiYWcBlpFwopX2u+uLIk6Fo7itzFow3uR6D5X6mdlStA/AwMXRkMOi84442LgQmBfuKvIAZLg==}
-    engines: {node: '>=18.12'}
+  pnpm@11.21.0:
+    resolution: {integrity: sha512-UhcFvOaJkk6scvWjWHEi82JonvZXHlW6gAdv1jfBETLs/62ib61Op5xIW/3b/T1aKlsFgFp36JPeceyKbMo7sQ==}
+    engines: {node: '>=22.13'}
     hasBin: true
 
   possible-typed-array-names@1.1.0:
@@ -2875,8 +2875,8 @@ packages:
     resolution: {integrity: sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==}
     engines: {node: '>=10'}
 
-  ws@8.21.1:
-    resolution: {integrity: sha512-+0NTnW77fFN/DjQi6k/Sq/Yvk4Sgajw7urW8V+asjXnRgDs9gyGkdb7EzgfhA4goXsRIZKE28fzIXBHEzhuiWw==}
+  ws@8.21.3:
+    resolution: {integrity: sha512-201TZ/kPWxoPr/OKWjquZR1SWKXcvxdH+e1xrx89b3YbmzLMFCLfnaG1HFIgWzJOEWZ7MvpK++odZufgYR50Rw==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -4937,7 +4937,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.2.0
-      ws: 8.21.1
+      ws: 8.21.3
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -5144,7 +5144,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  pnpm@10.34.5: {}
+  pnpm@11.21.0: {}
 
   possible-typed-array-names@1.1.0: {}
 
@@ -5811,7 +5811,7 @@ snapshots:
       string-width: 4.2.3
       strip-ansi: 6.0.1
 
-  ws@8.21.1:
+  ws@8.21.3:
     optional: true
 
   xml-name-validator@5.0.0:
