@@ -1,5 +1,14 @@
 // Vitest setup: jsdom polyfills and canvas mocks
 
+import { afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
+
+// Explicit React Testing Library cleanup between tests. RTL normally auto-registers this via
+// its own afterEach when it detects a global test runner, but that detection isn't reliably
+// firing here - without it, a still-settling async effect from one test's renderHook() can
+// overlap with the next test's, surfacing as React's "Should not already be working" error.
+afterEach(cleanup);
+
 // Suppress known noisy console output in tests (we fix the causes where possible)
 function filterNoise(fn: (...args: unknown[]) => void): (...args: unknown[]) => void {
   return (...args: unknown[]) => {
