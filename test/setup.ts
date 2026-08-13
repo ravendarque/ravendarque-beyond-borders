@@ -75,20 +75,23 @@ class MockOffscreenCanvas {
   }
 }
 
+// Always use our own OffscreenCanvas/createImageBitmap mocks, unconditionally - never fall
+// through to whatever the DOM environment happens to provide. happy-dom didn't implement
+// either API at all through 20.0.11 (so a `typeof === 'undefined'` guard worked fine then),
+// but 20.11.2 added its own versions of both that don't suit this suite's needs: its
+// createImageBitmap doesn't accept Blob sources at all despite its error message claiming to
+// (a gap in happy-dom, not a spec requirement we're working around), and its OffscreenCanvas's
+// 2D context needs the optional `canvas` npm package (not installed here) to actually work,
+// so getContext('2d') returns null without it. None of these tests need real pixel decoding -
+// see imageBitmapFromDataUrl's own comment in test/unit/renderer.test.ts.
 // @ts-ignore
-if (typeof (globalThis as any).OffscreenCanvas === 'undefined') {
-  // @ts-ignore
-  (globalThis as any).OffscreenCanvas = MockOffscreenCanvas;
-}
+(globalThis as any).OffscreenCanvas = MockOffscreenCanvas;
 
-// createImageBitmap is not in jsdom; provide a minimal stub for tests that don't rely on real pixels
-if (typeof (globalThis as any).createImageBitmap === 'undefined') {
-  (globalThis as any).createImageBitmap = async (_blob: Blob) => {
-    // Minimal stub: return an object with width/height only. Our renderer reads width/height and uses drawImage
-    // on OffscreenCanvas, which we mock above.
-    return { width: 32, height: 32 } as any;
-  };
-}
+(globalThis as any).createImageBitmap = async (_blob: Blob) => {
+  // Minimal stub: return an object with width/height only. Our renderer reads width/height and uses drawImage
+  // on OffscreenCanvas, which we mock above.
+  return { width: 32, height: 32 } as any;
+};
 
 // ResizeObserver is not in happy-dom/jsdom; provide a minimal stub for Radix UI components
 if (typeof (globalThis as any).ResizeObserver === 'undefined') {
