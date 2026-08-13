@@ -18,11 +18,11 @@ jobs:
       - name: Check branch name
         run: |
           BRANCH="${{ github.head_ref || github.ref_name }}"
-          # Allow main, gh-pages, and feature/feat/fix/etc prefixes
-          if echo "$BRANCH" | grep -qE '^(main|gh-pages)$|^(feature|feat|fix|hotfix|refactor|test|docs|style|perf|chore|ci)/'; then
+          # Allow main, gh-pages, feature/feat/fix/etc prefixes, and Dependabot's own naming
+          if echo "$BRANCH" | grep -qE '^(main|gh-pages)$|^(feature|feat|fix|hotfix|refactor|test|docs|style|perf|chore|ci|dependabot)/'; then
             echo "✅ Branch name OK: $BRANCH"
             exit 0
           fi
-          echo "::error::Branch name must match: main, gh-pages, or (feature|feat|fix|hotfix|refactor|test|docs|style|perf|chore|ci)/<name>"
+          echo "::error::Branch name must match: main, gh-pages, or (feature|feat|fix|hotfix|refactor|test|docs|style|perf|chore|ci|dependabot)/<name>"
           echo "Current branch: $BRANCH"
           exit 1
