@@ -69,7 +69,12 @@ describe('useStepTransitions', () => {
       src: '',
     };
 
-    vi.spyOn(window, 'Image').mockImplementation(() => mockImage as any);
+    // Must be a `function`, not an arrow function - the hook calls `new Image()`, and
+    // vitest 4 correctly rejects `new` on an arrow-function mock implementation (real JS
+    // semantics; vitest 3's mock invocation was more lenient about this).
+    vi.spyOn(window, 'Image').mockImplementation(function () {
+      return mockImage as any;
+    });
 
     renderHook(() =>
       useStepTransitions({

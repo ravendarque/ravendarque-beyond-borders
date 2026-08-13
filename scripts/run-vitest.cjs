@@ -17,7 +17,13 @@ if (major >= 25) {
     .join(' ');
 }
 
-const vitestEntry = require.resolve('vitest/vitest.mjs', { paths: [process.cwd()] });
+// Resolve vitest's CLI entry via its own declared `bin` field rather than a hardcoded
+// subpath - vitest 4 dropped './vitest.mjs' from its package.json `exports` map (the file
+// itself still exists, just no longer resolvable via require.resolve('vitest/vitest.mjs')).
+const vitestPkgPath = require.resolve('vitest/package.json', { paths: [process.cwd()] });
+const vitestPkg = require(vitestPkgPath);
+const binRelative = typeof vitestPkg.bin === 'string' ? vitestPkg.bin : vitestPkg.bin.vitest;
+const vitestEntry = path.join(path.dirname(vitestPkgPath), binRelative);
 const result = spawnSync(process.execPath, [vitestEntry, ...process.argv.slice(2)], {
   stdio: 'inherit',
   env,
