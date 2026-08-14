@@ -88,6 +88,7 @@ const createMockWebGLContext = () => {
     enableVertexAttribArray: vi.fn(),
     vertexAttribPointer: vi.fn(),
     drawArrays,
+    finish: vi.fn(),
     createFramebuffer: vi.fn(() => ({})),
     bindFramebuffer: vi.fn(),
     framebufferTexture2D: vi.fn(),
