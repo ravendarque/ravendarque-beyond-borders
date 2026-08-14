@@ -226,6 +226,13 @@ test.describe('Download Matches Preview', () => {
       return [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]];
     });
 
+    // TEMP DIAGNOSTIC
+    // eslint-disable-next-line no-console
+    console.log(
+      'DIAGNOSTIC_CUTOUT',
+      JSON.stringify({ angles, samples, dims: [info.width, info.height] }),
+    );
+
     for (const [, , , a] of samples) {
       // Not fully transparent (rules out the texture-delete-before-draw regression producing
       // a wrong flagUV that falls out of the shader's [0,1] sample bounds everywhere)
@@ -303,6 +310,19 @@ test.describe('Download Matches Preview', () => {
     const { data, info } = await sharp(downloadPath).raw().toBuffer({ resolveWithObject: true });
     const downloadSamples = relPoints.map(([fx, fy]) =>
       samplePixel(data, info, fx * info.width, fy * info.height),
+    );
+
+    // TEMP DIAGNOSTIC: dump full sample data regardless of pass/fail, to root-cause a
+    // webkit-only failure without a local webkit to reproduce against.
+    // eslint-disable-next-line no-console
+    console.log(
+      'DIAGNOSTIC',
+      JSON.stringify({
+        relPoints,
+        previewSamples,
+        downloadSamples,
+        dims: [info.width, info.height],
+      }),
     );
 
     for (let i = 0; i < relPoints.length; i++) {
