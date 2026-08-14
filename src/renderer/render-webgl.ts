@@ -195,6 +195,15 @@ export async function renderAvatarWebGL(
   gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
+  // Block until the GPU has actually finished executing the draw, not just accepted it into
+  // the command queue. With preserveDrawingBuffer: false (set in createWebGLContext), reading
+  // the canvas back immediately after drawArrays() is only safe once the draw is truly
+  // complete — Chromium tolerates the implicit ordering, but WebKit does not: without this,
+  // canvasToBlob() below can read back an incomplete/stale buffer (observed as fully
+  // transparent or stale-frame pixels in exported PNGs on WebKit specifically). This is a
+  // one-shot export call, not the 60fps live-preview loop, so the blocking cost here is fine.
+  gl.finish();
+
   // Convert canvas to blob
   const pngQuality = options.pngQuality ?? 0.92;
   const blob = await canvasToBlob(canvas, 'image/png', pngQuality);
