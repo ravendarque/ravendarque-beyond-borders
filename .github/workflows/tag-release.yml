@@ -25,13 +25,13 @@ jobs:
         run: git fetch --tags
 
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.15
+        uses: gittools/actions/gitversion/setup@v4.7.0
         with:
           versionSpec: '5.x'
 
       - name: Calculate version with GitVersion
         id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.9.15
+        uses: gittools/actions/gitversion/execute@v4.7.0
 
       - name: Determine if tag should be created
         id: version
