@@ -52,7 +52,13 @@ export async function renderAvatarWebGL(
 
   // Create canvas for WebGL rendering (Safari/WebKit-safe fallback)
   const canvas = createRenderCanvas(canvasW, canvasH);
-  const gl = createWebGLContext(canvas);
+  // preserveDrawingBuffer: true — this context's only readback is the async canvasToBlob()
+  // call below, which crosses an await boundary after the draw call. On WebKit specifically,
+  // the drawing buffer can be discarded at that boundary when this is left false (its default,
+  // fine for live-renderer.ts's synchronous transferToImageBitmap() readback), producing a
+  // fully blank export. Confirmed via CI diagnostics: every sampled pixel came back [0,0,0,0]
+  // on webkit/webkit-mobile only, while the live preview rendered correctly in the same run.
+  const gl = createWebGLContext(canvas, true);
 
   if (!gl) {
     throw new Error('Failed to create WebGL context');
@@ -196,12 +202,11 @@ export async function renderAvatarWebGL(
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
   // Block until the GPU has actually finished executing the draw, not just accepted it into
-  // the command queue. With preserveDrawingBuffer: false (set in createWebGLContext), reading
-  // the canvas back immediately after drawArrays() is only safe once the draw is truly
-  // complete — Chromium tolerates the implicit ordering, but WebKit does not: without this,
-  // canvasToBlob() below can read back an incomplete/stale buffer (observed as fully
-  // transparent or stale-frame pixels in exported PNGs on WebKit specifically). This is a
-  // one-shot export call, not the 60fps live-preview loop, so the blocking cost here is fine.
+  // the command queue, before the async canvasToBlob() readback below. This alone did not
+  // fix the WebKit blank-export bug (see createWebGLContext(canvas, true) above for the actual
+  // fix) — the real cause was the drawing buffer being discarded at the await boundary, not
+  // GPU command completion — but it's cheap insurance against a genuinely incomplete draw on
+  // a one-shot export call, so it stays.
   gl.finish();
 
   // Convert canvas to blob

@@ -5,14 +5,23 @@
 
 /**
  * Create a WebGL context with proper fallback to WebGL 1 if WebGL 2 is not available
+ *
+ * @param preserveDrawingBuffer - Defaults to false (lets the browser discard the drawing
+ * buffer after presentation, cheaper for a persistent 60fps renderer that reads back
+ * synchronously via transferToImageBitmap). Pass true for one-shot contexts that read back
+ * asynchronously (e.g. canvas.convertToBlob()) - on WebKit specifically, the buffer can be
+ * cleared at the await boundary between the draw call and the async readback when this is
+ * false, producing a fully blank (all-zero) result. transferToImageBitmap() is synchronous
+ * so it never crosses that boundary and isn't affected.
  */
 export function createWebGLContext(
   canvas: HTMLCanvasElement | OffscreenCanvas,
+  preserveDrawingBuffer = false,
 ): WebGLRenderingContext | null {
   const contextOptions = {
     alpha: true,
     premultipliedAlpha: false,
-    preserveDrawingBuffer: false,
+    preserveDrawingBuffer,
     antialias: true,
   };
 
