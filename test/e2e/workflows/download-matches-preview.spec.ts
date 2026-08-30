@@ -128,13 +128,18 @@ test.describe('Download Matches Preview', () => {
       Math.abs(topLeftPixel[0] - GREEN_MARKER[0]) <= 40 &&
       Math.abs(topLeftPixel[1] - GREEN_MARKER[1]) <= 40 &&
       Math.abs(topLeftPixel[2] - GREEN_MARKER[2]) <= 40;
-    // TEMP DIAGNOSTIC: preserveDrawingBuffer fix (becb1dd) didn't resolve this on webkit -
-    // dumping raw sampled pixels to see whether the export is still fully blank or something
-    // else now that the previous hypothesis has been tried.
+    // TEMP DIAGNOSTIC V3: V2 showed the exact center pixel reads correctly on webkit but a
+    // point at 25% from top-left reads as [0,0,0] - center works, periphery doesn't. Sample a
+    // radial profile out from center along the +x axis to find exactly where it breaks, to
+    // tell a canvas-size/viewport limitation apart from a masking/geometry bug.
+    const radialProfile = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.49].map((frac) => ({
+      frac,
+      px: samplePixel(data, info, centerX + frac * info.width, centerY),
+    }));
     // eslint-disable-next-line no-console
     console.log(
-      'DIAGNOSTIC_V2',
-      JSON.stringify({ centerPixel, topLeftPixel, dims: [info.width, info.height] }),
+      'DIAGNOSTIC_V3',
+      JSON.stringify({ centerPixel, topLeftPixel, radialProfile, dims: [info.width, info.height] }),
     );
     expect(isBackgroundOrCorner || isGreen).toBe(true);
   });
