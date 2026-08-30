@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderAvatarWebGL } from '@/renderer/render-webgl';
 import type { FlagSpec } from '@/flags/schema';
 import type { RenderOptions } from '@/renderer/render';
@@ -414,17 +414,28 @@ describe('renderAvatarWebGL', () => {
     });
   });
 
-  // EXPERIMENT: temporarily skipped while render-webgl.ts trials forcing WebGL1 at native
-  // export resolution (no downscale/upscale) to test whether the WebKit blank-periphery bug is
-  // actually a WebGL2-on-WebKit issue rather than a large-canvas issue. These tests lock in the
-  // downscale/upscale behavior this experiment removes - re-enable (and revert the experiment)
-  // if the WebGL1 approach doesn't pan out in CI.
-  describe.skip('High-Res Export Upscaling', () => {
+  describe('High-Res Export Upscaling (WebKit only)', () => {
     // Regression test for a WebKit-only bug: an OffscreenCanvas+WebGL context at 1024px only
     // rendered/read back correctly within a small central region (confirmed via a radial pixel
-    // sample profile in CI - correct out to ~20% of the radius, solid black beyond). The fix
-    // renders the WebGL pass at a fixed safe size and upscales onto a plain 2D canvas for
-    // larger requested sizes, rather than creating the WebGL context at the full export size.
+    // sample profile in CI - correct out to ~20% of the radius, solid black beyond). Reproduced
+    // identically under forced WebGL1 at native resolution, ruling out a WebGL2-specific path -
+    // it's a genuine WebKit large-canvas limitation, not something fixable in how the API is
+    // used. Chromium/Firefox never exhibit it, so the downscale/upscale below is scoped to
+    // WebKit via isWebKitEngine() rather than applied universally.
+    const SAFARI_UA =
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15';
+    const originalUserAgent = navigator.userAgent;
+
+    beforeEach(() => {
+      Object.defineProperty(navigator, 'userAgent', { value: SAFARI_UA, configurable: true });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: originalUserAgent,
+        configurable: true,
+      });
+    });
 
     it('creates the WebGL canvas at the safe internal size, not the requested export size', async () => {
       renderOptions.size = 1024;
@@ -501,6 +512,34 @@ describe('renderAvatarWebGL', () => {
       expect(imageDraw.dy).toBeCloseTo(77.2, 5);
       expect(imageDraw.dw).toBeCloseTo(407.6, 5);
       expect(imageDraw.dh).toBeCloseTo(407.6, 5);
+    });
+  });
+
+  describe('High-Res Export on non-WebKit engines', () => {
+    // Companion regression test: Chromium/Firefox never showed the WebKit large-canvas bug, so
+    // they must render at the full requested size directly - no downscale, no upscale, no
+    // quality loss. Only WebKit should pay for the workaround above.
+    it('renders directly at the requested export size with no upscale canvas', async () => {
+      renderOptions.size = 1024;
+      await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      expect(constructedCanvasSizes[0]).toEqual({ width: 1024, height: 1024 });
+      expect(constructedCanvasSizes.every((c) => c.width === 1024 && c.height === 1024)).toBe(true);
+    });
+
+    it('does not scale imageOffsetPx away from the requested values', async () => {
+      renderOptions.size = 1024;
+      renderOptions.thicknessPct = 10;
+      renderOptions.imageOffsetPx = { x: 100, y: 50 };
+      await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      const imageDraw = drawImageCalls[0];
+      // No offsetScale applied (internalSize === outputW), so imageOffsetPx is used exactly as
+      // requested - not scaled down, and not the halved values from the WebKit-path test above.
+      expect(imageDraw.dx).toBeCloseTo(203.4, 5);
+      expect(imageDraw.dy).toBeCloseTo(153.4, 5);
+      expect(imageDraw.dw).toBeCloseTo(817.2, 5);
+      expect(imageDraw.dh).toBeCloseTo(817.2, 5);
     });
   });
 });

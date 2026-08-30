@@ -15,6 +15,7 @@
  * Falls back to Canvas 2D on browsers without WebGL support (< 4% of users).
  */
 
+import { RENDER_SIZES } from '@/constants';
 import type { FlagSpec } from '../flags/schema';
 import type { RenderOptions, RenderResult } from './render';
 import {
@@ -22,6 +23,7 @@ import {
   computeImageDrawRect,
   createCanvas,
   createRenderCanvas,
+  isWebKitEngine,
 } from './canvas-utils';
 import {
   createWebGLContext,
@@ -50,19 +52,19 @@ export async function renderAvatarWebGL(
   const outputW = options.size;
   const outputH = options.size;
 
-  // Render internally at a fixed, proven-safe resolution and upscale afterward, rather than
-  // creating the WebGL context at the full requested export size. On WebKit specifically, an
-  // OffscreenCanvas+WebGL context at 1024px only renders/reads back correctly within a small
-  // central region — confirmed via CI diagnostics: a radial pixel sample profile on a 1024px
-  // export showed correct content out to ~20% of the radius from center, then solid black
-  // everywhere beyond that, on webkit/webkit-mobile only (chromium/firefox unaffected). 512 is
-  // exactly what LiveAvatarRenderer already uses for the live preview every single frame with
-  // zero issues, so it's a known-safe upper bound, not a guess.
-  // EXPERIMENT (temporary): testing whether forcing WebGL1 alone fixes the WebKit bug at full
-  // native resolution, which would let us drop the downscale/upscale entirely (no quality
-  // loss). If this doesn't pan out, revert to Math.min(outputW, RENDER_SIZES.STANDARD) and
-  // restore `import { RENDER_SIZES } from '@/constants';` above.
-  const internalSize = outputW;
+  // On WebKit specifically, an OffscreenCanvas+WebGL context at 1024px only renders/reads back
+  // correctly within a small central region — confirmed via CI diagnostics: a radial pixel
+  // sample profile on a 1024px export showed correct content out to ~20-25% of the radius from
+  // center, then solid black everywhere beyond that. This reproduces identically under forced
+  // WebGL1 at native resolution (ruling out a WebGL2-specific code path — all shaders here are
+  // WebGL1-compatible GLSL and use no WebGL2-only API), so it's a genuine WebKit large-canvas
+  // limitation, not something in how we're using the API. Chromium and Firefox never exhibit
+  // this. Rather than penalize every engine with the downscale/upscale, render internally at a
+  // fixed, proven-safe resolution and upscale afterward on WebKit only — 512 is exactly what
+  // LiveAvatarRenderer already uses for the live preview every single frame with zero issues,
+  // so it's a known-safe upper bound, not a guess. Chromium/Firefox render at the full
+  // requested size directly, with no upscale and no quality loss.
+  const internalSize = isWebKitEngine() ? Math.min(outputW, RENDER_SIZES.STANDARD) : outputW;
   const canvasW = internalSize;
   const canvasH = internalSize;
 
@@ -74,7 +76,7 @@ export async function renderAvatarWebGL(
   // fine for live-renderer.ts's synchronous transferToImageBitmap() readback), producing a
   // fully blank export. This alone didn't fix the bug above (that's the internalSize clamp),
   // but it's a real, separate hazard for an async-readback context, so it stays regardless.
-  const gl = createWebGLContext(canvas, true, true);
+  const gl = createWebGLContext(canvas, true);
 
   if (!gl) {
     throw new Error('Failed to create WebGL context');

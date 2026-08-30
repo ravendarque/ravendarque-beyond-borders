@@ -17,7 +17,6 @@
 export function createWebGLContext(
   canvas: HTMLCanvasElement | OffscreenCanvas,
   preserveDrawingBuffer = false,
-  preferWebGL1 = false,
 ): WebGLRenderingContext | null {
   const contextOptions = {
     alpha: true,
@@ -25,15 +24,6 @@ export function createWebGLContext(
     preserveDrawingBuffer,
     antialias: true,
   };
-
-  // EXPERIMENT: preferWebGL1 tries 'webgl' before 'webgl2'. All shaders here are written in
-  // WebGL1-compatible GLSL (attribute/varying, not in/out) and nothing calls a WebGL2-only API
-  // - WebGL2 was requested purely opportunistically, never actually required. Testing whether
-  // WebKit's blank-periphery bug on a large OffscreenCanvas is specific to its WebGL2 path.
-  if (preferWebGL1) {
-    const gl1 = canvas.getContext('webgl', contextOptions) as WebGLRenderingContext | null;
-    if (gl1) return gl1;
-  }
 
   // Try WebGL 2 first (better performance, more features)
   let gl: WebGLRenderingContext | WebGL2RenderingContext | null = canvas.getContext(
