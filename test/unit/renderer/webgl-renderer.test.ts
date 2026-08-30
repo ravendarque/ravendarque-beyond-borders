@@ -102,6 +102,11 @@ const createMockWebGLContext = () => {
   return gl as unknown as WebGLRenderingContext;
 };
 
+// Every OffscreenCanvas constructed, in order - lets tests assert what sizes were actually
+// used to create canvases (e.g. that the WebGL canvas stays at the safe internal size even
+// when a larger export size is requested).
+let constructedCanvasSizes: Array<{ width: number; height: number }> = [];
+
 // Mock OffscreenCanvas
 class MockOffscreenCanvas {
   width: number;
@@ -110,6 +115,7 @@ class MockOffscreenCanvas {
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
+    constructedCanvasSizes.push({ width, height });
   }
 
   getContext(type: string) {
@@ -141,6 +147,7 @@ describe('renderAvatarWebGL', () => {
   beforeEach(() => {
     callLog = [];
     textureIdCounter = 0;
+    constructedCanvasSizes = [];
 
     // Mock ImageBitmap
     mockImage = {
@@ -394,6 +401,48 @@ describe('renderAvatarWebGL', () => {
       const result = await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
 
       expect(result.blob).toBeInstanceOf(Blob);
+    });
+  });
+
+  describe('High-Res Export Upscaling', () => {
+    // Regression test for a WebKit-only bug: an OffscreenCanvas+WebGL context at 1024px only
+    // rendered/read back correctly within a small central region (confirmed via a radial pixel
+    // sample profile in CI - correct out to ~20% of the radius, solid black beyond). The fix
+    // renders the WebGL pass at a fixed safe size and upscales onto a plain 2D canvas for
+    // larger requested sizes, rather than creating the WebGL context at the full export size.
+
+    it('creates the WebGL canvas at the safe internal size, not the requested export size', async () => {
+      renderOptions.size = 1024;
+      await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      // First canvas constructed is the WebGL one - must stay at 512 even though a 1024
+      // export was requested.
+      expect(constructedCanvasSizes[0]).toEqual({ width: 512, height: 512 });
+    });
+
+    it('upscales onto a second canvas at the full requested size for a 1024 export', async () => {
+      renderOptions.size = 1024;
+      await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      const outputSizedCanvas = constructedCanvasSizes.find((c) => c.width === 1024);
+      expect(outputSizedCanvas).toEqual({ width: 1024, height: 1024 });
+    });
+
+    it('does not create an upscale canvas when the requested size already matches the safe internal size', async () => {
+      renderOptions.size = 512;
+      await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      // The WebGL canvas and the image pre-processing canvas are both expected at 512 - no
+      // extra upscale-sized canvas since the requested size already equals the internal size.
+      expect(constructedCanvasSizes.every((c) => c.width === 512 && c.height === 512)).toBe(true);
+    });
+
+    it('still produces a valid blob for a 1024 export', async () => {
+      renderOptions.size = 1024;
+      const result = await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      expect(result.blob).toBeInstanceOf(Blob);
+      expect(result.sizeBytes).toBeGreaterThan(0);
     });
   });
 });

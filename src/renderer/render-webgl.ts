@@ -15,6 +15,7 @@
  * Falls back to Canvas 2D on browsers without WebGL support (< 4% of users).
  */
 
+import { RENDER_SIZES } from '@/constants';
 import type { FlagSpec } from '../flags/schema';
 import type { RenderOptions, RenderResult } from './render';
 import {
@@ -47,8 +48,20 @@ export async function renderAvatarWebGL(
   flag: FlagSpec,
   options: RenderOptions,
 ): Promise<RenderResult> {
-  const canvasW = options.size;
-  const canvasH = options.size;
+  const outputW = options.size;
+  const outputH = options.size;
+
+  // Render internally at a fixed, proven-safe resolution and upscale afterward, rather than
+  // creating the WebGL context at the full requested export size. On WebKit specifically, an
+  // OffscreenCanvas+WebGL context at 1024px only renders/reads back correctly within a small
+  // central region — confirmed via CI diagnostics: a radial pixel sample profile on a 1024px
+  // export showed correct content out to ~20% of the radius from center, then solid black
+  // everywhere beyond that, on webkit/webkit-mobile only (chromium/firefox unaffected). 512 is
+  // exactly what LiveAvatarRenderer already uses for the live preview every single frame with
+  // zero issues, so it's a known-safe upper bound, not a guess.
+  const internalSize = Math.min(outputW, RENDER_SIZES.STANDARD);
+  const canvasW = internalSize;
+  const canvasH = internalSize;
 
   // Create canvas for WebGL rendering (Safari/WebKit-safe fallback)
   const canvas = createRenderCanvas(canvasW, canvasH);
@@ -56,8 +69,8 @@ export async function renderAvatarWebGL(
   // call below, which crosses an await boundary after the draw call. On WebKit specifically,
   // the drawing buffer can be discarded at that boundary when this is left false (its default,
   // fine for live-renderer.ts's synchronous transferToImageBitmap() readback), producing a
-  // fully blank export. Confirmed via CI diagnostics: every sampled pixel came back [0,0,0,0]
-  // on webkit/webkit-mobile only, while the live preview rendered correctly in the same run.
+  // fully blank export. This alone didn't fix the bug above (that's the internalSize clamp),
+  // but it's a real, separate hazard for an async-readback context, so it stays regardless.
   const gl = createWebGLContext(canvas, true);
 
   if (!gl) {
@@ -202,16 +215,28 @@ export async function renderAvatarWebGL(
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
   // Block until the GPU has actually finished executing the draw, not just accepted it into
-  // the command queue, before the async canvasToBlob() readback below. This alone did not
-  // fix the WebKit blank-export bug (see createWebGLContext(canvas, true) above for the actual
-  // fix) — the real cause was the drawing buffer being discarded at the await boundary, not
-  // GPU command completion — but it's cheap insurance against a genuinely incomplete draw on
-  // a one-shot export call, so it stays.
+  // the command queue, before the async canvasToBlob() readback below. Cheap insurance against
+  // a genuinely incomplete draw on a one-shot export call; the WebKit blank-export bug itself
+  // turned out to be the internalSize clamp above, not this.
   gl.finish();
+
+  // If the requested export size is larger than the safe internal render size, upscale onto a
+  // plain 2D canvas at the actual requested size before encoding. Keeps the WebGL context
+  // itself within the size WebKit handles correctly while still producing a full-resolution
+  // export — a 2D canvas drawImage upscale is universally supported, unlike the WebGL context
+  // size itself.
+  let outputCanvas: OffscreenCanvas | HTMLCanvasElement = canvas;
+  if (outputW !== internalSize) {
+    const { canvas: scaledCanvas, ctx: scaledCtx } = createCanvas(outputW, outputH);
+    scaledCtx.imageSmoothingEnabled = true;
+    scaledCtx.imageSmoothingQuality = 'high';
+    scaledCtx.drawImage(canvas, 0, 0, outputW, outputH);
+    outputCanvas = scaledCanvas;
+  }
 
   // Convert canvas to blob
   const pngQuality = options.pngQuality ?? 0.92;
-  const blob = await canvasToBlob(canvas, 'image/png', pngQuality);
+  const blob = await canvasToBlob(outputCanvas, 'image/png', pngQuality);
 
   // Cleanup AFTER the draw — deleting before drawArrays would rebind the unit to the
   // default 1×1 black texture (WebGL spec), causing incorrect rendering. This is a
