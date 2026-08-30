@@ -128,6 +128,14 @@ test.describe('Download Matches Preview', () => {
       Math.abs(topLeftPixel[0] - GREEN_MARKER[0]) <= 40 &&
       Math.abs(topLeftPixel[1] - GREEN_MARKER[1]) <= 40 &&
       Math.abs(topLeftPixel[2] - GREEN_MARKER[2]) <= 40;
+    // TEMP DIAGNOSTIC: preserveDrawingBuffer fix (becb1dd) didn't resolve this on webkit -
+    // dumping raw sampled pixels to see whether the export is still fully blank or something
+    // else now that the previous hypothesis has been tried.
+    // eslint-disable-next-line no-console
+    console.log(
+      'DIAGNOSTIC_V2',
+      JSON.stringify({ centerPixel, topLeftPixel, dims: [info.width, info.height] }),
+    );
     expect(isBackgroundOrCorner || isGreen).toBe(true);
   });
 
@@ -225,6 +233,15 @@ test.describe('Download Matches Preview', () => {
       const idx = info.channels * (info.width * y + x);
       return [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]];
     });
+
+    // TEMP DIAGNOSTIC: preserveDrawingBuffer fix (becb1dd) didn't resolve this on webkit -
+    // dumping raw sampled pixels to see whether the export is still fully blank or something
+    // else now that the previous hypothesis has been tried.
+    // eslint-disable-next-line no-console
+    console.log(
+      'DIAGNOSTIC_CUTOUT_V2',
+      JSON.stringify({ angles, samples, dims: [info.width, info.height] }),
+    );
 
     for (const [, , , a] of samples) {
       // Not fully transparent (rules out the texture-delete-before-draw regression producing
