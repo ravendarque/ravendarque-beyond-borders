@@ -109,6 +109,10 @@ const createMockWebGLContext = () => {
 // used to create canvases (e.g. that the WebGL canvas stays at the safe internal size even
 // when a larger export size is requested).
 let constructedCanvasSizes: Array<{ width: number; height: number }> = [];
+// Every 2D drawImage() call, in order, across every 2D context created (image pre-render onto
+// the internal canvas, and the upscale pass onto the output-sized canvas) - lets tests assert
+// exactly where the image was drawn, e.g. that an offset gets scaled to internal-canvas space.
+let drawImageCalls: Array<{ dx: number; dy: number; dw: number; dh: number }> = [];
 
 // Mock OffscreenCanvas
 class MockOffscreenCanvas {
@@ -128,7 +132,9 @@ class MockOffscreenCanvas {
     if (type === '2d') {
       return {
         clearRect: vi.fn(),
-        drawImage: vi.fn(),
+        drawImage: vi.fn((_img: unknown, dx: number, dy: number, dw: number, dh: number) => {
+          drawImageCalls.push({ dx, dy, dw, dh });
+        }),
       };
     }
     return null;
@@ -151,6 +157,7 @@ describe('renderAvatarWebGL', () => {
     callLog = [];
     textureIdCounter = 0;
     constructedCanvasSizes = [];
+    drawImageCalls = [];
 
     // Mock ImageBitmap
     mockImage = {
@@ -467,6 +474,28 @@ describe('renderAvatarWebGL', () => {
 
       expect(outerRadiusCall?.args[1]).toBeCloseTo(255, 5); // 512/2 - max(1, 0)
       expect(innerRadiusCall?.args[1]).toBeCloseTo(203.8, 5); // 255 - (10% of 512)
+    });
+
+    it('scales imageOffsetPx to the internal canvas, not the requested export size', async () => {
+      // Regression test for a real bug found via a real downloaded avatar: useAvatarRenderer.ts
+      // computes imageOffsetPx as an absolute pixel offset scaled for a canvas of options.size
+      // (1024 for a HIGH_RES export) - the size it assumed renderAvatarWebGL would render at.
+      // Left unscaled against the new smaller internal canvas, the image lands shifted by the
+      // difference between the two sizes (visibly: image not filling the ring, offset toward
+      // one edge, exactly as reported). thicknessPct: 10, no circleSize/originalImageDimensions
+      // set (mockImage is already 512x512, so the cover-scale fallback is exact) should give
+      // these values; the unscaled (buggy) offset would be exactly double (100/50 instead of
+      // 50/25), landing dx/dy 50px off in each axis.
+      renderOptions.size = 1024;
+      renderOptions.thicknessPct = 10;
+      renderOptions.imageOffsetPx = { x: 100, y: 50 };
+      await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      const imageDraw = drawImageCalls[0];
+      expect(imageDraw.dx).toBeCloseTo(102.2, 5);
+      expect(imageDraw.dy).toBeCloseTo(77.2, 5);
+      expect(imageDraw.dw).toBeCloseTo(407.6, 5);
+      expect(imageDraw.dh).toBeCloseTo(407.6, 5);
     });
   });
 });

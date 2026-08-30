@@ -117,8 +117,28 @@ export async function renderAvatarWebGL(
   // ignoring Step 1's position/zoom entirely. Mirrors live-renderer.ts's preRenderImage, minus
   // the Y-flip that's only needed to cancel out transferToImageBitmap()'s own flip on that path
   // — this one goes straight to canvasToBlob, so no compensating flip is needed here.
+  // useAvatarRenderer.ts computes imageOffsetPx as an absolute pixel offset scaled for a
+  // canvas of options.size (outputW) — the size it assumed renderAvatarWebGL would actually
+  // render at. Now that rendering happens on the smaller internal canvas, that offset has to
+  // be scaled down to match, or the image lands shifted by the difference between the two
+  // sizes (visible as the image not filling the ring, offset toward one edge). circleSize and
+  // originalImageDimensions don't need this — computeImageDrawRect only ever uses them in a
+  // ratio against canvasSize/imageRadius (both already in internal-canvas space), so they stay
+  // resolution-independent on their own.
+  const offsetScale = canvasW / outputW;
+  const scaledOptions =
+    offsetScale === 1
+      ? options
+      : {
+          ...options,
+          imageOffsetPx: {
+            x: (options.imageOffsetPx?.x ?? 0) * offsetScale,
+            y: (options.imageOffsetPx?.y ?? 0) * offsetScale,
+          },
+        };
+
   const { canvas: imageCanvas, ctx: imageCtx } = createCanvas(canvasW, canvasH);
-  const { dx, dy, dw, dh } = computeImageDrawRect(image, canvasW, imageRadius, options);
+  const { dx, dy, dw, dh } = computeImageDrawRect(image, canvasW, imageRadius, scaledOptions);
   imageCtx.clearRect(0, 0, canvasW, canvasH);
   imageCtx.drawImage(image, dx, dy, dw, dh);
 
