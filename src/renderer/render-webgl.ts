@@ -15,7 +15,6 @@
  * Falls back to Canvas 2D on browsers without WebGL support (< 4% of users).
  */
 
-import { RENDER_SIZES } from '@/constants';
 import type { FlagSpec } from '../flags/schema';
 import type { RenderOptions, RenderResult } from './render';
 import {
@@ -59,7 +58,11 @@ export async function renderAvatarWebGL(
   // everywhere beyond that, on webkit/webkit-mobile only (chromium/firefox unaffected). 512 is
   // exactly what LiveAvatarRenderer already uses for the live preview every single frame with
   // zero issues, so it's a known-safe upper bound, not a guess.
-  const internalSize = Math.min(outputW, RENDER_SIZES.STANDARD);
+  // EXPERIMENT (temporary): testing whether forcing WebGL1 alone fixes the WebKit bug at full
+  // native resolution, which would let us drop the downscale/upscale entirely (no quality
+  // loss). If this doesn't pan out, revert to Math.min(outputW, RENDER_SIZES.STANDARD) and
+  // restore `import { RENDER_SIZES } from '@/constants';` above.
+  const internalSize = outputW;
   const canvasW = internalSize;
   const canvasH = internalSize;
 
@@ -71,7 +74,7 @@ export async function renderAvatarWebGL(
   // fine for live-renderer.ts's synchronous transferToImageBitmap() readback), producing a
   // fully blank export. This alone didn't fix the bug above (that's the internalSize clamp),
   // but it's a real, separate hazard for an async-readback context, so it stays regardless.
-  const gl = createWebGLContext(canvas, true);
+  const gl = createWebGLContext(canvas, true, true);
 
   if (!gl) {
     throw new Error('Failed to create WebGL context');
