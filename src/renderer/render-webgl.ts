@@ -77,9 +77,12 @@ export async function renderAvatarWebGL(
     throw new Error('Failed to create WebGL context');
   }
 
-  // Calculate geometry
-  const padding = Math.max(1, ((options.paddingPct ?? 0) * options.size) / 100);
-  const thickness = Math.max(1, (options.thicknessPct * options.size) / 100);
+  // Calculate geometry — percentages are relative to the actual render canvas (canvasW), not
+  // the originally-requested export size (options.size). They differ whenever internalSize
+  // clamped below the request; using options.size here would size the ring against the wrong
+  // canvas, working out proportionally too thick once upscaled.
+  const padding = Math.max(1, ((options.paddingPct ?? 0) * canvasW) / 100);
+  const thickness = Math.max(1, (options.thicknessPct * canvasW) / 100);
   const cx = canvasW / 2;
   const cy = canvasH / 2;
   const r = Math.min(canvasW, canvasH) / 2;

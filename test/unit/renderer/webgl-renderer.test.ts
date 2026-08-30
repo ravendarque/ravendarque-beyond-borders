@@ -19,6 +19,9 @@ const createMockWebGLContext = () => {
   const uniform2f = vi.fn((location: any, x: number, y: number) => {
     log('uniform2f', [location?.__name, x, y]);
   });
+  const uniform1f = vi.fn((location: any, x: number) => {
+    log('uniform1f', [location?.__name, x]);
+  });
 
   // Tag createTexture results with an incrementing id so deleteTexture calls can be
   // matched back to which texture (image vs flag) was deleted.
@@ -74,7 +77,7 @@ const createMockWebGLContext = () => {
     getUniformLocation,
     getAttribLocation: vi.fn(() => 0),
     uniform1i: vi.fn(),
-    uniform1f: vi.fn(),
+    uniform1f,
     uniform2f,
     uniform3fv: vi.fn(),
     createTexture,
@@ -443,6 +446,27 @@ describe('renderAvatarWebGL', () => {
 
       expect(result.blob).toBeInstanceOf(Blob);
       expect(result.sizeBytes).toBeGreaterThan(0);
+    });
+
+    it('computes ring geometry relative to the internal canvas, not the requested export size', async () => {
+      // Regression test for a real bug hit while adding this fix: padding/thickness were left
+      // computed from options.size (the originally-requested 1024) while radius/center used
+      // the new smaller canvas (512) - the two must agree, or the ring comes out ~2x too thick
+      // relative to the actual canvas once upscaled. thicknessPct: 10 against a 512 canvas
+      // (padding defaults to 0, floored to 1) should give exactly these values, not double them.
+      renderOptions.size = 1024;
+      renderOptions.thicknessPct = 10;
+      await renderAvatarWebGL(mockImage, mockFlag, renderOptions);
+
+      const outerRadiusCall = callLog.find(
+        (c) => c.fn === 'uniform1f' && c.args[0] === 'u_ringOuterRadius',
+      );
+      const innerRadiusCall = callLog.find(
+        (c) => c.fn === 'uniform1f' && c.args[0] === 'u_ringInnerRadius',
+      );
+
+      expect(outerRadiusCall?.args[1]).toBeCloseTo(255, 5); // 512/2 - max(1, 0)
+      expect(innerRadiusCall?.args[1]).toBeCloseTo(203.8, 5); // 255 - (10% of 512)
     });
   });
 });
