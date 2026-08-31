@@ -93,7 +93,7 @@ jobs:
           git push
 
       - name: Upload build provenance artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: production-build-dist
           path: dist
