@@ -62,7 +62,7 @@
     "sharp": "^0.35.3",
     "svgo": "^4.0.2",
     "typescript": "^5.5.4",
-    "vite": "^7.1.11",
+    "vite": "^7.3.5",
     "vitest": "^4.1.11"
   },
   "packageManager": "pnpm@10.34.5"
