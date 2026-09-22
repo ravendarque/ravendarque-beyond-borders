@@ -15,6 +15,7 @@
  * Falls back to Canvas 2D on browsers without WebGL support (< 4% of users).
  */
 
+import { RENDER_SIZES } from '@/constants';
 import type { FlagSpec } from '../flags/schema';
 import type { RenderOptions, RenderResult } from './render';
 import {
@@ -22,6 +23,7 @@ import {
   computeImageDrawRect,
   createCanvas,
   createRenderCanvas,
+  isWebKitEngine,
 } from './canvas-utils';
 import {
   createWebGLContext,
@@ -47,20 +49,45 @@ export async function renderAvatarWebGL(
   flag: FlagSpec,
   options: RenderOptions,
 ): Promise<RenderResult> {
-  const canvasW = options.size;
-  const canvasH = options.size;
+  const outputW = options.size;
+  const outputH = options.size;
+
+  // On WebKit specifically, an OffscreenCanvas+WebGL context at 1024px only renders/reads back
+  // correctly within a small central region — confirmed via CI diagnostics: a radial pixel
+  // sample profile on a 1024px export showed correct content out to ~20-25% of the radius from
+  // center, then solid black everywhere beyond that. This reproduces identically under forced
+  // WebGL1 at native resolution (ruling out a WebGL2-specific code path — all shaders here are
+  // WebGL1-compatible GLSL and use no WebGL2-only API), so it's a genuine WebKit large-canvas
+  // limitation, not something in how we're using the API. Chromium and Firefox never exhibit
+  // this. Rather than penalize every engine with the downscale/upscale, render internally at a
+  // fixed, proven-safe resolution and upscale afterward on WebKit only — 512 is exactly what
+  // LiveAvatarRenderer already uses for the live preview every single frame with zero issues,
+  // so it's a known-safe upper bound, not a guess. Chromium/Firefox render at the full
+  // requested size directly, with no upscale and no quality loss.
+  const internalSize = isWebKitEngine() ? Math.min(outputW, RENDER_SIZES.STANDARD) : outputW;
+  const canvasW = internalSize;
+  const canvasH = internalSize;
 
   // Create canvas for WebGL rendering (Safari/WebKit-safe fallback)
   const canvas = createRenderCanvas(canvasW, canvasH);
-  const gl = createWebGLContext(canvas);
+  // preserveDrawingBuffer: true — this context's only readback is the async canvasToBlob()
+  // call below, which crosses an await boundary after the draw call. On WebKit specifically,
+  // the drawing buffer can be discarded at that boundary when this is left false (its default,
+  // fine for live-renderer.ts's synchronous transferToImageBitmap() readback), producing a
+  // fully blank export. This alone didn't fix the bug above (that's the internalSize clamp),
+  // but it's a real, separate hazard for an async-readback context, so it stays regardless.
+  const gl = createWebGLContext(canvas, true);
 
   if (!gl) {
     throw new Error('Failed to create WebGL context');
   }
 
-  // Calculate geometry
-  const padding = Math.max(1, ((options.paddingPct ?? 0) * options.size) / 100);
-  const thickness = Math.max(1, (options.thicknessPct * options.size) / 100);
+  // Calculate geometry — percentages are relative to the actual render canvas (canvasW), not
+  // the originally-requested export size (options.size). They differ whenever internalSize
+  // clamped below the request; using options.size here would size the ring against the wrong
+  // canvas, working out proportionally too thick once upscaled.
+  const padding = Math.max(1, ((options.paddingPct ?? 0) * canvasW) / 100);
+  const thickness = Math.max(1, (options.thicknessPct * canvasW) / 100);
   const cx = canvasW / 2;
   const cy = canvasH / 2;
   const r = Math.min(canvasW, canvasH) / 2;
@@ -95,8 +122,28 @@ export async function renderAvatarWebGL(
   // ignoring Step 1's position/zoom entirely. Mirrors live-renderer.ts's preRenderImage, minus
   // the Y-flip that's only needed to cancel out transferToImageBitmap()'s own flip on that path
   // — this one goes straight to canvasToBlob, so no compensating flip is needed here.
+  // useAvatarRenderer.ts computes imageOffsetPx as an absolute pixel offset scaled for a
+  // canvas of options.size (outputW) — the size it assumed renderAvatarWebGL would actually
+  // render at. Now that rendering happens on the smaller internal canvas, that offset has to
+  // be scaled down to match, or the image lands shifted by the difference between the two
+  // sizes (visible as the image not filling the ring, offset toward one edge). circleSize and
+  // originalImageDimensions don't need this — computeImageDrawRect only ever uses them in a
+  // ratio against canvasSize/imageRadius (both already in internal-canvas space), so they stay
+  // resolution-independent on their own.
+  const offsetScale = canvasW / outputW;
+  const scaledOptions =
+    offsetScale === 1
+      ? options
+      : {
+          ...options,
+          imageOffsetPx: {
+            x: (options.imageOffsetPx?.x ?? 0) * offsetScale,
+            y: (options.imageOffsetPx?.y ?? 0) * offsetScale,
+          },
+        };
+
   const { canvas: imageCanvas, ctx: imageCtx } = createCanvas(canvasW, canvasH);
-  const { dx, dy, dw, dh } = computeImageDrawRect(image, canvasW, imageRadius, options);
+  const { dx, dy, dw, dh } = computeImageDrawRect(image, canvasW, imageRadius, scaledOptions);
   imageCtx.clearRect(0, 0, canvasW, canvasH);
   imageCtx.drawImage(image, dx, dy, dw, dh);
 
@@ -195,9 +242,29 @@ export async function renderAvatarWebGL(
   gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
+  // Block until the GPU has actually finished executing the draw, not just accepted it into
+  // the command queue, before the async canvasToBlob() readback below. Cheap insurance against
+  // a genuinely incomplete draw on a one-shot export call; the WebKit blank-export bug itself
+  // turned out to be the internalSize clamp above, not this.
+  gl.finish();
+
+  // If the requested export size is larger than the safe internal render size, upscale onto a
+  // plain 2D canvas at the actual requested size before encoding. Keeps the WebGL context
+  // itself within the size WebKit handles correctly while still producing a full-resolution
+  // export — a 2D canvas drawImage upscale is universally supported, unlike the WebGL context
+  // size itself.
+  let outputCanvas: OffscreenCanvas | HTMLCanvasElement = canvas;
+  if (outputW !== internalSize) {
+    const { canvas: scaledCanvas, ctx: scaledCtx } = createCanvas(outputW, outputH);
+    scaledCtx.imageSmoothingEnabled = true;
+    scaledCtx.imageSmoothingQuality = 'high';
+    scaledCtx.drawImage(canvas, 0, 0, outputW, outputH);
+    outputCanvas = scaledCanvas;
+  }
+
   // Convert canvas to blob
   const pngQuality = options.pngQuality ?? 0.92;
-  const blob = await canvasToBlob(canvas, 'image/png', pngQuality);
+  const blob = await canvasToBlob(outputCanvas, 'image/png', pngQuality);
 
   // Cleanup AFTER the draw — deleting before drawArrays would rebind the unit to the
   // default 1×1 black texture (WebGL spec), causing incorrect rendering. This is a

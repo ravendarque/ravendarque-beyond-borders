@@ -34,6 +34,16 @@ export function getMaxCanvasSize(): number {
 }
 
 /**
+ * Detect whether the current engine is WebKit (desktop Safari, or any iOS browser — iOS Chrome/
+ * Firefox/etc are all WebKit under the hood per Apple's platform policy, and their UAs still
+ * contain "Safari" without "Chrome"). Used to scope WebKit-specific workarounds so Chromium and
+ * Firefox aren't penalized by them.
+ */
+export function isWebKitEngine(): boolean {
+  return getBrowserType() === 'safari';
+}
+
+/**
  * Validate that canvas dimensions are within browser limits
  * @throws Error if dimensions exceed limits
  */
